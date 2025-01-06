@@ -1,494 +1,730 @@
 - en: Bounded Kernel Density Estimation
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 有界核密度估计
 - en: 原文：[https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28](https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28](https://towardsdatascience.com/bounded-kernel-density-estimation-2082dff3f47f?source=collection_archive---------7-----------------------#2024-02-28)
 - en: '*Learn how Kernel Density Estimation works and how you can adjust it to better
     handle bounded data, like age, height, or price*'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*了解核密度估计是如何工作的，以及如何调整它以更好地处理有界数据，如年龄、身高或价格*'
 - en: '[](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[![Thomas
     Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)
     [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[![Thomas
+    Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)
+    [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--2082dff3f47f--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)
     ·9 min read·Feb 28, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[《数据科学前沿》](https://towardsdatascience.com/?source=post_page---byline--2082dff3f47f--------------------------------)
+    ·9分钟阅读·2024年2月28日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/5227621375cf4dca482a337bcfaf6180.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5227621375cf4dca482a337bcfaf6180.png)'
 - en: Photo by [Maxim Berg](https://unsplash.com/@maxberg?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自[Maxim Berg](https://unsplash.com/@maxberg?utm_source=medium&utm_medium=referral)于[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Histograms are widely used and easily grasped, but when it comes to estimating
     continuous densities, people often resort to treating it as a mysterious black
     box. However, understanding this concept is just as straightforward and becomes
     crucial, especially when dealing with bounded data like age, height, or price,
     where available libraries may not handle it automatically.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 直方图被广泛使用且易于理解，但在估计连续密度时，人们常常将其视为一个神秘的黑箱。然而，理解这个概念其实同样简单，而且尤其重要，特别是在处理像年龄、身高或价格这样的有界数据时，现有的库可能无法自动处理它。
 - en: 1\. Kernel Density Estimation
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1\. 核密度估计
 - en: Histogram
+  id: totrans-10
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 直方图
 - en: A histogram involves partitioning the data range into bins or sub-intervals
     and counting the number of samples that fall within each bin. It thus approximates
     the continuous density function with a piecewise constant function.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 直方图涉及将数据范围划分为箱子或子区间，并计算落在每个箱子中的样本数量。因此，它通过分段常数函数近似连续密度函数。
 - en: '***Large bin size***: It helps capturing the low-frequency outline of the density
     function, by gathering neighboring samples to avoid empty bins. However, it looses
     the continuity property because there could be a significant gap between the count
     of adjacent bins.'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***大的箱子大小***：有助于捕捉密度函数的低频轮廓，通过汇总邻近的样本来避免空箱子。然而，它失去了连续性，因为相邻箱子之间的计数可能会有显著差距。'
 - en: '***Small bin size***: It helps capturing details at higher frequencies. However,
     if the number of samples is too small, we’ll end up with lots of empty bins at
     places where the true density isn’t.'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '***小的箱子大小***：有助于捕捉较高频率的细节。然而，如果样本数量太小，我们可能会在真实密度不存在的地方出现大量空箱子。'
 - en: '![](../Images/fc2efc6f47353bda2c8e052fa20b6281.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc2efc6f47353bda2c8e052fa20b6281.png)'
 - en: Histogram of 100 samples drawn from a Gaussian Distribution, with increasing
     number of bins (5/10/50)— Image by the author
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 从高斯分布中抽取的100个样本的直方图，箱子数量递增（5/10/50）— 作者提供的图片
 - en: Kernel Density Estimation (KDE)
+  id: totrans-16
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 核密度估计 (KDE)
 - en: An intuitive idea is to assume that the density function from which the samples
     are drawn is smooth, and leverage it to fill-in the gaps of our high frequency
     histogram.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个直观的想法是，假设样本的密度函数是平滑的，并利用它来填补我们高频直方图中的空白。
 - en: This is precisely what the Kernel Density Estimation (KDE) does. It estimates
     the global density as the average of local density kernels K centered around each
     sample. A Kernel is a non-negative function integrating to `1`, e.g uniform, triangular,
     normal… Just like adjusting the bin size in a histogram, we introduce a bandwidth
     parameter `h` that modulates the deviation of the kernel around each sample point.
     It thus controls the smoothness of the resulting density estimate.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正是核密度估计（KDE）所做的。它通过将每个样本周围的局部密度核 K 的平均值作为全局密度进行估计。核是一个非负函数，其积分为 `1`，例如均匀、三角形、正态分布等……就像在直方图中调整箱子的大小一样，我们引入了一个带宽参数
+    `h`，它调节每个样本点周围核的偏差。因此，它控制着最终密度估计的平滑度。
 - en: '![](../Images/ac11595d755e2dce6d7d8cb08639a66e.png)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ac11595d755e2dce6d7d8cb08639a66e.png)'
 - en: Bandwith Selection
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 带宽选择
 - en: Finding the right balance between under- and over-smoothing isn’t straightforward.
     A popular and easy-to-compute heuristic is the Silverman’s rule of thumb, which
     is optimal when the underlying density being estimated is Gaussian.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 寻找合适的平衡点，在欠平滑和过度平滑之间并非易事。一个流行且易于计算的启发式方法是 Silverman 的经验法则，当估计的基础密度为高斯分布时，它是最优的。
 - en: '![](../Images/2f679c8d8847706e9df45beb35d899d9.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2f679c8d8847706e9df45beb35d899d9.png)'
 - en: Silverman’s Rule of thumb, with n the number of samples and sigma the standard
     deviation of the samples
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: Silverman 的经验法则，其中 n 是样本数量，sigma 是样本的标准差
 - en: Keep in mind that it may not always yield optimal results across all data distributions.
     I won’t discuss them in this article, but there are other alternatives and improvements
     available.
+  id: totrans-24
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 请记住，它可能并不总能在所有数据分布中得到最优结果。本文不讨论这些内容，但还有其他可用的替代方法和改进。
 - en: The image below depicts a Gaussian distribution being estimated by a gaussian
     KDE at different bandwidth values. As we can see, Silverman’s rule of thumb is
     well-suited, but higher bandwidths cause over-smoothing, while lower ones introduce
     high-frequency oscillations around the true density.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 下图展示了在不同带宽值下，通过高斯核密度估计（KDE）估计的高斯分布。正如我们所见，Silverman 的经验法则非常适用，但更高的带宽会导致过度平滑，而较低的带宽则会在真实密度周围引入高频振荡。
 - en: '![](../Images/fbaf3cf096dbb269df2384b94d1ce347.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fbaf3cf096dbb269df2384b94d1ce347.png)'
 - en: Gaussian Kernel Density Estimation from 100 samples drawn from a true gaussian
     distribution, for different bandwith parameters (0.01, 0.04, 0.10) — Image by
     the author
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 从 100 个样本中抽取的真实高斯分布进行的高斯核密度估计，使用不同的带宽参数（0.01、0.04、0.10）——图片由作者提供
 - en: Examples
+  id: totrans-28
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 示例
 - en: The video below illustrates the convergence of a Kernel Density Estimation with
     a Gaussian kernel across 4 standard density distributions as the number of provided
     samples increases.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下视频展示了随着提供的样本数量增加，使用高斯核的核密度估计在 4 个标准密度分布中的收敛过程。
 - en: Although it’s not optimal, I’ve chosen to keep a small constant bandwidth `h`
     over the video to better illustrate the process of kernel averaging, and to prevent
     excessive smoothing when the sample size is very small.
+  id: totrans-30
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 尽管这不是最优的，但我选择在视频中保持较小的常数带宽 `h`，以更好地展示核平均的过程，并在样本量非常小的时候避免过度平滑。
 - en: '![](../Images/a4e90d2578ba746cad4effc4bc365e1b.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a4e90d2578ba746cad4effc4bc365e1b.png)'
 - en: Convergence of Gaussian Kernel Density Estimation across 4 Standard Density
     Distributions (Uniform, Triangular, Gaussian, Gaussian Mixture) with Increasing
     Sample Size. — Video by the author
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着样本大小增加，高斯核密度估计在 4 个标准密度分布（均匀、三角形、高斯、高斯混合）上的收敛性——视频由作者提供
 - en: Implementation of Gaussian Kernel Density Estimation
+  id: totrans-33
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 高斯核密度估计的实现
 - en: 'Great python libraries like `scipy` and `scikit-learn` provide public implementations
     for Kernel Density Estimation:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 像`scipy`和`scikit-learn`这样的优秀 Python 库提供了核密度估计（Kernel Density Estimation）的公开实现：
 - en: '`scipy.stats.gaussian_kde`'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`scipy.stats.gaussian_kde`'
 - en: '`sklearn.neighbors.KernelDensity`'
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`sklearn.neighbors.KernelDensity`'
 - en: However, it’s valuable to note that a basic equivalent can be built in just
     three lines using `numpy`. We need the samples `x_data` drawn from the distribution
     to estimate and the points `x_prediction` at which we want to evaluate the density
     estimate. Then, using array broadcasting we can evaluate a local gaussian kernel
     around each input sample and average them into the final density estimate.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，值得注意的是，可以通过仅仅三行代码就构建一个基本的等效方法，使用 `numpy` 来实现。我们需要从分布中抽取样本 `x_data` 进行估计，并且需要评估密度估计的点
+    `x_prediction`。然后，使用数组广播，我们可以在每个输入样本周围评估一个局部高斯核，并将其平均为最终的密度估计。
 - en: N.B. This version is fast because it’s vectorized. However it involves creating
     a large 2D temporary array of shape `(len(x_data), len(x_prediction))` to store
     all the kernel evaluations. To have a lower memory footprint, we could re-write
     it using `numba` or `cython` (to avoid the computational burden of Python for
     loops) to aggregate kernel evaluations on-the-fly in a running sum for each output
     prediction.
+  id: totrans-38
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 注意：此版本之所以快速，是因为它是向量化的。然而，它涉及创建一个形状为 `(len(x_data), len(x_prediction))` 的大型二维临时数组来存储所有核评估。为了降低内存占用，我们可以使用
+    `numba` 或 `cython` 重新编写代码（以避免 Python 循环带来的计算负担），在每次输出预测时动态地将核评估聚合到一个累计和中。
 - en: '![](../Images/d70725ddf1f3e1a32622c0dff26ca558.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d70725ddf1f3e1a32622c0dff26ca558.png)'
 - en: Photo by [Parker Coffman](https://unsplash.com/@lowmurmer?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Parker Coffman](https://unsplash.com/@lowmurmer?utm_source=medium&utm_medium=referral)
+    提供，来自 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 2\. Handle boundaries
+  id: totrans-41
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2\. 处理边界
 - en: Bounded Distributions
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 有界分布
 - en: Real-life data is often bounded by a given domain. For example, attributes such
     as age, weight, or duration are always non-negative values. In such scenarios,
     a standard smooth KDE may fail to accurately capture the true shape of the distribution,
     especially if there’s a density discontinuity at the boundary.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 现实生活中的数据通常受限于给定的域。例如，属性如年龄、体重或持续时间通常是非负值。在这种情况下，标准的平滑 KDE 可能无法准确地捕捉分布的真实形状，特别是当边界处存在密度不连续性时。
 - en: In 1D, with the exception of some exotic cases, bounded distributions typically
     have either one-sided (e.g. positive values) or two-sided (e.g. uniform interval)
     bounded domains.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 1D 中，除了某些特殊情况外，有界分布通常具有单边（例如，正值）或双边（例如，均匀区间）有界域。
 - en: As illustrated in the graph below, kernels are bad at estimating the edges of
     the uniform distribution and leak outside the bounded domain.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 如下图所示，核在估计均匀分布的边缘时效果较差，会泄漏到有界域之外。
 - en: '![](../Images/512f7dee93cb2ecb811e4eede5ce19db.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/512f7dee93cb2ecb811e4eede5ce19db.png)'
 - en: Gaussian KDE on 100 samples drawn from a uniform distribution — Image by the
     author
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 高斯 KDE 对 100 个从均匀分布中抽取的样本进行估计 — 图片来自作者
 - en: No Clean Public Solution in Python
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Python 中没有现成的公共解决方案
 - en: Unfortunately, popular public Python libraries like `scipy` and `scikit-learn`
     do not currently address this issue. There are existing GitHub issues and pull
     requests discussing this topic, but regrettably, they have remained unresolved
     for quite some time.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，像 `scipy` 和 `scikit-learn` 这样的流行公共 Python 库目前并没有解决这个问题。虽然在 GitHub 上已有讨论此话题的问题和拉取请求，但遗憾的是，它们已经长时间没有得到解决。
 - en: '[*Feature Request: KDE for Bounded Data*](https://github.com/scikit-learn/scikit-learn/issues/10108)(GitHub
     Issue scikit-learn — 2017)'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*功能请求：为有界数据提供 KDE*](https://github.com/scikit-learn/scikit-learn/issues/10108)(GitHub
+    Issue scikit-learn — 2017)'
 - en: '[*ENH: improve stats.kde density estimation near boundaries*](https://github.com/scipy/scipy/pull/6114)(GitHub
     Pull Request scipy — 2016)'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[*增强：改进统计学中的 KDE 密度估计，尤其是边界附近*](https://github.com/scipy/scipy/pull/6114)(GitHub
+    Pull Request scipy — 2016)'
 - en: In R, `[kde.boundary](https://search.r-project.org/CRAN/refmans/ks/html/kde.boundary.html)`
     allows Kernel density estimate for bounded data.
+  id: totrans-52
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 在 R 中，`[kde.boundary](https://search.r-project.org/CRAN/refmans/ks/html/kde.boundary.html)`
+    允许对有界数据进行核密度估计。
 - en: 'There are various ways to take into account the bounded nature of the distribution.
     Let’s describe the most popular ones: Reflection, Weighting and Transformation.'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 有多种方法可以考虑分布的有界特性。我们将描述其中最流行的几种：反射、加权和变换。
 - en: 'Warning:'
+  id: totrans-54
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 警告：
 - en: For the sake of readability, we will focus on the unit bounded domain, i.e.
     `*[0,1]*`. Please remember to standardize the data and scale the density appropriately
     in the general case `*[a,b]*`.
+  id: totrans-55
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 为了提高可读性，我们将专注于单位有界域，即 `*[0,1]*`。请记得在一般情况下对数据进行标准化，并适当缩放密度，特别是对于 `*[a,b]*`。
 - en: '***Solution: Reflection***'
+  id: totrans-56
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '***解决方案：反射***'
 - en: The trick is to augment the set of samples by reflecting them across the left
     and right boundaries. This is equivalent to reflecting the tails of the local
     kernels to keep them in the bounded domain. It works best when the density derivative
     is zero at the boundary.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 该技巧是通过在左右边界处反射样本集来扩增样本集。这相当于将局部核的尾部反射，以将其保持在有界域内。该方法在密度导数在边界处为零时效果最好。
 - en: The reflection technique also implies processing three times more sample points.
+  id: totrans-58
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 反射技术还意味着需要处理三倍于样本数的数据。
 - en: 'The graphs below illustrate the reflection trick for three standard distributions:
     uniform, right triangle and inverse square root. It does a pretty good job at
     reducing the bias at the boundaries, even for the singularity of the inverse square
     root distribution.'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 下面的图表展示了反射技巧在三种标准分布中的应用：均匀分布、右三角分布和反平方根分布。即使是在反平方根分布的奇点处，它也能有效地减少边界处的偏差。
 - en: '![](../Images/a2bee39cfbb23090555e0de197fec3c6.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a2bee39cfbb23090555e0de197fec3c6.png)'
 - en: KDE on an uniform distribution, using reflections to handle boundaries— Image
     by the author
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 对均匀分布的KDE，使用反射处理边界——作者提供的图片
 - en: '![](../Images/36fe2400d8dd695f2f442e0a9afad07b.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/36fe2400d8dd695f2f442e0a9afad07b.png)'
 - en: KDE on a triangle distribution, using reflections to handle boundaries — Image
     by the author
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 对三角形分布的KDE，使用反射处理边界——作者提供的图片
 - en: '![](../Images/139670d395596d1addd42afb6699aa55.png)'
+  id: totrans-64
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/139670d395596d1addd42afb6699aa55.png)'
 - en: KDE on an inverse square root distribution, using reflections to handle boundaries
     — Image by the author
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 对反平方根分布的KDE，使用反射处理边界——作者提供的图片
 - en: N.B. The signature of `basic_kde` has been slightly updated to allow to optionally
     provide your own bandwidth parameter instead of using the Silverman’s rule of
     thumb.
+  id: totrans-66
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 注意：`basic_kde`的签名已稍作更新，现在可以选择提供自定义的带宽参数，而不是使用Silverman的经验法则。
 - en: '***Solution: Weighting***'
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '***解决方案：加权***'
 - en: The reflection trick presented above takes the leaking tails of the local kernel
     and add them back to the bounded domain, so that the information isn’t lost. However,
     we could also compute how much of our local kernel has been lost outside the bounded
     domain and leverage it to correct the bias.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述反射技巧将局部核的泄漏尾部重新加回到边界域中，从而避免信息丢失。然而，我们也可以计算出局部核在边界域外损失了多少，并利用这一信息来修正偏差。
 - en: For a very large number of samples, the KDE converges to the convolution between
     the kernel and the true density, truncated by the bounded domain.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于大量样本，KDE会收敛到核函数与真实密度的卷积，并在边界域上进行截断。
 - en: '![](../Images/52befe5a923f523514183599c3049017.png)'
+  id: totrans-70
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/52befe5a923f523514183599c3049017.png)'
 - en: If `x` is at a boundary, then only half of the kernel area will actually be
     used. Intuitively, we’d like to normalize the convolution kernel to make it integrate
     to 1 over the bounded domain. The integral will be close to 1 at the center of
     the bounded interval and will fall off to 0.5 near the borders. This accounts
     for the lack of neighboring kernels at the boundaries.
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果`x`处于边界，那么只有一半的核区域会被实际使用。直观上，我们希望对卷积核进行归一化，使其在有界域内积分为1。该积分在有界区间的中心接近1，在边界附近会降至0.5。这是因为边界处缺少邻近的核函数。
 - en: '![](../Images/4562347079cb9001fc35e204d4832b16.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4562347079cb9001fc35e204d4832b16.png)'
 - en: 'Similarly to the reflection technique, the graphs below illustrate the weighting
     trick for three standard distributions: uniform, right triangle and inverse square
     root. It performs very similarly to the reflection method.'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于反射技术，下面的图表展示了三种标准分布的加权技巧：均匀分布、右三角分布和反平方根分布。其效果与反射法非常相似。
 - en: From a computational perspective, it doesn’t require to process 3 times more
     samples, but it needs to evaluate the normal Cumulative Density Function at the
     prediction points.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 从计算角度来看，这不需要处理三倍于样本数的数据，但需要在预测点计算正态累积分布函数。
 - en: '![](../Images/b1d0f6328e6867278099f88dc392a045.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b1d0f6328e6867278099f88dc392a045.png)'
 - en: KDE on an uniform distribution, applying weight on the sides to handle boundaries
     — Image by the author
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 对均匀分布的KDE，应用边缘加权处理边界——作者提供的图片
 - en: '![](../Images/1b4690f9ddb54c9ba2f021d043ac7ffb.png)'
+  id: totrans-77
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1b4690f9ddb54c9ba2f021d043ac7ffb.png)'
 - en: KDE on a triangular distribution, applying weight on the sides to handle boundaries
     — Image by the author
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 对三角形分布的KDE，应用边缘加权处理边界——作者提供的图片
 - en: '![](../Images/81ffd559a6a60a493b75d9bca98c40e7.png)'
+  id: totrans-79
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/81ffd559a6a60a493b75d9bca98c40e7.png)'
 - en: KDE on an inverse square root distribution, applying weight on the sides to
     handle boundaries — Image by the author
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 对反平方根分布应用加权来处理边界的 KDE — 图像由作者提供
 - en: '***Transformation***'
+  id: totrans-81
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '***变换***'
 - en: The transformation trick maps the bounded data to an unbounded space, where
     the KDE can be safely applied. This results in using a different kernel function
     for each input sample.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 变换技巧将有界数据映射到无界空间，在该空间中可以安全地应用 KDE。这导致对每个输入样本使用不同的核函数。
 - en: The logit function leverages the logarithm to map the unit interval `[0,1]`
     to the entire real axis.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: Logit 函数利用对数将单位区间 `[0,1]` 映射到整个实数轴。
 - en: '![](../Images/edaa6ce64267812567ef794b46968254.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/edaa6ce64267812567ef794b46968254.png)'
 - en: Logit function — Image by the author
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: Logit 函数 — 图像由作者提供
 - en: When applying a transform `f` onto a random variable `X`, the resulting density
     can be obtained by dividing by the absolute value of the derivative of `f`.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 当对随机变量 `X` 应用变换 `f` 时，得到的密度可以通过除以 `f` 的导数的绝对值来获得。
 - en: '![](../Images/963bad27288d12de9ef24f023f7efbeb.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/963bad27288d12de9ef24f023f7efbeb.png)'
 - en: We can now apply it for the special case of the logit transform to retrieve
     the density distribution from the one estimated in the logit space.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以将其应用于 logit 变换的特例，从 logit 空间中估算的密度分布中恢复出原始密度分布。
 - en: '![](../Images/754b22657314764d9c7120a995fea91a.png)'
+  id: totrans-89
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/754b22657314764d9c7120a995fea91a.png)'
 - en: 'Similarly to the reflection and weighting techniques, the graphs below illustrate
     the weighting trick for three standard distributions: uniform, right triangle
     and inverse square root. It performs quite poorly by creating large oscillations
     at the boundaries. However, it handles extremely well the singularity of the inverse
     square root.'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 类似于反射和加权技术，下图展示了三种标准分布（均匀分布、右三角形分布和反平方根分布）的加权技巧。通过在边界处创建大幅波动，这种方法表现较差。然而，它很好地处理了反平方根分布的奇异性。
 - en: '![](../Images/fadf55b1409f89d75c4e31e09b255a13.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fadf55b1409f89d75c4e31e09b255a13.png)'
 - en: KDE on an uniform distribution, computed after mapping the samples to the logit
     space — Image by the author
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将样本映射到 logit 空间后，计算出的均匀分布的 KDE——图像由作者提供
 - en: '![](../Images/616669a0204e732995da1fed80645535.png)'
+  id: totrans-93
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/616669a0204e732995da1fed80645535.png)'
 - en: KDE on a triangular distribution, computed after mapping the samples to the
     logit space — Image by the author
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将样本映射到 logit 空间后，计算出的三角形分布的 KDE — 图像由作者提供
 - en: '![](../Images/45f638457823124a75f24495a53da1a9.png)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/45f638457823124a75f24495a53da1a9.png)'
 - en: KDE on an inverse square root distribution, computed after mapping the samples
     to the logit space— Image by the author
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 在将样本映射到 logit 空间后，计算出的反平方根分布的 KDE——图像由作者提供
 - en: '![](../Images/bffbdc79d5aa04c66af6cb5746a72f95.png)'
+  id: totrans-97
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bffbdc79d5aa04c66af6cb5746a72f95.png)'
 - en: Photo by [Martin Martz](https://unsplash.com/@martz90?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [Martin Martz](https://unsplash.com/@martz90?utm_source=medium&utm_medium=referral)
+    在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Conclusion
+  id: totrans-99
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Histograms and KDE
+  id: totrans-100
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 直方图和 KDE
 - en: In Kernel Density Estimation, each sample is assigned its own local kernel density
     centered around it, and then we average all these densities to obtain the global
     density. The bandwidth parameter defines how far the influence of each kernel
     extends. Intuitively, we should decrease the bandwidth as the number of samples
     increases, to prevent excessive smoothing.
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 在核密度估计中，每个样本都会被分配一个围绕其中心的局部核密度，然后我们将所有这些密度进行平均，得到全局密度。带宽参数定义了每个核函数的影响范围。直观上，随着样本数量的增加，我们应该减小带宽，以防止过度平滑。
 - en: Histograms can be seen as a simplified version of KDE. Indeed, the bins implicitly
     define a finite set of possible rectangular kernels, and each sample is assigned
     to the closest one. Finally, the average of all these densities result in a piecewise-constant
     estimate of the global density.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 直方图可以看作是 KDE 的简化版本。实际上，箱体隐式地定义了一组有限的矩形核函数，每个样本都会被分配到最近的那个核。最后，所有这些密度的平均值会得到一个分段常数的全局密度估计。
 - en: Which method is the best ?
+  id: totrans-103
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 哪种方法最好？
 - en: Reflection, weighting and transform are efficient basic methods to handle bounded
     data during KDE. However, bear in mind that there isn’t a one-size-fits-all solution;
     it heavily depends on the shape of your data.
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 反射、加权和变换是处理 KDE 中有界数据的有效基本方法。然而，请记住，没有一种放之四海而皆准的解决方案；这在很大程度上取决于数据的形状。
 - en: The transform method handles pretty well the singularities, as we’ve seen with
     the inverse square root distribution. As for reflection and weighting, they are
     generally more suitable for a broader range of scenarios.
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 如我们在逆平方根分布中看到的那样，变换方法能够很好地处理奇异性。至于反射和加权，它们通常更适用于更广泛的场景。
 - en: Reflection introduces complexity during training, whereas weighting adds complexity
     during inference.
+  id: totrans-106
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 反射会在训练过程中引入复杂性，而加权则在推理过程中增加复杂性。
 - en: From [0,1] to [a,b], [a, +∞[ and ]-∞,b]
+  id: totrans-107
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从[0,1]到[a,b]，[a, +∞[ 和 ]-∞,b]
 - en: Code presented above has been written for data bounded in the unit interval.
     Don’t forget to scale the density, when applying the affine transformation to
     normalize your data.
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面展示的代码是针对单位区间内的数据编写的。在应用仿射变换以规范化数据时，别忘了缩放密度。
 - en: '![](../Images/b9caa79b4e4649590d40423a89ea6330.png)'
+  id: totrans-109
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b9caa79b4e4649590d40423a89ea6330.png)'
 - en: It can also easily be adjusted for a one-sided bounded domain, by reflecting
     only on one side, integrating the kernel to infinity on one side or using the
     logarithm instead of logit.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过仅在一侧进行反射、将核函数在一侧积分到无穷大，或使用对数代替逻辑值，它也可以很容易地调整为单侧有界域。
 - en: I hope you enjoyed reading this article and that it gave you more insights on
     how Kernel Density Estimation works and how to handle bounded domains!
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你喜欢阅读这篇文章，并且它能为你提供更多关于核密度估计如何工作以及如何处理有界域的见解！
