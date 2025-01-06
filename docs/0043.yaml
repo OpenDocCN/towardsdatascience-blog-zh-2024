@@ -1,40 +1,63 @@
 - en: Inspecting Neural Network Model Performance for Edge Deployment
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 检查神经网络模型在边缘部署中的表现
 - en: 原文：[https://towardsdatascience.com/inspecting-neural-network-model-performance-for-edge-deployment-d4f8f18dbfd5?source=collection_archive---------11-----------------------#2024-01-05](https://towardsdatascience.com/inspecting-neural-network-model-performance-for-edge-deployment-d4f8f18dbfd5?source=collection_archive---------11-----------------------#2024-01-05)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/inspecting-neural-network-model-performance-for-edge-deployment-d4f8f18dbfd5?source=collection_archive---------11-----------------------#2024-01-05](https://towardsdatascience.com/inspecting-neural-network-model-performance-for-edge-deployment-d4f8f18dbfd5?source=collection_archive---------11-----------------------#2024-01-05)
 - en: A detailed look at quantizing CNN- and transformer-based models and techniques
     to measure and understand their efficacy on edge hardware
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 详细探讨量化 CNN 和基于变换器的模型以及评估和理解它们在边缘硬件上效果的技术
 - en: '[](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)[![Lindo
     St. Angel](../Images/e742a501401428448a235030414f851b.png)](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)
     [Lindo St. Angel](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)[![Lindo
+    St. Angel](../Images/e742a501401428448a235030414f851b.png)](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)
+    [Lindo St. Angel](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)
     ·16 min read·Jan 5, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)
+    ·阅读时长16分钟·2024年1月5日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/02969585c26b65b1943f459ac7613f51.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/02969585c26b65b1943f459ac7613f51.png)'
 - en: Photo by [Gavin Allanwood](https://unsplash.com/@gavla?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Gavin Allanwood](https://unsplash.com/@gavla?utm_source=medium&utm_medium=referral)
+    提供，来源：[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: This article will show you how to convert and quantize neural network models
     for inference at the edge and how to inspect them for quantization efficacy, understand
     runtime latency, and model memory usage to optimize performance. Although focused
@@ -42,27 +65,38 @@
     neural networks (CNN) and transformer-based neural networks as a way of illustrating
     the techniques introduced here, you can use the general approach to train, quantize,
     and analyze models to solve other problems.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文将向你展示如何将神经网络模型进行转换和量化，以便在边缘设备上进行推理，并且如何检查它们的量化效果，了解运行时延迟和模型内存使用情况，从而优化性能。尽管本文主要集中在使用卷积神经网络（CNN）和基于变换器的神经网络解决非侵入式负载监测（NILM）问题，作为展示这些技巧的方式，但你也可以使用该通用方法来训练、量化和分析模型，从而解决其他问题。
 - en: The goal of NILM is to recover the energy consumption of individual appliances
     from the aggregate mains signal, which reflects the total electricity consumption
     of a building or house. NILM is also known as energy disaggregation, and you can
     use both terms interchangeably.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: NILM 的目标是从总电源信号中恢复各个电器的能耗，该信号反映了建筑或家庭的总电力消耗。NILM 也被称为能量分解，你可以交替使用这两个术语。
 - en: You can find the code used to generate the results shown in this article on
     my GitHub, [Energy Management Using Real-Time Non-Intrusive Load Monitoring](https://github.com/goruck/nilm),
     and additional details omitted here for brevity.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在我的 GitHub 上找到用于生成本文所示结果的代码，链接为 [Energy Management Using Real-Time Non-Intrusive
+    Load Monitoring](https://github.com/goruck/nilm)，以及为简便起见此处省略的其他细节。
 - en: NILM Algorithm Selection and Models
+  id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 非侵入式负载监测（NILM）算法选择与模型
 - en: Algorithm Selection
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 算法选择
 - en: Energy disaggregation is a highly under-determined and single-channel [Blind
     Source Separation](https://en.wikipedia.org/wiki/Signal_separation) (BSS) problem,
     which makes it challenging to obtain accurate predictions. Let *M* be the number
@@ -71,16 +105,24 @@
     consumption of all appliances *M*, denoted by *yᵢ,* for all {i=1,…,M}. Therefore,
     the total power consumption *x* at a given time *t* can expressed by Equation
     1, where *e* is a noise term.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 能源拆分是一个高度欠定且单通道的[盲源分离](https://en.wikipedia.org/wiki/Signal_separation)（BSS）问题，这使得获得准确预测变得具有挑战性。设
+    *M* 为家电的数量，*i* 为指代第 *i* 个家电的索引。给定时间 *t* 时的总功率消耗 *x* 是所有家电 *M* 的功率消耗之和，记为 *yᵢ*，对于所有
+    {i=1,…,M}。因此，给定时间 *t* 时的总功率消耗 *x* 可以通过方程 1 表达，其中 *e* 是噪声项。
 - en: '![](../Images/f3ed1d9a08d6d52b1366bd81d3527b40.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f3ed1d9a08d6d52b1366bd81d3527b40.png)'
 - en: The goal is to solve the inverse problem and estimate the appliance power consumption
     *yᵢ*, given the aggregate power signal *x*, and to do so in a manner suitable
     for deployment at the edge.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标是求解逆问题，并在给定总功率信号 *x* 的情况下估计家电功率消耗 *yᵢ*，并以适合在边缘部署的方式进行估计。
 - en: You can solve the single-channel BSS problem by using sequence-to-point (seq2point)
     learning with neural networks, and it can applied to the NILM problem using transformers,
     convolutional (CNN), and recurrent neural networks. Seq2point learning involves
@@ -88,18 +130,26 @@
     power readings in the case of NILM, and an output signal. You use a sliding input
     window to train the network, which generates a corresponding single-point output
     at the window’s midpoint.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过使用序列到点（seq2point）学习与神经网络来解决单通道 BSS 问题，并且可以通过使用变换器（transformers）、卷积神经网络（CNN）和循环神经网络来应用于
+    NILM 问题。序列到点学习涉及训练一个神经网络，将输入时间序列（例如，在 NILM 的情况下为总功率读数）与输出信号之间进行映射。你使用一个滑动输入窗口来训练网络，该网络会在窗口的中点生成一个对应的单点输出。
 - en: I selected the seq2point learning approach, and my implementation was inspired
     and guided by the work described by Michele D’Incecco, et al. ¹ and Zhenrui Yue
     et al. ². I developed various seq2point learning models but focused my work on
     the models based on transformer and CNN architectures.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 我选择了 seq2point 学习方法，我的实现受到了 Michele D’Incecco 等人¹和 Zhenrui Yue 等人²的工作的启发和指导。我开发了各种
+    seq2point 学习模型，但将重点放在基于变换器和 CNN 架构的模型上。
 - en: Neural Network Models
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 神经网络模型
 - en: You can see the CNN model in Figure 1 for an input sequence length of 599 samples.
     You can view the complete model code [here](https://github.com/goruck/nilm/blob/main/ml/define_models.py#L72).
     The model follows traditional CNN concepts from vision use cases where several
@@ -110,14 +160,22 @@
     window’s final single-point power consumption estimate, which is de-normalized
     before being used in downstream processing. There are about 40 million parameters
     in this model using the default values.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在图 1 中看到 CNN 模型，该模型适用于长度为 599 样本的输入序列。你可以在[这里](https://github.com/goruck/nilm/blob/main/ml/define_models.py#L72)查看完整的模型代码。该模型遵循传统的
+    CNN 概念，源自计算机视觉领域的应用，其中多个卷积层从输入的功率序列中提取特征，随着输入在网络中传递，细节逐渐变得更精细。这些特征是家电的开关模式和功率消耗水平。最大池化操作在每个卷积层后管理模型的复杂性。最后，密集层输出窗口的最终单点功率消耗估计值，该值在用于下游处理之前会被去归一化。该模型使用默认值时有大约
+    4000 万个参数。
 - en: '![](../Images/a827065eb4ec90784e39e61fdc9ad106.png)'
+  id: totrans-21
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a827065eb4ec90784e39e61fdc9ad106.png)'
 - en: Figure 1 — CNN Model
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1 — CNN 模型
 - en: You can see the transformer model in Figure 2 for an input sequence length of
     599 samples where the transformer block is a Bert-style encoder. You can view
     the complete code [here](https://github.com/goruck/nilm/blob/main/ml/transformer_model.py).
@@ -132,27 +190,43 @@
     then finally, dense layers that output the final single point estimated power
     value for the window which again is de-normalized for downstream processing. There
     are about 1.6 million parameters in this model using the default values.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在图 2 中看到输入序列长度为 599 个样本的变换器模型，其中变换器模块是 BERT 风格的编码器。你可以在[这里](https://github.com/goruck/nilm/blob/main/ml/transformer_model.py)查看完整代码。输入序列首先通过卷积层扩展到潜在空间，类似于
+    CNN 模型中的特征提取。池化和 L2 归一化减少了模型复杂性并缓解了异常值的影响。接着，BERT 风格的变换器队列处理潜在空间序列，包括位置嵌入和应用重要性加权的变换器模块。多个层级处理变换器模块的输出，包括相对位置嵌入（使用围绕信号中点的对称权重）、平均池化（将序列简化为每个特征的单一值），最后是密集层，输出窗口的最终单一估算功率值，然后进行去归一化以便后续处理。使用默认值时，该模型有约
+    160 万个参数。
 - en: '![](../Images/ff11b2c840cad9aa37a4de2d0974fe03.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ff11b2c840cad9aa37a4de2d0974fe03.png)'
 - en: Figure 2 — Overall Transformer Model
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2 — 整体变换器模型
 - en: You can see the Bert-style transformer encoder in Figure 3, below.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下图的图 3 中看到 BERT 风格的变换器编码器。
 - en: '![](../Images/87eb93bfafca90ab758c7f03e8bcae1e.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/87eb93bfafca90ab758c7f03e8bcae1e.png)'
 - en: Figure 3 — Transformer Encoder.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3 — 变换器编码器。
 - en: NILM Datasets
+  id: totrans-29
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: NILM 数据集
 - en: 'Several large-scale publicly available datasets specifically designed to address
     the NILM problem were captured in household buildings from various countries.
     The datasets generally include many 10s millions of active power, reactive power,
@@ -163,65 +237,95 @@
     machine. These are the appliances I used for this article, and I mainly focused
     on the [REFIT](https://pureportal.strath.ac.uk/en/datasets/refit-electrical-load-measurements-cleaned)³
     dataset.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了解决 NILM 问题，捕获了多个大型公开可用的数据集，这些数据集专门设计用于此目的，数据采集地点为来自不同国家的家庭建筑。这些数据集通常包含数千万个有功功率、无功功率、电流和电压的样本，但采样频率各异，因此需要在使用前对数据进行预处理。大多数
+    NILM 算法仅使用真实（有功或真实）功率数据。能源分解研究通常考虑五种家电：水壶、微波炉、冰箱、洗碗机和洗衣机。这些就是我在本文中使用的家电，我主要关注的是[REFIT](https://pureportal.strath.ac.uk/en/datasets/refit-electrical-load-measurements-cleaned)³
+    数据集。
 - en: Note that these datasets are typically very imbalanced because, most of the
     time, an appliance is in the off state.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这些数据集通常非常不平衡，因为大部分时间，家电处于关闭状态。
 - en: Model Training and Results
+  id: totrans-32
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 模型训练与结果
 - en: I used [TensorFlow](https://www.tensorflow.org/) to train and test the model.
     You can find the code associated with this section [here](https://github.com/goruck/nilm/tree/main/ml).
     I trained the seq2point learning models for the appliances individually on z-score
     standardized REFIT data or normalized to [0, *Pₘ*], where *Pₘ* is the maximum
     power consumption of an appliance in its active state. Normalized data tends to
     give the best model performance, so I used it by default.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了[TensorFlow](https://www.tensorflow.org/)来训练和测试模型。你可以在[这里](https://github.com/goruck/nilm/tree/main/ml)找到与本节相关的代码。我对各个家电的
+    seq2point 学习模型进行了训练，使用的是经过 z-score 标准化的 REFIT 数据，或标准化至[0, *Pₘ*]，其中 *Pₘ* 是家电在其活动状态下的最大功率消耗。标准化数据往往能带来最佳的模型性能，因此我默认使用了它。
 - en: I used the following metrics to evaluate the model’s performance. You can view
     the code that calculates these metrics [here](https://github.com/goruck/nilm/blob/main/ml/nilm_metric.py).
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了以下度量标准来评估模型的性能。你可以在[这里](https://github.com/goruck/nilm/blob/main/ml/nilm_metric.py)查看计算这些度量标准的代码。
 - en: Mean absolute error (*MAE)* evaluates the absolute difference between the prediction
     and the ground truth power at every time point and calculates the mean value,
     as defined by the equation below.
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 平均绝对误差（*MAE*）评估预测值与真实功率之间的绝对差异，并计算其平均值，按照以下公式定义。
 - en: '![](../Images/d54421cc4c4a72796ba3155fbe7bac0f.png)'
+  id: totrans-36
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d54421cc4c4a72796ba3155fbe7bac0f.png)'
 - en: Normalized signal aggregate error (*SAE*) indicates the total energy’s relative
     error. Denote *r* as the total energy consumption of the appliance and *rₚ* as
     the predicted total energy, then *SAE* is defined per the equation below.
+  id: totrans-37
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标准化信号聚合误差（*SAE*）表示总能量的相对误差。设 *r* 为家电的总能耗，*rₚ* 为预测的总能耗，则 *SAE* 按以下公式定义。
 - en: '![](../Images/76f14926ea0f57dd887be1e9276f353c.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/76f14926ea0f57dd887be1e9276f353c.png)'
 - en: Energy per Day (*EpD*), which measures the predicted energy used in a day, is
     valuable when the household users are interested in the total energy consumed
     in a period. Denote *D* as the total number of days and *e* as the appliance energy
     consumed daily; then *EpD* is defined per the equation below.
+  id: totrans-39
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 每日能量（*EpD*）衡量一天内预测的能耗，对于家庭用户关注一段时间内的总能耗时非常有价值。设 *D* 为总天数，*e* 为每日家电能耗，则 *EpD*
+    按以下公式定义。
 - en: '![](../Images/217353af2aac56c424094738cffb3f6c.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/217353af2aac56c424094738cffb3f6c.png)'
 - en: Normalized disaggregation error (*NDE*) measures the normalized error of the
     squared difference between the prediction and the ground truth power of the appliances,
     as defined by the equation below.
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 标准化去聚合误差（*NDE*）衡量预测值与家电真实功率之间平方差的标准化误差，按以下公式定义。
 - en: '![](../Images/4f221660b7809beb73473fa8862cbefe.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4f221660b7809beb73473fa8862cbefe.png)'
 - en: I also used accuracy (*ACC*), F1-score (*F1*), and Matthew’s correlation coefficient
     (*MCC*) to assess if the model can perform well with the severely imbalanced datasets
     used to train and test the model. These metrics depend on the computed on-off
@@ -229,12 +333,18 @@
     time points over the test dataset. The equations below define *F1* and *MCC*,
     where *TP* stands for true positives, *TN* stands for true negatives, *FP* stands
     for false positives, and *FN* stands for false negatives.
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我还使用了准确率（*ACC*）、F1 分数（*F1*）和 Matthew’s 相关系数（*MCC*）来评估模型是否能够在用于训练和测试模型的严重不平衡数据集上表现良好。这些指标依赖于家电设备的开关状态的计算结果。*ACC*
+    等于在测试数据集上正确预测的时间点数。以下公式定义了 *F1* 和 *MCC*，其中 *TP* 代表真正例，*TN* 代表真反例，*FP* 代表假正例，*FN*
+    代表假反例。
 - en: '![](../Images/be831bdf057836ca2fe1d178f535d5d0.png)![](../Images/9ca4fb594b61a298bf23cf5eacb3dce6.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/be831bdf057836ca2fe1d178f535d5d0.png)![](../Images/9ca4fb594b61a298bf23cf5eacb3dce6.png)'
 - en: '*MAE, SAE, NDE*, and *EpDₑ,* defined as 100% times (predicted EpD — ground
     truth EpD) / ground truth EpD, reflect the model’s ability to predict the appliance
     energy consumption levels correctly. *F1* and *MCC* indicate the model’s ability
@@ -242,81 +352,121 @@
     less valuable than *F1* or *MCC* in this application because, most of the time,
     the model will accurately predict that the appliance, which dominates the dataset,
     is off.'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '*MAE, SAE, NDE* 和 *EpDₑ* 定义为 100% 乘以（预测的 EpD 减去真实值的 EpD）再除以真实值的 EpD，反映了模型正确预测家电能耗水平的能力。*F1*
+    和 *MCC* 表示模型在使用不平衡类别时正确预测家电开关状态的能力。在此应用中，*ACC* 的价值不如 *F1* 或 *MCC*，因为大多数情况下，模型会准确预测占主导地位的家电（在数据集中占比最大的家电）处于关闭状态。'
 - en: I used a sliding window of 599 samples of the aggregate real power consumption
     signal as inputs to the seq2point model, and I used the midpoints of the corresponding
     windows of the appliances as targets. You can see the code that generates these
     samples and targets by an instance of the WindowGenerator Class defined in the
     [window_generator.py](https://github.com/goruck/nilm/blob/main/ml/window_generator.py)
     module.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了一个包含 599 个样本的滑动窗口，这些样本是聚合的实际功率消耗信号，作为 seq2point 模型的输入。我使用对应家电窗口的中点作为目标。您可以通过
+    [window_generator.py](https://github.com/goruck/nilm/blob/main/ml/window_generator.py)
+    模块中定义的 WindowGenerator 类的实例查看生成这些样本和目标的代码。
 - en: You can see the code I used to train the model in [train.py](https://github.com/goruck/nilm/blob/main/ml/train.py),
     which uses the [tf.distribute.MirroredStrategy](https://www.tensorflow.org/api_docs/python/tf/distribute/MirroredStrategy)
     distributed training strategy. I used the Keras Adam optimizer, with early stopping
     to reduce over-fitting.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在[train.py](https://github.com/goruck/nilm/blob/main/ml/train.py)中看到我用来训练模型的代码，它使用了[tf.distribute.MirroredStrategy](https://www.tensorflow.org/api_docs/python/tf/distribute/MirroredStrategy)分布式训练策略。我使用了Keras
+    Adam优化器，并且通过提前停止来减少过拟合。
 - en: The key hyper-parameters for training and the optimizer are summarized below.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练和优化器的关键超参数总结如下：
 - en: 'Input Window Size: 599 samples'
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 输入窗口大小：599个样本
 - en: 'Global Batch size: 1024 samples.'
+  id: totrans-50
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 全局批次大小：1024个样本。
 - en: 'Learning Rate: 1e-04'
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 学习率：1e-04
 - en: 'Adam Optimizer: beta_1=0.9, beta_2=0.999, epsilon=1e-08'
+  id: totrans-52
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Adam优化器：beta_1=0.9, beta_2=0.999, epsilon=1e-08
 - en: 'Early Stopping Criteria: 6 epochs.'
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提前停止准则：6个epoch。
 - en: I used the loss function shown in the equation below to compute training gradients
     and evaluate validation loss on a per-batch basis. It combines Mean Squared Error,
     Binary Cross-Entropy, and Mean Absolute Error losses, averaged over distributed
     model replica batches.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用下面的损失函数计算训练梯度，并在每个批次上评估验证损失。该损失函数结合了均方误差、二元交叉熵和均值绝对误差，且在分布式模型副本批次上求平均。
 - en: '![](../Images/dcb377666e4a69dc97bc991bb8afa72f.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dcb377666e4a69dc97bc991bb8afa72f.png)'
 - en: Where x, x_hat in [0, 1] is the ground truth and predicted power usage single
     point values divided by the maximum power limit per appliance and s, s_ hat in
     {0, 1} are the appliance state label and prediction. The absolute error term is
     only applied for the set of predictions when either the status label is on, or
     the prediction is incorrect. The hyper-parameter lambda tunes the absolute loss
     term on a per-appliance basis.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中x, x_hat ∈ [0, 1]表示实际功率使用值和预测功率使用值，二者除以每个电器的最大功率限制；s, s_hat ∈ {0, 1}是电器状态标签和预测值。绝对误差项仅在状态标签为开启时，或者预测错误时才应用。超参数lambda调节每个电器的绝对损失项。
 - en: You can see typical performance metrics for the CNN model in the table below.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下表中看到CNN模型的典型性能指标。
 - en: '![](../Images/852a5550cd715efaab21222cffa86c6f.png)'
+  id: totrans-58
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/852a5550cd715efaab21222cffa86c6f.png)'
 - en: Table 1 — CNN model performance
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 表1 — CNN模型性能
 - en: You can see typical performance metrics for the transformer model in the table
     below.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下表中看到变压器模型的典型性能指标。
 - en: '![](../Images/084c86e0da169b59cf89ec8851372e10.png)'
+  id: totrans-61
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/084c86e0da169b59cf89ec8851372e10.png)'
 - en: Table 2 — transformer model performance
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 表2 — 变压器模型性能
 - en: You can see that the CNN and transformer models have similar performance even
     though the latter has about 26 times fewer parameters than the former. However,
     each transformer training step takes about seven times longer than CNN due to
@@ -324,23 +474,31 @@
     to the CNN model’s O(*n*), where *n* is the input sequence length. Based on training
     (and inference) efficiency, you can see that CNN is preferable with little loss
     in model performance.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到，尽管变压器模型的参数比CNN模型少约26倍，但两者的性能相似。然而，由于变压器模型使用了自注意力机制，其计算复杂度为O(*n*²)，而CNN模型的复杂度为O(*n*)，其中*n*是输入序列的长度，因此每一步变压器的训练时间大约是CNN的七倍。根据训练（和推理）效率，你可以看到CNN在模型性能损失很小的情况下更为可取。
 - en: Model Conversion and Quantization
+  id: totrans-64
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 模型转换与量化
 - en: The steps involved in converting a model graph in floating point to a form suitable
     for inferencing on edge hardware, including those based on CPUs, MCUs, and specialized
     compute optimized for int8 operations, are as follows.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 将浮点数形式的模型图转换为适用于边缘硬件推理的形式，包括基于CPU、MCU和专门优化int8操作的计算硬件，所涉及的步骤如下：
 - en: Train the model in float32 or representation such as TensorFloat-32 using Nvidia
     GPUs. The output will be a complete network graph; I used the TensorFlow SavedModel
     format, a complete TensorFlow program including variables and computations.
+  id: totrans-66
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用Nvidia GPU以float32或类似TensorFloat-32的表示法训练模型。输出将是一个完整的网络图；我使用了TensorFlow的SavedModel格式，它是一个完整的TensorFlow程序，包括变量和计算。
 - en: Convert the floating-point graph to a format optimized for the edge hardware
     using TensorFlow Lite or equivalent. The output will be a flat file that can run
     on a CPU, but all operations will still be in float32\. Note that you cannot convert
@@ -348,47 +506,65 @@
     and operators used in CNN networks can be converted, but I designed the transformer
     network carefully to avoid TFLite conversion issues. See [TensorFlow Lite and
     TensorFlow operator compatibility.](https://www.tensorflow.org/lite/guide/ops_compatibility)
+  id: totrans-67
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 使用TensorFlow Lite或等效工具将浮点图转换为优化后的边缘硬件格式。输出将是一个可以在CPU上运行的平面文件，但所有操作仍将以float32进行。请注意，并非所有TensorFlow操作符都可以转换为TFLite等效操作符。大多数在CNN网络中使用的层和操作符都可以转换，但我在设计Transformer网络时小心避免了TFLite转换问题。参见[TensorFlow
+    Lite和TensorFlow操作符兼容性](https://www.tensorflow.org/lite/guide/ops_compatibility)。
 - en: Quantize and optimize the converted model’s weights, biases, and activations.
     I used various quantization modes to partially or fully quantize the model to
     int8, int16, or combinations thereof, resulting in different inference latencies
     on the target hardware.
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 量化并优化转换后模型的权重、偏差和激活值。我使用了不同的量化模式，将模型部分或完全量化为int8、int16或它们的组合，导致在目标硬件上的推理延迟不同。
 - en: I performed [Post-training quantization](https://www.tensorflow.org/lite/performance/post_training_quantization)
     on the CNN and transformer models using the [TensorFlow Lite (TFLite) converter
     AP](https://www.tensorflow.org/lite/models/convert/)I with various quantization
     modes to improve inference speed on edge hardware, including the Raspberry Pi
     and the Google Edge TPU, while managing the impact on accuracy. You can see the
     quantization modes I used below.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用[TensorFlow Lite (TFLite)转换器AP](https://www.tensorflow.org/lite/models/convert/)在CNN和Transformer模型上执行了[训练后量化](https://www.tensorflow.org/lite/performance/post_training_quantization)，并采用了不同的量化模式，以提高在边缘硬件（包括树莓派和Google
+    Edge TPU）上的推理速度，同时管理对准确性的影响。您可以在下面看到我使用的量化模式。
 - en: '**convert_only**:Convert to tflite but keep all parameters in Float32 (no quantization).'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**convert_only**：转换为tflite格式，但保持所有参数为Float32（不进行量化）。'
 - en: '**w8**: Quantize weights from float32 to int8 and biases to int64\. Leave activations
     in Float32.'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**w8**：将权重从float32量化为int8，偏差量化为int64。激活值保留为Float32。'
 - en: '**w8_a8_fallback**: Same as w8 but quantize activations from float32 to int8\.
     Fallback to float if an operator does not have an integer implementation.'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**w8_a8_fallback**：与w8相同，但将激活值从float32量化为int8。如果某个操作符没有整数实现，则回退为float。'
 - en: '**w8_a8**: Same as w8 but quantize activations from float32 to int8\. Enforce
     full int8 quantization for all operators.'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**w8_a8**：与w8相同，但将激活值从float32量化为int8。对所有操作符强制执行完整的int8量化。'
 - en: '**w8_a16**: Same as w8 but quantize activations to int16.'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '**w8_a16**：与w8相同，但将激活值量化为int16。'
 - en: The CNN model was quantized using all modes to understand the best tradeoff
     between latency and accuracy. Only the weights for the transformer model were
     quantized to int8 using mode w8; the activations needed to be kept in float32
@@ -398,8 +574,12 @@
     check how well each layer in the model was quantized. I profiled the converted
     models using the [TensorFlow Lite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)
     to quantify inference latencies.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: CNN模型使用所有模式进行了量化，以了解延迟和准确性之间的最佳折衷。只有Transformer模型的权重使用w8模式量化为int8；激活值需要保持为float32，以保持可接受的准确性。请参见[convert_keras_to_tflite.py](https://github.com/goruck/nilm/blob/main/ml/convert_keras_to_tflite.py)了解执行此量化的代码，该代码还使用[TensorFlow
+    Lite的量化调试器](https://www.tensorflow.org/lite/performance/quantization_debugger)检查模型中每一层的量化效果。我使用[TensorFlow
+    Lite模型基准工具](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)对转换后的模型进行了性能分析，以量化推理延迟。
 - en: Fully quantizing a model requires calibration of the model’s activations via
     a dataset that is representative of the actual data used during training and testing
     of the floating point model. Calibration can be challenging with highly imbalanced
@@ -408,11 +588,15 @@
     a representative dataset of the balanced appliance on- and off-states. You can
     find that code [here](https://github.com/goruck/nilm/blob/main/ml/convert_model.py#L91)
     and in the snippet below.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 完全量化模型需要通过代表实际数据的训练和测试数据集来校准模型的激活。对于高度不平衡的数据，校准可能具有挑战性，因为随机选择样本可能会导致较差的校准和量化模型精度。为了解决这个问题，我使用了一种算法构建了一个平衡的家电开关状态代表数据集。你可以在[这里](https://github.com/goruck/nilm/blob/main/ml/convert_model.py#L91)找到该代码，并在下面的代码片段中查看。
 - en: Figure 4 — Representative Generator Code Snippet
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 图4 — 代表性生成器代码片段
 - en: You can find the quantized inference results in the tables below, where Lx86
     is the average inference latency on a 3.8 GHz x86 machine using eight TFlite interpreter
     threads, and Larm is the average inference latency on the ARM aarch-64-based Raspberry
@@ -420,37 +604,57 @@
     CPU delegate. Ltpu is the average inference latency on the Google Coral Edge TPU.
     I kept the model inputs and outputs in float32 to maximize inference speed for
     the x86- and ARM-based machines. I set them to int8 for the edge TPU.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下表中找到量化推理结果，其中Lx86是使用八个TFlite解释器线程的3.8 GHz x86机器的平均推理延迟，Larm是使用四个线程的ARM
+    aarch-64架构Raspberry Pi 4的平均推理延迟，两个计算机都使用TensorFlow Lite的[XNNPACK](https://github.com/google/XNNPACK)
+    CPU委托。Ltpu是Google Coral Edge TPU上的平均推理延迟。我保持了x86和ARM架构机器上的模型输入输出为float32，以最大化推理速度。对于边缘TPU，我将它们设置为int8。
 - en: CNN Model Results and Discussion
+  id: totrans-79
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: CNN模型结果与讨论
 - en: You can see the quantized results for the CNN models in the table below for
     quantization mode w8.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下表中看到量化模式w8下CNN模型的量化结果。
 - en: '![](../Images/08baf028bae667e2b026d41f53d38724.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/08baf028bae667e2b026d41f53d38724.png)'
 - en: Table 4 — Quantized CNN Models for Mode w8
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 表4 — 模式w8的量化CNN模型
 - en: The quantized results for the CNN kettle model are shown below for the other
     quantization modes. You can see that latency on the edge TPU is much longer than
     other machines. Because of this, I focused my analysis on the x86 and ARM architectures.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下展示了CNN水壶模型在其他量化模式下的量化结果。你可以看到，边缘TPU的延迟远高于其他机器。因此，我将分析重点放在了x86和ARM架构上。
 - en: '![](../Images/aefe2d6b5411a02c5049607cd7fbc6f7.png)'
+  id: totrans-84
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aefe2d6b5411a02c5049607cd7fbc6f7.png)'
 - en: Table 5 — Quantized CNN Kettle Model for Other Modes
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 表5 — 其他模式下的量化CNN水壶模型
 - en: Results for the other appliance models are omitted for brevity but show similar
     characteristics as a function of quantization mode.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 其他家电模型的结果由于篇幅问题已省略，但它们在量化模式下呈现出相似的特性。
 - en: You can see the negative impact of activation quantization, but because of regularization
     effects, weight quantization has a moderate benefit on some model performance
     metrics. As expected, the full quantization modes lead to the lowest latencies.
@@ -459,71 +663,112 @@
     in TensorFlow Lite, but this scheme leads to the best model metrics given the
     regularization benefits from weight quantization and better preservation of activation
     numerics.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到激活量化的负面影响，但由于正则化效应，权重量化对某些模型性能指标有适度的益处。如预期，完全量化模式导致最低的延迟。通过w8_a16模式将激活量化为int16会导致最高的延迟，因为目前在TensorFlow
+    Lite中仅提供非优化的参考内核实现，但该方案在权重量化带来的正则化效益和更好地保留激活数值方面，能实现最佳的模型指标。
 - en: You can also see that inference latency of the modes follows w8 > convert_only
     > w8_a8 for the x86 machine but convert_only > w8 > w8_a8 for the aarch64 machine,
     although the variation is more significant for x86\. To understand this better,
     I profiled the converted models using the [TFLite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark%29).
     A summary of the profiling results for the CNN microwave model, which represents
     the other models, is shown below.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 你还可以看到，x86 机器的推理延迟模式为 w8 > convert_only > w8_a8，而 aarch64 机器则为 convert_only
+    > w8 > w8_a8，尽管对于 x86 的变化更为显著。为了更好地理解这一点，我使用 [TFLite 模型基准工具](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark%29)对转换后的模型进行了性能分析。下文展示了代表其他模型的
+    CNN 微波模型的性能分析结果摘要。
 - en: Model Profiling on x86 (slowest to fastest)
+  id: totrans-89
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 x86 上的模型性能分析（从最慢到最快）
 - en: You can see that the Fully Connected and Convolution operations are taking the
     longest to execute in all cases but are much faster in the fully quantized mode
     of w8_a8.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以看到，完全连接和卷积操作在所有情况下都需要最长的执行时间，但在 w8_a8 完全量化模式下，它们的速度要快得多。
 - en: '![](../Images/454a66c12d5e6a88e1f4adbd7f18e8b6.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/454a66c12d5e6a88e1f4adbd7f18e8b6.png)'
 - en: Table 6 — CNN x86 Model Profiling for w8 Mode
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 6 — CNN x86 模型在 w8 模式下的性能分析
 - en: '![](../Images/c1a741b8e8eaf544abb2e94b3d4dcedd.png)'
+  id: totrans-93
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c1a741b8e8eaf544abb2e94b3d4dcedd.png)'
 - en: Table 7 — CNN x86 Model Profiling for convert_only Mode
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 7 — CNN x86 模型在 convert_only 模式下的性能分析
 - en: '![](../Images/1abeb28548f04843a2813f078bf5055c.png)'
+  id: totrans-95
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1abeb28548f04843a2813f078bf5055c.png)'
 - en: Table 8 — CNN x86 Model Profiling for w8_a8 Mode
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 8 — CNN x86 模型在 w8_a8 模式下的性能分析
 - en: 2\. Model Profiling on aarch64 (slowest to fastest)
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 2. 在 aarch64 上的模型性能分析（从最慢到最快）
 - en: The copy and Max Pooling operations are slower on x86 than on aarch64, probably
     due to memory bandwidth and micro-architecture differences.
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 复制和最大池化操作在 x86 上比在 aarch64 上慢，可能是由于内存带宽和微架构差异造成的。
 - en: '![](../Images/ef4254f43dbb042f9bb4385a15c80162.png)'
+  id: totrans-99
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ef4254f43dbb042f9bb4385a15c80162.png)'
 - en: Table 9 — CNN aarch64 Model Profiling for convert_only Mode
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 9 — CNN aarch64 模型在 convert_only 模式下的性能分析
 - en: '![](../Images/8dbda2f2b7d89c47ba275bd718e2230a.png)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8dbda2f2b7d89c47ba275bd718e2230a.png)'
 - en: Table 10 — CNN aarch64 Model Profiling for w8 Mode
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 10 — CNN aarch64 模型在 w8 模式下的性能分析
 - en: '![](../Images/a5dce1d80afb32bbeb6a126eaa9de516.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a5dce1d80afb32bbeb6a126eaa9de516.png)'
 - en: Table 11 — CNN aarch64 Model Profiling for w8_a8 Mode
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 11 — CNN aarch64 模型在 w8_a8 模式下的性能分析
 - en: 3\. Quantization Efficacy
+  id: totrans-105
   prefs: []
   type: TYPE_NORMAL
+  zh: 3. 量化效能
 - en: The metric RMSE / scale is close to 1 / sqrt(12) (~ 0.289) when the quantized
     distribution is similar to the original float distribution, indicating a well-quantized
     model. The larger the value, the more likely the layer will not be quantized well.
@@ -533,22 +778,34 @@
     to generate a selectively quantized model that increases accuracy at the expense
     of inference performance, but doing so for the CNN models did not materially improve
     accuracy. See [Inspecting Quantization Errors with Quantization Debugger](https://www.tensorflow.org/lite/performance/quantization_debugger).
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 当量化分布与原始浮动分布相似时，RMSE / scale 指标接近 1 / sqrt(12)（约为 0.289），这表示模型量化效果良好。值越大，说明该层可能没有得到很好的量化。以下表格显示了
+    CNN kettle 模型的 RMSE / Scale 指标，"Suspected?" 列表示那些显著超过 0.289 的层。其他模型为了简洁起见省略，但结果类似。这些层可以保留为浮动类型，以生成一个选择性量化的模型，从而提高准确性，代价是牺牲推理性能。然而，在
+    CNN 模型中这样做并没有实质性地提高准确性。参见 [使用量化调试器检查量化误差](https://www.tensorflow.org/lite/performance/quantization_debugger)。
 - en: You can find layer quantization efficacy metrics for the CNN kettle model using
     mode w8_a8 below.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下面找到使用 w8_a8 模式的 CNN kettle 模型的层量化效能指标。
 - en: '![](../Images/947f518302538d62fd6217b55dd5acde.png)'
+  id: totrans-108
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/947f518302538d62fd6217b55dd5acde.png)'
 - en: Table 12 — Layer quantization efficacy metrics for the CNN kettle model using
     mode w8_a8
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 表 12 — 使用 w8_a8 模式的 CNN kettle 模型的层量化效能指标
 - en: 4\. Model Memory Footprint
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 4. 模型内存占用
 - en: I used the [TFLite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)
     to get the approximate RAM consumption of the TFLite CNN microwave model at runtime,
     shown in the table below for each quantization mode, and the TFLite model disk
@@ -556,34 +813,50 @@
     x86 architecture were identical to the arm architecture. Note that the Keras model
     consumes about 42.49 (MB) on disk. You can see that there is about a four times
     reduction in disk storage space due to the float32 to int8 weight conversions.
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 我使用了[TFLite模型基准工具](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)，获得了TFLite
+    CNN微波模型在运行时的近似RAM消耗情况，结果如表格所示，分别列出了每种量化模式下的RAM消耗和TFLite模型的磁盘空间。其他CNN模型表现出类似的特性。对于x86架构的结果与arm架构相同。注意，Keras模型在磁盘上消耗约42.49MB。可以看到，由于float32到int8的权重转换，磁盘存储空间大约减少了四倍。
 - en: Interestingly, RAM runtime usage varies considerably due to the TFLite algorithms
     that optimize intermediate tensor usage. These are pre-allocated to reduce inference
     latency at the cost of memory space. See [Optimizing TensorFlow Lite Runtime Memory](https://blog.tensorflow.org/2020/10/optimizing-tensorflow-lite-runtime.html).
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 有趣的是，RAM的运行时使用情况因TFLite算法优化中间张量的使用而大幅变化。这些张量是预先分配的，以减少推理延迟，但会以牺牲内存空间为代价。请参见[优化TensorFlow
+    Lite运行时内存](https://blog.tensorflow.org/2020/10/optimizing-tensorflow-lite-runtime.html)。
 - en: '![](../Images/e8b191f426bc6728b7bc518f73a703e1.png)'
+  id: totrans-113
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e8b191f426bc6728b7bc518f73a703e1.png)'
 - en: Table 13 — CNN Model Memory Usage
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 表13 — CNN模型的内存使用情况
 - en: Transformer Model Results and Discussion
+  id: totrans-115
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 变压器模型的结果与讨论
 - en: 'Even though I enabled the XNNPACK delegate during the transformer model inference
     evaluation, nothing was accelerated because the transformer model contains dynamic
     tensors. I encountered the following warning when using the TFLite interpreter
     for inference:'
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我在变压器模型推理评估时启用了XNNPACK委托，但由于变压器模型包含动态张量，因此没有加速。在使用TFLite解释器进行推理时，我遇到了以下警告：
 - en: Attempting to use a delegate that only supports static-sized tensors with a
     graph that has dynamic-sized tensors (tensor#94 is a dynamic-sized tensor).
+  id: totrans-117
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 尝试在包含动态大小张量的图形中使用仅支持静态大小张量的委托（tensor#94是一个动态大小的张量）。
 - en: This warning means that all operators are unsupported by XNNPACK and will fall
     back to the default CPU kernel implementations. A future effort will involve refactoring
     the transformer model to use only static-size tensors. Note that a tensor could
@@ -591,73 +864,113 @@
     (e.g., if, while). In other words, even when the model graph doesn’t have any
     tensors of dynamic shapes, a model could have dynamic tensors at runtime. The
     current transformer model uses `if` control-flow operations.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个警告意味着XNNPACK不支持所有操作符，将回退到默认的CPU内核实现。未来的工作将涉及重构变压器模型，仅使用静态大小的张量。请注意，当TFLite运行时遇到控制流操作（例如if、while）时，张量可能会被标记为动态。换句话说，即使模型图中没有任何动态形状的张量，模型在运行时仍可能包含动态张量。目前的变压器模型使用了`if`控制流操作。
 - en: You can see the quantized results for the transformer model in the table below
     for quantization mode w8.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在下表中看到变压器模型在量化模式w8下的量化结果。
 - en: '![](../Images/9cd2b8c6568fcbc74589cb8cf0da2703.png)'
+  id: totrans-120
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9cd2b8c6568fcbc74589cb8cf0da2703.png)'
 - en: Table 14 — Quantized results for the transformer model for quantization mode
     w8
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 表14 — 变压器模型在量化模式w8下的量化结果
 - en: The quantized results for the transformer kettle and microwave models are shown
     in the table below for quantization mode convert_only.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 变压器壶和微波模型在量化模式convert_only下的量化结果如表格所示。
 - en: '![](../Images/73188628808bc9f0b3f9cacb73817d0c.png)'
+  id: totrans-123
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/73188628808bc9f0b3f9cacb73817d0c.png)'
 - en: Table 15 — Quantized results for the transformer kettle and microwave models
     for quantization mode convert_only
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 表15 — 变压器壶和微波模型在量化模式convert_only下的量化结果
 - en: Model Profiling on x86 (slowest to fastest)
+  id: totrans-125
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: x86模型性能分析（从最慢到最快）
 - en: The FULLY_CONNECTED layers dominate the compute in w8 mode but less in convert_only
     mode. This behavior is probably due to x86 memory micro-architecture handling
     of int8 weights.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在w8模式下，完全连接层占据了主要计算负载，但在convert_only模式下较少。这种行为可能与x86内存微架构对int8权重的处理有关。
 - en: '![](../Images/c035ef48d43deca205ee762eb668c87f.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c035ef48d43deca205ee762eb668c87f.png)'
 - en: Table 16 — x86 transformer Model Profiling for Mode w8
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: 表16 — x86变压器模型在w8模式下的性能分析
 - en: '![](../Images/cd0b839943f74f225583ded3eff9e304.png)'
+  id: totrans-129
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cd0b839943f74f225583ded3eff9e304.png)'
 - en: Table 17 — x86 transformer Model Profiling for Mode convert_only
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 表17 — x86变压器模型剖析（模式：convert_only）
 - en: 2\. Model Profiling on aarch64 (slowest to fastest)
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. 在aarch64上的模型剖析（从最慢到最快）
 - en: You can see the arm architecture seems to be more efficient in computing the
     FULLY_CONNECTED layers in w8 mode than in the x86 case.
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到，在w8模式下，ARM架构似乎比x86架构更高效地计算完全连接层（FULLY_CONNECTED）。
 - en: '![](../Images/21ab6a0cd821cc2ed517d7303be5898c.png)'
+  id: totrans-133
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/21ab6a0cd821cc2ed517d7303be5898c.png)'
 - en: Table 18 — aarch64 transformer Model Profiling for Mode convert_only
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 表18 — aarch64变压器模型剖析（模式：convert_only）
 - en: '![](../Images/ea96ef58f5deba7021a479a4d562b7cb.png)'
+  id: totrans-135
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ea96ef58f5deba7021a479a4d562b7cb.png)'
 - en: Table 19 — aarch64 transformer Model Profiling for Mode w8
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 表19 — aarch64变压器模型剖析（模式：w8）
 - en: 3\. Quantization Efficacy
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. 量化效能
 - en: You can find layer quantization efficacy metrics for the transformer kettle
     model using mode w8_a8 [here](https://github.com/goruck/nilm?tab=readme-ov-file#quantization-efficacy-1),
     although, as noted above, quantizing the transformer model’s activations results
@@ -665,11 +978,15 @@
     does not quantize well; these operators are used in the Gaussian error linear
     activation functions, which helps explain the model’s poor performance. The other
     transformer appliance models show similar efficacy metrics.
+  id: totrans-138
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在[这里](https://github.com/goruck/nilm?tab=readme-ov-file#quantization-efficacy-1)找到使用w8_a8模式的变压器kettle模型的层量化效能指标，尽管如上所述，量化变压器模型的激活值会导致模型性能下降。你可以看到，RSQRT运算符，尤其不适合量化；这些运算符在高斯误差线性激活函数中使用，帮助解释了模型性能差的原因。其他变压器设备模型显示出类似的效能指标。
 - en: 4\. Model Memory Footprint
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: 4\. 模型内存占用
 - en: Identical to the CNN case, I used the [TFLite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)
     to get the approximate RAM consumption of the TFLite microwave model at runtime,
     shown in the table below for each relevant quantization mode and the TFLite model
@@ -680,59 +997,84 @@
     likely because there are fewer layers with weights. You can also see that the
     x86 TFLite runtime is more memory efficient than its aarch64 counterpart for this
     model.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 与CNN情况相同，我使用了[TFLite模型基准测试工具](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)来获取TFLite微波模型在运行时的近似RAM消耗，下面的表格展示了每种相关量化模式和TFLite模型的磁盘空间。其他变压器模型显示了类似的特性。请注意，Keras模型在磁盘上大约消耗6.02MB。你可以看到，由于权重从float32量化到int8，模型大小减少了大约三倍，这比CNN案例中看到的四倍减少要小，可能是因为变压器模型中的层数较少。你还可以看到，x86的TFLite运行时比aarch64架构更节省内存。
 - en: '![](../Images/726685934870e28711b0d54476cad036.png)'
+  id: totrans-141
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/726685934870e28711b0d54476cad036.png)'
 - en: Table 20 — transformer Model Disk and RAM Usage
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 表20 — 变压器模型的磁盘和内存使用情况
 - en: Conclusions
+  id: totrans-143
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: You can effectively develop and deploy models using TensorFlow and TensorFlow
     Lite at the edge. TensorFlow Lite offers tools useful in production to understand
     and modify the behavior of your models, including layer quantization inspection
     and runtime profiling.
+  id: totrans-144
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以使用TensorFlow和TensorFlow Lite在边缘有效地开发和部署模型。TensorFlow Lite提供了有助于生产中理解和修改模型行为的工具，包括层量化检查和运行时剖析。
 - en: There is better support for the operators used in CNN-based models than the
     typical operators used in transformer-based models. You should carefully choose
     how to design your networks with these constraints and run a complete end-to-end
     training-conversion-quantization cycle before going too far in developing and
     training your models.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 与变压器模型所用的典型运算符相比，CNN模型中使用的运算符支持更好。你应该仔细选择如何设计你的网络，考虑这些约束，并在开发和训练模型之前，运行一个完整的端到端训练-转换-量化周期。
 - en: Post-training quantization works well to quantize CNN networks fully, but I
     could only quantize the transformer network weights to maintain acceptable performance.
     The transformer network should be trained using [Quantization-aware methods](https://www.tensorflow.org/model_optimization/guide/quantization/training)
     for better integer performance.
+  id: totrans-146
   prefs: []
   type: TYPE_NORMAL
+  zh: 后训练量化非常适合对CNN网络进行完全量化，但我只能量化变压器网络的权重，以保持可接受的性能。为了更好的整数性能，应该使用[量化感知方法](https://www.tensorflow.org/model_optimization/guide/quantization/training)训练变压器网络。
 - en: The CNN models used to solve the NILM problem in this article are many times
     larger than their transformer counterparts but train much faster and have lower
     latency due to linear complexity. The CNN models are a better solution if disk
     space and RAM are not your chief constraints.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文中用于解决NILM问题的CNN模型比它们的变换器模型大得多，但由于具有线性复杂性，训练速度更快，延迟更低。如果磁盘空间和RAM不是主要限制因素，CNN模型是更好的解决方案。
 - en: References
+  id: totrans-148
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[arXiv:1902.08835](https://arxiv.org/abs/1902.08835) | Transfer Learning for
     Non-Intrusive Load Monitoring by Michele D’Incecco, Stefano Squartini and Mingjun
     Zhong.'
+  id: totrans-149
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[arXiv:1902.08835](https://arxiv.org/abs/1902.08835) | Michele D''Incecco、Stefano
+    Squartini 和 Mingjun Zhong 的《用于非侵入性负载监测的迁移学习》。'
 - en: '[BERT4NILM](https://github.com/Yueeeeeeee/BERT4NILM): A Bidirectional Transformer
     Model for Non-Intrusive Load Monitoring by Zhenrui Yue, et. al.'
+  id: totrans-150
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '[BERT4NILM](https://github.com/Yueeeeeeee/BERT4NILM)：Zhenrui Yue 等人提出的用于非侵入性负载监测的双向变换器模型。'
 - en: Available under the [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/).
+  id: totrans-151
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 可在[知识共享署名 4.0 国际公共许可证](https://creativecommons.org/licenses/by/4.0/)下使用。
