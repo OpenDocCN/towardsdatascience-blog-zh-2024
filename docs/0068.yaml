@@ -1,35 +1,55 @@
 - en: 'Understand Data Warehouse: Query Performance'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 了解数据仓库：查询性能
 - en: 原文：[https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08](https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08](https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08)
 - en: 'Deciphering SQL Query Performance: A Practical Analysis in Data Warehousing
     and Database Management Systems'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解读SQL查询性能：数据仓库和数据库管理系统中的实用分析
 - en: '[](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[![Richard
     Tang](../Images/0b9acf81a5ffa0ad3c215bfcfc9984d8.png)](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)
     [Richard Tang](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[![Richard
+    Tang](../Images/0b9acf81a5ffa0ad3c215bfcfc9984d8.png)](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)
+    [Richard Tang](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)
     ·7 min read·Jan 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)
+    ·7分钟阅读·2024年1月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/f62c15593db2326dafdaca72d280cb7f.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f62c15593db2326dafdaca72d280cb7f.png)'
 - en: Photo by [Manuel Geissinger](https://www.pexels.com/@artunchained/) on [Pexels](https://www.pexels.com/photo/black-server-racks-on-a-room-325229/)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自[Manuel Geissinger](https://www.pexels.com/@artunchained/)在[Pexels](https://www.pexels.com/photo/black-server-racks-on-a-room-325229/)上的照片
 - en: Unlike Python and other imperative programming languages, which require the
     explicit detailing of algorithms in a step-by-step manner to optimize, SQL is
     a declarative programming language that focuses not on the sequence of operations,
@@ -38,139 +58,207 @@
     a component called the query planner (or optimizer) which decides the best way
     to execute the query. That’s why an almost identical query can be executed very
     differently in data warehouses compared to traditional DBMSs.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 与Python和其他命令式编程语言不同，命令式编程语言需要按步骤详细说明算法以进行优化，SQL是一种声明式编程语言，关注的不是操作的顺序，而是表达你想要实现的逻辑。查询在数据库中的执行方式取决于数据库系统本身，尤其是一个名为查询计划器（或优化器）的组件，它决定了执行查询的最佳方式。这就是为什么几乎相同的查询在数据仓库与传统数据库管理系统中执行方式差异如此之大。
 - en: For most data workers, it’s usually not so important to be concerned about the
     difference, as long as the query is able to retrieve the correct data. However,
     this changes when creating interactive dashboards or machine learning pipelines.
     In these cases, frequently run queries can significantly impact query efficiency
     and cost. Well-designed queries can save users time in loading data and metrics,
     and can also save the company thousands of dollars on BigQuery or Snowflake bills.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于大多数数据工作者来说，通常不需要过于关注这种差异，只要查询能够检索到正确的数据即可。然而，当创建交互式仪表盘或机器学习管道时，情况就不同了。在这些情况下，频繁执行的查询会显著影响查询效率和成本。设计良好的查询不仅能节省用户加载数据和指标的时间，还能为公司节省数千美元的BigQuery或Snowflake账单费用。
 - en: 'Today, we will focus on a common use case: comparing multiple query syntaxes
     and databases. We’ll see and understand the differences between how these databases
     approach retrieving and calculating data.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 今天，我们将专注于一个常见的使用案例：比较多种查询语法和数据库。我们将看到并理解这些数据库在获取和计算数据时的不同处理方式。
 - en: 'Here’s a common question: Finding out active doctors last year? Suppose there
     is a ‘doctors’ table that records doctors’ information, and a ‘patient admissions’
     table that records instances of patients being admitted by doctors. The goal is
     to filter out those doctors who had at least one patient admission in the last
     year (this could be a dynamic time period in machine learning pipelines or interactive
     dashboards).'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一个常见的问题：如何查找去年活跃的医生？假设有一个“医生”表记录了医生的信息，还有一个“病人入院”表记录了患者被医生接收的情况。目标是筛选出在过去一年中至少有一次患者入院的医生（这可以是机器学习管道或互动仪表板中的动态时间段）。
 - en: 'Practically, there’s three common ways to write this query: EXIST, IN, and
     JOIN. We will analyze them and run experiments on Bigquery and PostgreSQL, to
     validate our analysis.'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 实际上，写这个查询有三种常见的方法：EXISTS、IN 和 JOIN。我们将对它们进行分析，并在 Bigquery 和 PostgreSQL 上运行实验，以验证我们的分析。
 - en: 'First approach: IN'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一种方法：IN
 - en: For Python users, the IN operator might be the most intuitive approach. This
     involves first filtering out the admission records from the last year, and then
     checking if the doctors are listed in those records. We’ll also test out whether
     adding a DISTINCT will increase performance.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于 Python 用户来说，IN 操作符可能是最直观的方法。这种方法首先筛选出去年入院的记录，然后检查医生是否出现在这些记录中。我们还将测试添加 DISTINCT
+    是否能提高性能。
 - en: '[PRE0]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'Second approach EXISTS:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 第二种方法 EXISTS：
 - en: Another approach involves using the EXISTS operator, which filters the results
     to include only those for which the subquery returns at least one record. EXISTS
     operates on the concept of a ‘Semi JOIN,’ meaning that it doesn’t actually perform
     a join on the right-hand side; instead, it merely checks if a join would yield
     results for any given tuple. When it finds one it stops. This could offer some
     performance advantages.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一种方法是使用 EXISTS 操作符，它会筛选结果，仅包含那些子查询返回至少一条记录的结果。EXISTS 操作基于“半连接”的概念，这意味着它实际上并不会对右侧执行连接；相反，它仅检查连接是否会为任何给定元组产生结果。当找到一个匹配时，它会停止。这可能会带来一些性能优势。
 - en: '[PRE1]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Third approach:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三种方法：
 - en: The third approach involves using JOIN, which is the most classic method in
     relational database philosophy. There are some frequent disputes in forums about
     when to filter and whether to use a subquery or a Common Table Expression (CTE).
     We have included these considerations in our experiment as well.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 第三种方法涉及使用 JOIN，这是关系型数据库哲学中最经典的方法。论坛中经常有关于何时过滤以及是否使用子查询或公共表表达式（CTE）的争论。我们也将这些考虑因素纳入了实验。
 - en: JOIN after filter in subquery
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 在子查询中进行过滤后再执行 JOIN
 - en: '[PRE2]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Filter and GROUP BY after JOIN
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 JOIN 后进行过滤和 GROUP BY
 - en: '[PRE3]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: CTE filter before JOIN
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: CTE 过滤器在 JOIN 之前
 - en: '[PRE4]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Now we have six queries to test. They all get the same result from the database
     but have slight differences in logic or syntax.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们有六个查询要测试。它们都从数据库中获取相同的结果，但在逻辑或语法上有些微差异。
 - en: 'Q1: IN'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Q1: IN'
 - en: 'Q2: IN with DISTINCT in subquery'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Q2: 在子查询中使用 DISTINCT 的 IN'
 - en: 'Q3: EXISTS'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Q3: EXISTS'
 - en: 'Q4: JOIN with a subquery that filters the time range'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Q4: 使用子查询进行 JOIN，并过滤时间范围'
 - en: 'Q5: JOIN before any filter, then use GROUP BY to deduplicate'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Q5: 在任何过滤之前执行 JOIN，然后使用 GROUP BY 去重'
 - en: 'Q6: JOIN with a CTE that filters the time range'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 'Q6: 使用 CTE 进行 JOIN，并过滤时间范围'
 - en: 'Experiment result:'
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 实验结果：
 - en: '![](../Images/2f84ee5d52b3aa8a5873585d4f6fcbd9.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2f84ee5d52b3aa8a5873585d4f6fcbd9.png)'
 - en: '*Image by author*'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '*作者提供的图片*'
 - en: 'We executed each query 10 times in a generated test dataset, shifting the time
     range by 1 day for each test. By using BigQuery execution details and the EXPLAIN
     ANALYZE command in PostgreSQL, we obtained detailed information on execution times
     and plans. The test results are clear. If this is for a real-world use case, we
     can simply select the best-performing option and move on. However, in this blog,
     we will dig a bit deeper and ask: Why?'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在生成的测试数据集上执行了每个查询 10 次，每次测试时将时间范围向前推移 1 天。通过使用 BigQuery 执行详情和 PostgreSQL 中的
+    EXPLAIN ANALYZE 命令，我们获得了关于执行时间和计划的详细信息。测试结果非常明确。如果这是一个真实世界的用例，我们可以简单地选择性能最佳的选项，然后继续。不过，在这篇博客中，我们将深入探讨并提出一个问题：为什么？
 - en: 'Dig into Planner:'
+  id: totrans-38
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 深入分析查询计划：
 - en: The answer could be found in the execution plan, which reveals the true approach
     the database engine is calculating the query.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 答案可以在执行计划中找到，它揭示了数据库引擎实际计算查询的方式。
 - en: 'Bigquery:'
+  id: totrans-40
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 'Bigquery:'
 - en: 'The execution plans for Q1 ‘IN’ and Q3 ‘EXISTS’ are exactly the same. The two-step
     execution first filtered in the subquery, then used a SEMI JOIN to identify doctors
     with at least one patient admission. This was a perfect example of what we mentioned
@@ -178,22 +266,32 @@
     figures out how to execute it. Even if the SQL logic differed in its approach
     to the problem, BigQuery recognized that they required the same result and decided
     to use the same execution approach to optimize them.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: Q1 'IN' 和 Q3 'EXISTS' 的执行计划完全相同。两步执行首先在子查询中进行了筛选，然后使用 SEMI JOIN 来识别至少有一个病人入院的医生。这正好是我们之前提到的一个完美例子：SQL
+    是一种声明式语言，它描述了你需要什么，而 BigQuery 会决定如何执行。即使 SQL 逻辑在解决问题的方式上有所不同，BigQuery 也意识到它们需要相同的结果，并决定使用相同的执行方式进行优化。
 - en: '![](../Images/4b57d9f23f01a9f9afccccd7b2980a19.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4b57d9f23f01a9f9afccccd7b2980a19.png)'
 - en: '*Image by author*'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: '*图片由作者提供*'
 - en: Adding DISTINCT in the IN subquery resulted in a much worse performance. It
     was quite interesting to observe that adding a single DISTINCT could have such
     a significant impact on the query running speed. When we looked into the query
     execution plan, we could see that a single DISTINCT causes two additional steps
     in the query execution. This led to more temporary tables being saved in the process,
     resulting in a significantly slower execution time.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 IN 子查询中添加 DISTINCT 导致性能大幅下降。观察到添加一个 DISTINCT 会对查询运行速度产生如此显著的影响，实在是令人很感兴趣。当我们查看查询执行计划时，可以看到单个
+    DISTINCT 会导致查询执行中多出两步。这导致在过程中保存了更多的临时表，进而导致执行时间显著变慢。
 - en: Among the three JOIN methods, it was surprising that Q5 ‘JOIN before filter’
     demonstrates the best performance, while the two other approaches trying to optimize
     filter and JOIN sequence, Q4 ‘JOIN with subquery’ and Q6 ‘JOIN with CTE’, exhibit
@@ -205,68 +303,100 @@
     approaches had the exact same execution plan, which is also very similar to the
     Q2 ‘IN with DISTINCT’ plan. The only difference was that in the final step, it
     used an INNER JOIN instead of a SEMI JOIN.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 在三种 JOIN 方法中，令人惊讶的是 Q5 'JOIN before filter' 展现了最佳性能，而试图优化筛选和 JOIN 顺序的两种方法，Q4
+    'JOIN with subquery' 和 Q6 'JOIN with CTE'，表现较差。检查规划器时，似乎 BigQuery 实际上识别出在 JOIN
+    之前执行筛选可以优化效率。然而，当我们尝试通过强制筛选先于 JOIN 来手动控制顺序时，执行计划中出现了更多的步骤，导致执行时间显著变慢。有趣的是，子查询和
+    CTE 方法拥有完全相同的执行计划，这也与 Q2 'IN with DISTINCT' 的计划非常相似。唯一的区别是，在最后一步，它使用了 INNER JOIN
+    而不是 SEMI JOIN。
 - en: 'PostgreSQL:'
+  id: totrans-46
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: PostgreSQL：
 - en: Regarding Postgres, the difference in query time among the six queries we analyzed
     was relatively minor. This could be because the testing dataset was not large
     enough to significantly highlight the differences. As the dataset increases in
     size, the performance differences between the approaches are likely to become
     more substantial.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于 Postgres，我们分析的六个查询之间的查询时间差异相对较小。这可能是因为测试数据集的规模不足以显著突出差异。随着数据集规模的增大，方法之间的性能差异可能会变得更加明显。
 - en: Our analysis was based on results from ‘EXPLAIN ANALYZE.’ This tool is invaluable
     for understanding the performance characteristics of a PostgreSQL query. ‘EXPLAIN’
     provides the execution plan that the PostgreSQL query planner generates for a
     given statement, while the ‘ANALYZE’ option actually executes the statement, allowing
     for a more accurate assessment of performance.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的分析基于 'EXPLAIN ANALYZE' 的结果。这个工具对于理解 PostgreSQL 查询的性能特征非常宝贵。'EXPLAIN' 提供了
+    PostgreSQL 查询规划器为给定语句生成的执行计划，而 'ANALYZE' 选项则实际执行语句，从而允许更准确地评估性能。
 - en: Q1 ‘IN’ and Q3 ‘EXISTS’ had the same execution plan with the lowest cost. Similar
     to BigQuery, PostgreSQL also recognized that the two queries required the same
     data and optimized for them.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: Q1 'IN' 和 Q3 'EXISTS' 拥有相同的执行计划，并且是最低成本的。与 BigQuery 类似，PostgreSQL 也识别出这两个查询需要相同的数据，并为它们进行了优化。
 - en: 'Q2, Q4, and Q6 all have the exact same execution plan with a slightly higher
     cost. Despite the queries are different in logic or syntax, the Postgres planner
     decided to run the same execution: Filter -> Group by(DISTINCT) -> JOIN,'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: Q2、Q4和Q6的执行计划完全相同，只是成本略高。尽管这些查询在逻辑或语法上有所不同，但Postgres的查询计划器决定执行相同的操作：过滤 -> 按(DISTINCT)分组
+    -> JOIN。
 - en: '![](../Images/f7326db08785b9e7a709edf06dcd43d2.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f7326db08785b9e7a709edf06dcd43d2.png)'
 - en: '*Image by author*'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '*图片来源：作者*'
 - en: Q5 ‘JOIN before filter’ had the highest-cost execution plan. Although the PostgreSQL
     planner still managed to apply the filter before the JOIN, the deduplication process
     was applied to the larger table, resulting in a higher cost.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: Q5 ‘JOIN before filter’有着成本最高的执行计划。尽管PostgreSQL的查询计划器仍然设法在JOIN之前应用了过滤器，但去重过程是应用到较大的表上，导致了更高的成本。
 - en: 'Conclusion:'
+  id: totrans-54
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论：
 - en: In our experiment, approaches such as forcing a filter before a JOIN or adding
     the DISTINCT option for the IN operator did not increase our query performance;
     instead, they made it slower. Comparing BigQuery to Postgres, it’s evident that
     they each have their own niches and strengths. Their planners are also optimized
     for different goals using different approaches.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的实验中，像是在JOIN之前强制加上过滤器或为IN操作符添加DISTINCT选项的做法并没有提高我们的查询性能；相反，它们使查询变得更慢。将BigQuery与Postgres进行比较，可以明显看出它们各自有自己的优势和特点。它们的查询计划器也针对不同的目标进行了优化，采用了不同的策略。
 - en: That’s being said, optimizing efficiency in a declarative language like SQL
     is not solely determined by your query. Equally important is how the database
     engine interprets, plans, and executes it. This process can greatly depend on
     the database’s design, as well as the structure and indexing of your data.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 话虽如此，在像SQL这样的声明式语言中优化效率不仅仅取决于你的查询本身。数据库引擎如何解释、规划和执行查询同样重要。这个过程在很大程度上取决于数据库的设计，以及数据的结构和索引。
 - en: The experiment we conducted for the blog is specific to certain use cases and
     datasets. The most effective way to understand performance is to run your own
     queries, examine the query execution plan, and see what it’s going to do. Do Not
     to over-optimize based on theoretical assumptions. Practical testing and observation
     should always be your guiding principles in query optimization.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们为博客进行的实验特定于某些特定的用例和数据集。了解性能的最有效方式是运行你自己的查询，检查查询执行计划，并查看它将如何执行。不要基于理论假设过度优化。实际的测试和观察应该始终是查询优化的指导原则。
