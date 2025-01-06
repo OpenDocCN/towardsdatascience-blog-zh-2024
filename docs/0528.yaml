@@ -1,352 +1,534 @@
 - en: Visualizing Gradient Descent Parameters in Torch
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可视化 Torch 中的梯度下降参数
 - en: 原文：[https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26](https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26](https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26)
 - en: Prying behind the interface to see the effects of SGD parameters on your model
     training
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 探索界面背后，查看 SGD 参数对模型训练的影响
 - en: '[](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![P.G.
     Baumstarck](../Images/b23cb187c99cc30201ad8028afca72ed.png)](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
     [P.G. Baumstarck](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![P.G.
+    Baumstarck](../Images/b23cb187c99cc30201ad8028afca72ed.png)](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
+    [P.G. Baumstarck](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
     ·7 min read·Feb 26, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
+    ·阅读时长 7 分钟·2024年2月26日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: 'Behind the simple interfaces of modern machine learning frameworks lie large
     amounts of complexity. With so many dials and knobs exposed to us, we could easily
     fall into cargo cult programming if we don’t understand what’s going on underneath.
     Consider the many parameters of Torch’s [stochastic gradient descent (SGD) optimizer](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html):'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 现代机器学习框架的简单界面背后隐藏着大量的复杂性。由于有许多参数和控件暴露给我们，如果我们不了解其背后的原理，就很容易陷入盲目编程的误区。考虑一下 Torch
+    的 [随机梯度下降（SGD）优化器](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)的众多参数：
 - en: '[PRE0]'
+  id: totrans-7
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Besides the familiar learning rate `lr` and `momentum` parameters, there are
     several other that have stark effects on neural network training. In this article
     we’ll visualize the effects of these parameters on a simple ML objective with
     a variety of loss functions.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了熟悉的学习率 `lr` 和 `momentum` 参数，还有一些其他参数对神经网络训练有着显著的影响。在本文中，我们将可视化这些参数对一个简单机器学习目标的影响，并使用各种损失函数。
 - en: Toy Problem
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 玩具问题
 - en: 'To start we construct a toy problem of performing linear regression over a
     set of points. To make it interesting we’re going to use a quadratic function
     plus noise so that the neural network will have to make trade-offs—and we’ll also
     get to observe more of the impact of the loss functions:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们构造了一个简单的玩具问题，即在一组点上执行线性回归。为了增加趣味性，我们使用了一个二次函数加噪声，这样神经网络就必须做出权衡——同时我们也能观察到更多损失函数的影响：
 - en: '![](../Images/46819efbc1942caad0ed06096226be7a.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/46819efbc1942caad0ed06096226be7a.png)'
 - en: 'We start off just using `numpy` and `matplotlib` to visualization our data—no
     `torch` required yet:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先仅使用 `numpy` 和 `matplotlib` 来可视化数据——此时还不需要 `torch`：
 - en: '[PRE1]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '![](../Images/fc9a458f92c166abbba3805523a44f56.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fc9a458f92c166abbba3805523a44f56.png)'
 - en: Figure 1\. Toy problem set of points.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 1\. 玩具问题集的点。
 - en: 'Next we’ll break out the `torch` and introduce a simple training loop for a
     single-neuron network. To get consistent results when we vary the loss function,
     we’ll start our training from the same set of parameters each time with the neuron’s
     first “guess” being the equation `y = 6*x — 3` (which we effect via the neuron’s
     `weight` and `bias` parameters):'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们将引入 `torch` 并介绍一个简单的训练循环，训练一个单神经元网络。为了在我们变化损失函数时得到一致的结果，我们每次都从相同的参数集开始训练，并将神经元的第一个“猜测”设定为方程
+    `y = 6*x — 3`（我们通过神经元的 `weight` 和 `bias` 参数实现这个目标）：
 - en: '[PRE2]'
+  id: totrans-17
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Running this gives us text output that shows us the loss is decreasing, eventually
     down to a minimum, as expected:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行这个过程会输出文本，显示损失值正在减少，最终达到预期的最小值：
 - en: '[PRE3]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'To visualize our fit, we take the learned bias and weight out of our neuron
     and plot the fit against the points:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了可视化我们的拟合，我们从神经元中取出学习到的偏差和权重，并将拟合结果与数据点进行比较：
 - en: '[PRE4]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/b45c711099dd52f177b3ff13e8098502.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b45c711099dd52f177b3ff13e8098502.png)'
 - en: Figure 2\. L2-learned linear boundary on toy problem.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 2\. 在玩具问题上L2学习到的线性边界。
 - en: Visualizing the Loss Function
+  id: totrans-24
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可视化损失函数
 - en: 'The above seems a reasonable fit, but so far everything has been handled by
     high-level Torch functions like `optimizer.zero_grad()`, `loss.backward()`, and
     `optimizer.step()`. To understand where we’re going next, we’ll need to visualize
     the journey our model is taking through the loss function. To visualize the loss,
     we’ll sample it in a grid of 101-by-101 points, then plot it using `imshow`:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述结果看起来是合理的，但到目前为止，一切都是通过高层次的Torch函数处理的，如`optimizer.zero_grad()`、`loss.backward()`和`optimizer.step()`。为了理解接下来的步骤，我们需要可视化模型在损失函数中的变化过程。为了可视化损失，我们将在101×101的网格中对其进行采样，然后使用`imshow`进行绘制：
 - en: '[PRE5]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '![](../Images/f827e4cc908fde0c3706cb7893924698.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f827e4cc908fde0c3706cb7893924698.png)'
 - en: Figure 3\. L2 loss function on toy problem.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 3\. 在玩具问题上的L2损失函数。
 - en: 'Now we can capture the model parameters while running gradient descent to show
     us how the optimizer is performing:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以在运行梯度下降时捕捉模型参数，以展示优化器的表现：
 - en: '[PRE6]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '![](../Images/9d08ab225a9b8cba02f255503b700ef4.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9d08ab225a9b8cba02f255503b700ef4.png)'
 - en: Figure 4\. Visualized gradient descent down loss function.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 4\. 可视化梯度下降在损失函数下的变化。
 - en: 'From inspection this looks exactly as it should: the model starts off at our
     force-initialized parameters of `(-3, 6)`, it takes progressively smaller steps
     in the direction of the gradient, and it eventually bottoms-out in the global
     minimum.'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 从检查中可以看出，这正是应该发生的：模型从我们强制初始化的参数`(-3, 6)`开始，逐步朝梯度方向采取更小的步骤，最终在全局最小值处停住。
 - en: Visualizing the Other Parameters
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可视化其他参数
 - en: Loss Function
+  id: totrans-35
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 损失函数
 - en: 'Now we’ll start examining the effects of the other parameters on gradient descent.
     First is the loss function, for which we used the standard L2 loss:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们将开始检查其他参数对梯度下降的影响。首先是损失函数，我们使用的是标准的L2损失：
 - en: '![](../Images/fb8c557e293869de99c1499dbcf614e2.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fb8c557e293869de99c1499dbcf614e2.png)'
 - en: 'L2 loss (`torch.nn.MSELoss) accumulates the squared error. Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html).
     Screen capture by author.`'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: L2损失（`torch.nn.MSELoss`）累积平方误差。来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)。作者截图。
 - en: 'But there are several other loss functions we could use:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 但是，我们还可以使用其他几种损失函数：
 - en: '![](../Images/4bddd81b3c6d0dedc452902c6366a2f1.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4bddd81b3c6d0dedc452902c6366a2f1.png)'
 - en: 'L1 loss (torch.nn.L1Loss) `accumulates absolute` errors. `Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html).
     Screen capture by author.`'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: L1损失（`torch.nn.L1Loss`）`累积绝对`误差。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)。作者截图。`
 - en: '![](../Images/3a64709da24887fc575dd61e2d012c98.png)'
+  id: totrans-42
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3a64709da24887fc575dd61e2d012c98.png)'
 - en: 'Huber loss (torch.nn.HuberLoss) uses L2 for small errors and L1 for large.
     `Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html).
     Screen capture by author.`'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: Huber损失（`torch.nn.HuberLoss`）对小误差使用L2，对大误差使用L1。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)。作者截图。`
 - en: '![](../Images/a52df315f2839329b503ba215290e53b.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a52df315f2839329b503ba215290e53b.png)'
 - en: 'Smooth L1 loss (torch.nn.SmoothL1Loss) is roughly equivalent to Huber loss
     with an extra beta parameter. `Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html).
     Screen capture by author.`'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 平滑L1损失（`torch.nn.SmoothL1Loss`）大致相当于Huber损失，但有一个额外的beta参数。`来源：[link](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)。作者截图。`
 - en: 'We wrap everything we’ve done so far in a loop to try out all the loss functions
     and plot them together:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将到目前为止所做的工作包装在一个循环中，尝试所有损失函数并一起绘制它们：
 - en: '[PRE7]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '![](../Images/2a7f3f2a63ba5652ce65510a4a010915.png)'
+  id: totrans-48
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2a7f3f2a63ba5652ce65510a4a010915.png)'
 - en: Figure 5\. Visualized gradient descent down all loss functions.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 5\. 可视化梯度下降在所有损失函数下的变化。
 - en: Here we can see the interesting contours of the non-L2 loss functions. While
     the L2 loss function is smooth and exhibits large values up to 100, the other
     loss functions have much smaller values as they reflect only the absolute errors.
     But the L2 loss’s steeper gradient means the optimizer makes a quicker approach
     to the global minimum, as evidenced by the greater spacing between its early points.
     Meanwhile the L1 losses all display much more gradual approaches to their minima.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这里，我们可以看到非L2损失函数的有趣轮廓。L2损失函数平滑且值较大，最大可达100，而其他损失函数的值较小，因为它们仅反映了绝对误差。但L2损失的陡峭梯度意味着优化器更快接近全局最小值，正如其初期点之间较大的间距所示。与此同时，L1损失函数则表现出更为缓慢的接近最小值的过程。
 - en: Momentum
+  id: totrans-51
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 动量
 - en: 'The next most interesting parameter is the momentum, which dictates how much
     of the last step’s gradient to add in to the current gradient update going froward.
     Normally very small values of momentum are sufficient, but for the sake of visualization
     we’re going to set it to the crazy value of 0.9—kids, do NOT try this at home:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来最有趣的参数是动量，它决定了多少上一步的梯度将被加入到当前梯度更新中。通常非常小的动量值就足够了，但为了可视化的目的，我们将其设置为0.9的极端值——孩子们，请勿在家尝试：
 - en: '[PRE8]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: '![](../Images/3f5d67a6c7da5fe4e6be615b5e5eba6a.png)'
+  id: totrans-54
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/3f5d67a6c7da5fe4e6be615b5e5eba6a.png)'
 - en: Figure 6\. Visualized gradient descent down all loss functions with high momentum.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 图6\. 可视化的梯度下降过程，展示了所有损失函数在高动量下的表现。
 - en: 'Thanks to the outrageous momentum value, we can clearly see its effect on the
     optimizer: it overshoots the global minimum and has to swerve sloppily back around.
     This effect is most pronounced in the L2 loss, whose steep gradients carry it
     clean over the minimum and bring it very close to diverging.'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于极高的动量值，我们可以清楚地看到它对优化器的影响：它超过了全局最小值，必须不规则地转回。这种效应在L2损失中最为明显，其陡峭的梯度使得它越过了最小值，并且非常接近发散。
 - en: Nesterov Momentum
+  id: totrans-57
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: Nesterov动量
 - en: 'Nesterov momentum is an interesting tweak on momentum. Normal momentum adds
     in some of the gradient from the last step to the gradient for the current step,
     giving us the scenario in figure 7(a) below. But if we already know where the
     gradient from the last step is going to carry us, then Nesterov momentum instead
     calculates the current gradient by looking ahead to where that will be, giving
     us the scenario in figure 7(b) below:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: Nesterov动量是对普通动量的一个有趣调整。普通动量将上一步的部分梯度加到当前步骤的梯度上，得到下面图7(a)的情景。但如果我们已经知道上一步的梯度将带我们到哪里，那么Nesterov动量则通过预判我们将落在哪里来计算当前梯度，得到下面图7(b)的情景：
 - en: '![](../Images/1fef60334367760ff9aedcab24d46ab5.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1fef60334367760ff9aedcab24d46ab5.png)'
 - en: Figure 7\. (a) Momentum vs. (b) Nesterov momentum.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 图7\. (a) 普通动量与 (b) Nesterov动量。
 - en: '[PRE9]'
+  id: totrans-61
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '![](../Images/af2be22828b89deacf074725c7de16cb.png)'
+  id: totrans-62
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/af2be22828b89deacf074725c7de16cb.png)'
 - en: Figure 8\. Visualized gradient descent down all loss functions with high Nesterov
     momentum.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 图8\. 可视化的梯度下降过程，展示了所有损失函数在高Nesterov动量下的表现。
 - en: When viewed graphically, we can see that Nesterov momentum has cut down the
     overshooting we observed with plain momentum. Especially in the L2 case, since
     our momentum carried us clear over the global minimum, using Nesterov to lookahead
     where we were going to land allowed us to mix in countervailing gradients from
     the opposite side of the objective function, in effect course-correcting earlier.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 从图形上看，我们可以看到Nesterov动量减少了我们在普通动量下观察到的过冲现象。特别是在L2的情况下，由于我们的动量使得我们越过了全局最小值，使用Nesterov动量提前查看我们将要落点的位置，允许我们从目标函数的另一侧混合反向梯度，从而更早地进行修正。
 - en: Weight Decay
+  id: totrans-65
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 权重衰减
 - en: 'Next weight decay adds a regularizing L2 penalty on the values of the parameters
     (the weight and bias of our linear network):'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，权重衰减对参数值（我们线性网络的权重和偏置）施加了正则化的L2惩罚：
 - en: '[PRE10]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '![](../Images/0ac8ddd706e0e1814dd328b503652295.png)'
+  id: totrans-68
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0ac8ddd706e0e1814dd328b503652295.png)'
 - en: Figure 9\. Visualized gradient descent down all loss functions with high Nesterov
     momentum and weight decay.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 图9\. 可视化的梯度下降过程，展示了所有损失函数在高Nesterov动量和权重衰减下的表现。
 - en: In all cases, the regularizing factor has pulled the solutions away from their
     rightful global minima and closer to the origin (0, 0). The effect is least pronounced
     with the L2 loss, however, since the loss values are large enough to offset the
     L2 penalties on the weights.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 在所有情况下，正则化因子都将解拉离了它们应有的全局最小值，并将其拉近了原点（0，0）。然而，这种效应在L2损失下最不明显，因为损失值足够大，能够抵消对权重的L2惩罚。
 - en: Dampening
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 阻尼
 - en: Finally we have dampening, which discounts the momentum by the dampening factor.
     Using a dampening factor of 0.8 we see how it effectively moderates the momentum
     path through the loss function.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后是阻尼，它通过阻尼因子来减少动量的影响。使用0.8的阻尼因子，我们可以看到它如何有效地调节动量路径通过损失函数。
 - en: '[PRE11]'
+  id: totrans-73
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '![](../Images/d81b751b1cbc2d155e7eec6e8757802c.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d81b751b1cbc2d155e7eec6e8757802c.png)'
 - en: Figure 10\. Visualized gradient descent down all loss functions with high momentum
     and high dampening.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 图 10\. 可视化的梯度下降，展示了在高动量和高阻尼下的所有损失函数。
 - en: Unless otherwise noted, all images are by the author.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非另有说明，所有图片均由作者提供。
 - en: References
+  id: totrans-77
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 参考文献
 - en: '[https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)'
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)'
 - en: '[https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)'
 - en: '[https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)'
+  id: totrans-80
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)'
 - en: '[https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)'
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)'
 - en: '[https://pytorch.org/docs/stable/generated/torch.optim.SGD.html](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)'
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://pytorch.org/docs/stable/generated/torch.optim.SGD.html](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)'
 - en: See Also
+  id: totrans-83
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 另见
 - en: '[https://towardsdatascience.com/extending-context-length-in-large-language-models-74e59201b51f](/extending-context-length-in-large-language-models-74e59201b51f)'
+  id: totrans-84
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://towardsdatascience.com/extending-context-length-in-large-language-models-74e59201b51f](/extending-context-length-in-large-language-models-74e59201b51f)'
 - en: 'Code available at: [https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py](https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py)'
+  id: totrans-85
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 代码可在以下地址找到：[https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py](https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py)
 - en: '[https://github.com/tomgoldstein/loss-landscape](https://github.com/tomgoldstein/loss-landscape)'
+  id: totrans-86
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://github.com/tomgoldstein/loss-landscape](https://github.com/tomgoldstein/loss-landscape)'
 - en: '[https://neptune.ai/blog/pytorch-loss-functions](https://neptune.ai/blog/pytorch-loss-functions)'
+  id: totrans-87
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[https://neptune.ai/blog/pytorch-loss-functions](https://neptune.ai/blog/pytorch-loss-functions)'
