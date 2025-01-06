@@ -1,42 +1,65 @@
 - en: Deploying Large Language Models with SageMaker Asynchronous Inference
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用SageMaker异步推理部署大型语言模型
 - en: 原文：[https://towardsdatascience.com/deploying-large-language-models-with-sagemaker-asynchronous-inference-c00038b70b3e?source=collection_archive---------7-----------------------#2024-01-27](https://towardsdatascience.com/deploying-large-language-models-with-sagemaker-asynchronous-inference-c00038b70b3e?source=collection_archive---------7-----------------------#2024-01-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/deploying-large-language-models-with-sagemaker-asynchronous-inference-c00038b70b3e?source=collection_archive---------7-----------------------#2024-01-27](https://towardsdatascience.com/deploying-large-language-models-with-sagemaker-asynchronous-inference-c00038b70b3e?source=collection_archive---------7-----------------------#2024-01-27)
 - en: Queue Requests For Near Real-Time Based Applications
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 为近实时应用程序排队请求
 - en: '[](https://ram-vegiraju.medium.com/?source=post_page---byline--c00038b70b3e--------------------------------)[![Ram
     Vegiraju](../Images/07d9334e905f710d9f3c6187cf69a1a5.png)](https://ram-vegiraju.medium.com/?source=post_page---byline--c00038b70b3e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c00038b70b3e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c00038b70b3e--------------------------------)
     [Ram Vegiraju](https://ram-vegiraju.medium.com/?source=post_page---byline--c00038b70b3e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://ram-vegiraju.medium.com/?source=post_page---byline--c00038b70b3e--------------------------------)[![Ram
+    Vegiraju](../Images/07d9334e905f710d9f3c6187cf69a1a5.png)](https://ram-vegiraju.medium.com/?source=post_page---byline--c00038b70b3e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c00038b70b3e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c00038b70b3e--------------------------------)
+    [Ram Vegiraju](https://ram-vegiraju.medium.com/?source=post_page---byline--c00038b70b3e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c00038b70b3e--------------------------------)
     ·10 min read·Jan 27, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布在[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c00038b70b3e--------------------------------)
+    ·阅读时间：10分钟·2024年1月27日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/0fce977b001046234030458bd3e0ab4c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0fce977b001046234030458bd3e0ab4c.png)'
 - en: Image from [Unsplash](https://unsplash.com/photos/a-robot-holding-a-gun-next-to-a-pile-of-rolls-of-toilet-paper-YeoSV_3Up-k)
     by [**Gerard Siderius**](https://unsplash.com/@siderius_creativ)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自[Unsplash](https://unsplash.com/photos/a-robot-holding-a-gun-next-to-a-pile-of-rolls-of-toilet-paper-YeoSV_3Up-k)，由[**Gerard
+    Siderius**](https://unsplash.com/@siderius_creativ)提供
 - en: LLMs continue to burst in popularity and so do the number of ways to host and
     deploy them for inference. The challenges with LLM hosting have been well documented
     particularly due to the size of the model and ensuring optimal usage of the hardware
     that they are deployed on. LLM use-cases also vary. Some may require real-time
     based response times, while others have a more near real-time based latency requirement.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型（LLMs）继续迅速流行，托管和部署它们进行推理的方式也在不断增加。有关LLM托管的挑战，尤其是由于模型的大小以及确保其在部署硬件上得到最佳使用，已经有很多文献记录。LLM的使用案例也各不相同。有些可能需要基于实时的响应时间，而其他则具有更接近实时的延迟要求。
 - en: For the latter and for more offline inference use-cases, [SageMaker Asynchronous
     Inference](https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html)
     serves as a great option. With Asynchronous Inference, as the name suggests we
@@ -47,8 +70,12 @@
     and more. All of these workloads don’t need sub-second responses, but still require
     a timely inference that they can invoke as needed as opposed to a fully offline
     nature such as that of a [SageMaker Batch Transform](/sagemaker-batch-transform-d94dbaf889f6).
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于后者以及更多离线推理的使用案例，[SageMaker异步推理](https://docs.aws.amazon.com/sagemaker/latest/dg/async-inference.html)是一个不错的选择。正如其名所示，异步推理专注于一种更接近实时的工作负载，在这种情况下，延迟不必严格要求极低，但仍然需要一个可以根据需要调用并扩展的活动端点。特别是在大型语言模型中，这类工作负载正变得越来越流行，使用案例包括内容编辑/生成、摘要等。这些工作负载不需要毫秒级响应，但仍然要求能及时推理，按需调用，而不是完全离线的方式，如[SageMaker批处理转换](/sagemaker-batch-transform-d94dbaf889f6)。
 - en: In this example, we’ll take a look at how we can use the [HuggingFace Text](https://github.com/huggingface/text-generation-inference)…
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，我们将看看如何使用[HuggingFace Text](https://github.com/huggingface/text-generation-inference)…
