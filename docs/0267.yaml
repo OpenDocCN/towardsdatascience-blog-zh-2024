@@ -1,50 +1,77 @@
 - en: 'Cypher Generation: The Good, The Bad and The Messy'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Cypher 生成：好、坏与混乱
 - en: 原文：[https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29](https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29](https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29)
 - en: '*Methods for creating fine-tuning datasets for text-to-Cypher generation.*'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: '*创建用于文本到 Cypher 生成的微调数据集的方法。*'
 - en: '[](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[![Silvia
     Onofrei](../Images/198b04b2063b4269eaff52402dc5f8d5.png)](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)
     [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[![Silvia
+    Onofrei](../Images/198b04b2063b4269eaff52402dc5f8d5.png)](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)
+    [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)
     ·13 min read·Jan 29, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)
+    ·13分钟阅读·2024年1月29日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/ad8b418ba27894f9c93e3debc77b318b.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ad8b418ba27894f9c93e3debc77b318b.png)'
 - en: Created with ChatGPT-DALLE
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 由 ChatGPT-DALLE 创建
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: Cypher is Neo4j’s graph query language. It was inspired and bears similarities
     with SQL, enabling data retrieval from knowledge graphs. Given the rise of generative
     AI and the widespread availability of large language models (LLMs), it is natural
     to ask which LLMs are capable of generating Cypher queries or how we can finetune
     our own model to generate Cypher from the text.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: Cypher 是 Neo4j 的图查询语言。它的灵感来源于 SQL，并且与 SQL 有许多相似之处，能够从知识图谱中检索数据。随着生成式 AI 的兴起以及大型语言模型（LLMs）的广泛应用，自然而然地会有人问，哪些
+    LLM 能生成 Cypher 查询，或者我们如何微调自己的模型从文本生成 Cypher 查询。
 - en: The issue presents considerable challenges, primarily due to the scarcity of
     fine-tuning datasets and, in my opinion, because such a dataset would significantly
     rely on the specific graph schema.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个问题提出了相当大的挑战，主要是由于微调数据集的稀缺，并且在我看来，这样的数据集将极大地依赖于特定的图谱模式。
 - en: In this blog post, I will discuss several approaches for creating a fine-tuning
     dataset aimed at generating Cypher queries from text. The initial approach is
     grounded in Large Language Models (LLMs) and utilizes a predefined graph schema.
@@ -52,47 +79,67 @@
     a vast array of questions and Cypher queries, adaptable to any graph schema. For
     experimentation I created a knowledge graph that is based on a subset of the ArXiv
     dataset.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客文章中，我将讨论几种创建微调数据集的方法，旨在从文本中生成 Cypher 查询。第一种方法基于大型语言模型（LLMs），并使用预定义的图谱模式。第二种方法完全基于
+    Python，提供了一种灵活的方式，可以生成各种各样的问题和 Cypher 查询，适用于任何图谱模式。在实验中，我创建了一个基于 ArXiv 数据集子集的知识图谱。
 - en: As I was finalizing this blogpost, Tomaz Bratanic launched an [initiative project](https://medium.com/@bratanic-tomaz/crowdsourcing-text2cypher-dataset-e65ba51916d4)
     aimed at developing a comprehensive fine-tuning dataset that encompasses various
     graph schemas and integrates a human-in-the-loop approach to generate and validate
     Cypher statements. I hope that the insights discussed here will also be advantageous
     to the project.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我完成这篇博客时，Tomaz Bratanic 启动了一个 [倡议项目](https://medium.com/@bratanic-tomaz/crowdsourcing-text2cypher-dataset-e65ba51916d4)，旨在开发一个全面的微调数据集，涵盖各种图谱模式，并结合人工智能参与的方法来生成和验证
+    Cypher 语句。我希望这里讨论的见解也能对该项目有所帮助。
 - en: Knowledge Graph Model
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 知识图谱模型
 - en: I like working with the ArXiv dataset of scientific articles because of its
     clean, easy-to-integrate format for a knowledge graph. Utilizing techniques from
     my recent [Medium blogpost](https://medium.com/towards-data-science/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b),
     I enhanced this dataset with additional keywords and clusters. Since my primary
     focus is on building a fine-tuning dataset, I’ll omit the specifics of constructing
     this graph. For those interested, details can be found in this [Github repository.](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 我喜欢使用ArXiv科学文章数据集，因为它具有干净且易于集成到知识图谱中的格式。利用我最近的[Medium博客文章](https://medium.com/towards-data-science/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b)中的技术，我通过添加关键词和聚类增强了这个数据集。由于我的主要关注点是构建一个微调数据集，我将省略构建该图谱的具体细节。对于感兴趣的读者，详细信息可以在这个[Github仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中找到。
 - en: 'The graph is of a reasonable size, featuring over 38K nodes and almost 96K
     relationships, with 9 node labels and 8 relationship types. Its schema is illustrated
     in the following image:'
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 该图谱的规模合理，包含超过38K个节点和近96K个关系，拥有9种节点标签和8种关系类型。其架构如下图所示：
 - en: '![](../Images/9d2e0017b08013546e0efeae020a78c9.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9d2e0017b08013546e0efeae020a78c9.png)'
 - en: Image by the Author
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者
 - en: While this knowledge graph isn’t fully optimized and could be improved, it serves
     the purposes of this blogpost quite effectively. If you prefer to just test queries
     without building the graph, I uploaded the dump file in this [Github repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然这个知识图谱尚未完全优化，还可以进一步改进，但它在这篇博客文章中能够有效地实现目的。如果你更倾向于直接测试查询而不构建图谱，我已将数据转储文件上传至这个[Github仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)。
 - en: Generating Training Pairs with LLM
+  id: totrans-19
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用LLM生成训练对
 - en: The first approach I implemented was inspired by Tomaz Bratanic’s blogposts
     on [building a knowledge graph chatbot](https://medium.com/neo4j/knowledge-graph-based-chatbot-with-gpt-3-and-neo4j-c4ebbd325ed)
     and [finetuning a LLM with H2O Studio](/fine-tuning-an-llm-model-with-h2o-llm-studio-to-generate-cypher-statements-3f34822ad5).
@@ -101,320 +148,477 @@
     directly from the graph schema. Therefore, in addition to GPT-4 or GPT-4-turbo,
     there are now accessible open source alternatives such as Mixtral-8x7B I anticipate
     could effectively generate decent quality training data.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 我实现的第一种方法灵感来自Tomaz Bratanic的博客文章，关于[构建知识图谱聊天机器人](https://medium.com/neo4j/knowledge-graph-based-chatbot-with-gpt-3-and-neo4j-c4ebbd325ed)和[使用H2O
+    Studio微调LLM模型](/fine-tuning-an-llm-model-with-h2o-llm-studio-to-generate-cypher-statements-3f34822ad5)。最初，在提示中提供了一些示例查询。然而，最近的一些模型增强了直接从图谱架构生成Cypher查询的能力。因此，除了GPT-4或GPT-4-turbo之外，现在还有可访问的开源替代方案，如Mixtral-8x7B，我预期它能够有效生成高质量的训练数据。
 - en: In this project, I experimented with two models. For the sake of convenience,
     I decided to use GPT-4-turbo in conjunction with ChatGPT, see this [Colab Notebook](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb).
     However, in this [notebook](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/5_ArXiv_KG_Synthetic_Data_Mixtral.ipynb)
     I performed a few tests with Mixtral-7x2B-GPTQ, a quantized model that is small
     enough to run on Google Colab, and which delivers satisfactory results.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个项目中，我尝试了两种模型。为了方便起见，我决定将GPT-4-turbo与ChatGPT结合使用，详情请见这个[Colab笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb)。然而，在这个[笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/5_ArXiv_KG_Synthetic_Data_Mixtral.ipynb)中，我对Mixtral-7x2B-GPTQ模型进行了一些测试，它是一个足够小的量化模型，可以在Google
+    Colab上运行，并且能够提供令人满意的结果。
 - en: 'To maintain data diversity and effectively monitor the generated questions,
     Cypher statements pairs, I have adopted a two steps approach:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了保持数据的多样性并有效监控生成的提问和Cypher语句对，我采用了一个两步法：
 - en: 'Step 1: provide the full schema to the LLM and request it to generate 10–15
     different categories of potential questions related to the graph, along with their
     descriptions,'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第1步：提供完整的架构给LLM，并请求其生成10–15种不同类别的与图谱相关的潜在问题及其描述。
 - en: 'Step 2: provide schema information and instruct the LLM to create a specific
     number N of training pairs for each identified category.'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 第2步：提供架构信息并指示LLM为每个识别的类别创建特定数量N的训练对。
 - en: 'Extract the categories of samples:'
+  id: totrans-25
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 提取样本类别：
 - en: For this step I used ChatGPT Pro version, although I did iterate through the
     prompt several times, combined and enhanced the outputs.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这一步，我使用了 ChatGPT Pro 版本，尽管我确实多次调整提示，结合并增强了输出结果。
 - en: Extract a schema of the graph as a string (more about this in the next section).
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 将图的模式提取为字符串（有关更多信息，请参见下一部分）。
 - en: 'Build a prompt to generate the categories:'
+  id: totrans-28
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 构建一个提示来生成类别：
 - en: '[PRE0]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Ask the LLM to generate the categories.
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 请 LLM 生成类别。
 - en: 'Review, make corrections and enhance the categories as needed. Here is a sample:'
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 审查、修正并根据需要增强类别。以下是一个示例：
 - en: '[PRE1]'
+  id: totrans-32
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 💡**Tips**💡
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 💡**提示**💡
 - en: '*If the graph schema is very large, split it into overlapping subgraphs (this
     depends on the graph topology also) and repeat the abov*e process for each subgraph.'
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*如果图的模式非常大，拆分为重叠的子图（这也取决于图的拓扑结构），并对每个子图重复上述过程。*'
 - en: '*When working with open source models, choose the best model you can fit on
     your computational resources.* [*TheBloke*](https://huggingface.co/TheBloke) *has
     posted an extensive list of quantized models,* [*Neo4j GenAI*](https://neo4j.com/emil/introducing-genai-stack-developers/)
     *provides tools to work on your own hardware and* [*LightningAI Studio*](https://lightning.ai/onboarding)
     *is a recently released platform which gives you access to a multitude of LLMs.*'
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*在使用开源模型时，选择最适合你计算资源的模型。* [*TheBloke*](https://huggingface.co/TheBloke) *发布了一个详尽的量化模型清单，*
+    [*Neo4j GenAI*](https://neo4j.com/emil/introducing-genai-stack-developers/) *提供了在你自己的硬件上工作的工具，*
+    [*LightningAI Studio*](https://lightning.ai/onboarding) *是一个最近发布的平台，提供对多种 LLMs
+    的访问。*'
 - en: 'Generate the training pairs:'
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 生成训练对：
 - en: 'This step was performed with OpenAI API, working with GPT-4-turbo which also
     has the option to output JSON format. Again the schema of the graph is provided
     with the prompt:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这一步是通过 OpenAI API 执行的，使用 GPT-4-turbo，它也有输出 JSON 格式的选项。同样，图的模式通过提示提供：
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Build the function which will prompt the model and will retrieve the output:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建一个函数来提示模型并检索输出：
 - en: '[PRE3]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Loop through the categories and collect the outputs in a list:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 遍历类别并将输出收集到一个列表中：
 - en: '[PRE4]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'At this point in the project I collected almost 500 pairs of questions, Cypher
     statements. Here is a sample:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在项目的这一阶段，我收集了近 500 对问题和 Cypher 语句。以下是一个示例：
 - en: '[PRE5]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'The data requires significant cleaning and wrangling. While not overly complex,
     the process is both time-consuming and tedious. Here are several of the challenges
     I encountered:'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据需要大量清理和整理。虽然并不复杂，但过程既耗时又繁琐。以下是我遇到的一些挑战：
 - en: non-JSON entries due to incomplete Cypher statements;
+  id: totrans-46
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 由于 Cypher 语句不完整，存在非 JSON 条目；
 - en: 'the expected format is {’question’: ‘some question’, ‘cypher’:’some cypher’},
     but deviations are frequent and need to be standardized;'
+  id: totrans-47
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '期望的格式是 {’question’: ‘某个问题’, ‘cypher’:’某个 cypher’}，但偏差很常见，需要进行标准化；'
 - en: instances where the questions and the Cypher statements are clustered together,
     necessiting their separation and organization.
+  id: totrans-48
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在问题和 Cypher 语句聚集在一起的情况下，需要将它们分开并进行组织。
 - en: 💡**Tip**💡
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 💡**提示**💡
 - en: '*It is better to iterate through variations of the prompt than trying to find
     the best prompt format from the beginning. In my experience, even with diligent
     adjustments, generating a large volume of data like this inevitably leads to some
     deviations.*'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: '*与其从一开始就试图找到最好的提示格式，不如多次迭代提示的变体。根据我的经验，即使经过仔细调整，像这样的大量数据生成不可避免地会出现一些偏差。*'
 - en: Now regarding the content. GPT-4-turbo is quite capable to generate good questions
     about the graph, however not all the Cypher statements are valid (working Cypher)
     and correct (extract the intended information). When fine-tuning in a production
     environment, I would either rectify or eliminate these erroneous statements.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在说说内容方面。GPT-4-turbo 很有能力生成关于图的好问题，但并非所有的 Cypher 语句都是有效的（工作 Cypher）和正确的（提取预期信息）。在生产环境中进行微调时，我会纠正或删除这些错误的语句。
 - en: I created a function `execute_cypher_queries()` that sends the queries to the
     Neo4j graph database . It either records a message in case of an error or retrieves
     the output from the database. This function is available in this [Google Colab
     notebook](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb).
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 我创建了一个函数 `execute_cypher_queries()`，它将查询发送到 Neo4j 图数据库。如果出现错误，它会记录一条消息，或者从数据库中检索输出。此函数可以在此
+    [Google Colab 笔记本](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb)
+    中找到。
 - en: 'From the prompt, you may notice that I instructed the LLM to generate mock
     data to populate the attributes values. While this approach is simpler, it results
     in numerous empty outputs from the graph. And it demands extra effort to identify
     those statements involving hallucinatins, such as made-up attributes:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 从提示中，你可能会注意到我指示 LLM 生成模拟数据以填充属性值。虽然这种方法更简单，但它导致图中的许多空输出。而且，这需要额外的努力来识别涉及幻觉的语句，如虚构的属性：
 - en: '[PRE6]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: The `Article` node has no `creation_date` attribute in the ArXiv graph!
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: '`Article` 节点在 ArXiv 图中没有 `creation_date` 属性！'
 - en: 💡**Tip**💡
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 💡**提示**💡
 - en: '*To minimize the empty outputs, we could instead extract instances directly
     from the graph. These instances can then be incorporated into the prompt, and
     instruct the LLM to use this information to enrich the Cypher statements.*'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: '*为了减少空输出，我们可以直接从图中提取实例。这些实例可以被纳入提示中，并指示 LLM 使用这些信息来丰富 Cypher 语句。*'
 - en: Building Functional Queries
+  id: totrans-58
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 构建功能查询
 - en: This method allows to create anywhere from hundreds to hundreds of thousands
     of correct Cypher queries, depending on the graph’s size and complexity. However,
     it is crucial to strike a balance bewteen the quantity and the diversity of these
     queries. Despite being correct and applicable to any graph, these queries can
     occasionally appear formulaic or rigid.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种方法可以生成从数百到数十万条正确的 Cypher 查询，具体取决于图的大小和复杂性。然而，至关重要的是要在查询的数量和多样性之间找到平衡。尽管这些查询在任何图中都是正确且适用的，但它们有时会显得公式化或僵化。
 - en: Extract Information About the Graph Structure
+  id: totrans-60
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 提取有关图结构的信息
 - en: For this process we need to start with some data extraction and preparation.
     I use the Cypher queries and the some of the code from the [neo4j_graph.py](https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/graphs/neo4j_graph.py)
     module in Langchain.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个过程，我们需要从一些数据提取和准备开始。我使用了 Cypher 查询和来自 [neo4j_graph.py](https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/graphs/neo4j_graph.py)
+    模块的一些代码。
 - en: Connect to an existing Neo4j graph database.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 连接到现有的 Neo4j 图形数据库。
 - en: Extract the schema in JSON format.
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提取 JSON 格式的模式。
 - en: Extract several node and relationship instances from the graph, i.e. data from
     the graph to use as samples to populate the queries.
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从图中提取几个节点和关系实例，即从图中提取数据作为样本，用于填充查询。
 - en: 'I created a Python class that perfoms these steps, it is available at `utils/neo4j_schema.py`
     in the [Github repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator).
     With all these in place, extracting the relevant data about the graph necessitates
     a few lines of code only:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 我创建了一个执行这些步骤的 Python 类，它可以在 [Github 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中的
+    `utils/neo4j_schema.py` 找到。有了这些，只需几行代码即可提取图的相关数据：
 - en: '[PRE7]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Extract Data From the Graph
+  id: totrans-67
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从图中提取数据
 - en: This data will provide authentic values to populate our Cypher queries with.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些数据将为我们填充 Cypher 查询提供真实的值。
 - en: 'First, we extract several node instances, this will retrieve all the data for
     nodes in the graph, including labels, attributes and their values :'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 首先，我们提取几个节点实例，这将检索图中所有节点的数据，包括标签、属性及其值：
 - en: '[PRE8]'
+  id: totrans-70
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Next, extract relationship instances, this includes all the data on the start
     node, the relationship with its type and properties, and the end node information:'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，提取关系实例，包括起始节点、关系的类型和属性以及终止节点信息：
 - en: '[PRE9]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 💡**Tips**💡
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 💡**提示**💡
 - en: '*Both of the above methods work for the full lists of nodes, relationships
     or sublists of them.*'
+  id: totrans-74
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*上述两种方法适用于完整的节点列表、关系或它们的子列表。*'
 - en: '*If the graph contains instances that lack records for some attributes, it
     is advisable to collect more instances to ensure all possible scenarios are covered.*'
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '*如果图中包含缺少某些属性记录的实例，建议收集更多实例，以确保覆盖所有可能的场景。*'
 - en: The next step is to serialize the data, by replacing the Neo4j.time values with
     strings and save it to files.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是序列化数据，通过将 Neo4j.time 的值替换为字符串，并将其保存到文件中。
 - en: Parse the Extracted Data
+  id: totrans-77
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 解析提取的数据
 - en: I refer to this phase as Python gymnastics. Here, we handle the data obtained
     in the previous step, which consists of the graph schema, node instances, and
     relationship instances. We reformat this data to make it easily accessible for
     the functions we are developing.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我把这个阶段称为 Python 体操。在这里，我们处理前一步获得的数据，包括图模式、节点实例和关系实例。我们重新格式化这些数据，以使其更易于访问我们正在开发的函数。
 - en: 'We first identify all the datatypes in the graph with:'
+  id: totrans-79
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们首先使用以下方法识别图中的所有数据类型：
 - en: '[PRE10]'
+  id: totrans-80
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: For each datatype we extract the attributes (and the corresponding nodes) that
     have that dataype.
+  id: totrans-81
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 对于每种数据类型，我们提取具有该数据类型的属性（及相应的节点）。
 - en: We parse instances of each datatype.
+  id: totrans-82
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们解析每种数据类型的实例。
 - en: We also process and filter the relationships so that the start and the end nodes
     have attributes of specifid data types.
+  id: totrans-83
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们还会处理和筛选关系，使得起始节点和结束节点具有特定数据类型的属性。
 - en: All the code is available in the [Github repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator).
     The reasons of doing all these will become transparent in the next section.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有代码都可以在[Github 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中找到。这样做的原因将在下一节中透明化。
 - en: How to Build One or One Thousand Cypher Statements
+  id: totrans-85
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何构建一个或一千个 Cypher 语句
 - en: 'Being a mathematician, I often perceive statements in terms of the underlying
     functions. Let’s consider the following example:'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为一个数学家，我通常通过潜在的函数来理解陈述。让我们考虑以下示例：
 - en: '[PRE11]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: The above can be regarded as functions of several variables `f(x, y, z)` and
     `g(x. y, z)` where
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述内容可以视为多个变量`f(x, y, z)`和`g(x, y, z)`的函数，其中
 - en: '[PRE12]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: How many queries of this type can we build? To simplify the argument let’s assume
     that there are `N` node labels, each having in average `n` properties that have
     `STRING` datatype. So at least `Nxn` queries are available for us to build, not
     taking into account the options for the string choices `z`.
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们能构建多少这种类型的查询？为了简化论证，假设有`N`个节点标签，每个标签平均有`n`个属性，这些属性的数据类型为`STRING`。因此，我们至少可以构建`Nxn`个查询，不考虑字符串选择`z`的选项。
 - en: 💡**Tip**💡
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 💡**提示**💡
 - en: '*Just because we are able to construct all these queries using a single line
     of code doesn’t imply that we should incorporate the entire set of examples into
     our fine-tuning dataset.*'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '*仅仅因为我们能够通过一行代码构建所有这些查询，并不意味着我们应该将整个查询示例集纳入我们的微调数据集中。*'
 - en: Develop a Process and a Template
+  id: totrans-93
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 制定一个流程和模板
 - en: The main challenge lies in creating a sufficiently varied list of queries that
     covers a wide range of aspects related to the graph. With both proprietary and
     open-source LLMs capable of generating basic Cypher syntax, our focus can shift
@@ -422,154 +626,228 @@
     omitting syntax-specific queries. To gather query examples for conversion into
     functional form, one could refer to any Cypher language book or explore the [Neo4j
     Cypher documentation site](https://neo4j.com/docs/cypher-manual/current/introduction/).
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 主要挑战在于创建一个足够多样化的查询列表，覆盖与图谱相关的广泛方面。由于专有和开源的大型语言模型（LLM）能够生成基本的 Cypher 语法，我们的重点可以转向生成有关图谱中节点和关系的查询，而忽略特定语法的查询。为了收集查询示例并将其转换为功能形式，可以参考任何
+    Cypher 语言书籍或访问[Neo4j Cypher 文档网站](https://neo4j.com/docs/cypher-manual/current/introduction/)。
 - en: In the [GitHub repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator),
     there are about 60 types of these queries that are then applied to the ArXiv knowledge
     graph. They are versatile and applicable to any graph schema.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[GitHub 仓库](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)中，有大约60种此类查询，它们被应用于
+    ArXiv 知识图谱。这些查询具有多功能性，适用于任何图谱模式。
 - en: 'Below is the complete Python function for creating one set of similar queries
     and incorporate it in the fine-tuning dataset:'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是创建一组相似查询并将其纳入微调数据集的完整 Python 函数：
 - en: '[PRE13]'
+  id: totrans-97
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'the function find_nodes_connected_to_node_via_relation() takes the generating
     prompter and evaluates it for all the elements in all_rels which is the collection
     of extracted and processed relationship instances, whose entries are of the form:'
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 函数find_nodes_connected_to_node_via_relation()接受生成的提示并对all_rels中的所有元素进行评估，all_rels是提取和处理后的关系实例集合，条目的形式为：
 - en: '[PRE14]'
+  id: totrans-99
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: the prompter inputs are two nodes denoted `label_1` and `label_2` , the property
     `prop_1` for `label_1` and the relationship `rel_1` ,
+  id: totrans-100
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 提示输入为两个节点，分别表示为`label_1`和`label_2`，属性`prop_1`针对`label_1`，关系`rel_1`，
 - en: the `message` contains the components of the prompt for the corresponding entry
     in the fine-tuning dataset,
+  id: totrans-101
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`message`包含了相应条目在微调数据集中的提示组件，'
 - en: 'the `subschema` extracts first neighbors for the two nodes denoted `label_1`
     and `label_2` , this means: the two nodes listed, all the nodes related to them
     (distance one in the graph), the relationships and all the corresponding attributes.'
+  id: totrans-102
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`subschema`提取表示`label_1`和`label_2`的两个节点的第一邻居，这意味着：列出的两个节点，它们所有相关的节点（图中的距离为1），以及关系和所有对应的属性。'
 - en: 💡**Tip**💡
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 💡**提示**💡
 - en: '*Including the* `*subschema*` *in the finetuning dataset is not essential,
     although the more closely the prompt aligns with the fine-tuning data, the better
     the generated output tends to be. From my perspective, incorporating the subschema
     in the fine-tuning data still offers advantages.*'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: '*将* `*subschema*` *包括在微调数据集中并非必要，尽管提示与微调数据的对齐程度越高，生成的输出往往越好。从我的角度来看，将 subschema
+    纳入微调数据仍然具有优势。*'
 - en: Concluding Remarks
+  id: totrans-105
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: 'To summarize, post has explored various methods for building a fine-tuning
     dataset for generating Cypher queries from text. Here is a breakdown of these
     techniques, along with their advantages and disadvantages:'
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，本文探索了多种构建微调数据集以从文本生成 Cypher 查询的方法。以下是这些技术的概述，包括它们的优缺点：
 - en: '**LLM generated question and Cypher statements pairs**:'
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: '**LLM 生成的问题和 Cypher 语句对**：'
 - en: The method may seem straightforward in terms of data collection, yet it often
     demands excessive data cleaning.
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这种方法在数据收集方面看似直接，但它通常需要过多的数据清理。
 - en: While certain proprietary LLMs yield good outcomes, many open source LLMs still
     lack the proficiency of generating a wide range of accurate Cypher statements.
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 虽然某些专有的 LLM 产生了较好的结果，但许多开源的 LLM 仍然缺乏生成多种准确 Cypher 语句的能力。
 - en: This technique becomes burdensome when the graph schema is complex.
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当图模式复杂时，这种技术会变得繁琐。
 - en: '**Functional approach or parametric query generation:**'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: '**功能性方法或参数查询生成：**'
 - en: This method is adaptable across various graphs schemas and allows for easy scaling
     of the sample size. However, it is important to ensure that the data doesn’t become
     overly repetitive and maintains diversity.
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这种方法可以适应不同的图模式，并允许轻松扩展样本大小。然而，重要的是确保数据不会变得过于重复，并保持多样性。
 - en: It requires a significant amount of Python programming. The queries generated
     can often seem mechanial and may lack a conversational tone.
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它需要大量的 Python 编程。生成的查询常常显得机械，缺乏对话的语气。
 - en: 'To expand beyond these approaches:'
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 要扩展这些方法之外：
 - en: 'The graph schema can be seamlessley incorporated into the framework for creating
     the functional queries. Consider the following question, Cypher statement pair:'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 图模式可以无缝地融入创建功能查询的框架中。考虑以下问题和 Cypher 语句对：
 - en: '[PRE15]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: Instead of using a direct parametrization, we could incorporate basic parsing
     (such as replacing WRITTEN_BY with written by), enhancing the naturalness of the
     generated question.
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以通过基本的解析（例如将 WRITTEN_BY 替换为 written by），而不是直接使用参数化，来增强生成问题的自然性。
 - en: This highligts the significance of the graph schema’s design and the labelling
     of graph’s entities in the construction of the fine-tuning pars. Adhering to general
     norms like using nouns for node labels and suggestive verbs for the relationships
     proves beneficial and can create a more organically conversational link between
     the elements.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 这突显了图形模式设计和图形实体标注在微调解析构建中的重要性。遵循一般规范，比如使用名词作为节点标签，使用富有提示性的动词作为关系，证明是有益的，并且能够在元素之间创建更自然的对话式联系。
 - en: Finally, it is crucial not to overlook the value of collecting actual user generated
     queries from graph interactions. When available, parametrizing these queries or
     enhancing them through other methods can be very useful. Ultimately, the effectiveness
     of this method depends on the specific objectives for which the graph has been
     designed.
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，至关重要的是不要忽视从图形交互中收集实际用户生成查询的价值。若有可能，通过参数化这些查询或通过其他方法增强它们会非常有用。最终，这种方法的有效性取决于图形设计的具体目标。
 - en: To this end, it is important to mention that my focus was on simpler Cypher
     queries. I did not address creating or modifying data within the graph, or the
     graph schema, nor I did include APOC queries.
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: 为此，重要的是要提到，我的重点是在较简单的 Cypher 查询上。我没有涉及创建或修改图中的数据，也没有涉及图模式，且没有包括 APOC 查询。
 - en: '*Are there any other methods or ideas you might suggest for generating such
     fine-tuning question and Cypher statement pairs?*'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '*你是否能提出其他方法或想法，用于生成这样的微调问题和 Cypher 语句对？*'
 - en: Resources
+  id: totrans-122
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 资源
 - en: '**Code**'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '**代码**'
 - en: '[Github Repository: Knowledge_Graphs_Assortment](https://www.notion.so/GraphRAG-Unleashing-the-Power-of-KG-with-LLM-51cf4430ea3349ff9320b3375fe47fe5?pvs=21)
     — for building the ArXiv knowledge graph'
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Github 仓库：Knowledge_Graphs_Assortment](https://www.notion.so/GraphRAG-Unleashing-the-Power-of-KG-with-LLM-51cf4430ea3349ff9320b3375fe47fe5?pvs=21)
+    — 用于构建 ArXiv 知识图谱'
 - en: '[Github Repository: Cypher_Generator](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)
     — for all the code related to this blogpost'
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Github 仓库：Cypher_Generator](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)
+    — 包含与本文相关的所有代码'
 - en: '**Data**'
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: '**数据**'
 - en: '• Repository of scholary articles: [arXiv Dataset](https://www.kaggle.com/datasets/Cornell-University/arxiv)
     that has [CC0: Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)
     license.'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: '• 学术文章仓库：[arXiv 数据集](https://www.kaggle.com/datasets/Cornell-University/arxiv)，该数据集拥有[CC0:
+    公共领域](https://creativecommons.org/publicdomain/zero/1.0/)许可证。'
