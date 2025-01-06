@@ -1,231 +1,353 @@
 - en: 'Unleashing the Power of SQL Analytical Window Functions: A Deep Dive into Fusing
     IPv4 Blocks'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 发掘 SQL 分析窗口函数的威力：深入探讨融合 IPv4 块
 - en: 原文：[https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10](https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10](https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10)
 - en: How to summarize a geolocation table by merging contiguous network IPv4 blocks
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 如何通过合并连续的网络 IPv4 块来总结地理位置表
 - en: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[![Jean-Claude
     Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)
     [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[![Jean-Claude
+    Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)
+    [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)
     ·8 min read·Jan 10, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)
+    ·阅读时长 8 分钟·2024 年 1 月 10 日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/e46edade3e88927aa214a1e67a73ca08.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/e46edade3e88927aa214a1e67a73ca08.png)'
 - en: Photo by Pascal Bernardon on Unsplash
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：Pascal Bernardon，来自 Unsplash
 - en: Every device on the internet is uniquely addressable via an Internet Protocol
     (IP) address. The global IP address space is overseen by the Internet Assigned
     Numbers Authority (IANA). Traditionally, IANA allocates address space in /8 prefix
     blocks for IPv4, which are subsequently assigned to Internet Service Providers
     and other organizations. Various databases exist to map these IP blocks to their
     respective owners, along with information about the originating country and city.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 互联网上的每个设备都有一个唯一的 Internet Protocol（IP）地址。全球的 IP 地址空间由互联网号码分配局（IANA）管理。传统上，IANA
+    为 IPv4 分配 /8 前缀块，随后这些地址块被分配给互联网服务提供商和其他组织。现有多种数据库将这些 IP 块与其各自的所有者进行映射，并提供有关来源国家和城市的信息。
 - en: As the Canadian national CSIRT, we, the [Canadian Centre for Cyber Security](https://cyber.gc.ca/en),
     rely heavily on referencing these databases for looking up a given IP or enhancing
     entire datasets through SQL JOINs. However, not all use cases necessitate precision
     up to the city level; sometimes, country information alone suffices.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 作为加拿大国家计算机安全事件响应团队（CSIRT），我们，[加拿大网络安全中心](https://cyber.gc.ca/en)，在查询给定的 IP 或通过
+    SQL JOIN 操作增强整个数据集时，通常会依赖这些数据库。然而，并非所有的使用场景都需要精确到城市级别；有时候，仅仅知道国家信息就足够了。
 - en: Within a country, many network blocks are contiguous. Consolidating these into
     mega blocks can significantly reduce the size of a table mapping mega blocks to
     countries, leading to improved JOIN operations.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在一个国家内，许多网络块是连续的。将这些块合并成超大块可以显著减少将超大块与国家进行映射的表格大小，从而提升 JOIN 操作的效率。
 - en: In this article, we will demonstrate how to summarize a geolocation table by
     merging contiguous network blocks.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将演示如何通过合并连续的网络块来总结地理位置表。
 - en: 'Let’s assume our geolocation table contains the following data:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们的地理位置表包含以下数据：
 - en: '[PRE0]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Here, `start_ip` represents the lowest number in the network block, and `end_ip`
     represents the largest. Normally, these numbers are much larger. For example,
     Google’s DNS server 8.8.8.8 is represented by the number 134744072\. We use simple
     synthetic values for illustration purposes.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里，`start_ip`表示网络块中的最低值，`end_ip`表示最大值。通常，这些数字要大得多。例如，Google的DNS服务器8.8.8.8的表示数字是134744072。我们使用简单的合成值来进行说明。
 - en: To start, let’s perform a simple summarization. For example, counting the number
     of IP addresses assigned to each country. This can be achieved by grouping the
     data by country and summing the number of IPs in each network block.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们进行一个简单的汇总。例如，统计每个国家分配的IP地址数量。这可以通过按国家分组数据，并对每个网络块的IP数量进行求和来实现。
 - en: '[PRE1]'
+  id: totrans-16
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This statement groups rows by country and applies a `SUM` aggregation function,
     calculating the total number of IPs for each country. It’s important to note that
     the `SUM` aggregation is associative, meaning the order in which you sum does
     not matter, similar to additions in mathematics.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个语句按国家对行进行分组，并应用`SUM`聚合函数，计算每个国家的IP总数。需要注意的是，`SUM`聚合是结合性的，这意味着求和的顺序不重要，类似于数学中的加法。
 - en: '[PRE2]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Now, let’s delve into the complexities of aggregating contiguous network blocks.
     Referring to our original table, we need to fuse together the first 3 rows. Bocks
     1–2, 3–4, 5–8 should result in the mega block 1–8\. We also need to fuse the last
     2 rows. Blocks 19–22 and 23–29 result into 19–29\. Our goal is to produce the
     following table:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们深入探讨聚合连续网络块的复杂性。参照我们原始的表格，我们需要将前3行合并。区块1-2、3-4、5-8应合并为大区块1-8。我们还需要合并最后两行。区块19-22和23-29应合并为19-29。我们的目标是生成如下表格：
 - en: '[PRE3]'
+  id: totrans-20
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: Detecting contiguous blocks requires inter-row information, and the order of
     rows becomes crucial. Fortunately, windowed analytical functions provide a solution
     by offering a mechanism for inter-record referencing. These functions, such as
     `LEAD` and `LAG`, enable comparisons with the values of the previous and subsequent
     rows, facilitating the identification of contiguous IP blocks.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 检测连续区块需要行间信息，并且行的顺序变得至关重要。幸运的是，窗口分析函数提供了解决方案，提供了一个行间引用的机制。这些函数，如`LEAD`和`LAG`，使得可以与前后行的值进行比较，从而帮助识别连续的IP块。
 - en: Let’s apply the `LEAD` and `LAG` windowing functions to our table. Notice that
     within the `OVER` clause we still specify that our data should be grouped by country
     `PARTITION BY country` but additionally we specify the ordering of this data `ORDER
     BY start_ip`.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将`LEAD`和`LAG`窗口函数应用到我们的表格中。注意，在`OVER`子句中，我们仍然指定数据按国家分组`PARTITION BY country`，同时还指定了数据的排序`ORDER
+    BY start_ip`。
 - en: '[PRE4]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The resulting table `view_1` is as follows:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果表格`view_1`如下：
 - en: '[PRE5]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: It’s crucial to distinguish between windowing functions and simple `GROUP BY`
     functions. In an `OVER()` operation, the results of `LEAD` and `LAG` are appended
     to every row, providing context for the previous and next row’s information. This
     is distinct from functions in a `GROUP BY` clause that reduce a group of rows
     into a single aggregation result.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 区分窗口函数和简单的`GROUP BY`函数至关重要。在`OVER()`操作中，`LEAD`和`LAG`的结果会附加到每一行，为前后行的信息提供上下文。这与`GROUP
+    BY`子句中的函数不同，后者将一组行减少为单一的聚合结果。
 - en: Now that we have access to the details of both the preceding and succeeding
     rows, we can facilitate inter-row comparisons. This comparison is crucial for
     identifying contiguous IP blocks, enabling us to determine when to fuse adjacent
     blocks together.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以访问前后行的详细信息，从而可以进行行间比较。这种比较对于识别连续IP块至关重要，帮助我们确定何时将相邻的块合并在一起。
 - en: 'Each row can fall into one of four states:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 每行可以处于四种状态之一：
 - en: '1) Remove: The block is contiguous with both the previous and next blocks.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 1) 删除：该区块与前一个和下一个区块都相连。
 - en: '2) Start: The block is contiguous with only the next block.'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 2) 起始：该区块只与下一个区块相连。
 - en: '3) End: The block is contiguous with only the previous block.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 3) 结束：该区块只与前一个区块相连。
 - en: '4) Keep: The block is not contiguous with either the previous nor the next
     block.'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 4) 保留：该区块既不与前一个区块也不与下一个区块相连。
 - en: Let’s add this `state` column to our table.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们将这个`state`列添加到我们的表格中。
 - en: '[PRE6]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'We obtain the following `view_2` result:'
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们得到如下的`view_2`结果：
 - en: '[PRE7]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: We can proceed to remove the rows falling between the start and end blocks,
     specifically those identified with state `remove`.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以继续删除位于起始和结束区块之间的行，特别是那些被标记为`remove`状态的行。
 - en: '[PRE8]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Resulting in `view_3`:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 结果为`view_3`：
 - en: '[PRE9]'
+  id: totrans-40
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: We are getting close to our goal! All we have to do now is merge the `start`
     and `end` rows, which contain the `start_ip` and `end_ip` of the mega blocks we
     are seeking to produce. To achieve this, we once again use a window function.
     This time to fetch the `end_ip` from the `end` row.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们离目标越来越近了！现在我们只需要合并包含我们希望生成的巨型块的`start_ip`和`end_ip`的`start`行和`end`行。为了实现这一点，我们再次使用窗口函数。这次是从`end`行获取`end_ip`。
 - en: '[PRE10]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'Result in `view_4`:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`view_4`中的结果：
 - en: '[PRE11]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Notice that the rows with state `start` now have a `start_ip` and a `next_end_ip`,
     the information necessary to build a mega block.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，状态为`start`的行现在具有`start_ip`和`next_end_ip`，这是构建巨型块所必需的信息。
 - en: The rows with state `end` are no longer needed and can be removed.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态为`end`的行不再需要，可以删除。
 - en: The rows with state `keep` already have the correct `end_ip`.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 状态为`keep`的行已经具有正确的`end_ip`。
 - en: 'We can now determine the `final_end` value of the mega blocks. Two cases are
     possible:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以确定巨型块的`final_end`值。可能有两种情况：
 - en: 1) for a `start` row, we obtain the end value from the `next_end_ip`.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 1) 对于`start`行，我们从`next_end_ip`获取结束值。
 - en: 2) for a `keep` row, we simply use the original `end_ip` value.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 2) 对于`keep`行，我们直接使用原始的`end_ip`值。
 - en: '[PRE12]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: We thus achieve our goal of fusing contiguous IPv4 blocks into mega blocks.
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们达到了将连续IPv4块合并为巨型块的目标。
 - en: '[PRE13]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'Putting all the statements above together, we obtain a final statement:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 将上述所有语句结合起来，我们得到了一个最终的语句：
 - en: '[PRE14]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: In conclusion, SQL analytical window functions offer a robust framework for
     complex data analysis. They empower users to perform aggregations while retaining
     the context of individual rows, facilitating tasks such as running totals, averages,
     and percentile calculations. Moreover, these functions play a crucial role in
     ranking, time-series analysis, and detecting anomalies and outliers within datasets.
     These functions are indispensable assets in the toolkit of data practitioners.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结来说，SQL分析窗口函数为复杂的数据分析提供了一个强大的框架。它们使得用户能够在保留每行上下文的同时执行聚合操作，从而便于完成诸如运行总和、平均值和百分位计算等任务。此外，这些函数在排名、时间序列分析以及检测数据集中的异常值和离群值中也起着至关重要的作用。这些函数是数据工作者工具包中不可或缺的资产。
 - en: 'Analytical window functions are very powerful. In this article, we only scratched
     the surface; for example, we did not make use of a `window_frame`. A window frame
     allows you to further refine which rows are considered in the aggregation. Window
@@ -234,5 +356,8 @@
     You can learn more about these features in the Spark documentation: [Spark SQL
     — Window Operations](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-window.html)
     .'
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 分析窗口函数非常强大。在本文中，我们仅仅触及了其表面；例如，我们没有使用`window_frame`。窗口框架允许你进一步细化哪些行将被考虑在聚合中。窗口框架是相对于当前行的，并且可以基于行数或时间间隔，这使得这些函数在各种分析中不可或缺。你可以在Spark文档中了解更多关于这些功能的信息：[Spark
+    SQL — Window Operations](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-window.html)。
