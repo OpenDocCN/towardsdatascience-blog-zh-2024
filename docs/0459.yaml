@@ -1,58 +1,89 @@
 - en: Understanding Direct Preference Optimization
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解直接偏好优化
 - en: 原文：[https://towardsdatascience.com/understanding-the-implications-of-direct-preference-optimization-a4bbd2d85841?source=collection_archive---------0-----------------------#2024-02-18](https://towardsdatascience.com/understanding-the-implications-of-direct-preference-optimization-a4bbd2d85841?source=collection_archive---------0-----------------------#2024-02-18)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/understanding-the-implications-of-direct-preference-optimization-a4bbd2d85841?source=collection_archive---------0-----------------------#2024-02-18](https://towardsdatascience.com/understanding-the-implications-of-direct-preference-optimization-a4bbd2d85841?source=collection_archive---------0-----------------------#2024-02-18)
 - en: 'A look at the “Direct Preference Optimization: Your Language Model is Secretly
     a Reward Model” paper and its findings'
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 回顾《直接偏好优化：你的语言模型秘密地是一个奖励模型》论文及其研究结果
 - en: '[](https://medium.com/@mgunton7?source=post_page---byline--a4bbd2d85841--------------------------------)[![Matthew
     Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--a4bbd2d85841--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a4bbd2d85841--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a4bbd2d85841--------------------------------)
     [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--a4bbd2d85841--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@mgunton7?source=post_page---byline--a4bbd2d85841--------------------------------)[![Matthew
+    Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--a4bbd2d85841--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a4bbd2d85841--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a4bbd2d85841--------------------------------)
+    [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--a4bbd2d85841--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a4bbd2d85841--------------------------------)
     ·8 min read·Feb 18, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a4bbd2d85841--------------------------------)
+    ·阅读时间8分钟·2024年2月18日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/0b763aeff4b52b196cfe8e0e6785650d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0b763aeff4b52b196cfe8e0e6785650d.png)'
 - en: Image by the Author via DALL-E
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者通过DALL-E提供的图片
 - en: '*This blog post was inspired by a discussion I recently had with some friends
     about the Direct Preference Optimization (DPO) paper. The discussion was lively
     and went over many important topics in LLMs and Machine Learning in general. Below
     is an expansion on some of those ideas and the concepts discussed in the paper.*'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这篇博客文章的灵感来源于我最近与一些朋友关于《直接偏好优化（DPO）》论文的讨论。讨论非常热烈，涵盖了许多关于大语言模型（LLM）和机器学习的核心话题。以下是对其中一些想法和论文中讨论的概念的扩展。*'
 - en: Direct Preference Optimization (DPO) has become the way that new foundation
     models are fine-tuned. Famously Mixtral 8x7B, the Sparse Mixture of Experts model
     created by Mistral, was able to reach LLaMa 70B levels of performance with significantly
     fewer parameters by using DPO. Naturally, this success has led many in the community
     to begin fine-tuning their own models with DPO.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 直接偏好优化（DPO）已经成为新型基础模型微调的主要方法。著名的Mixtral 8x7B是由Mistral创建的稀疏专家混合模型，通过使用DPO，能够在显著减少参数的情况下，达到LLaMa
+    70B模型的性能水平。自然，这一成功使得许多社区成员开始用DPO对自己的模型进行微调。
 - en: Let’s dive into what exactly DPO is and how we got here.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们深入了解一下什么是DPO以及我们是如何走到今天这一步的。
 - en: High Level Discussion
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 高级讨论
 - en: Let’s begin with setting out what fine-tuning should do from a high level. Once
     you have a pre-trained a model to have strong generative capacities, you typically
     want to control its output somehow. Whether that be optimizing it to respond in
     dialogue as a chat-bot or to respond in code rather…
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们需要明确从高层次来看微调应该做什么。当你预训练了一个具有强大生成能力的模型后，你通常会希望以某种方式控制它的输出。无论是优化模型使其能够作为聊天机器人进行对话，还是使其能够生成代码……
