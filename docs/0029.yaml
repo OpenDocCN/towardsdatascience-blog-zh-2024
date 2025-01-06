@@ -1,369 +1,553 @@
 - en: Generating Synthetic Descriptive Data in PySpark
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在PySpark中生成合成描述性数据
 - en: 原文：[https://towardsdatascience.com/methods-for-generating-synthetic-descriptive-data-c6678cc10aff?source=collection_archive---------16-----------------------#2024-01-04](https://towardsdatascience.com/methods-for-generating-synthetic-descriptive-data-c6678cc10aff?source=collection_archive---------16-----------------------#2024-01-04)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/methods-for-generating-synthetic-descriptive-data-c6678cc10aff?source=collection_archive---------16-----------------------#2024-01-04](https://towardsdatascience.com/methods-for-generating-synthetic-descriptive-data-c6678cc10aff?source=collection_archive---------16-----------------------#2024-01-04)
 - en: Use various data source types to quickly generate text data for artificial datasets.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用各种数据源类型快速生成人工数据集中的文本数据。
 - en: '[](https://medium.com/@mc12338?source=post_page---byline--c6678cc10aff--------------------------------)[![Matt
     Collins](../Images/b28ac8100d6fb287e3fa6926eec7939a.png)](https://medium.com/@mc12338?source=post_page---byline--c6678cc10aff--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6678cc10aff--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6678cc10aff--------------------------------)
     [Matt Collins](https://medium.com/@mc12338?source=post_page---byline--c6678cc10aff--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@mc12338?source=post_page---byline--c6678cc10aff--------------------------------)[![Matt
+    Collins](../Images/b28ac8100d6fb287e3fa6926eec7939a.png)](https://medium.com/@mc12338?source=post_page---byline--c6678cc10aff--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6678cc10aff--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6678cc10aff--------------------------------)
+    [Matt Collins](https://medium.com/@mc12338?source=post_page---byline--c6678cc10aff--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6678cc10aff--------------------------------)
     ·7 min read·Jan 4, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6678cc10aff--------------------------------)
+    ·7分钟阅读·2024年1月4日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/c14575928334898bcaeff52c63f7c0b4.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c14575928334898bcaeff52c63f7c0b4.png)'
 - en: Image generated with DALL-E 3
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用DALL-E 3生成的图像
 - en: In a [previous article](https://medium.com/towards-data-science/create-many-to-one-relationships-between-columns-in-a-synthetic-table-with-pyspark-udfs-41e39d97c936),
     we explored creating many-to-one relationships between columns in a synthetic
     PySpark DataFrame. This DataFrame only consisted of Foreign Key information and
     we didn’t produce any textual information that might be useful in a demo DataSet.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在[上一篇文章](https://medium.com/towards-data-science/create-many-to-one-relationships-between-columns-in-a-synthetic-table-with-pyspark-udfs-41e39d97c936)中，我们探讨了如何在合成的PySpark
+    DataFrame中创建列之间的多对一关系。这个DataFrame只包含外键信息，并未生成可能在示范数据集中有用的文本信息。
 - en: For anyone looking to populate an artificial dataset, it is likely you will
     want to produce descriptive data such as product information, location details,
     customer demographics, etc.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于任何希望填充人工数据集的人来说，您很可能想要生成描述性数据，如产品信息、位置详情、客户人口统计等。
 - en: In this post, we’ll dig into a few sources that can be used to create synthetic
     text data at little effort and cost, and use the techniques to pull together a
     DataFrame containing customer details.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我们将深入探讨几种能够以低成本和低努力生成合成文本数据的来源，并使用这些技术生成包含客户信息的DataFrame。
 - en: Why create an synthetic dataset?
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为什么要创建合成数据集？
 - en: Synthetic datasets are a great way to anonymously demonstrate your data product,
     such as a website or analytics platform. Allowing users and stakeholders to interact
     with example data, exposing meaningful analysis without breaching any privacy
     concerns with sensitive data.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 合成数据集是展示你的数据产品（如网站或分析平台）的一种绝佳方式。它允许用户和利益相关者与示例数据互动，进行有意义的分析，而不会侵犯任何关于敏感数据的隐私问题。
 - en: It can also be great for exploring Machine Learning algorithms, allowing Data
     Scientists to train models in the case of limited real data.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 它对于探索机器学习算法也非常有用，允许数据科学家在真实数据有限的情况下训练模型。
 - en: Performance testing Data Engineering pipeline activities is another great use
     case for synthetic data, giving teams the ability to ramp up the scale of data
     pushed through an infrastructure and identify weaknesses in the design, as well
     as benchmarking runtimes.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 性能测试数据工程管道活动是合成数据的另一个重要应用场景，它为团队提供了通过基础设施推送大规模数据的能力，帮助识别设计中的弱点，以及基准测试运行时间。
 - en: In my case, I’m currently creating an example dataset to performance-test some
     Power BI capabilities at high volumes, which I’ll be writing about in due course.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 就我而言，我目前正在创建一个示例数据集，用于在高负载下对一些Power BI功能进行性能测试，稍后我将撰写相关文章。
 - en: The dataset will contain sales data, including transaction amounts and other
     descriptive features such as store location, employee name and customer email
     address.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 数据集将包含销售数据，包括交易金额和其他描述性特征，如商店位置、员工姓名和客户电子邮件地址。
 - en: Random characters
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 随机字符
 - en: Starting off simple, we can use some built-in functionality to generate random
     text data. Importing the *random* and *string* Python modules, we can use the
     following simple function to create a random string of the desired length.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 从简单的开始，我们可以使用一些内建功能来生成随机文本数据。导入*random*和*string* Python模块后，我们可以使用以下简单的函数创建所需长度的随机字符串。
 - en: '![](../Images/f5c3e3853d273114a21f52033204e2ea.png)'
+  id: totrans-19
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f5c3e3853d273114a21f52033204e2ea.png)'
 - en: 'Image by Author: Screenshot of several examples of results'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：几个结果示例的截图
 - en: We can run this multiple times to generate enough data for our column, appending
     the information to a list.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以多次运行此函数，生成足够的数据用于我们的列，并将信息追加到列表中。
 - en: We will review how to add this to our DataFrame further down this post.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将在本文稍后部分审视如何将数据添加到DataFrame中。
 - en: Benefits and Limitations
+  id: totrans-23
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优势与限制
 - en: This kind of data generation is very generic, with limited applications in demo
     datasets. That being said, it can be combined with other string generation techniques
     (such as concatenation) to give a bit more value at very little effort.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种数据生成方式非常通用，在示例数据集中的应用有限。尽管如此，它可以与其他字符串生成技术（如串联）结合使用，在付出很少努力的情况下提供更多价值。
 - en: 'This can be seen below for random usernames, with a base of a first name appended
     by an underscore and random characters:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是随机用户名的示例，用户名由名字作为基础，后接下划线和随机字符：
 - en: '![](../Images/c8517d9ff5eb3a9f5a9282474f70455c.png)'
+  id: totrans-26
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c8517d9ff5eb3a9f5a9282474f70455c.png)'
 - en: 'Image by Author: Screenshot of several usernames created with random strings
     appended.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：显示用随机字符串附加生成的多个用户名的截图。
 - en: 'Example data points where this could be useful may include:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种数据可能有用的示例数据点包括：
 - en: Email addresses
+  id: totrans-29
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 电子邮件地址
 - en: Passwords
+  id: totrans-30
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 密码
 - en: Product codes
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 产品代码
 - en: Usernames
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 用户名
 - en: APIs
+  id: totrans-33
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: APIs
 - en: APIs are a great source of information, and will likely be data sources when
     building your real Analytics platforms!
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: APIs是一个很好的信息来源，在构建真实的分析平台时，可能会作为数据源使用！
 - en: However, there are also many API endpoints worth querying for generic placeholder
     data that can give you more meaning for demo dashboards through representative
     data for various topics, such as currency rates.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，也有许多API端点值得查询，用于通用的占位符数据，这些数据可以通过代表性的不同主题（如汇率）的数据，为演示仪表盘提供更多意义。
 - en: If we want to retrieve geographical data for a field for a user’s country, we
     could generate this from the [rest countries](https://restcountries.com/) API
     endpoint. This API is free to access and requires no sign-up to get started. Using
     the *requests* python module we’re up and running with a list of countries very
     quickly.
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们想要获取用户所在国家的地理数据，可以通过[rest countries](https://restcountries.com/) API接口生成。这个API是免费的，无需注册即可开始使用。利用*requests*
+    Python模块，我们可以非常快速地获得国家列表。
 - en: '![](../Images/b5dac3970e70b95dcbe8d60a20579702.png)'
+  id: totrans-37
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b5dac3970e70b95dcbe8d60a20579702.png)'
 - en: 'Image by Author: print(sample_countries) statement showing a sample of the
     shuffled results.'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：`print(sample_countries)`语句，展示了打乱结果的示例。
 - en: '***Note: You should always sense-check your outputs — this API request returns
     250 results, which exceeds the real-life number of countries!***'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '***注意：你应始终检查输出结果——这个API请求返回250条结果，超过了现实中国家的数量！***'
 - en: '![](../Images/befb2f37181c4f9022dfae51979fe72f.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/befb2f37181c4f9022dfae51979fe72f.png)'
 - en: 'Image by Author: Snippet of the pprint(sorted(countries_list)) statement, showing
     various “countries” associated with the United States.'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：`pprint(sorted(countries_list))`语句的片段，展示了与美国相关的多个“国家”。
 - en: Benefits and Limitations
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 优势与限制
 - en: Getting data from APIs can vary in complexity and security requirements can
     be off-putting. The way data is requested can also vary, as can the format in
     which it returns. Documentation is produced by the provider themselves, which
     can also be a bottleneck worth considering.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 从API获取数据的复杂性和安全要求可能有所不同，这可能会使人望而却步。数据请求的方式和返回的数据格式也可能不同。文档由提供者自身生成，这也可能成为一个值得考虑的瓶颈。
 - en: It is worth mentioning at this point that there are various packages created
     by developers to interact with APIs in simplified manners — we’ll talk about third-party
     Python libraries in the next section!
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 此时值得一提的是，开发者已经创建了各种包，以简化与API的交互——我们将在下一节讨论第三方Python库！
 - en: With all of that being said, there is plenty of rich data available for you
     to pull that may be utilised in customer-facing data products as well as for demo
     purposes.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 说到这些，有大量丰富的数据可供你提取，可以用于面向客户的数据产品，也可用于演示目的。
 - en: Third-party packages
+  id: totrans-46
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第三方包
 - en: There are also some great ready-made packages out there for us to use. This
     takes some of the heavy effort out of finding a source, processing and formatting
     the data ready for consumption.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 也有一些非常棒的现成包供我们使用。这些包减少了我们寻找数据源、处理和格式化数据以便使用的繁重工作。
 - en: '[*Faker*](https://faker.readthedocs.io/en/master/) is one such example, with
     the ability to generate names, addresses, etc.'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: '[*Faker*](https://faker.readthedocs.io/en/master/)就是这样一个例子，它能够生成名字、地址等。'
 - en: Install, import and use packages like this at your convenience!
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 按照你的方便安装、导入并使用这样的包！
 - en: '![](../Images/c9fde8d06322cc6cf8fdc931cef243b5.png)'
+  id: totrans-50
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c9fde8d06322cc6cf8fdc931cef243b5.png)'
 - en: 'Image by Author: Screenshot of several Faker generated names'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：Faker生成的多个名字的截图
 - en: Benefits and Limitations
+  id: totrans-52
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 好处与局限性
 - en: As much of the leg-work has been done for you by other developers, packages
     such as *Faker* can be very high-impact and low-cost (in both price and time).
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于其他开发者已经为你完成了大量的前期工作，像*Faker*这样的包可以非常高效且低成本（无论是价格还是时间）。
 - en: With just *Faker* in mind, we’ve already been able to generate generic and informative
     user data intuitively. Other libraries are available (often interacting with common
     APIs) to allow developers to easily pull useful through to their applications.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅凭*Faker*，我们已经能够直观地生成通用且有用的用户数据。还有其他库可供使用（通常与常见API交互），帮助开发者轻松地将有用数据引入到他们的应用程序中。
 - en: Blockers could lie within your organisation’s regulations around using third-party
     packages, licensing and maintainability of the package itself, so please be aware
     of possible restrictions here.
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 屏障可能存在于你所在组织关于使用第三方包的规定、包的许可以及包本身的可维护性，因此请注意可能的限制。
 - en: ChatGPT
+  id: totrans-56
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: ChatGPT
 - en: It wouldn’t be fitting to overlook Large Language Models (LLMs) as they are
     a great asset in data generation.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 不得不提的是，忽视大型语言模型（LLMs）是不合适的，因为它们是数据生成的宝贵资产。
 - en: A simple approach could be to get ChatGPT (or equivalent) to generate you a
     list of data points, such as possible customer names.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种简单的方法是让ChatGPT（或同类工具）为你生成一份数据点列表，比如可能的客户姓名。
 - en: '![](../Images/fca72ada96922b20dad3cc47c19b5c79.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/fca72ada96922b20dad3cc47c19b5c79.png)'
 - en: 'Image by Author: Asking ChatGPT for a list of names.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：向ChatGPT请求一个名字列表。
 - en: We can do one better and ask for the LLM to help build the random variable function
     itself. You can include details about data sources and even ask ChatGPT to write
     a function to interact with an API you have found.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以更进一步，请求LLM帮助构建随机变量函数本身。你可以包括数据源的详细信息，甚至请求ChatGPT编写一个与您找到的API交互的函数。
 - en: 'An example here is requesting help with the [bored](https://www.boredapi.com/)
     API, extracting the activity field and returning it for your own use:'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的一个例子是请求帮助使用[bored](https://www.boredapi.com/) API，提取活动字段并返回供你使用：
 - en: '![](../Images/235b4db7b487fcdfe34a35b5d3a9bde1.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/235b4db7b487fcdfe34a35b5d3a9bde1.png)'
 - en: 'Image by Author: Asking ChatGPT for a random activity.'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：向ChatGPT请求一个随机活动。
 - en: '![](../Images/aa33275bfb5ab9d86127ae4b04fe1c3a.png)'
+  id: totrans-65
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aa33275bfb5ab9d86127ae4b04fe1c3a.png)'
 - en: 'Image by Author: Example result of ChatGPT generated function from bored API.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：来自bored API的ChatGPT生成的函数示例结果。
 - en: '***Note: Always check the output of your result to ensure an LLM generated
     function is working as expected.***'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: '***注意：始终检查结果输出，确保LLM生成的功能按预期工作。***'
 - en: Benefits and Limitations
+  id: totrans-68
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 好处与局限性
 - en: Generative AI is showing its strengths in rapid data generation (prominently
     around content creation, as shown by [this Gartner report](https://www.gartner.com/en/doc/779868-emerging-tech-top-use-cases-for-generative-ai))
     and I expect to see more grounded approaches for this in populating example datasets
     next year. As such, it makes creation of various data points at scale accessible
     to users of various backgrounds and levels of technicality.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成性人工智能在快速数据生成方面展现了其优势（尤其是在内容创作方面，正如[这份Gartner报告](https://www.gartner.com/en/doc/779868-emerging-tech-top-use-cases-for-generative-ai)所示），我预计明年在填充示例数据集时将看到更多务实的方法。因此，它使得大规模创建各种数据点对不同背景和技术水平的用户都变得可行。
 - en: With that being said, reliability and consistency of LLMs is being heavily investigated
     at the same time. Depending on the type of data you need to populate, this may
     introduce rigorous checks into data quality and anonymity and determine whether
     or not this is the right tool for specific use cases.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 话虽如此，LLM（大语言模型）的可靠性和一致性也在同时受到广泛研究。根据您需要填充的数据类型，这可能会引入严格的数据质量和匿名性检查，从而决定这是否是特定用例的正确工具。
 - en: Putting this into a DataFrame
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 将其放入DataFrame中
 - en: The approach we’ve taken across the previous sections is to generate our data
     ready to be processed into the DataFrame column of interest.
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们在前几节中采用的方法是生成数据，准备好可以处理到感兴趣的DataFrame列中。
 - en: There are a few choices of how to implement the synthetic data at this stage.
     UDFs are a neat way to apply a function for each row of the column and can help
     define uniqueness.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个阶段，有几种方式可以实现合成数据。UDF（用户定义函数）是一种简洁的方法，可以对每一行的列应用一个函数，并有助于定义唯一性。
 - en: '[Databricks Labs Data Generator](https://github.com/databrickslabs/dbldatagen)
     is another great library that can help speed things up with distributed computing
     at the core of this data generation.'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Databricks Labs Data Generator](https://github.com/databrickslabs/dbldatagen)是另一个优秀的库，它通过分布式计算加速了数据生成过程。'
 - en: Manipulating how we generate the lists of values to be populated, we can implement
     the *withColumn* PySpark function and combine this with our list data to produce
     our text column at great speed.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过操控生成要填充的值列表的方式，我们可以使用*withColumn* PySpark函数，并将其与我们的列表数据结合，以极快的速度生成文本列。
 - en: For our test case, we’ll use a combination of both of these approaches. We can
     use Databricks Labs Data Generator to create our DataFrame wireframe, populating
     100 rows with a unique *Id* column, and any values we might not require to be
     unique, such as *Country*.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们的测试案例，我们将结合使用这两种方法。我们可以使用Databricks Labs Data Generator创建DataFrame框架，填充100行数据，其中包含一个唯一的*Id*列，以及我们可能不要求唯一的值，例如*国家*。
 - en: Other columns which we might wish to be distinct, such as the *Full Name* and
     *Username*, we can make use of a UDF to use the id column to access a unique name
     from the list we’ve created.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于我们希望保持唯一性的其他列，例如*全名*和*用户名*，我们可以利用UDF函数，使用id列从我们创建的列表中访问唯一名称。
 - en: 'Putting it all together, we can create our DataFrame:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 综合来看，我们可以创建我们的DataFrame：
 - en: '![](../Images/b95dfec9c2964ac183945715b0cb2303.png)'
+  id: totrans-79
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b95dfec9c2964ac183945715b0cb2303.png)'
 - en: 'Image by Author: DataFrame'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：DataFrame
 - en: A quick data profile shows that our *Full Name* and *Username* columns have
     completely unique values as desired!
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 快速的数据概览显示，我们的*全名*和*用户名*列具有完全唯一的值，符合预期！
 - en: '![](../Images/62726d1e14223a3cc0f25d04f6e293b3.png)'
+  id: totrans-82
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/62726d1e14223a3cc0f25d04f6e293b3.png)'
 - en: 'Image by Author: Data profile of Categorical columns showing 100 unique values
     for “Full Name” and “Username” columns'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：显示“全名”和“用户名”列中100个唯一值的分类列的数据概览
 - en: Conclusion
+  id: totrans-84
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: We’ve outlined a variety of methods to generate textual synthetic data quickly,
     allowing us to accelerate our demonstrative dataset creation.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们概述了多种快速生成文本合成数据的方法，使我们能够加速示例数据集的创建。
 - en: All the examples above can be extended, refined and tailored to your specific
     use-case.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 上述所有示例都可以扩展、优化并根据您的特定用例进行定制。
 - en: Are there any tricks that I have missed? What are you using synthetic datasets
     for? Let me know in the comments!
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 有没有我遗漏的技巧？你是用合成数据集做什么的？在评论中告诉我吧！
 - en: Thanks for reading, and as always, feel free to find the code for your own use
     [here](https://github.com/MattPCollins/SyntheticDimensionTableExamples).
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读，一如既往，您可以在[这里](https://github.com/MattPCollins/SyntheticDimensionTableExamples)找到供您使用的代码。
