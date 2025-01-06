@@ -1,61 +1,91 @@
 - en: Memory-Efficient Embeddings
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 内存高效嵌入
 - en: 原文：[https://towardsdatascience.com/memory-efficient-embeddings-d637cba7f006?source=collection_archive---------2-----------------------#2024-01-01](https://towardsdatascience.com/memory-efficient-embeddings-d637cba7f006?source=collection_archive---------2-----------------------#2024-01-01)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/memory-efficient-embeddings-d637cba7f006?source=collection_archive---------2-----------------------#2024-01-01](https://towardsdatascience.com/memory-efficient-embeddings-d637cba7f006?source=collection_archive---------2-----------------------#2024-01-01)
 - en: Creating smaller models with a new kind of embedding layer
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用一种新的嵌入层创建更小的模型
 - en: '[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--d637cba7f006--------------------------------)[![Dr.
     Robert Kübler](../Images/3b8d8b88f76c0c43d9c305e3885e7ab9.png)](https://dr-robert-kuebler.medium.com/?source=post_page---byline--d637cba7f006--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d637cba7f006--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d637cba7f006--------------------------------)
     [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--d637cba7f006--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://dr-robert-kuebler.medium.com/?source=post_page---byline--d637cba7f006--------------------------------)[![Dr.
+    Robert Kübler](../Images/3b8d8b88f76c0c43d9c305e3885e7ab9.png)](https://dr-robert-kuebler.medium.com/?source=post_page---byline--d637cba7f006--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d637cba7f006--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d637cba7f006--------------------------------)
+    [Dr. Robert Kübler](https://dr-robert-kuebler.medium.com/?source=post_page---byline--d637cba7f006--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d637cba7f006--------------------------------)
     ·13 min read·Jan 1, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d637cba7f006--------------------------------)
+    ·13分钟阅读·2024年1月1日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/be9ce0d107f6dfeafcb4558c8006314d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/be9ce0d107f6dfeafcb4558c8006314d.png)'
 - en: Photo by [Kostiantyn Vierkieiev](https://unsplash.com/@kostiantynvierkieiev?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Kostiantyn Vierkieiev](https://unsplash.com/@kostiantynvierkieiev?utm_source=medium&utm_medium=referral)来自[Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'Whenever dealing with categorical data, beginners resort to **one-hot encoding**.
     This is often okay, but if you are dealing with thousands or even millions of
     categories, this approach becomes **infeasible**. This has the following reasons:'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 每当处理分类数据时，初学者通常会使用**独热编码**。这种方法通常可以，但如果你面对的是成千上万甚至数百万个类别，这种方法就变得**不可行**。其原因如下：
 - en: '**Increased dimensionality:** For each category, you get an additional feature.
     This can lead to the *curse of dimensionality*. The data becomes more sparse,
     and the model may suffer from increased computational complexity and decreased
     generalization performance.'
+  id: totrans-9
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**维度增加：** 对于每个类别，你会得到一个额外的特征。这可能导致*维度灾难*。数据变得更加稀疏，模型可能会面临计算复杂度增加和泛化性能下降的问题。'
 - en: '**Loss of semantics:** One-hot encoding treats each category as an independent
     feature, ignoring any potential semantic relationships between categories. We
     lose meaningful relationships present in the original categorical variable.'
+  id: totrans-10
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**语义丧失：** 独热编码将每个类别视为独立的特征，忽略了类别之间潜在的语义关系。我们失去了原始类别变量中存在的有意义的关系。'
 - en: These problems occur in the area of natural language processing (we have a bunch
     of words) or recommendation systems (we have a bunch of customers and/or articles)
     and can be overcome with the help of **embeddings**. However, if you have many
     of these embeddings, the memory requirements for your model can skyrocket to several
     gigabytes.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些问题出现在自然语言处理领域（我们有一堆词语）或推荐系统（我们有大量的客户和/或文章），可以通过**嵌入**技术来克服。然而，如果你有大量的嵌入，那么模型的内存需求可能会飙升，达到几个GB。
 - en: In this article, I want to show you several ways to decrease this memory footprint.
     One of these ways comes from an interesting paper [Compositional Embeddings](https://arxiv.org/abs/1909.02107)…
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我想向你展示几种减少内存占用的方法。其中一种方法来自一篇有趣的论文[组合嵌入](https://arxiv.org/abs/1909.02107)…
