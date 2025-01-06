@@ -1,42 +1,65 @@
 - en: Optimized Deployment of Mistral7B on Amazon SageMaker Real-Time Inference
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在Amazon SageMaker实时推理上优化Mistral7B的部署
 - en: 原文：[https://towardsdatascience.com/optimized-deployment-of-mistral7b-on-amazon-sagemaker-real-time-inference-e820629f15dd?source=collection_archive---------5-----------------------#2024-02-21](https://towardsdatascience.com/optimized-deployment-of-mistral7b-on-amazon-sagemaker-real-time-inference-e820629f15dd?source=collection_archive---------5-----------------------#2024-02-21)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/optimized-deployment-of-mistral7b-on-amazon-sagemaker-real-time-inference-e820629f15dd?source=collection_archive---------5-----------------------#2024-02-21](https://towardsdatascience.com/optimized-deployment-of-mistral7b-on-amazon-sagemaker-real-time-inference-e820629f15dd?source=collection_archive---------5-----------------------#2024-02-21)
 - en: Utilize large model inference containers powered by DJL Serving & Nvidia TensorRT
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 利用由DJL Serving和Nvidia TensorRT驱动的大型模型推理容器
 - en: '[](https://ram-vegiraju.medium.com/?source=post_page---byline--e820629f15dd--------------------------------)[![Ram
     Vegiraju](../Images/07d9334e905f710d9f3c6187cf69a1a5.png)](https://ram-vegiraju.medium.com/?source=post_page---byline--e820629f15dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e820629f15dd--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e820629f15dd--------------------------------)
     [Ram Vegiraju](https://ram-vegiraju.medium.com/?source=post_page---byline--e820629f15dd--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://ram-vegiraju.medium.com/?source=post_page---byline--e820629f15dd--------------------------------)[![Ram
+    Vegiraju](../Images/07d9334e905f710d9f3c6187cf69a1a5.png)](https://ram-vegiraju.medium.com/?source=post_page---byline--e820629f15dd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e820629f15dd--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e820629f15dd--------------------------------)
+    [Ram Vegiraju](https://ram-vegiraju.medium.com/?source=post_page---byline--e820629f15dd--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e820629f15dd--------------------------------)
     ·9 min read·Feb 21, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e820629f15dd--------------------------------)
+    ·9分钟阅读·2024年2月21日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/9c7701b317d1f4292baac6499df4b53c.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9c7701b317d1f4292baac6499df4b53c.png)'
 - en: Image from [Unsplash](https://unsplash.com/photos/a-close-up-of-a-human-brain-on-a-white-surface-9A9TcXEsy6c)
     by [Kommers](https://unsplash.com/@kommers)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Unsplash](https://unsplash.com/photos/a-close-up-of-a-human-brain-on-a-white-surface-9A9TcXEsy6c)
+    由[Kommers](https://unsplash.com/@kommers)
 - en: The Generative AI space continues to expand at an unprecedented rate, with the
     introduction of more Large Language Model (LLM) families by the day. Within each
     family there are also varying sizes of each model, for instances there’s Llama7b,
     Llama13B, and Llama70B. Regardless of the model that you select, the same challenges
     arise for hosting these LLMs for inference.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成式人工智能领域以空前的速度持续扩展，每天都有更多的大型语言模型（LLM）家族问世。在每个家族中，也有不同规模的模型，例如Llama7b、Llama13B和Llama70B。无论选择哪个模型，托管这些LLM进行推理时都会面临相同的挑战。
 - en: The size of these LLMs continue to be the most pressing challenge, as it’s very
     difficult/impossible to fit many of these LLMs onto a single GPU. There are a
     few different approaches to tackling this problem, such as model partitioning.
@@ -45,11 +68,15 @@
     other popular approaches include [Quantization](https://huggingface.co/docs/optimum/concept_guides/quantization)
     of model weights to a lower precision to reduce the model size itself at a cost
     of accuracy.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些大型语言模型（LLM）的规模仍然是最紧迫的挑战，因为很难/几乎不可能将许多这样的LLM部署到单一的GPU上。为了解决这个问题，有几种不同的方法，比如模型分割。通过模型分割，你可以使用[管道并行或张量并行](https://colossalai.org/docs/concepts/paradigms_of_parallelism/#:~:text=There%20are%20generally%20two%20types,to%20parallelize%20computation%20between%20layers.)等技术，将模型分割到多个GPU上。除模型分割外，其他常用方法还包括将模型权重进行[量化](https://huggingface.co/docs/optimum/concept_guides/quantization)，通过降低精度来减少模型本身的大小，代价是精度的损失。
 - en: While the model size is a large challenge in itself, there is also the challenge
     of retaining the previous inference/attention in Text Generation for [Decoder
     based models](/llms-and-transformers-from-scratch-the-decoder-d533008629c5). Text
     Generation with these models is not as simple as traditional…
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然模型的规模本身就是一个巨大的挑战，但在文本生成中，保留先前的推理/注意力也是一个挑战，对于[基于解码器的模型](/llms-and-transformers-from-scratch-the-decoder-d533008629c5)。使用这些模型进行文本生成并不像传统方法那么简单……
