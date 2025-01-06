@@ -1,13 +1,16 @@
 - en: Spotting Spatiotemporal Patterns in Earthquake Data
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
 - en: 原文：[https://towardsdatascience.com/spotting-spatiotemporal-patterns-in-earthquake-data-b07068b84314?source=collection_archive---------14-----------------------#2024-01-10](https://towardsdatascience.com/spotting-spatiotemporal-patterns-in-earthquake-data-b07068b84314?source=collection_archive---------14-----------------------#2024-01-10)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
 - en: Use density-based clustering and survival analysis to estimate when earthquakes
     occur
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -15,23 +18,29 @@
     Humphrey](../Images/62f398bd178bd4eae0fb5c4062972e23.png)](https://medium.com/@elz1582?source=post_page---byline--b07068b84314--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b07068b84314--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b07068b84314--------------------------------)
     [Elliot Humphrey](https://medium.com/@elz1582?source=post_page---byline--b07068b84314--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b07068b84314--------------------------------)
     ·9 min read·Jan 10, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
 - en: '![](../Images/4519b73a2e644d58c57fd4078fe17b72.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
 - en: Photo by [Eliška Motisová](https://unsplash.com/@eli_from_prague?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -39,19 +48,24 @@
     understanding when an earthquake will happen is very challenging. In this article
     we will use historical earthquake data and a combination of clustering and survival
     analysis to answer the following questions:'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
 - en: '*“How are earthquake events spatially distributed?”*'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
 - en: '*“If an earthquake happens, what’s the probability of another earthquake happening
     within the next hour?”*'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
 - en: '*“Are there regional differences in the time between earthquake events?”*'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
 - en: Getting the data
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -59,39 +73,50 @@
     events (earthquake data resides in the Public Domain and is provided courtesy
     of the U.S. Geological Survey). They have a nice [API](https://earthquake.usgs.gov/fdsnws/event/1/)
     that means we can get earthquake data in a straightforward way in Python:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE0]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'In our API request we have a few parameters:'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
 - en: '**limit** — *The maximum number of earthquake events we want*'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**starttime** — *When should the earliest earthquake event be*'
+  id: totrans-18
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**minmagnitude** — *The minimum magnitude of an earthquake event*'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**maxlatitude** — *Maximum latitude*'
+  id: totrans-20
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**minlatitude** — *Minimum latitude*'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**maxlongitude** — *Maximum longitude*'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: '**minlongitude** — *Minimum longitude*'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
@@ -99,17 +124,22 @@
     at the surface, and provide latitude and longitude coordinates to make a bounding
     box around the US state of California. California is home to the famous **San
     Andreas Fault**, so will have plenty of earthquake events for us to analyse.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
 - en: 'To handle the GeoJSON response we use the following code:'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE1]'
+  id: totrans-26
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: This will return a Pandas DataFrame where each row is an earthquake event, with
     columns describing event properties (i.e., latitude, longitude, magnitude, id
     etc.).
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
 - en: 'For the geospatially-minded out there, you’ll recognise that the API call coordinates
@@ -118,51 +148,66 @@
     will need to filter out all the earthquakes that did not occur in California (e.g.,
     earthquake events in Nevada & Oregon). To do this we will use the convenient OSMNX
     package to get a **MultiPolygon of the California border**:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE2]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Next we’ll convert our earthquake coordinates into **Point geometries using
     Shapely**, and then perform a **spatial join** to filter our non-Californian earthquakes:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE3]'
+  id: totrans-31
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Now to see our first map of Californian earthquakes colour-coded by magnitude:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
 - en: '![](../Images/0b68b55b7593862f5be48a8f9e49fee1.png)'
+  id: totrans-33
   prefs: []
   type: TYPE_IMG
 - en: Map of earthquakes in California. Data from the USGS. Image by Author.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
 - en: Excellent, we now have a map of California earthquakes!
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
 - en: Spatial Clustering of earthquakes
+  id: totrans-36
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'Looking at the earthquakes plotted on the map earlier you can see that events
     are spatially arranged in a linear SE-NW orientation, where you can see around
     2–3 clear linear-shaped groupings of earthquakes. This makes sense because:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
 - en: Earthquakes occur due to movements along faults, which are linear features (i.e.,
     cracks in the Earth’s crust).
+  id: totrans-38
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: The orientation of earthquake events matches the orientation of the San Andreas
     Fault zone.
+  id: totrans-39
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Our goal is now to cluster these earthquake events based on their location,
     so that we can produce spatial clusters associated with regional faults.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
 - en: For clustering we will use **HDBSCAN** (Hierarchical Density-Based Spatial Clustering
@@ -173,28 +218,36 @@
     orientations) and in **different densities** (i.e, some fault zones are more active
     than others). HDBSCAN is also **robust to outliers**, which is this case can be
     earthquakes that occur far away from fault zones.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
 - en: 'Through some experimentation the following parameters produce okay results
     (*a bit of trial and error involved, but guided by our prior assumptions on how
     earthquakes should be clustered*):'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE4]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/2b5f834fd69d8787d7a685ad67af85cf.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
 - en: Earthquake locations color-coded by HDBSCAN cluster. Image by Author.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
 - en: Super, we have now used HDBSCAN to cluster our earthquake events into three
     areas, which corresponds with our prior regional knowledge. *Note that some earthquakes
     are considered outliers and coloured grey.*
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
 - en: Examining the time between earthquakes
+  id: totrans-47
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -203,63 +256,81 @@
     is required for our Survival Analysis in the next section. We have already sorted
     our values by the *‘datetime’* column so they’re in chronological order, now we
     need to calculate the time difference:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE5]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Since there will be no time difference for the last earthquake (i.e., the most
     recent) we can calculate the difference from a time we’ll assume as the present
     day:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE6]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Finally we will add a new column indicating whether an earthquake was followed
     by another earthquake. Whilst this seems slightly redundant, given that only the
     last earthquake is affected by this, it highlights an interesting point about
     using survival analysis for these types of tasks (which we’ll cover later):'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE7]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Here is a histogram of the elapsed time between earthquake events:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
 - en: '![](../Images/b78b04686bcdb6a09057350df3f36897.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
 - en: Histogram of earthquake interval times. Image by Author.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
 - en: We can see that the majority of earthquakes occur in short succession of each
     other (approximately 2.5 hours of each other), with far fewer earthquakes occurring
     at longer time intervals apart (i.e., the maximum time between earthquakes in
     this dataset is 350 hours).
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
 - en: Survival Analysis of Earthquake Time Intervals
+  id: totrans-58
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
 - en: 'We have our earthquake clusters, as well as the time between earthquakes, so
     now we use Survival Analysis to tell us about the probability of earthquake occurrences.
     Our goals will therefore be to:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
 - en: Use survival analysis to create curves that show the probability of an earthquake
     occurring in time, given that an earthquake has just occurred.
+  id: totrans-60
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: Compare our probability curves across our already clustered earthquake regions,
     to see if there are any similarities/differences in regional earthquake activity.
+  id: totrans-61
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
 - en: '*What is survival analysis?*'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
 - en: There are plenty of well-written articles [[2](/the-complete-introduction-to-survival-analysis-in-python-7523e17737e6),[3](https://medium.com/the-researchers-guide/survival-analysis-in-python-km-estimate-cox-ph-and-aft-model-5533843c5d5d),[4](/introduction-to-survival-analysis-6f7e19c31d96)]
@@ -269,6 +340,7 @@
     occurs, such as death, failure, or another specific outcome, providing insights
     into the probability of events happening over time and the impact of covariates
     on the event occurrence.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
 - en: '**In our case, an earthquake has happened and we want to know the probability
@@ -276,6 +348,7 @@
     earthquake events are independent, as well as only retrieving events with a minimum
     magnitude of 3, which is a limitation of this work since it oversimplifies earthquake
     dynamics.*'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
 - en: 'The **Kaplan-Meier estimator** is a non-parametric method used in survival
@@ -283,49 +356,62 @@
     We will use the package [**‘lifelines’**](https://pypi.org/project/lifelines/)to
     fit the Kaplan-Meier estimator to the earthquakes in each cluster, to produce
     a probability curve:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE8]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Before seeing the results, notice the ‘event_observed’ parameter that uses the
     ‘event_happened’ column we created earlier. Our final earthquake is an example
     of a right-censored data point, since there was no following earthquake, and is
     therefore treated as a partial observation.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
 - en: 'Now to view the curves:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
 - en: '![](../Images/e8b53a4f807fd1e75b46f57be450ffcf.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
 - en: Survival analysis probability curves for clustered earthquake regions. Image
     by Author.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
 - en: 'Each cluster of earthquakes has its own coloured curve, where the X axis represents
     the time elapsed after an earthquake, and the Y axis represents the probability
     of an earthquake occurring. Some interesting observations:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
 - en: The shape of the curves are similar.
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: The initial steepness of the curves varies by cluster location.
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
 - en: 'Lets focus on the initial time after an earthquake has occurred, since most
     of our data shows that earthquakes happen in relatively quick succession:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
 - en: '![](../Images/2c43d41fa913ec967e2bfed744cd775f.png)'
+  id: totrans-75
   prefs: []
   type: TYPE_IMG
 - en: Survival analysis probability curves for clustered earthquake regions. Image
     by Author.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
 - en: This suggests that the **time between earthquakes is not the same regionally**.
@@ -334,27 +420,35 @@
     35% for cluster 0, 60% for cluster 1, and 48% for cluster 2\. This shows that
     earthquakes in the region that belong to cluster 1 happen in quick success relative
     to the other two areas.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
 - en: 'We can double check this by looking at a histogram of elapsed time between
     earthquakes for each cluster location:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
 - en: '[PRE9]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '![](../Images/d579ab6fdf6ae30d39347cdf2a49c56e.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
 - en: Histograms of elapsed time between earthquakes in clustered regions. Image by
     Author.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
 - en: As shown by the probability curves, cluster 1 has longer intervals between earthquake
     events relative to clusters 2 and 3.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
 - en: Conclusion
+  id: totrans-83
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
@@ -364,11 +458,17 @@
     for survival analysis, we gained valuable insights into the **regional variations
     in time between earthquakes**, which was translated into probability curves that
     can be useful for risk assessment and preparedness in earthquake-prone regions.
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 本研究利用了**空间聚类**和**生存分析**来揭示地震数据中的时间和地理模式。通过使用如**HDBSCAN**的空间聚类技术和**Kaplan-Meier**生存分析估计器，我们获得了关于**地震之间时间的区域变化**的宝贵见解，这些见解被转化为概率曲线，可用于地震高风险地区的风险评估和应急准备。
 - en: Thanks for reading!
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读！
 - en: '*Disclaimer: This article should only be used for learning purposes.*'
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: '*免责声明：本文仅应作为学习用途。*'
