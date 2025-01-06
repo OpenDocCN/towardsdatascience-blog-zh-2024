@@ -1,39 +1,62 @@
 - en: How to Use Backdoor Criterion to Select Control Variables
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何使用反门准则选择控制变量
 - en: 原文：[https://towardsdatascience.com/how-to-use-backdoor-criterion-to-select-control-variables-1ff8e657f297?source=collection_archive---------13-----------------------#2024-01-09](https://towardsdatascience.com/how-to-use-backdoor-criterion-to-select-control-variables-1ff8e657f297?source=collection_archive---------13-----------------------#2024-01-09)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-use-backdoor-criterion-to-select-control-variables-1ff8e657f297?source=collection_archive---------13-----------------------#2024-01-09](https://towardsdatascience.com/how-to-use-backdoor-criterion-to-select-control-variables-1ff8e657f297?source=collection_archive---------13-----------------------#2024-01-09)
 - en: Illustrated through Simulated Experiments in R
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 通过 R 中的模拟实验进行说明
 - en: '[](https://weisharon88.medium.com/?source=post_page---byline--1ff8e657f297--------------------------------)[![Shuangyuan
     (Sharon) Wei](../Images/50cbb4d70f55d39606bc1f9d0628bb89.png)](https://weisharon88.medium.com/?source=post_page---byline--1ff8e657f297--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ff8e657f297--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ff8e657f297--------------------------------)
     [Shuangyuan (Sharon) Wei](https://weisharon88.medium.com/?source=post_page---byline--1ff8e657f297--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://weisharon88.medium.com/?source=post_page---byline--1ff8e657f297--------------------------------)[![Shuangyuan
+    (Sharon) Wei](../Images/50cbb4d70f55d39606bc1f9d0628bb89.png)](https://weisharon88.medium.com/?source=post_page---byline--1ff8e657f297--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ff8e657f297--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ff8e657f297--------------------------------)
+    [Shuangyuan (Sharon) Wei](https://weisharon88.medium.com/?source=post_page---byline--1ff8e657f297--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ff8e657f297--------------------------------)
     ·6 min read·Jan 9, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ff8e657f297--------------------------------)
+    ·6 分钟阅读·2024年1月9日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/4dbfbfe3c3803c2c9ae140b593aede50.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4dbfbfe3c3803c2c9ae140b593aede50.png)'
 - en: Photo by [Katerina Pavlyuchkova](https://unsplash.com/@kat_katerina?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/opened-brown-wooden-window-FQYCJSqER_0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Katerina Pavlyuchkova](https://unsplash.com/@kat_katerina?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    提供，来自 [Unsplash](https://unsplash.com/photos/opened-brown-wooden-window-FQYCJSqER_0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: In this article, I explain how to use backdoor criterion in the experimental
     setting to select good control variables, or, avoid selecting the bad ones, using
     Directed Acyclic Graphs (DAG). I started my own causal inference journey through
@@ -44,13 +67,18 @@
     variables included in the model and the assumptions made about the relationships
     between these variables salient. As a result, it also helps with identifying the
     confounding variables and analyzing how to de-confound.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇文章中，我将解释如何在实验环境中使用反门准则（backdoor criterion）来选择好的控制变量，或避免选择不好的控制变量，使用的是有向无环图（DAG）。我通过潜在结果模型开始了自己的因果推断之旅，该模型在我之前的[文章](https://medium.com/geekculture/an-introduction-of-randomized-experiment-aka-a-b-testing-and-potential-outcome-model-f2c93f73d426)中有所介绍。我最近通过参加Jason
+    Roos教授的精彩实验与因果推断课程，才“发现”了DAG，并且非常喜欢DAG作为一个框架，能够轻松地构建理论并可视化因果模型。它通过使模型中包含的变量以及这些变量之间关系的假设变得显而易见，从而促进了识别分析。因此，它也有助于识别混杂变量并分析如何消除混杂。
 - en: 'I assume that the readers already understand the basics of DAG (if not, Scott
     Cunningham’s Causal Inference [Mixtape](https://mixtape.scunning.com/03-directed_acyclical_graphs)
     is a helpful start), and I believe that the quickest way to get a grasp of the
     backdoor criterion is by means of examples. Therefore, I will proceed as follows:
     first, I will lay out the question we want to answer and provide the DAG representation
     for us to easily conceptualize it; Next, I will explain what backdoor…'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 我假设读者已经了解DAG的基础知识（如果没有的话，Scott Cunningham的因果推断[Mixtape](https://mixtape.scunning.com/03-directed_acyclical_graphs)是一个有帮助的起点），并且我相信掌握后门准则的最快方法是通过例子。因此，我将按以下方式进行：首先，我将提出我们想要回答的问题，并提供DAG的表示，以便我们能轻松地概念化它；接下来，我将解释什么是后门…

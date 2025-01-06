@@ -1,72 +1,110 @@
 - en: Group Equivariant Self-Attention
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 群体等变自注意力
 - en: 原文：[https://towardsdatascience.com/group-equivariant-self-attention-19e47f0b786e?source=collection_archive---------12-----------------------#2024-01-09](https://towardsdatascience.com/group-equivariant-self-attention-19e47f0b786e?source=collection_archive---------12-----------------------#2024-01-09)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/group-equivariant-self-attention-19e47f0b786e?source=collection_archive---------12-----------------------#2024-01-09](https://towardsdatascience.com/group-equivariant-self-attention-19e47f0b786e?source=collection_archive---------12-----------------------#2024-01-09)
 - en: Injecting geometric priors into the Transformer model
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将几何先验注入 Transformer 模型
 - en: '[](https://medium.com/@ju2ez?source=post_page---byline--19e47f0b786e--------------------------------)[![Julian
     Hatzky](../Images/9f1ce9a29d215feeb5223e8fd659383e.png)](https://medium.com/@ju2ez?source=post_page---byline--19e47f0b786e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--19e47f0b786e--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--19e47f0b786e--------------------------------)
     [Julian Hatzky](https://medium.com/@ju2ez?source=post_page---byline--19e47f0b786e--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@ju2ez?source=post_page---byline--19e47f0b786e--------------------------------)[![Julian
+    Hatzky](../Images/9f1ce9a29d215feeb5223e8fd659383e.png)](https://medium.com/@ju2ez?source=post_page---byline--19e47f0b786e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--19e47f0b786e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--19e47f0b786e--------------------------------)
+    [Julian Hatzky](https://medium.com/@ju2ez?source=post_page---byline--19e47f0b786e--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--19e47f0b786e--------------------------------)
     ·7 min read·Jan 9, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--19e47f0b786e--------------------------------)
+    ·阅读时间 7 分钟·2024年1月9日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: In the dynamic landscape of growing neural architectures, efficiency is paramount.
     Tailoring networks for specific tasks involves infusing *a priori* knowledge,
     achieved through strategic architectural adjustments. This goes beyond parameter
     tweaking — it’s about embedding a desired understanding into the model. One way
     of doing this is by using geometric priors — the very topic of this article.
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在不断发展的神经架构的动态环境中，效率至关重要。为特定任务定制网络涉及注入*先验*知识，这可以通过战略性地调整架构来实现。这不仅仅是调整参数——更重要的是将所需的理解嵌入到模型中。实现这一目标的一种方法是使用几何先验——这正是本文要讨论的话题。
 - en: '![](../Images/2f5ed3dba791818cb5322f689cd8f3a7.png)'
+  id: totrans-7
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2f5ed3dba791818cb5322f689cd8f3a7.png)'
 - en: A picture of a dog under 90 degree rotations. In the middle we see the weight
     representation of a model with rotational equivariance, while the model on the
     right does not have this equivariance. ©J. Hatzky
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 一张狗在 90 度旋转下的照片。中间是具有旋转等变性的模型的权重表示，而右侧的模型则没有这种等变性。©J. Hatzky
 - en: Prerequisites
+  id: totrans-9
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 前提条件
 - en: '[In a former post](https://medium.com/towards-data-science/towards-stand-alone-self-attention-in-vision-3d0561c6aee5)
     we delved into the self-attention operation for vision.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: '[在上一篇文章中](https://medium.com/towards-data-science/towards-stand-alone-self-attention-in-vision-3d0561c6aee5)我们深入探讨了视觉中的自注意力操作。'
 - en: Now let’s build up on that and extend it by using recent advancements of geometric
     deep learning.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们在此基础上进行拓展，利用几何深度学习的最新进展。
 - en: If you are not yet familiar with geometric deep learning, [Michael Bronstein
     created a great introductory series](/towards-geometric-deep-learning-i-on-the-shoulders-of-giants-726c205860f5).
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你还不熟悉几何深度学习，[Michael Bronstein 创建了一个很好的入门系列](/towards-geometric-deep-learning-i-on-the-shoulders-of-giants-726c205860f5)。
 - en: The Benefits of Group Equivariant Models
+  id: totrans-13
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 群体等变模型的优势
 - en: Equivariant models can tailor the search space to the task at hand and reduce
     the probability of a model to learn spurious relations.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 等变模型可以根据当前任务定制搜索空间，并降低模型学习到虚假关系的概率。
 - en: '![](../Images/2bb0088e601c32f58df2f8b796ad058d.png)'
+  id: totrans-15
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2bb0088e601c32f58df2f8b796ad058d.png)'
 - en: Cancer cells under 90 degree rotations. In the middle we the weight representation
     of a model with rotational equivariance, while the model on the right does not
     have this equivariance. ©J. Hatzky
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 癌细胞在 90 度旋转下的表现。中间是具有旋转等变性的模型的权重表示，而右侧的模型则没有这种等变性。©J. Hatzky
