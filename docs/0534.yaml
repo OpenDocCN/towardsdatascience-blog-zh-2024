@@ -1,267 +1,410 @@
 - en: Position Embeddings for Vision Transformers, Explained
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 视觉变换器的位置嵌入解析
 - en: 原文：[https://towardsdatascience.com/position-embeddings-for-vision-transformers-explained-a6f9add341d5?source=collection_archive---------2-----------------------#2024-02-27](https://towardsdatascience.com/position-embeddings-for-vision-transformers-explained-a6f9add341d5?source=collection_archive---------2-----------------------#2024-02-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/position-embeddings-for-vision-transformers-explained-a6f9add341d5?source=collection_archive---------2-----------------------#2024-02-27](https://towardsdatascience.com/position-embeddings-for-vision-transformers-explained-a6f9add341d5?source=collection_archive---------2-----------------------#2024-02-27)
 - en: Vision Transformers Explained Series
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 视觉变换器解析系列
 - en: The Math and the Code Behind Position Embeddings in Vision Transformers
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 位置嵌入在视觉变换器中的数学原理与代码
 - en: '[](https://medium.com/@sjcallis?source=post_page---byline--a6f9add341d5--------------------------------)[![Skylar
     Jean Callis](../Images/db4d07b27d7feb86bfbb73b1065aa3a0.png)](https://medium.com/@sjcallis?source=post_page---byline--a6f9add341d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6f9add341d5--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a6f9add341d5--------------------------------)
     [Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--a6f9add341d5--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sjcallis?source=post_page---byline--a6f9add341d5--------------------------------)[![Skylar
+    Jean Callis](../Images/db4d07b27d7feb86bfbb73b1065aa3a0.png)](https://medium.com/@sjcallis?source=post_page---byline--a6f9add341d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6f9add341d5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a6f9add341d5--------------------------------)
+    [Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--a6f9add341d5--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6f9add341d5--------------------------------)
     ·11 min read·Feb 27, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6f9add341d5--------------------------------)
+    ·11分钟阅读·2024年2月27日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*Since their introduction in 2017 with* Attention is All You Need*¹, transformers
     have established themselves as the state of the art for natural language processing
     (NLP). In 2021,* An Image is Worth 16x16 Words*² successfully adapted transformers
     for computer vision tasks. Since then, numerous transformer-based architectures
     have been proposed for computer vision.*'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '*自2017年“Attention is All You Need”*¹提出以来，变换器已确立为自然语言处理（NLP）领域的最新技术。2021年，*An
+    Image is Worth 16x16 Words*² 成功将变换器应用于计算机视觉任务。此后，许多基于变换器的架构被提出用于计算机视觉。*'
 - en: '**This article examines why position embeddings are a necessary component of
     vision transformers, and how different papers implement position embeddings. It
     includes open-source code for positional embeddings, as well as conceptual explanations.
     All of the code uses the PyTorch Python package.**'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '**本文探讨了为何位置嵌入是视觉变换器中的必要组成部分，并分析了不同文献中位置嵌入的实现方式。文章包含了位置嵌入的开源代码和概念解释，所有代码均使用
+    PyTorch Python 包。**'
 - en: '![](../Images/aede1fd421e2408d6dfb862fc962db3c.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/aede1fd421e2408d6dfb862fc962db3c.png)'
 - en: Photo by [BoliviaInteligente](https://unsplash.com/@boliviainteligente?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[BoliviaInteligente](https://unsplash.com/@boliviainteligente?utm_source=medium&utm_medium=referral)
+    via [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'This article is part of a collection examining the internal workings of Vision
     Transformers in depth. Each of these articles is also available as a Jupyter Notebook
     with executable code. The other articles in the series are:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文是一个系列文章的一部分，深入探讨了视觉变换器的内部工作原理。这些文章中的每一篇都可以通过Jupyter笔记本以可执行代码的形式查看。系列中的其他文章包括：
 - en: '[Vision Transformers, Explained](/vision-transformers-explained-a9d07147e4c8)→
     [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/VisionTransformersExplained.ipynb)'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[视觉变换器解析](/vision-transformers-explained-a9d07147e4c8)→ [Jupyter笔记本](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/VisionTransformersExplained.ipynb)'
 - en: '[Attention for Vision Transformers, Explained](/attention-for-vision-transformers-explained-70f83984c673)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[视觉变换器的注意力机制解析](/attention-for-vision-transformers-explained-70f83984c673)'
 - en: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/AttentionExplained.ipynb)
+  id: totrans-14
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: → [Jupyter笔记本](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/AttentionExplained.ipynb)
 - en: '[**Position Embeddings for Vision Transformers, Explained**](/position-embeddings-for-vision-transformers-explained-a6f9add341d5)'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**视觉变换器的位置嵌入，解释**](/position-embeddings-for-vision-transformers-explained-a6f9add341d5)'
 - en: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/PositionEmbeddingExplained.ipynb)
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/PositionEmbeddingExplained.ipynb)
 - en: '[Tokens-to-Token Vision Transformers, Explained](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[标记到标记的视觉变换器，解释](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)'
 - en: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/TokensToTokenViTExplained.ipynb)
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/TokensToTokenViTExplained.ipynb)
 - en: '[GitHub Repository for Vision Transformers, Explained Series](https://github.com/lanl/vision_transformers_explained)'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[视觉变换器解释系列的 GitHub 仓库](https://github.com/lanl/vision_transformers_explained)'
 - en: Table of Contents
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 目录
 - en: '[Why Use Position Embeddings?](#962e)'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[为什么使用位置嵌入？](#962e)'
 - en: '[Attention Invariance Up to Permutation](#45ca)'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[注意力不变性直到置换](#45ca)'
 - en: '[Position Embeddings in Literature](#91b4)'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[文献中的位置嵌入](#91b4)'
 - en: '[An Example Position Embedding](#3186)'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[一个位置嵌入示例](#3186)'
 - en: — [Defining the Position Embedding](#f215)
+  id: totrans-25
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — [定义位置嵌入](#f215)
 - en: — [Applying Position Embedding to Tokens](#b399)
+  id: totrans-26
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — [将位置嵌入应用于标记](#b399)
 - en: '[Conclusion](#5cbc)'
+  id: totrans-27
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[结论](#5cbc)'
 - en: — [Further Reading](#5c67)
+  id: totrans-28
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — [进一步阅读](#5c67)
 - en: — [Citations](#718a)
+  id: totrans-29
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — [引用](#718a)
 - en: Why Use Position Embeddings?
+  id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为什么使用位置嵌入？
 - en: '*Attention is All You Need*¹ states that transformers, due to their lack of
     recurrence or convolution, are not capable of learning information about the order
     of a set of tokens. Without a position embedding, transformers are invariant to
     the order of the tokens. For images, that means that patches of an image can be
     scrambled without impacting the predicted output.'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Attention is All You Need*¹中指出，由于变换器缺乏递归或卷积，它们无法学习关于一组标记顺序的信息。如果没有位置嵌入，变换器对标记的顺序是不可变的。对于图像来说，这意味着图像的各个块可以被打乱，而不影响预测的输出。'
 - en: Let’s look at an example of patch order on this pixel art *Mountain at Dusk*
     by Luis Zuno ([@ansimuz](http://twitter.com/ansimuz))³. The original artwork has
     been cropped and converted to a single channel image. This means that each pixel
     has a value between zero and one. Single channel images are typically displayed
     in grayscale; however, we’ll be displaying it in a purple color scheme because
     its easier to see.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一个关于块顺序的示例，图像为 Luis Zuno（[@ansimuz](http://twitter.com/ansimuz)）创作的像素艺术作品《黄昏山脉》³。原始作品已经被裁剪并转换为单通道图像。这意味着每个像素的值在零和一之间。单通道图像通常以灰度显示；然而，为了更容易观察，我们将其以紫色调显示。
 - en: '[PRE0]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-34
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '![](../Images/bac19092e0adc6376b2a9f26c9bcc604.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bac19092e0adc6376b2a9f26c9bcc604.png)'
 - en: Code Output (image by author)
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: We can split this image up into patches of size 20\. (For a more in depth explanation
     of splitting images into patches, see the [Vision Transformers article](/vision-transformers-explained-a9d07147e4c8).)
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们可以将这张图像分割成大小为20的块。（关于将图像分割成块的更深入解释，请参见[视觉变换器文章](/vision-transformers-explained-a9d07147e4c8)。）
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '[PRE3]'
+  id: totrans-39
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '![](../Images/88fd07364a89357fe4edb4af137ee20d.png)'
+  id: totrans-40
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/88fd07364a89357fe4edb4af137ee20d.png)'
 - en: Code Output (image by author)
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: The claim is that vision transformers would be unable to distinguish the original
     image with a version where the patches had been scrambled.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个说法是，视觉变换器将无法区分原始图像和一个将块打乱后的版本。
 - en: '[PRE4]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '![](../Images/998ab5f46c170298324407b3c25dac1a.png)'
+  id: totrans-44
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/998ab5f46c170298324407b3c25dac1a.png)'
 - en: Code Output (image by author)
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: Obviously, this is a very different image from the original, and you wouldn’t
     want a vision transformer to treat these two images as the same.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 显然，这是与原始图像非常不同的图像，你不希望视觉变换器将这两张图像视为相同的。
 - en: Attention Invariance Up to Permutation
+  id: totrans-47
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 注意力不变性直到置换
 - en: Let’s investigate the claim that vision transformers are invariant to the order
     of the tokens. The component of the transformer that would be invariant to token
     order is the attention module. While an in depth explanation of the attention
     module is not the focus of this article, a basis understanding is required. For
     a more detailed walk through of attention in vision transformers, see the [Attention
     article](/attention-for-vision-transformers-explained-70f83984c673).
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们探讨一下关于视觉 transformer 对标记顺序不变性的说法。与标记顺序不变的 transformer 组件是注意力模块。虽然本文不以详细解释注意力模块为重点，但我们需要具备基础理解。欲了解更多关于视觉
+    transformer 中注意力的详细讲解，请参见 [注意力文章](/attention-for-vision-transformers-explained-70f83984c673)。
 - en: Attention is computed from three matrices — **Q**ueries, **K**eys, and **V**alues
     — each generated from passing the tokens through a linear layer. Once the Q, K,
     and V matrices are generated, attention is computed using the following formula.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意力是通过三个矩阵计算的——**Q** 查询、**K** 键和 **V** 值——每个矩阵都是通过将标记通过线性层生成的。一旦生成了 Q、K 和 V
+    矩阵，注意力就可以通过以下公式计算。
 - en: 'where *Q, K, V*, are the queries, keys, and values, respectively; and dₖ is
     a scaling value. To demonstrate the invariance of attention to token order, we’ll
     start with three randomly generated matrices to represent Q, K, and V. The shape
     of Q, K, and V is as follows:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中 *Q, K, V* 分别是查询、键和值；dₖ 是一个缩放值。为了展示注意力对标记顺序的不变性，我们将从三个随机生成的矩阵开始，表示 Q、K 和 V。Q、K
+    和 V 的形状如下：
 - en: '![](../Images/f5f80d0fcd4ddbba6b5ab65adeb238e0.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f5f80d0fcd4ddbba6b5ab65adeb238e0.png)'
 - en: Dimensions of Q, K, and V (image by author)
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: Q、K 和 V 的维度（图像来源：作者）
 - en: We’ll use 4 tokens of projected length 9 in this example. The matrices will
     contain integers to avoid floating point multiplication errors. Once generated,
     we’ll switch the position of token 0 and token 2 in all three matrices. Matrices
     with swapped tokens will be denoted with a subscript *s*.
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个示例中，我们将使用 4 个投影长度为 9 的标记。矩阵将包含整数，以避免浮动点乘法错误。一旦生成，我们将在所有三个矩阵中交换标记 0 和标记 2
+    的位置。交换位置的矩阵将用下标 *s* 表示。
 - en: '[PRE5]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '![](../Images/bdab71e349e66c6d7287f798c1d22a04.png)'
+  id: totrans-55
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/bdab71e349e66c6d7287f798c1d22a04.png)'
 - en: Code Output (image by author)
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图像来源：作者）
 - en: The first matrix multiplication in the attention formula is *Q·Kᵀ=A*, where
     the resulting matrix *A* is a square with size equal to the number of tokens.
     When we compute *A*ₛ with *Qₛ* and *Kₛ,* the resulting *A*ₛ has both rows [0,
     2] and columns [0,2] swapped from *A*.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意力公式中的第一次矩阵乘法是 *Q·Kᵀ=A*，其中结果矩阵 *A* 是一个正方形，大小等于标记的数量。当我们用 *Qₛ* 和 *Kₛ* 计算 *A*ₛ
+    时，结果 *A*ₛ 的行 [0, 2] 和列 [0,2] 会与 *A* 中的行和列交换。
 - en: '[PRE6]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '![](../Images/a1145c9d3fa382b5df7f69b9b79d0860.png)'
+  id: totrans-59
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a1145c9d3fa382b5df7f69b9b79d0860.png)'
 - en: Code Output (image by author)
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图像来源：作者）
 - en: The next matrix multiplication is *A·V=A,* where the resulting matrix *A* has
     the same shape as the initial *Q*, *K*, and *V* matrices. When we compute *A*ₛ
     with *A*ₛ and *V*ₛ, the resulting *A*ₛ has rows [0,2] swapped from *A*.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一个矩阵乘法是 *A·V=A*，其中结果矩阵 *A* 的形状与初始的 *Q*、*K* 和 *V* 矩阵相同。当我们用 *A*ₛ 和 *V*ₛ 计算 *A*ₛ
+    时，结果 *A*ₛ 的行 [0,2] 会与 *A* 中的行交换。
 - en: '[PRE7]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '![](../Images/cfc007fb59a66b13dae529fa3c769700.png)'
+  id: totrans-63
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cfc007fb59a66b13dae529fa3c769700.png)'
 - en: Code Output (image by author)
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图像来源：作者）
 - en: This demonstrates that changing the order of the tokens in the input to an attention
     layer results in an output attention matrix with the same token rows changed.
     This remains intuitive, as attention is a computation of the relationship between
@@ -269,26 +412,35 @@
     how the tokens are related. It isn’t obvious to me why this permutation of the
     output isn’t enough information to convey position to the transformers. However,
     everything I’ve read says that it isn’t enough, so we accept that and move forward.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 这证明了在输入到注意力层中的标记顺序发生变化时，输出的注意力矩阵中相应的标记行也会发生变化。这是直观的，因为注意力是在计算标记之间的关系。没有位置信息的情况下，改变标记顺序不会改变标记之间的关系。我不太明白为什么这种输出的排列不能传递位置信息给
+    transformer。然而，我所读的所有资料都表示这不够，因此我们接受这一点并继续前进。
 - en: Position Embeddings in Literature
+  id: totrans-66
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 文献中的位置嵌入
 - en: In addition to the theoretically justification for positional embeddings, models
     that utilize position embeddings perform with higher accuracy than models without.
     However, there isn’t clear evidence supporting one type of position embedding
     over another.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 除了位置嵌入的理论依据外，使用位置嵌入的模型比不使用位置嵌入的模型具有更高的准确性。然而，目前没有明确的证据表明哪种类型的位置嵌入优于其他类型。
 - en: In *Attention is All You Need*¹, they use a fixed sinusoidal positional embedding.
     They note that they experimented with a learned positional embedding, but observed
     “nearly identical results.” Note that this model was designed for NLP applications,
     specifically translation. The authors proceeded with the fixed embedding because
     it allowed for varying phrase lengths. This would likely not be a concern in computer
     vision applications.
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 在*Attention is All You Need*¹中，他们使用了固定的正弦位置嵌入。他们指出，他们曾尝试过学习的位置嵌入，但观察到“几乎相同的结果”。请注意，这个模型是为NLP应用设计的，特别是翻译任务。作者最终选择了固定嵌入，因为它可以适应不同长度的短语。在计算机视觉应用中，这可能不会是一个问题。
 - en: In *An Image is Worth 16x16 Words²,* they apply positional embeddings to images.
     They run ablation studies on four different position embeddings in both fixed
     and learnable settings. This study encompasses no position embedding, a 1D position
@@ -298,203 +450,315 @@
     types of positional embeddings or between the fixed and learnable embeddings.
     This is congruent with the results in [1] that a position embedding is beneficial,
     though the exact embedding chosen is of little consequence.
+  id: totrans-69
   prefs: []
   type: TYPE_NORMAL
+  zh: 在*An Image is Worth 16x16 Words²*中，他们将位置嵌入应用于图像。他们对四种不同的位置信息嵌入（包括固定和可学习的设置）进行了消融研究。该研究包括没有位置嵌入、1D位置嵌入、2D位置嵌入和相对位置嵌入。他们发现，带有位置嵌入的模型明显优于没有位置嵌入的模型。然而，不同类型的位置信息嵌入之间或固定与可学习嵌入之间的差异很小。这与[1]中的结果一致，即位置嵌入是有益的，尽管选择的具体嵌入并无太大影响。
 - en: 'In *Tokens-to-Token ViT: Training Vision Transformers from Scratch on ImageNet*⁴,
     they use a sinusoidal position embedding that they describe as being the same
     as in [2]. Their released code mirrors the equations for the sinusoidal position
     embedding in [1]. Furthermore, their released code fixes the position embedding
     rather than letting it be a learned parameter with a sinusoidal initialization.'
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: '在*Tokens-to-Token ViT: Training Vision Transformers from Scratch on ImageNet*⁴中，他们使用了一种正弦位置嵌入，描述上与[2]中的相同。他们发布的代码与[1]中的正弦位置嵌入公式一致。此外，他们发布的代码将位置嵌入固定，而不是将其作为一个通过正弦初始化的学习参数。'
 - en: An Example Position Embedding
+  id: totrans-71
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一个位置嵌入的示例
 - en: Defining the Position Embedding
+  id: totrans-72
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 定义位置嵌入
 - en: 'Now, we can look at the specifics of a sinusoidal position embedding. The code
     is based on the publicly available GitHub code for *Tokens-to-Token ViT⁴.* Functionally,
     the position embedding is a matrix with the same shape as the tokens. This looks
     like:'
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以具体看看正弦位置嵌入的细节。该代码基于公开可用的GitHub代码，适用于*Tokens-to-Token ViT⁴*。从功能上讲，位置嵌入是一个与令牌形状相同的矩阵。它看起来像这样：
 - en: '![](../Images/f5f80d0fcd4ddbba6b5ab65adeb238e0.png)'
+  id: totrans-74
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/f5f80d0fcd4ddbba6b5ab65adeb238e0.png)'
 - en: Shape of Positional Embedding Matrix (image by author)
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 位置嵌入矩阵的形状（图像由作者提供）
 - en: The formulae for the sinusoidal position embedding from [1] look like
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自[1]的正弦位置嵌入公式如下：
 - en: where *PE* is the position embedding matrix, *i* is along the number of tokens,
     *j* is along the length of the tokens, and *d* is the token length.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中，*PE*是位置嵌入矩阵，*i*是令牌的数量，*j*是令牌的长度，*d*是令牌的长度。
 - en: In code, that looks like
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 在代码中，它看起来像这样：
 - en: '[PRE8]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: Let’s generate an example position embedding matrix. We’ll use 176 tokens. Each
     token has length 768, which is the default in the T2T-ViT⁴ code. Once the matrix
     is generated, we can plot it.
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们生成一个示例位置嵌入矩阵。我们将使用176个令牌。每个令牌的长度为768，这是T2T-ViT⁴代码中的默认值。矩阵生成后，我们可以将其绘制出来。
 - en: '[PRE9]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-82
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '![](../Images/16b01a1c812ab95b2afb2a8a08525acf.png)'
+  id: totrans-83
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/16b01a1c812ab95b2afb2a8a08525acf.png)'
 - en: Code Output (image by author)
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图像由作者提供）
 - en: Let’s zoom in to the beginning of the tokens.
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们放大查看令牌的开始部分。
 - en: '[PRE11]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '![](../Images/63dfc1170d206e3115781d4cbef6912c.png)'
+  id: totrans-87
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/63dfc1170d206e3115781d4cbef6912c.png)'
 - en: Code Output (image by author)
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图像由作者提供）
 - en: It certainly has a sinusoidal structure!
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 它确实具有正弦结构！
 - en: Applying Position Embedding to Tokens
+  id: totrans-90
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 将位置嵌入应用于令牌
 - en: 'Now, we can add our position embedding to our tokens! We’re going to use Mountain
     at Dusk³ with the same *patch tokenization* as [above](#962e). That will give
     us 15 tokens of length 20²=400\. For more detail about patch tokenization, see
     the [Vision Transformers](/vision-transformers-explained-a9d07147e4c8) article.
     Recall that the patches look like:'
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以将位置嵌入添加到标记中！我们将使用《黄昏山脉》³，并采用与[上述](#962e)相同的*补丁标记化*方法。这样，我们将得到 15 个标记，每个标记的长度为
+    20²=400。有关补丁标记化的更多详细信息，请参阅[视觉变换器](/vision-transformers-explained-a9d07147e4c8)文章。回想一下，这些补丁看起来是这样的：
 - en: '[PRE12]'
+  id: totrans-92
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: '![](../Images/11bd562506206b1f5a05c054ff83a67f.png)'
+  id: totrans-93
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/11bd562506206b1f5a05c054ff83a67f.png)'
 - en: Code Output (image by author)
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: When we convert those patches into tokens, it looks like
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们将这些补丁转换为标记时，结果如下所示
 - en: '[PRE13]'
+  id: totrans-96
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '![](../Images/d7d447490aacbe2532d564161b45c48c.png)'
+  id: totrans-97
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d7d447490aacbe2532d564161b45c48c.png)'
 - en: Code Output (image by author)
+  id: totrans-98
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: 'Now, we can make a position embedding in the correct shape:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以创建一个形状正确的位置嵌入：
 - en: '[PRE14]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: '![](../Images/5276f44b88e53efb58f30c6dd19f32dd.png)'
+  id: totrans-101
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5276f44b88e53efb58f30c6dd19f32dd.png)'
 - en: Code Output (image by author)
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: We’re ready now to add the position embedding to the tokens. Purple areas in
     the position embedding will make the tokens darker, while orange areas will make
     them lighter.
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们准备将位置嵌入添加到标记中。位置嵌入中的紫色区域会让标记变得更暗，而橙色区域会让标记变得更亮。
 - en: '[PRE15]'
+  id: totrans-104
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '![](../Images/ca7cf7be43b83f9cc99c411fe5125f5d.png)'
+  id: totrans-105
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ca7cf7be43b83f9cc99c411fe5125f5d.png)'
 - en: Code Output (image by author)
+  id: totrans-106
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码输出（图片由作者提供）
 - en: You can see the structure from the original tokens, as well as the structure
     in the position embedding! Both pieces of information are present to be passed
     forward into the transformer.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以看到原始标记的结构以及位置嵌入中的结构！这两部分信息都已经传递到变换器中。
 - en: Conclusion
+  id: totrans-108
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: Now, you should have some intuition of how position embeddings help vision transformers
     learn. The code in this article an be found in the [GitHub repository](https://github.com/lanl/vision_transformers_explained)
     for this series. The code from the T2T-ViT paper⁴ can be found [here](https://github.com/yitu-opensource/T2T-ViT).
     Happy transforming!
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，你应该对位置嵌入如何帮助视觉变换器学习有所直觉。本文中的代码可以在[GitHub 仓库](https://github.com/lanl/vision_transformers_explained)找到，专门用于这一系列内容。T2T-ViT
+    论文中的代码⁴可以在[这里](https://github.com/yitu-opensource/T2T-ViT)找到。祝你愉快地进行变换！
 - en: This article was approved for release by Los Alamos National Laboratory as LA-UR-23–33876\.
     The associated code was approved for a BSD-3 open source license under O#4693.
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文已由洛斯阿拉莫斯国家实验室批准发布，发布编号为 LA-UR-23–33876。相关代码已获批准，并根据 O#4693 颁发了 BSD-3 开源许可证。
 - en: Further Reading
+  id: totrans-111
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进一步阅读
 - en: To learn more about position embeddings in NLP contexts, see
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解更多关于在 NLP 中的位置信息嵌入，请参阅
 - en: 'A Gentle Introduction to Positional Encoding in Transformer Models: [https://machinelearningmastery.com/a-gentle-introduction-to-positional-encoding-in-transformer-models-part-1/](https://machinelearningmastery.com/a-gentle-introduction-to-positional-encoding-in-transformer-models-part-1/)'
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 《位置编码在变换器模型中的温和介绍》：[https://machinelearningmastery.com/a-gentle-introduction-to-positional-encoding-in-transformer-models-part-1/](https://machinelearningmastery.com/a-gentle-introduction-to-positional-encoding-in-transformer-models-part-1/)
 - en: For a video lecture broadly about vision transformers (with relevant chapters
     noted), see
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 若要查看关于视觉变换器的广泛视频讲座（相关章节已标注），请参见
 - en: 'Vision Transformer and its Applications: [https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP](https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP)'
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉变换器及其应用：[https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP](https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP)
 - en: — Vision Transformer is Invariant to Position of Patches 10:44–12:52 ([https://youtu.be/hPb6A92LROc?t=644&si=Keu-5i9BQ5c69mxz](https://youtu.be/hPb6A92LROc?t=644&si=Keu-5i9BQ5c69mxz))
+  id: totrans-116
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — 视觉变换器对补丁位置不变 10:44–12:52 ([https://youtu.be/hPb6A92LROc?t=644&si=Keu-5i9BQ5c69mxz](https://youtu.be/hPb6A92LROc?t=644&si=Keu-5i9BQ5c69mxz))
 - en: — Position Embedding 12:52–14:15 ([https://youtu.be/hPb6A92LROc?t=772&si=spdlYZl-TRgbGgzn](https://youtu.be/hPb6A92LROc?t=772&si=spdlYZl-TRgbGgzn))
+  id: totrans-117
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — 位置嵌入 12:52–14:15 ([https://youtu.be/hPb6A92LROc?t=772&si=spdlYZl-TRgbGgzn](https://youtu.be/hPb6A92LROc?t=772&si=spdlYZl-TRgbGgzn))
 - en: Citations
+  id: totrans-118
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 引用
 - en: '[1] Vaswani et al (2017). *Attention Is All You Need.* [https://doi.org/10.48550/arXiv.1706.03762](https://doi.org/10.48550/arXiv.1706.03762)'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Vaswani 等（2017年）。*注意力机制就是你所需要的一切。* [https://doi.org/10.48550/arXiv.1706.03762](https://doi.org/10.48550/arXiv.1706.03762)'
 - en: '[2] Dosovitskiy et al (2020). *An Image is Worth 16x16 Words: Transformers
     for Image Recognition at Scale.* [https://doi.org/10.48550/arXiv.2010.11929](https://doi.org/10.48550/arXiv.2010.11929)'
+  id: totrans-120
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Dosovitskiy 等（2020年）。*一张图片价值 16x16 个词：用于大规模图像识别的变换器。* [https://doi.org/10.48550/arXiv.2010.11929](https://doi.org/10.48550/arXiv.2010.11929)'
 - en: '[3] Luis Zuno ([@ansimuz](http://twitter.com/ansimuz)). *Mountain at Dusk Background.*
     License CC0: [https://opengameart.org/content/mountain-at-dusk-background](https://opengameart.org/content/mountain-at-dusk-background)'
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] 路易斯·祖诺 ([@ansimuz](http://twitter.com/ansimuz))。 *黄昏时山脉背景*。 许可证 CC0: [https://opengameart.org/content/mountain-at-dusk-background](https://opengameart.org/content/mountain-at-dusk-background)'
 - en: '[4] Yuan et al (2021). *Tokens-to-Token ViT: Training Vision Transformers from
     Scratch on ImageNet*. [https://doi.org/10.48550/arXiv.2101.11986](https://doi.org/10.48550/arXiv.2101.11986)'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] 袁等人 (2021). *Tokens-to-Token ViT: 从头开始在 ImageNet 上训练视觉变换器*。 [https://doi.org/10.48550/arXiv.2101.11986](https://doi.org/10.48550/arXiv.2101.11986)'
 - en: '→ GitHub code: [https://github.com/yitu-opensource/T2T-ViT](https://github.com/yitu-opensource/T2T-ViT)'
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: '→ GitHub 代码: [https://github.com/yitu-opensource/T2T-ViT](https://github.com/yitu-opensource/T2T-ViT)'
