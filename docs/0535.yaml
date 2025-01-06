@@ -1,142 +1,213 @@
 - en: Attention for Vision Transformers, Explained
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 视觉变换器的注意力机制解析
 - en: 原文：[https://towardsdatascience.com/attention-for-vision-transformers-explained-70f83984c673?source=collection_archive---------3-----------------------#2024-02-27](https://towardsdatascience.com/attention-for-vision-transformers-explained-70f83984c673?source=collection_archive---------3-----------------------#2024-02-27)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/attention-for-vision-transformers-explained-70f83984c673?source=collection_archive---------3-----------------------#2024-02-27](https://towardsdatascience.com/attention-for-vision-transformers-explained-70f83984c673?source=collection_archive---------3-----------------------#2024-02-27)
 - en: Vision Transformers Explained Series
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 视觉变换器解析系列
 - en: The Math and the Code Behind Attention Layers in Computer Vision
+  id: totrans-3
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 计算机视觉中注意力层背后的数学与代码
 - en: '[](https://medium.com/@sjcallis?source=post_page---byline--70f83984c673--------------------------------)[![Skylar
     Jean Callis](../Images/db4d07b27d7feb86bfbb73b1065aa3a0.png)](https://medium.com/@sjcallis?source=post_page---byline--70f83984c673--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--70f83984c673--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--70f83984c673--------------------------------)
     [Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--70f83984c673--------------------------------)'
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@sjcallis?source=post_page---byline--70f83984c673--------------------------------)[![Skylar
+    Jean Callis](../Images/db4d07b27d7feb86bfbb73b1065aa3a0.png)](https://medium.com/@sjcallis?source=post_page---byline--70f83984c673--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--70f83984c673--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--70f83984c673--------------------------------)
+    [Skylar Jean Callis](https://medium.com/@sjcallis?source=post_page---byline--70f83984c673--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70f83984c673--------------------------------)
     ·12 min read·Feb 27, 2024
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--70f83984c673--------------------------------)
+    ·12分钟阅读·2024年2月27日
 - en: --
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*Since their introduction in 2017 with* Attention is All You Need*¹, transformers
     have established themselves as the state of the art for natural language processing
     (NLP). In 2021,* An Image is Worth 16x16 Words*² successfully adapted transformers
     for computer vision tasks. Since then, numerous transformer-based architectures
     have been proposed for computer vision.*'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: '*自2017年《Attention is All You Need》¹提出以来，*变换器（transformers）已经成为自然语言处理（NLP）领域的前沿技术。2021年，*《An
+    Image is Worth 16x16 Words》²成功地将变换器应用于计算机视觉任务。从那时起，许多基于变换器的架构被提出用于计算机视觉。*'
 - en: '**This article takes an in-depth look to how an attention layer works in the
     context of computer vision. We’ll cover both single-headed and multi-headed attention.
     It includes open-source code for the attention layers, as well as conceptual explanations
     of underlying mathematics. The code uses the PyTorch Python package.**'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: '**本文深入探讨了在计算机视觉领域，注意力层是如何工作的。我们将讨论单头和多头注意力机制。文章中包含了注意力层的开源代码，并对其底层数学原理进行了解释。代码使用的是
+    PyTorch Python 包。**'
 - en: '![](../Images/9fbe658f52c837298c19cc8f31b3f122.png)'
+  id: totrans-9
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9fbe658f52c837298c19cc8f31b3f122.png)'
 - en: Photo by [Mitchell Luo](https://unsplash.com/@mitchel3uo?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：[Mitchell Luo](https://unsplash.com/@mitchel3uo?utm_source=medium&utm_medium=referral)
+    在 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: 'This article is part of a collection examining the internal workings of Vision
     Transformers in depth. Each of these articles is also available as a Jupyter Notebook
     with executable code. The other articles in the series are:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文是一个系列文章的一部分，深入探讨视觉变换器的内部工作原理。每篇文章也可以作为一个带有可执行代码的 Jupyter Notebook 进行阅读。该系列的其他文章包括：
 - en: '[Vision Transformers, Explained](/vision-transformers-explained-a9d07147e4c8)→
     [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/VisionTransformersExplained.ipynb)'
+  id: totrans-12
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[视觉变换器解析](/vision-transformers-explained-a9d07147e4c8)→ [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/VisionTransformersExplained.ipynb)'
 - en: '[**Attention for Vision Transformers, Explained**](/attention-for-vision-transformers-explained-70f83984c673)'
+  id: totrans-13
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[**视觉变换器的注意力机制解析**](/attention-for-vision-transformers-explained-70f83984c673)'
 - en: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/AttentionExplained.ipynb)
+  id: totrans-14
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/AttentionExplained.ipynb)
 - en: '[Position Embeddings for Vision Transformers, Explained](/position-embeddings-for-vision-transformers-explained-a6f9add341d5)'
+  id: totrans-15
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[视觉变换器位置嵌入解释](/position-embeddings-for-vision-transformers-explained-a6f9add341d5)'
 - en: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/PositionEmbeddingExplained.ipynb)
+  id: totrans-16
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/PositionEmbeddingExplained.ipynb)
 - en: '[Tokens-to-Token Vision Transformers, Explained](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)'
+  id: totrans-17
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[Tokens-to-Token视觉变换器解析](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)'
 - en: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/TokensToTokenViTExplained.ipynb)
+  id: totrans-18
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: → [Jupyter Notebook](https://github.com/lanl/vision_transformers_explained/blob/main/notebooks/TokensToTokenViTExplained.ipynb)
 - en: '[GitHub Repository for Vision Transformers, Explained Series](https://github.com/lanl/vision_transformers_explained)'
+  id: totrans-19
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[视觉变换器解释系列的GitHub仓库](https://github.com/lanl/vision_transformers_explained)'
 - en: Table of Contents
+  id: totrans-20
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 目录
 - en: '[Attention in General](#6c66)'
+  id: totrans-21
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[一般注意力机制](#6c66)'
 - en: '[Single Headed Attention](#1dee)'
+  id: totrans-22
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[单头注意力](#1dee)'
 - en: '[Multi-Headed Attention](#5945)'
+  id: totrans-23
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[多头注意力](#5945)'
 - en: '[Conclusion](#5276)'
+  id: totrans-24
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[结论](#5276)'
 - en: — [Further Reading](#f44b)
+  id: totrans-25
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — [进一步阅读](#f44b)
 - en: — [Citations](#8da6)
+  id: totrans-26
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — [引用](#8da6)
 - en: Attention in General
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 一般注意力机制
 - en: For NLP applications, attention is often described as the relationship between
     words (tokens) in a sentence. In a computer vision application, attention looks
     at the relationships between patches (tokens) in an image.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于NLP应用，注意力通常被描述为句子中单词（tokens）之间的关系。在计算机视觉应用中，注意力关注的是图像中patches（tokens）之间的关系。
 - en: There are multiple ways to break an image down into a series of tokens. The
     original ViT² segments an image into *patches* that are then flattened into *tokens*;
     for a more in-depth explanation of this *patch tokenization* see the [Vision Transformers
     article](/vision-transformers-explained-a9d07147e4c8). The *Tokens-to-Token ViT³*
     develops a more complicated method of creating tokens from an image; more about
     that methodology can be found in the [Tokens-To-Token ViT article](/tokens-to-token-vision-transformers-explained-2fa4e2002daa).
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 有多种方法可以将一张图片分解成一系列的tokens。原始的ViT²将图像分割成*patches*，然后将这些*patches*展平为*tokens*；有关这种*patch
+    tokenization*的更详细解释，请参阅[视觉变换器文章](/vision-transformers-explained-a9d07147e4c8)。*Tokens-to-Token
+    ViT³*开发了一种更复杂的方法，从图像中创建tokens；关于该方法的更多信息可以在[Tokens-To-Token ViT文章](/tokens-to-token-vision-transformers-explained-2fa4e2002daa)中找到。
 - en: This article will proceed though an attention layer assuming tokens as input.
     At the beginning of a transformer, the tokens will be representative of patches
     in the input image. However, deeper attention layers will compute attention on
     tokens that have been modified by preceding layers, removing the directness of
     the representation.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文将假设tokens作为输入，逐步通过一个注意力层。在变换器的开始，tokens将代表输入图像中的patches。然而，随着深层注意力层的计算，tokens将被前面的层修改，从而移除了直接的表示关系。
 - en: This article examines dot-product (equivalently multiplicative) attention as
     defined in *Attention is All You Need*¹. This is the same attention mechanism
     used in derivative works such as *An Image is Worth 16x16 Words²* and *Tokens-to-Token
@@ -144,284 +215,447 @@
     ViT³* with some modifications. Changes to the source code include, but are not
     limited to, consolidating the two attention modules into one and implementing
     multi-headed attention.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文探讨了在*Attention is All You Need*¹中定义的点积（即乘法）注意力机制。这与在*An Image is Worth 16x16
+    Words²*和*Tokens-to-Token ViT³*等衍生作品中使用的注意力机制相同。代码基于公开的*Tokens-to-Token ViT³*的GitHub代码，经过了一些修改。源代码的更改包括但不限于将两个注意力模块合并为一个，并实现了多头注意力。
 - en: 'The attention module in full is shown below:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 完整的注意力模块如下所示：
 - en: '[PRE0]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Single-Headed Attention
+  id: totrans-34
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 单头注意力
 - en: Starting with only one attention head, let’s step through each line of the forward
     pass, and look at some matrix diagrams as we go. We’re using 7∗7=49 as our starting
     token size, since that’s the starting token size in the T2T-ViT models.³ We’re
     using 64 channels because that’s also the T2T-ViT default³. We’re using 100 tokens
     because it’s a nice number. We’re using a batch size of 13 because it’s prime
     and won’t be confused for any of the other parameters.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 从只有一个注意力头开始，我们一步步走过前向传递的每一行，并在过程中查看一些矩阵图示。我们使用7∗7=49作为起始的token大小，因为这是T2T-ViT模型中的起始token大小。³我们使用64个通道，因为这是T2T-ViT的默认值。³我们使用100个tokens，因为这是一个合适的数字。我们使用13的batch大小，因为它是质数，不会与其他参数混淆。
 - en: '[PRE1]'
+  id: totrans-36
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '[PRE2]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: From *Attention is All You Need*¹, attention is defined in terms of **Q**ueries,
     **K**eys, and **V**alues matrices. Th first step is to calculate these through
     a learnable linear layer. The boolean *qkv_bias* term indicates if these linear
     layers have a bias term or not. This step also changes the length of the tokens
     from the input 49 to the *chan* parameter, which we set as 64.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 来自*Attention is All You Need*¹，注意力是通过**Q**uery、**K**ey和**V**alue矩阵来定义的。第一步是通过一个可学习的线性层来计算这些矩阵。布尔值*qkv_bias*项表示这些线性层是否具有偏置项。此步骤还会将输入的标记长度从49更改为*chan*参数，我们将其设置为64。
 - en: '![](../Images/07584b12695625a9a4d15b294a069fd6.png)'
+  id: totrans-39
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/07584b12695625a9a4d15b294a069fd6.png)'
 - en: Generation of Queries, Keys, and Values for Single Headed Attention (image by
     author)
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 生成单头注意力的查询、键和值（图片由作者提供）
 - en: '[PRE3]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: '[PRE4]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'Now, we can start to compute attention, which is defined in as:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，我们可以开始计算注意力，注意力的定义如下：
 - en: where *Q, K, V*, are the queries, keys, and values, respectively; and dₖ is
     the dimension of the keys, which is equal to the length of the key tokens and
     equal to the *chan* length.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 其中*Q, K, V*分别是查询、键和值；dₖ是键的维度，它等于键标记的长度，并且等于*chan*的长度。
 - en: We’re going to go through this equation as it is implemented in the code. We’ll
     call the intermediate matrices **A**ttn.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将逐步分析代码中实现的这个方程。我们将中间矩阵称为**A**ttn。
 - en: 'The first step is to compute:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 第一步是计算：
 - en: In the code, we set
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在代码中，我们设置了
 - en: By default,
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认情况下，
 - en: However, the user can specify an alternative scale value as a hyperparameter.
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，用户可以指定一个作为超参数的替代缩放值。
 - en: 'The matrix multiplication *Q·Kᵀ* in the numerator looks like this:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 分子中的矩阵乘法*Q·Kᵀ*看起来是这样的：
 - en: '![](../Images/2326047b0af71d16bbe03baff4720488.png)'
+  id: totrans-51
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2326047b0af71d16bbe03baff4720488.png)'
 - en: '*Q·Kᵀ Matrix Multiplication (image by author)*'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Q·Kᵀ 矩阵乘法（图片由作者提供）*'
 - en: 'All of that together in code looks like:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有这些代码看起来是这样的：
 - en: '[PRE5]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: '[PRE6]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: Next, we calculate the softmax of *A*, which doesn’t change it’s shape.
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们计算*A*的softmax，这不会改变其形状。
 - en: '[PRE7]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: '[PRE8]'
+  id: totrans-58
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Finally, we compute *A·V=x,* which looks like:'
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们计算*A·V=x*，其形式如下：
 - en: '![](../Images/05349999ae0551af69e684b862aca2eb.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/05349999ae0551af69e684b862aca2eb.png)'
 - en: '*A·V Matrix Multiplication (image by author)*'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '*A·V 矩阵乘法（图片由作者提供）*'
 - en: '[PRE9]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: '[PRE10]'
+  id: totrans-63
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: The output *x* is reshaped to remove the attention head dimension.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出*x*被重新形状化，以去除注意力头维度。
 - en: '[PRE11]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '[PRE12]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: We then feed *x* through a learnable linear layer that does not change it’s
     shape.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将*x*通过一个可学习的线性层，这个线性层不会改变它的形状。
 - en: '[PRE13]'
+  id: totrans-68
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: '[PRE14]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: Lastly, we implement a skip connection. Since the current shape of *x* is different
     from the input shape of *x*, we use *V* for the skip connection. We do flatten
     *V* in the attention head dimension.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们实现了一个跳跃连接。由于当前*x*的形状与输入的*x*形状不同，我们使用*V*来进行跳跃连接。我们确实在注意力头维度上展平了*V*。
 - en: '[PRE15]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '[PRE16]'
+  id: totrans-72
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: That completes the attention layer!
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就完成了注意力层！
 - en: Multi-Headed Attention
+  id: totrans-74
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 多头注意力
 - en: Now that we’ve looked at single headed attention, we can expand to multi-headed
     attention. In the context of computer vision, this is often called **M**ulti-headed
     **S**elf **A**ttention (MSA). This section isn’t going to go through all the steps
     in as much detail; instead, we’ll focus on the places where the matrix shapes
     differ.
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经看过了单头注意力，我们可以扩展到多头注意力。在计算机视觉中，这通常称为**多头自注意力**（MSA）。本节不会详细讲解所有步骤；相反，我们将专注于矩阵形状有所不同的部分。
 - en: Same as for a single attention head, we’re using 7∗7=49 as our starting token
     size and 64 channels because that’s the T2T-ViT default³. We’re using 100 tokens
     because it’s a nice number. We’re using a batch size of 13 because it’s prime
     and won’t be confused for any of the other parameters.
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 与单头注意力相同，我们使用7∗7=49作为我们的起始标记大小，并使用64个通道，因为这是T2T-ViT的默认值³。我们使用100个标记，因为这个数字很好。我们使用的批量大小为13，因为它是质数，不会与其他参数混淆。
 - en: The number of attention heads must evenly divide the number of channels, so
     for this example we’ll use 4 attention heads.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意力头的数量必须能够整除通道数，因此在这个例子中，我们使用4个注意力头。
 - en: '[PRE17]'
+  id: totrans-78
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: '[PRE18]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'The process to computer the **Q**ueries, **K**eys, and **V**alues remains the
     same as in single-headed attention. However, you can see that the new length of
     the tokens is *chan*/*num_heads*. The total size of the *Q*, *K*, and *V* matrices
     have not changed; their contents are just distributed across the head dimension.
     You can think abut this as segmenting the single headed matrix for the multiple
     heads:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 计算**Q**ueries、**K**eys和**V**alues的过程与单头注意力中相同。然而，你可以看到标记的新长度是*chan*/*num_heads*。*Q*、*K*和*V*矩阵的总大小没有变化，它们的内容只是分布在头维度上。你可以将其视为将单头矩阵分割为多个头：
 - en: '![](../Images/1f6f3d811b9d760cc180775d581d057e.png)'
+  id: totrans-81
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1f6f3d811b9d760cc180775d581d057e.png)'
 - en: Multi-Headed Attention Segmentation (image by author)
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头注意力分割（图片由作者提供）
 - en: We’ll denote the submatrices as Qₕᵢ for ***Q****uery* ***h****ead* ***i***.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们将子矩阵表示为Qₕᵢ，表示***Q****uery* ***h****ead* ***i***。
 - en: '[PRE19]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: '[PRE20]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: The next step is to compute
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 下一步是计算
 - en: for every head *i*. In this context, the length of the keys is
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于每个头* i *。在此上下文中，键的长度是
 - en: As in single headed attention, we use the default
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 与单头注意力一样，我们使用默认值
 - en: though the user can specify an alternative scale value as a hyperparameter.
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管用户可以将替代的缩放值指定为超参数。
 - en: 'We end this step with *num_heads* = 4 different **A**ttn matrices, which looks
     like:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们以*num_heads* = 4个不同的**A**ttn矩阵结束此步骤，如下所示：
 - en: '![](../Images/8338a991901e1c15a1a239544b2fb2a4.png)'
+  id: totrans-91
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8338a991901e1c15a1a239544b2fb2a4.png)'
 - en: '*Q·Kᵀ Matrix Multiplication* for MSA (image by author)'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: '*Q·Kᵀ 矩阵乘法*用于MSA（图片由作者提供）'
 - en: '[PRE21]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '[PRE22]'
+  id: totrans-94
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: Next we calculate the softmax of *A*, which doesn’t change it’s shape.
+  id: totrans-95
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来我们计算*A*的softmax，它的形状不会改变。
 - en: Then, we can compute
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们可以计算
 - en: 'This is similarly distributed across the multiple attention heads:'
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 这在多个注意力头之间类似地分布：
 - en: '![](../Images/9e3e9159dbd9fd222d4c6292227c929f.png)'
+  id: totrans-98
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/9e3e9159dbd9fd222d4c6292227c929f.png)'
 - en: '*A·V Matrix Multiplication* for MSA (image by author)'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: '*A·V 矩阵乘法*用于MSA（图片由作者提供）'
 - en: '[PRE23]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: '[PRE24]'
+  id: totrans-101
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'Now we concatenate all of the xₕᵢ’s together through some reshaping. This is
     the inverse operation from the first step:'
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们通过一些重塑操作将所有的xₕᵢ合并在一起。这是第一步的逆操作：
 - en: '![](../Images/1f6f3d811b9d760cc180775d581d057e.png)'
+  id: totrans-103
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1f6f3d811b9d760cc180775d581d057e.png)'
 - en: Multi-Headed Attention Segmentation (image by author)
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 多头注意力分割（图片由作者提供）
 - en: '[PRE25]'
+  id: totrans-105
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: '[PRE26]'
+  id: totrans-106
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Now that we’ve concatenated all of the heads back together, the rest of the
     Attention module remains unchanged. For the skip connection, we still use *V*,
     but we have to reshape it to remove the head dimension.
+  id: totrans-107
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经将所有头连接在一起，注意力模块的其余部分保持不变。对于跳过连接，我们仍然使用*V*，但我们必须重新调整其形状以去除头维度。
 - en: '[PRE27]'
+  id: totrans-108
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: '[PRE28]'
+  id: totrans-109
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE28]'
 - en: And that concludes multi-headed attention!
+  id: totrans-110
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就结束了多头注意力！
 - en: Conclusion
+  id: totrans-111
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: We’ve now walked through every step of an attention layer as implemented for
     vision transformers. The learnable weights in an attention layer are found in
     the first projection from tokens to queries, keys, and values and in the final
@@ -429,86 +663,129 @@
     However, the linear layers can contain large numbers of weights when long tokens
     are used. The number of weights in the QKV projection layer are equal to *input_token_len*∗*chan*∗*3,*
     and the number of weights in the final projection layer are equal to *chan²*.
+  id: totrans-112
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经走完了视觉变换器中注意力层的每个步骤。注意力层中的可学习权重位于从标记到查询、键和值的第一次投影以及最终投影中。注意力层的大部分是确定性的矩阵乘法。然而，当使用较长的标记时，线性层可能包含大量的权重。QKV投影层中的权重数量等于*input_token_len*∗*chan*∗*3*，而最终投影层中的权重数量等于*chan²*。
 - en: To use the attention layers, you can create custom attention layers (as done
     here!), or use attention layers included in machine learning packages. If you
     want to use attention layers as defined here, they can be found in the [GitHub
     repository](https://github.com/lanl/vision_transformers_explained) for this article
     series. PyTorch also has `torch.nn.MultiheadedAttention()`⁴ layers, which compute
     attention as defined above. Happy attending!
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 要使用注意力层，你可以创建自定义的注意力层（如这里所做！），或者使用机器学习包中包含的注意力层。如果你想使用此处定义的注意力层，可以在[GitHub 仓库](https://github.com/lanl/vision_transformers_explained)找到该系列文章的代码。PyTorch
+    也提供了 `torch.nn.MultiheadedAttention()`⁴ 层，它按照上述定义计算注意力。祝你注意力集中！
 - en: This article was approved for release by Los Alamos National Laboratory as LA-UR-23–33876\.
     The associated code was approved for a BSD-3 open source license under O#4693.
+  id: totrans-114
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文已通过洛斯阿拉莫斯国家实验室批准发布，编号LA-UR-23-33876。相关代码已通过BSD-3开源许可证批准，许可证编号O#4693。
 - en: Further Reading
+  id: totrans-115
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 进一步阅读
 - en: To learn more about attention layers in NLP contexts, see
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 要了解更多关于 NLP 上下文中注意力层的内容，请参见
 - en: 'Transformers Explained Visually Part 1 Overview of Functionality: [https://towardsdatascience.com/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452](/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452)'
+  id: totrans-117
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉变换器直观解析第一部分：功能概述：[https://towardsdatascience.com/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452](/transformers-explained-visually-part-1-overview-of-functionality-95a6dd460452)
 - en: 'Transformers Explained Visually Part 2 How it Works, Step by Step: [https://towardsdatascience.com/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34](/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34)'
+  id: totrans-118
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉变换器直观解析第二部分：一步一步了解其工作原理：[https://towardsdatascience.com/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34](/transformers-explained-visually-part-2-how-it-works-step-by-step-b49fa4a64f34)
 - en: 'Transformers Explained Visually Part 3 Multi-Headed Attention Deep Dive: [https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853](/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853)'
+  id: totrans-119
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉变换器直观解析第三部分：多头注意力深度解析：[https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853](/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853)
 - en: 'Visual Guide to Transformer Neural Networks Multi-Head & Self Attention Video:
     [https://www.youtube.com/watch?v=mMa2PmYJlCo](https://www.youtube.com/watch?v=mMa2PmYJlCo)'
+  id: totrans-120
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉指南：变换器神经网络多头和自注意力视频：[https://www.youtube.com/watch?v=mMa2PmYJlCo](https://www.youtube.com/watch?v=mMa2PmYJlCo)
 - en: For a video lecture broadly about vision transformers (with relevant chapters
     noted), see
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于视觉变换器的广泛视频讲解（包括相关章节），请见
 - en: 'Vision Transformer and its Applications: [https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP](https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP)'
+  id: totrans-122
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 视觉变换器及其应用：[https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP](https://youtu.be/hPb6A92LROc?si=GaGYiZoyDg0PcdSP)
 - en: '— Human Visual Attention: 4:31 — 5:18 ([https://youtu.be/hPb6A92LROc?t=271&si=VMx2lM9lvW-oKcW_](https://youtu.be/hPb6A92LROc?t=271&si=VMx2lM9lvW-oKcW_))'
+  id: totrans-123
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — 人类视觉注意力：4:31 — 5:18 ([https://youtu.be/hPb6A92LROc?t=271&si=VMx2lM9lvW-oKcW_](https://youtu.be/hPb6A92LROc?t=271&si=VMx2lM9lvW-oKcW_))
 - en: '— Attention as a Dot Product: 5:18–6:14 [(https://youtu.be/hPb6A92LROc?t=318&si=pF2SFp2XXjK8AWsL](https://youtu.be/hPb6A92LROc?t=318&si=pF2SFp2XXjK8AWsL))'
+  id: totrans-124
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — Attention 作为点积：5:18–6:14 [(https://youtu.be/hPb6A92LROc?t=318&si=pF2SFp2XXjK8AWsL](https://youtu.be/hPb6A92LROc?t=318&si=pF2SFp2XXjK8AWsL))
 - en: '— Description of Attention formula: 16:13–17:52 ([https://youtu.be/hPb6A92LROc?si=toAgKQCOh9zGCR-c&t=973](https://youtu.be/hPb6A92LROc?si=toAgKQCOh9zGCR-c&t=973))'
+  id: totrans-125
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — Attention 公式的描述：16:13–17:52 ([https://youtu.be/hPb6A92LROc?si=toAgKQCOh9zGCR-c&t=973](https://youtu.be/hPb6A92LROc?si=toAgKQCOh9zGCR-c&t=973))
 - en: '— Why Multi-Head Self-Attention: 19:44–19:58 ([https://youtu.be/hPb6A92LROc?t=1184&si=Sy1e149ukt99DoRf](https://youtu.be/hPb6A92LROc?t=1184&si=Sy1e149ukt99DoRf))'
+  id: totrans-126
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: — 为什么使用多头自注意力：19:44–19:58 ([https://youtu.be/hPb6A92LROc?t=1184&si=Sy1e149ukt99DoRf](https://youtu.be/hPb6A92LROc?t=1184&si=Sy1e149ukt99DoRf))
 - en: Citations
+  id: totrans-127
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 引用
 - en: '[1] Vaswani et al (2017). *Attention Is All You Need.* [https://doi.org/10.48550/arXiv.1706.03762](https://doi.org/10.48550/arXiv.1706.03762)'
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] Vaswani 等人（2017年）。*Attention Is All You Need.* [https://doi.org/10.48550/arXiv.1706.03762](https://doi.org/10.48550/arXiv.1706.03762)'
 - en: '[2] Dosovitskiy et al (2020). *An Image is Worth 16x16 Words: Transformers
     for Image Recognition at Scale.* [https://doi.org/10.48550/arXiv.2010.11929](https://doi.org/10.48550/arXiv.2010.11929)'
+  id: totrans-129
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] Dosovitskiy 等人（2020年）。*一张图胜过16x16个词：用于大规模图像识别的变换器.* [https://doi.org/10.48550/arXiv.2010.11929](https://doi.org/10.48550/arXiv.2010.11929)'
 - en: '[3] Yuan et al (2021). *Tokens-to-Token ViT: Training Vision Transformers from
     Scratch on ImageNet*. [https://doi.org/10.48550/arXiv.2101.11986](https://doi.org/10.48550/arXiv.2101.11986)'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: '[3] Yuan 等人（2021年）。*Tokens-to-Token ViT：从头开始在 ImageNet 上训练视觉变换器.* [https://doi.org/10.48550/arXiv.2101.11986](https://doi.org/10.48550/arXiv.2101.11986)'
 - en: '→ GitHub code: [https://github.com/yitu-opensource/T2T-ViT](https://github.com/yitu-opensource/T2T-ViT)'
+  id: totrans-131
   prefs: []
   type: TYPE_NORMAL
+  zh: → GitHub 代码：[https://github.com/yitu-opensource/T2T-ViT](https://github.com/yitu-opensource/T2T-ViT)
 - en: '[4] PyTorch. *Multiheaded Attention.* [https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html](https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html)'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: '[4] PyTorch。*多头注意力.* [https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html](https://pytorch.org/docs/stable/generated/torch.nn.MultiheadAttention.html)'
