@@ -1,249 +1,385 @@
 - en: Drawing From a Random Distribution in SQL
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 在 SQL 中从随机分布中抽样
 - en: 原文：[https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09](https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09](https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09)
 - en: From a probability density function to random samples
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从概率密度函数到随机样本
 - en: '[](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[![Sami
     Abboud](../Images/546a33fe92a194068816e6173eaa854a.png)](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)
     [Sami Abboud](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[![Sami
+    Abboud](../Images/546a33fe92a194068816e6173eaa854a.png)](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)
+    [Sami Abboud](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)
     ·8 min read·Feb 9, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)
+    ·8分钟阅读·2024年2月9日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/22d2395939286048baeef0d7e72e1687.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/22d2395939286048baeef0d7e72e1687.png)'
 - en: Photo by [Moritz Kindler](https://unsplash.com/@moritz_photography?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
     on [Unsplash](https://unsplash.com/photos/white-and-black-polka-dot-ceramic-mug-with-water-okiy0SxOaBg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来自 [Moritz Kindler](https://unsplash.com/@moritz_photography?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    ，发布于 [Unsplash](https://unsplash.com/photos/white-and-black-polka-dot-ceramic-mug-with-water-okiy0SxOaBg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
 - en: There are different methods for updating a reinforcement learning agent’s policy
     at each iteration. A few weeks ago we started experimenting with replacing our
     current method with a Bayesian inference step. Some of the data workloads within
     our agent are written in SQL that is executed on GCP’s BigQuery engine. We use
     this stack because it provides scalable computational capabilities, ML packages
     and a straightforward SQL interface.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 在每次迭代中，更新强化学习代理的策略有不同的方法。几周前，我们开始尝试用贝叶斯推理步骤替换当前的方法。我们代理中的一些数据工作负载是用 SQL 编写的，并在
+    GCP 的 BigQuery 引擎上执行。我们使用这个技术栈，因为它提供了可扩展的计算能力、机器学习包和一个直观的 SQL 接口。
 - en: The Bayesian inference step we looked to implement uses one of the [alternative
     parametrizations of a beta distribution](https://en.wikipedia.org/wiki/Beta_distribution#Mean_and_sample_size).
     Which means that we will need to be able to draw from a beta distribution in SQL.
     While working on this, I discovered that drawing from the random distribution
     in SQL is a topic with very few well documented examples. So I’m writing about
     it here..
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们计划实现的贝叶斯推理步骤使用的是 [贝塔分布的替代参数化方式](https://en.wikipedia.org/wiki/Beta_distribution#Mean_and_sample_size)。这意味着我们需要能够在
+    SQL 中从贝塔分布中抽样。在研究这个问题时，我发现 SQL 中从随机分布中抽样是一个几乎没有好文档示例的话题。所以我在这里写一下。
 - en: 'Step 1: How hard could it be?'
+  id: totrans-10
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第一步：这有多难？
 - en: BigQuery doesn’t have a beta distribution. It doesn’t have the capability to
     draw from *any* random distribution. So my first intuition was to take the definition
     of the beta distribution, write it in SQL, set the parameters using a CTA, draw
     a random number between 0 and 1 and compute the value of that function.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: BigQuery 没有贝塔分布。它也没有从*任何*随机分布中抽样的能力。所以我最初的想法是，拿贝塔分布的定义，用 SQL 写出来，使用 CTA 设置参数，从
+    0 到 1 之间抽一个随机数，并计算该函数的值。
 - en: 'But it’s 2024, so I asked ChatGPT how it would do it:'
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 但这是 2024 年，所以我问了 ChatGPT 它会怎么做：
 - en: '**Me**: “​How do you create random draws from a beta distribution in BigQuery?'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: '**我**：“如何在 BigQuery 中从贝塔分布中抽取随机样本？”'
 - en: '**ChatGPT**:'
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: '**ChatGPT**：'
 - en: '[PRE0]'
+  id: totrans-15
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '**Me** *thinking to myself*: Right, so that clearly won’t work.'
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: '**我** *自言自语*：对了，这显然行不通。'
 - en: 'Do you see the problem in the code? ChatGPT draws two *different* x values
     for the presumed beta distribution PDF. I fixed this, cleaned up the query a little
     and sampled 1,000 values. And here’s the SQL code for doing that:'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 你在代码中看到了问题吗？ChatGPT 为假定的 Beta 分布 PDF 绘制了两个 *不同* 的 x 值。我修正了这个问题，稍微清理了一下查询，并抽样了
+    1,000 个值。下面是执行此操作的 SQL 代码：
 - en: '[PRE1]'
+  id: totrans-18
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Thank you all, that’s a wrap 🎁 See you in the next post!
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢大家，今天就到这里 🎁 下篇文章见！
 - en: WRONG! 🔴
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 错误！🔴
 - en: Let’s take a trusted implementation of drawing from a beta distribution using
     the same parameters and compare the results. I’ve used SciPy’s `beta.rvs()` in
     Python and here are two 100-bin histograms that will allow comparing the two drawn
     distributions.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们用相同的参数，取一个经过验证的 Beta 分布抽样实现，并对比结果。我使用了 Python 中 SciPy 的 `beta.rvs()`，这里有两个
+    100-bin 的直方图，可以用来比较这两个抽样分布。
 - en: '[PRE2]'
+  id: totrans-22
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: '![](../Images/8fd72857adf2b4861d92580c4316de1f.png)'
+  id: totrans-23
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8fd72857adf2b4861d92580c4316de1f.png)'
 - en: '(**Left)**: Naive draws using BigQuery. (**Right**): Draws using SciPy’s beta.rvs()'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: （**左侧**）：使用 BigQuery 的简单抽样。（**右侧**）：使用 SciPy 的 beta.rvs() 抽样
 - en: Well, it doesn’t take a magnifying glass to realize that the distributions are
     different. I went back the beta distribution definition and realized that it might
     be because the beta distribution also has a scaling constant which depends on
     the [gamma function](https://en.wikipedia.org/wiki/Gamma_function) that I didn’t
     include in the calculation 🤦.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 好吧，仔细看就能发现分布是不同的。我回过头查看了 Beta 分布的定义，意识到可能是因为 Beta 分布也有一个依赖于 [伽马函数](https://en.wikipedia.org/wiki/Gamma_function)
+    的缩放常数，而我在计算中没有包括它 🤦。
 - en: '**Problem:** the gamma function does not have a [closed-form expression](https://en.wikipedia.org/wiki/Closed-form_expression),
     and BigQuery doesn’t provide an implementation that approximates it. So at this
     point I decided to switch to Python, a language that I’m more familiar with and
     will make my experimentation more efficient. The thinking was that if I nail it
     down in Python, I’ll be able to translate it to SQL. I would still need some way
     to approximate a gamma function, but one step at a time.'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: '**问题**：伽马函数没有 [封闭式表达式](https://en.wikipedia.org/wiki/Closed-form_expression)，而
+    BigQuery 也没有提供近似的实现。因此，在这一点上，我决定转向 Python，这是我更熟悉的语言，并且可以提高我的实验效率。我想到，如果在 Python
+    中搞定了，我就能把它转到 SQL 中去。虽然我仍然需要某种方法来近似伽马函数，但一步一步来。'
 - en: 'Step 2: What does drawing from a random distribution actually mean?'
+  id: totrans-27
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 步骤 2：从随机分布抽样到底意味着什么？
 - en: 'Let’s implement a manual draw from a beta distribution in Python, but now with
     the correct constant using SciPy’s gamma function:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们在 Python 中实现从 Beta 分布手动抽样，但这次使用 SciPy 的伽马函数来正确计算常数：
 - en: '[PRE3]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'Let’s examine the distribution using a 100-bin histogram again:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们再次用一个 100-bin 的直方图来检查分布：
 - en: '![](../Images/de29f9bc9661da1f062515f5e5ea0db7.png)'
+  id: totrans-31
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/de29f9bc9661da1f062515f5e5ea0db7.png)'
 - en: Naive draws using Python
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Python 的简单抽样
 - en: The first thing we notice is that the scale is now different, but the distribution
     still looks like the one drawn in BigQuery.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们首先注意到的是，规模现在不同了，但分布仍然看起来像是在 BigQuery 中绘制的那样。
 - en: '*… something is wrong…* it’s time for a short walk to think 🚶'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: '*... 有些地方不对...* 是时候去散步思考一下了 🚶'
 - en: …
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: …
 - en: '*After a short walk:*'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '*短暂散步后：*'
 - en: What does drawing from a random distribution actually mean? What I’ve implemented
     so far is randomly sampling from the beta probability density function (PDF) and
     it wasn’t working.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 从随机分布抽样到底意味着什么？到目前为止我实现的是从 Beta 概率密度函数（PDF）中随机抽样，但它并没有成功。
 - en: So I had to dig up some statistics classes.
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以我不得不翻阅一些统计学课程。
 - en: 'Here are a couple of good refreshers on:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里有一些很好的复习资料：
 - en: '[Probability Density Functions (PDFs) and Cumulative Distribution Functions
     (CDFs) for Continuous Random Variables](https://stats.libretexts.org/Courses/Saint_Mary''s_College_Notre_Dame/MATH_345__-_Probability_(Kuter)/4%3A_Continuous_Random_Variables/4.1%3A_Probability_Density_Functions_(PDFs)_and_Cumulative_Distribution_Functions_(CDFs)_for_Continuous_Random_Variables),
     and'
+  id: totrans-40
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '[连续随机变量的概率密度函数（PDF）和累积分布函数（CDF）](https://stats.libretexts.org/Courses/Saint_Mary''s_College_Notre_Dame/MATH_345__-_Probability_(Kuter)/4%3A_Continuous_Random_Variables/4.1%3A_Probability_Density_Functions_(PDFs)_and_Cumulative_Distribution_Functions_(CDFs)_for_Continuous_Random_Variables)，以及'
 - en: '[Generating Samples from Probability Distributions](https://web.mit.edu/urban_or_book/www/book/chapter7/7.1.3.html)
     that I found helpful.'
+  id: totrans-41
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我发现非常有用的 [从概率分布生成样本](https://web.mit.edu/urban_or_book/www/book/chapter7/7.1.3.html)。
 - en: In short, the conclusion is that drawing from a random variable actually means
     **sampling from the inverse cumulative distribution function (CDF)**, not from
     the probability density function (PDF) like I was doing so far.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，结论是从随机变量中抽样实际上意味着**从逆累积分布函数（CDF）中抽样**，而不是像我之前做的那样从概率密度函数（PDF）中抽样。
 - en: Of course 🤦. My [probability professor](https://web.iem.technion.ac.il/dmitry-dima-ioffe-1963-2020/),
     who I just learned had passed away from illness in 2020, would have encouraged
     me to “review the basics” at this point..
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然了 🤦。我的[概率论教授](https://web.iem.technion.ac.il/dmitry-dima-ioffe-1963-2020/)，我刚得知他在
+    2020 年因病去世了，他本该鼓励我在这个时候“复习基础知识”。
 - en: 'Ok. Let’s revisit the Python code, now drawing samples from the inverse CDF
     (which is also called [the quantile function](https://en.wikipedia.org/wiki/Quantile_function))
     of our beta distribution, and compare it to the distribution drawn using SciPy’s
     beta.rvs():'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 好的。让我们回顾一下 Python 代码，现在它是从我们 beta 分布的逆 CDF（也称为[分位数函数](https://en.wikipedia.org/wiki/Quantile_function)）中抽样，并与使用
+    SciPy 的 beta.rvs() 抽样的分布进行比较：
 - en: '[PRE4]'
+  id: totrans-45
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: '*phew* this looks much better:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '*呼* 这个看起来好多了：'
 - en: '![](../Images/eb08d3d0bc8cb8c045eba5cf4cbc73fe.png)'
+  id: totrans-47
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eb08d3d0bc8cb8c045eba5cf4cbc73fe.png)'
 - en: An overlay of two histograms comparing a 1,000 draws using SciPy’s beta.rvs()
     and a manual draw
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 两个直方图的叠加，比较使用 SciPy 的 beta.rvs() 和手动抽样的 1,000 次抽样结果
 - en: 'Step 3: Back to SQL'
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 第 3 步：回到 SQL
 - en: Now that we’ve got drawing samples from a random variable straight, it’s time
     to move back to SQL. For the sake of simplicity, and because BigQuery does not
     readily come with an implementation of a Gamma function¹ I’m going to draw from
     the [logistic distribution](https://en.wikipedia.org/wiki/Logistic_distribution)
     (with parameters a=0 and b=1).
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们已经正确地从随机变量中抽样，是时候回到 SQL 了。为了简便起见，并且因为 BigQuery 并未直接提供 Gamma 函数的实现¹，我将从[逻辑斯蒂分布](https://en.wikipedia.org/wiki/Logistic_distribution)中抽样（参数
+    a=0，b=1）。
 - en: '[PRE5]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Let’s now compare the distributions of the three sampling methods:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在让我们比较这三种抽样方法的分布：
 - en: SciPy’s `logistic.rvs()`
+  id: totrans-53
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: SciPy 的 `logistic.rvs()`
 - en: Manually sampling the logistic distribution PDF in Python and drawing a random
     sample as per Step 2 above
+  id: totrans-54
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 Python 中手动从逻辑斯蒂分布的 PDF 中抽样，并按照上面第 2 步的方式进行随机抽样
 - en: Doing the same in SQL
+  id: totrans-55
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在 SQL 中执行相同操作
 - en: '![](../Images/48e0f6a2ad13082a144664db8a95f8dc.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/48e0f6a2ad13082a144664db8a95f8dc.png)'
 - en: An overlay of three histograms comparing 1,000 draws using SciPy’s beta.rvs(),
     a manual draw in Python and a manual draw in SQL
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 三个直方图的叠加，比较使用 SciPy 的 beta.rvs()、Python 中的手动抽样和 SQL 中的手动抽样的 1,000 次抽样结果
 - en: This looks like a success to me! 💪
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 看起来这是一次成功！💪
 - en: This SQL code above samples from the logistic distribution, but it should work
     on any distribution where you are able to get a discrete representation of the
     PDF by sampling it at consistent intervals!
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 上面的 SQL 代码从逻辑斯蒂分布中抽样，但它应该适用于任何分布，只要你能通过在一致的间隔内抽样来获得概率密度函数（PDF）的离散表示！
 - en: '[1] I did go looking for an approximation of the Gamma function in SQL and
     eventually gave up. It is most probably possible to code an approximation of the
     Gamma function in SQL but that will need more research than I had time allocated.
@@ -251,16 +387,27 @@
     in Rosetta Code to SQL) because those make assumptions on the gamma parameter
     that are not always obvious. For example, the Python snippet (translated from
     Ada) is only accurate for small gamma values.'
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] 我确实曾尝试寻找 SQL 中的 Gamma 函数近似实现，最后放弃了。很可能在 SQL 中编写 Gamma 函数的近似是可能的，但这需要更多的研究，而我分配的时间并不足够。请小心盲目复制粘贴一个近似实现（例如，将
+    Rosetta Code 中的某段代码翻译成 SQL），因为这些实现会假设 Gamma 参数，而这些假设并不总是显而易见。例如，Python 代码（由 Ada
+    转译而来）对于小 Gamma 值才是准确的。'
 - en: —
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: —
 - en: '**This is the kind of work we do to keep improving Aampe, a reinforcement learning
     agent that personalizes emails, web/push notifications, SMS and WhatsApp messages
     for users.**'
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: '**这就是我们为不断改进 Aampe 所做的工作，Aampe 是一个强化学习代理，能够为用户个性化电子邮件、网页/推送通知、短信和 WhatsApp
+    消息。**'
 - en: '*Unless stated otherwise, all images are by the author.*'
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: '*除非另有说明，所有图片均由作者提供。*'

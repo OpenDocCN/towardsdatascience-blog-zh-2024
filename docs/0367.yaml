@@ -1,181 +1,273 @@
 - en: Nine Rules for Accessing Cloud Files from Your Rust Code
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 从你的 Rust 代码访问云文件的九个规则
 - en: 原文：[https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07](https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07](https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07)
 - en: Practical Lessons from Upgrading Bed-Reader, a Bioinformatics Library
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 升级 Bed-Reader：来自生物信息学库的实践经验
 - en: '[](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Carl
     M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)
     [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Carl
+    M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)
+    [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)
     ·21 min read·Feb 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)
+    ·阅读时长 21 分钟·2024年2月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/1e411080a4ed67bba652ec6626318f0e.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1e411080a4ed67bba652ec6626318f0e.png)'
 - en: 'Rust and Python reading DNA data directly from the cloud — Source: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/).
     All other figures from the author.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: Rust 和 Python 直接从云端读取 DNA 数据 — 来源：[https://openai.com/dall-e-2/](https://openai.com/dall-e-2/)。所有其他图片来自作者。
 - en: Would you like your Rust program to seamlessly access data from files in the
     cloud? When I refer to “files in the cloud,” I mean data housed on web servers
     or within cloud storage solutions like AWS S3, Azure Blob Storage, or Google Cloud
     Storage. The term “read”, here, encompasses both the sequential retrieval of file
     contents — be they text or binary, from beginning to end —and the capability to
     pinpoint and extract specific sections of the file as needed.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 你希望你的 Rust 程序能够无缝地访问云端的文件数据吗？当我提到“云端文件”时，我指的是存储在 Web 服务器或云存储解决方案（如 AWS S3、Azure
+    Blob Storage 或 Google Cloud Storage）中的数据。这里所说的“读取”包含了对文件内容的顺序检索——无论是文本还是二进制数据，从头到尾——并且具有根据需要定位并提取文件中特定部分的能力。
 - en: 'Upgrading your program to access cloud files can reduce annoyance and complication:
     the annoyance of downloading to local storage and the complication of periodically
     checking that a local copy is up to date.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 将程序升级以访问云文件，可以减少烦恼和复杂性：不再需要将文件下载到本地存储，也不再需要定期检查本地副本是否为最新。
 - en: 'Sadly, upgrading your program to access cloud files can also *increase* annoyance
     and complication: the annoyance of URLs and credential information, and the complication
     of asynchronous programming.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 不幸的是，将你的程序升级以访问云文件也可能会*增加*烦恼和复杂性：URLs 和凭证信息带来的烦恼，以及异步编程的复杂性。
 - en: '[Bed-Reader](https://github.com/fastlmm/bed-reader) is a Python package and
     Rust crate for reading PLINK Bed Files, a binary format used in bioinformatics
     to store genotype (DNA) data. At a user’s request, I recently updated Bed-Reader
     to optionally read data directly from cloud storage. Along the way, I learned
     nine rules that can help you add cloud-file support to your programs. The rules
     are:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '[Bed-Reader](https://github.com/fastlmm/bed-reader) 是一个用于读取 PLINK Bed 文件的 Python
+    包和 Rust crate，这是一种在生物信息学中用于存储基因型（DNA）数据的二进制格式。应用户的要求，我最近更新了 Bed-Reader，使其能够选择性地直接从云存储读取数据。在此过程中，我总结了九条规则，可以帮助你为程序添加云文件支持。这些规则是：'
 - en: Use crate `[object_store](https://crates.io/crates/object_store)` (and, perhaps,
     `[cloud-file](https://crates.io/crates/cloud-file)`) to sequentially read the
     bytes of a cloud file.
+  id: totrans-12
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 crate `[object_store](https://crates.io/crates/object_store)`（以及可能的 `[cloud-file](https://crates.io/crates/cloud-file)`）按顺序读取云文件的字节。
 - en: Sequentially read text lines from cloud files via two nested loops.
+  id: totrans-13
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过两个嵌套的循环顺序读取云文件中的文本行。
 - en: Randomly access cloud files, even giant ones, with “range” methods, while respecting
     server-imposed limits.
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 随机访问云文件，即使是非常大的文件，也可以使用“范围”方法，同时遵守服务器施加的限制。
 - en: Use URL strings and option strings to access HTTP, Local Files, AWS S3, Azure,
     and Google Cloud.
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 使用 URL 字符串和选项字符串访问 HTTP、本地文件、AWS S3、Azure 和 Google Cloud。
 - en: Test via `[tokio](https://crates.io/crates/tokio)::test` on http and local files.
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 通过 `[tokio](https://crates.io/crates/tokio)::test` 测试 HTTP 和本地文件。
 - en: '*If other programs call your program — in other words, if your program offers
     an API (application program interface) — four additional rules apply:*'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: '*如果其他程序调用你的程序——换句话说，如果你的程序提供了一个 API（应用程序接口）——则有四条额外的规则适用：*'
 - en: 6\. For maximum performance, add cloud-file support to your Rust library via
     an async API.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 6\. 为了获得最佳性能，可以通过异步 API 将云文件支持添加到你的 Rust 库中。
 - en: 7\. Alternatively, for maximum convenience, add cloud-file support to your Rust
     library via a traditional (“synchronous”) API.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 7\. 或者，为了最大程度的方便，可以通过传统的（“同步”）API 将云文件支持添加到你的 Rust 库中。
 - en: 8\. Follow the rules of good API design in part by using hidden lines in your
     doc tests.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 8\. 通过使用文档测试中的隐藏行，遵循良好的 API 设计规则。
 - en: 9\. Include a runtime, but optionally.
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 9\. 包括一个运行时，但可以选择性地使用。
 - en: 'Aside: To avoid wishy-washiness, I call these “rules”, but they are, of course,
     just suggestions.'
+  id: totrans-22
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 顺便提一下：为了避免模糊不清，我称这些为“规则”，但它们当然只是建议。
 - en: 'Rule 1: Use crate `object_store` (and, perhaps, `cloud-file`) to sequentially
     read the bytes of a cloud file.'
+  id: totrans-23
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 1：使用 crate `object_store`（以及可能的 `cloud-file`）顺序读取云文件的字节。
 - en: The powerful `[object_store](https://crates.io/crates/object_store)` crate provides
     full content access to files stored on http, AWS S3, Azure, Google Cloud, and
     local files. It is part of the [Apache Arrow](https://arrow.apache.org/) project
     and has over 2.4 million downloads.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 强大的`[object_store](https://crates.io/crates/object_store)` crate 提供对存储在 HTTP、AWS
+    S3、Azure、Google Cloud 和本地文件中的文件的完整内容访问。它是 [Apache Arrow](https://arrow.apache.org/)
+    项目的一部分，已下载超过 240 万次。
 - en: For this article, I also created a new crate called `[cloud-file](https://crates.io/crates/cloud-file)`.
     It simplifies the use of the `object_store` crate. It wraps and focuses on a useful
     subset of `object_store`’s features. You can either use it directly, or pull-out
     its code for your own use.
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于本文，我还创建了一个名为 `[cloud-file](https://crates.io/crates/cloud-file)` 的新 crate。它简化了
+    `object_store` crate 的使用。它包装并专注于 `object_store` 的一个有用子集。你可以直接使用它，或者将其代码提取出来供你自己使用。
 - en: Let’s look at an example. We’ll count the lines of a cloud file by counting
     the number of newline characters it contains.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们来看一个例子。我们通过计算云文件中包含的换行符数量来统计文件的行数。
 - en: '[PRE0]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: 'When we run this code, it returns:'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们运行这段代码时，它返回：
 - en: '[PRE1]'
+  id: totrans-29
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Some points of interest:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些要点：
 - en: We use `async` (and, here, `[tokio](https://docs.rs/tokio/latest/tokio/)`).
     We’ll discuss this choice more in Rules 6 and 7.
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们使用 `async`（在这里使用的是`[tokio](https://docs.rs/tokio/latest/tokio/)`）。我们将在规则 6
+    和 7 中进一步讨论这一选择。
 - en: We turn a URL string and string options into a `CloudFile` instance with `CloudFile::new_with_options(url,
     options)?`. We use `?` to catch malformed URLs).
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们通过 `CloudFile::new_with_options(url, options)?` 将 URL 字符串和选项字符串转换为 `CloudFile`
+    实例。我们使用 `?` 来捕获格式错误的 URL）。
 - en: We create a stream of binary chunks with `cloud_file.stream_chunks().await?`.
     This is the first place that the code tries to access the cloud file. If the file
     doesn’t exist or we can’t open it, the `?` will return an error.
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们通过 `cloud_file.stream_chunks().await?` 创建一个二进制块流。这是代码首次尝试访问云文件的地方。如果文件不存在或无法打开，`?`
+    会返回一个错误。
 - en: We use `chunks.next().await` to retrieve the file’s next binary chunk. (Note
     the `use futures_util::StreamExt;`.) The `next` method returns `None` after all
     chunks have been retrieved.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们使用 `chunks.next().await` 来获取文件的下一个二进制块。（请注意 `use futures_util::StreamExt;`。）`next`
+    方法在所有块被检索完后返回 `None`。
 - en: What if there *is* a next chunk but also a problem retrieving it? We’ll catch
     any problem with `let chunk = chunk?;`.
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果确实有下一个块，但在检索时出现问题呢？我们将通过 `let chunk = chunk?;` 捕获任何问题。
 - en: Finally, we use the fast `[bytecount](https://docs.rs/bytecount/latest/bytecount/)`
     crate to count newline characters.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，我们使用快速的 `[bytecount](https://docs.rs/bytecount/latest/bytecount/)` crate
+    来计算换行符的数量。
 - en: 'In contrast with this cloud solution, think about how you would write a simple
     line counter for a local file. You might write this:'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 与这种云解决方案相对比，想想你会如何为本地文件编写一个简单的行计数器。你可能会写成这样：
 - en: '[PRE2]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Between the cloud-file version and the local-file version, three differences
     stand out. First, we can easily read local files as text. By default, we read
     cloud files as binary (but see Rule 2). Second, by default, we read local files
@@ -184,377 +276,567 @@
     to continue running while waiting for the relatively slow network access to complete.
     Third, iterators such as `lines()` support `for`. However, streams such as `stream_chunks()`
     do not, so we use `while let`.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`cloud-file`版本和本地文件版本之间，有三个突出差异。首先，我们可以轻松地将本地文件作为文本读取。默认情况下，我们将云文件作为二进制文件读取（但请参见规则2）。其次，默认情况下，我们同步读取本地文件，直到完成才会阻塞程序执行。另一方面，我们通常异步访问云文件，这样在等待相对较慢的网络访问完成时，程序的其他部分仍然可以继续运行。第三，像`lines()`这样的迭代器支持`for`循环。然而，像`stream_chunks()`这样的流则不支持，所以我们使用`while
+    let`。
 - en: 'I mentioned earlier that you didn’t need to use the `cloud-file` wrapper and
     that you could use the `object_store` crate directly. Let’s see what it looks
     like when we count the newlines in a cloud file using only `object_store` methods:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 我之前提到过，你不需要使用`cloud-file`包装器，而可以直接使用`object_store` crate。接下来，让我们看看只使用`object_store`方法时，如何计算云文件中的换行符：
 - en: '[PRE3]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'You’ll see the code is very similar to the `cloud-file` code. The differences
     are:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 你会发现代码与`cloud-file`代码非常相似。不同之处在于：
 - en: 'Instead of one `CloudFile` input, most methods take two inputs: an `ObjectStore`
     and a `StorePath`. Because `ObjectStore` is a non-cloneable trait, here the `count_lines`
     function specifically uses `&Arc<Box<dyn ObjectStore>>`. Alternatively, we could
     make the function generic and use `&Arc<impl ObjectStore>`.'
+  id: totrans-43
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 与单个`CloudFile`输入不同，大多数方法需要两个输入：`ObjectStore`和`StorePath`。因为`ObjectStore`是一个不可克隆的特性，这里`count_lines`函数专门使用了`&Arc<Box<dyn
+    ObjectStore>>`。或者，我们可以将函数设为泛型，并使用`&Arc<impl ObjectStore>`。
 - en: Creating the `ObjectStore` instance, the `StorePath` instance, and the stream
     requires a few extra steps compared to creating a `CloudFile` instance and a stream.
+  id: totrans-44
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 创建`ObjectStore`实例、`StorePath`实例和流需要比创建`CloudFile`实例和流多一些步骤。
 - en: Instead of dealing with one error type (namely, `CloudFileError`), multiple
     error types are possible, so we fall back to using the `[anyhow](https://crates.io/crates/anyhow)`
     crate.
+  id: totrans-45
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 不再只处理一种错误类型（即`CloudFileError`），而是可能出现多种错误类型，因此我们退回使用了`[anyhow](https://crates.io/crates/anyhow)`
+    crate。
 - en: Whether you use `object_store` (with 2.4 million downloads) directly or indirectly
     via `cloud-file` (currently, with 124 downloads 😀), is up to you.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论你是直接使用`object_store`（目前下载量为240万次），还是通过`cloud-file`间接使用（目前下载量为124次 😀），都由你决定。
 - en: For the rest of this article, I’ll focus on `cloud-file`. If you want to translate
     a `cloud-file` method into pure `object_store` code, look up the cloud-file [method’s
     documentation](https://docs.rs/cloud-file) and follow the "source" link. The source
     is usually only a line or two.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文的其余部分，我将重点讨论`cloud-file`。如果你想将`cloud-file`方法转换为纯`object_store`代码，可以查阅[该方法的文档](https://docs.rs/cloud-file)，并点击“source”链接。源代码通常只有一两行。
 - en: We’ve seen how to sequentially read the bytes of a cloud file. Let’s look next
     at sequentially reading its lines.
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们已经了解了如何顺序读取云文件的字节。接下来，让我们看看如何顺序读取它的行。
 - en: 'Rule 2: Sequentially read text lines from cloud files via two nested loops.'
+  id: totrans-49
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则2：通过两个嵌套循环顺序读取云文件的文本行。
 - en: We often want to sequentially read the lines of a cloud file. To do that with
     `cloud-file` (or `object_store`) requires two nested loops.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们经常需要顺序读取云文件的行。使用`cloud-file`（或`object_store`）来实现这一点需要两个嵌套循环。
 - en: 'The outer loop yields binary chunks, as before, but with a key modification:
     we now ensure that each chunk only contains complete lines, starting from the
     first character of a line and ending with a newline character. In other words,
     chunks may consist of one or more complete lines but no partial lines. The inner
     loop turns the chunk into text and iterates over the resultant one or more lines.'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 外部循环像以前一样返回二进制块，但有一个关键的修改：我们现在确保每个块只包含完整的行，从行的第一个字符开始，到换行符结束。换句话说，块可能包含一行或多行完整的内容，但没有部分行。内部循环将块转换为文本，并迭代生成的一行或多行。
 - en: 'In this example, given a cloud file and a number *n*, we find the line at index
     position *n*:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个例子中，给定一个云文件和一个数字*n*，我们找出索引位置*n*的那一行：
 - en: '[PRE4]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The code prints:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 这段代码打印：
 - en: '[PRE5]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'Some points of interest:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 一些值得注意的要点：
 - en: The key method is `.stream_line_chunks()`.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 关键方法是`.stream_line_chunks()`。
 - en: We must also call `std::str::from_utf8` to create text. (Possibly returning
     a `[Utf8Error](https://doc.rust-lang.org/std/str/struct.Utf8Error.html)`.) Also,
     we call the `.lines()` method to create an iterator of lines.
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我们还必须调用`std::str::from_utf8`来创建文本。（可能会返回一个`[Utf8Error](https://doc.rust-lang.org/std/str/struct.Utf8Error.html)`。）此外，我们调用`.lines()`方法来创建一个行迭代器。
 - en: 'If we want a line index, we must make it ourselves. Here we use:'
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果我们想要行索引，必须自己创建。这里我们使用：
 - en: '[PRE6]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: 'Aside: Why two loops? Why doesn’t `cloud-file` define a new stream that returns
     one line at a time? Because I don’t know how. If anyone can figure it out, please
     send me a pull request with the solution!'
+  id: totrans-61
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 旁白：为什么要用两个循环？为什么`cloud-file`不定义一个返回每次一行的流？因为我不知道怎么做。如果有人能搞明白，请发送一个包含解决方案的pull请求给我！
 - en: I wish this was simpler. I’m happy it is efficient. Let’s return to simplicity
     by next look at randomly accessing cloud files.
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 我希望这能更简单些。我很高兴它是高效的。让我们通过下一步来回归简洁，看看如何随机访问云文件。
 - en: 'Rule 3: Randomly access cloud files, even giant ones, with range methods, while
     respecting server-imposed limits.'
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则3：使用范围方法随机访问云文件，即使是巨大的文件，同时尊重服务器设置的限制。
 - en: I work with a genomics file format called PLINK Bed 1.9\. Files can be as large
     as 1 TB. Too big for web access? Not necessarily. We sometimes only need a fraction
     of the file. Moreover, modern cloud services (including most web servers) can
     efficiently retrieve regions of interest from a cloud file.
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 我在处理一种叫做PLINK Bed 1.9的基因组学文件格式。文件最大可达1 TB。是不是太大，无法通过网络访问？不一定。有时候我们只需要文件的一小部分。此外，现代云服务（包括大多数网络服务器）可以高效地从云文件中提取感兴趣的区域。
 - en: Let’s look at an example. This test code uses a `CloudFile` method called `read_range_and_file_size`
     It reads a *.bed file’s first 3 bytes, checks that the file starts with the expected
     bytes, and then checks for the expected length.
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们看一个例子。这个测试代码使用了一个名为`read_range_and_file_size`的`CloudFile`方法。它读取一个*.bed文件的前3个字节，检查文件是否以预期的字节开头，然后检查文件的预期长度。
 - en: '[PRE7]'
+  id: totrans-66
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: Notice that in one web call, this method returns not just the bytes requested,
     but also the size of the whole file.
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 注意，在一次网络调用中，这个方法不仅返回请求的字节，还返回了整个文件的大小。
 - en: 'Here is a list of high-level `CloudFile` methods and what they can retrieve
     in one web call:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是一些高层次的`CloudFile`方法及它们在一次网络调用中可以检索的内容：
 - en: '`[read_all](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_all)`
     — Whole file contents as an in-memory `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)`'
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[read_all](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_all)`
+    — 作为内存中的`[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)`返回的整个文件内容'
 - en: '`[read_range](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_range)`
     — `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)` from a specified
     range'
+  id: totrans-70
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[read_range](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_range)`
+    — 从指定范围读取的`[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)`'
 - en: '`[read_ranges](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_ranges)`
     — `Vec` of `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)` from
     specified ranges'
+  id: totrans-71
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[read_ranges](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_ranges)`
+    — 从指定范围读取的`Vec`类型的`[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)`'
 - en: '`[read_range_and_file_size](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_range_and_file_size)`
     — `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)` from a specified
     range & the file’s size'
+  id: totrans-72
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[read_range_and_file_size](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_range_and_file_size)`
+    — 从指定范围读取的`[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)`和文件的大小'
 - en: '`[read_file_size](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_file_size)`
     — Size of the file'
+  id: totrans-73
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`[read_file_size](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_file_size)`
+    — 文件的大小'
 - en: These methods can run into two problems if we ask for too much data at a time.
     First, our cloud service may limit the number of bytes we can retrieve in one
     call. Second, we may get faster results by making multiple simultaneous requests
     rather than just one at a time.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们一次请求太多数据，这些方法可能会遇到两个问题。首先，我们的云服务可能会限制每次调用能检索的字节数。其次，通过同时发出多个请求而不是一次发一个请求，我们可能会得到更快的结果。
 - en: 'Consider this example: We want to gather statistics on the frequency of adjacent
     ASCII characters in a file of any size. For example, in a random sample of 10,000
     adjacent characters, perhaps “th” appears 171 times.'
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 考虑这个例子：我们想要收集一个任意大小的文件中相邻ASCII字符的频率统计。例如，在一个包含10,000个相邻字符的随机样本中，或许“th”出现了171次。
 - en: Suppose our web server is happy with 10 concurrent requests but only wants us
     to retrieve 750 bytes per call. (8 MB would be a more normal limit).
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: 假设我们的Web服务器支持10个并发请求，但每个请求只允许我们获取750字节。（8 MB会是一个更常见的限制）。
 - en: Thanks to Ben Lichtman (B3NNY) at the Seattle Rust Meetup for pointing me in
     the right direction on adding limits to async streams.
+  id: totrans-77
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 感谢Seattle Rust Meetup的Ben Lichtman（B3NNY）指引我正确的方向，帮助我向异步流添加了限制。
 - en: 'Our main function could look like this:'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们的主函数可能长这样：
 - en: '[PRE8]'
+  id: totrans-79
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'The `count_bigrams` function can start by creating a random number generator
     and making a call to find the size of the cloud file:'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '`count_bigrams`函数可以首先创建一个随机数生成器，并调用来查找云文件的大小：'
 - en: '[PRE9]'
+  id: totrans-81
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Next, based on the file size, the function can create a vector of 10,000 random
     two-byte ranges.
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，根据文件大小，函数可以创建一个包含10,000个随机两字节范围的向量。
 - en: '[PRE10]'
+  id: totrans-83
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'For example, it might produce the vector `[4122418..4122420, 4361192..4361194,
     145726..145728,` … `]`. But retrieving 20,000 bytes at once (we are pretending)
     is too much. So, we divide the vector into 27 chunks of no more than 750 bytes:'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，它可能生成以下向量`[4122418..4122420, 4361192..4361194, 145726..145728,` … `]`。但一次性获取20,000字节（我们假设这样）太多了。所以，我们将向量分成27个块，每个块不超过750字节：
 - en: '[PRE11]'
+  id: totrans-85
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Using a little async magic, we create an iterator of future work for each of
     the 27 chunks and then we turn that iterator into a stream. We tell the stream
     to do up to 10 simultaneous calls. Also, we say that out-of-order results are
     fine.
+  id: totrans-86
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用一些异步魔法，我们为每个27个块创建一个未来工作的迭代器，然后将该迭代器转换为流。我们告诉流最多同时调用10个请求。此外，我们还表示可以接受乱序的结果。
 - en: '[PRE12]'
+  id: totrans-87
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: In the last section of code, we first do the work in the stream and — as we
     get results — tabulate. Finally, we sort and print the top results.
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 在最后一段代码中，我们首先在流中进行工作，并且—随着结果的到来—进行汇总。最后，我们对结果进行排序并打印出最好的结果。
 - en: '[PRE13]'
+  id: totrans-89
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'The output is:'
+  id: totrans-90
   prefs: []
   type: TYPE_NORMAL
+  zh: 输出是：
 - en: '[PRE14]'
+  id: totrans-91
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: The code for the Bed-Reader genomics crate uses the same technique to retrieve
     information from scattered DNA regions of interest. As the DNA information comes
     in, perhaps out of order, the code fills in the correct columns of an output array.
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: Bed-Reader基因组学crate的代码使用相同的技术来从分散的DNA区域获取信息。当DNA信息到达时，可能是乱序的，代码会填充输出数组的正确列。
 - en: 'Aside: This method uses an iterator, a stream, and a loop. I wish it were simpler.
     If you can figure out a simpler way to retrieve a vector of regions while limiting
     the maximum chunk size and the maximum number of concurrent requests, please send
     me a pull request.'
+  id: totrans-93
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 顺便提一下：此方法使用了迭代器、流和循环。我希望它能更简单。如果你能找到一种更简单的方法来获取区域的向量，同时限制最大块大小和并发请求数，请发给我一个pull
+    request。
 - en: That covers access to files stored on an HTTP server, but what about AWS S3
     and other cloud services? What about local files?
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 这涵盖了访问存储在HTTP服务器上的文件，但AWS S3和其他云服务呢？本地文件怎么办？
 - en: 'Rule 4: Use URL strings and option strings to access HTTP, Local Files, AWS
     S3, Azure, and Google Cloud.'
+  id: totrans-95
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则4：使用URL字符串和选项字符串来访问HTTP、本地文件、AWS S3、Azure和Google Cloud。
 - en: The `object_store` crate (and the `cloud-file` wrapper crate) supports specifying
     files either via a URL string or via structs. I recommend sticking with URL strings,
     but the choice is yours.
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: '`object_store` crate（以及`cloud-file`包装crate）支持通过URL字符串或结构体指定文件。我建议使用URL字符串，但选择权在你。'
 - en: Let’s consider an AWS S3 example. As you can see, AWS access requires credential
     information.
+  id: totrans-97
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们考虑一个AWS S3的示例。如你所见，AWS访问需要凭证信息。
 - en: '[PRE15]'
+  id: totrans-98
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'The key part is:'
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 关键部分是：
 - en: '[PRE16]'
+  id: totrans-100
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'If we wish to use structs instead of URL strings, this becomes:'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们希望使用结构体而不是URL字符串，则变为：
 - en: '[PRE17]'
+  id: totrans-102
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: I prefer the URL approach over structs. I find URLs slightly simpler, much more
     uniform across cloud services, and vastly easier for interop (with, for example,
     Python).
+  id: totrans-103
   prefs: []
   type: TYPE_NORMAL
+  zh: 我更喜欢URL方法而不是结构体。我发现URL稍微简单一些，更加统一，跨云服务时也更容易互操作（例如与Python）。
 - en: 'Here are example URLs for the three web services I have used:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是我使用的三个Web服务的示例URL：
 - en: HTTP — `[https://www.gutenberg.org/cache/epub/100/pg100.txt](https://www.gutenberg.org/cache/epub/100/pg100.txt)`
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HTTP — `[https://www.gutenberg.org/cache/epub/100/pg100.txt](https://www.gutenberg.org/cache/epub/100/pg100.txt)`
 - en: local file — `file:///M:/data%20files/small.bed` — use the `[cloud_file::abs_path_to_url_string](/fn.abs_path_to_url_string.html)`
     function to properly encode a full file path into a URL
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 本地文件 — `file:///M:/data%20files/small.bed` — 使用`[cloud_file::abs_path_to_url_string](/fn.abs_path_to_url_string.html)`函数将完整的文件路径正确编码为URL。
 - en: AWS S3 — `s3://bedreader/v1/toydata.5chrom.bed`
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: AWS S3 — `s3://bedreader/v1/toydata.5chrom.bed`
 - en: 'Local files don’t need options. For the other services, here are links to their
     supported options and selected examples:'
+  id: totrans-108
   prefs: []
   type: TYPE_NORMAL
+  zh: 本地文件不需要选项。对于其他服务，这里是它们支持的选项和一些示例链接：
 - en: HTTP — `[ClientConfigKey](https://docs.rs/object_store/latest/object_store/enum.ClientConfigKey.html#variant.Timeout)`
     — `[("timeout", "30s")]`
+  id: totrans-109
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: HTTP — `[ClientConfigKey](https://docs.rs/object_store/latest/object_store/enum.ClientConfigKey.html#variant.Timeout)`
+    — `[("timeout", "30s")]`
 - en: AWS S3 — `[AmazonS3ConfigKey](https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html)`
     — `[("aws_region", "us-west-2"), ("aws_access_key_id",` …`), ("aws_secret_access_key",`
     …`)]`
+  id: totrans-110
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: AWS S3 — `[AmazonS3ConfigKey](https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html)`
+    — `[("aws_region", "us-west-2"), ("aws_access_key_id",` …`), ("aws_secret_access_key",`
+    …`)]`
 - en: Azure — `[AzureConfigKey](https://docs.rs/object_store/latest/object_store/azure/enum.AzureConfigKey.html)`
+  id: totrans-111
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Azure — `[AzureConfigKey](https://docs.rs/object_store/latest/object_store/azure/enum.AzureConfigKey.html)`
 - en: Google — `[GoogleConfigKey](https://docs.rs/object_store/latest/object_store/gcp/enum.GoogleConfigKey.html)`
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Google — `[GoogleConfigKey](https://docs.rs/object_store/latest/object_store/gcp/enum.GoogleConfigKey.html)`
 - en: Now that we can specify and read cloud files, we should create tests.
+  id: totrans-113
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以指定和读取云文件，接下来我们应该创建测试。
 - en: 'Rule 5: Test via `tokio::test` on http and local files.'
+  id: totrans-114
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 5：通过 `tokio::test` 对 HTTP 文件和本地文件进行测试。
 - en: 'The `object_store` crate (and `cloud-file`) supports any async runtime. For
     testing, the [Tokio runtime](https://docs.rs/tokio/latest/tokio/index.html) makes
     it easy to test your code on cloud files. Here is a test on an http file:'
+  id: totrans-115
   prefs: []
   type: TYPE_NORMAL
+  zh: '`object_store` crate（以及 `cloud-file`）支持任何异步运行时。为了测试，[Tokio 运行时](https://docs.rs/tokio/latest/tokio/index.html)使得在云文件上测试代码变得简单。下面是一个针对
+    HTTP 文件的测试：'
 - en: '[PRE18]'
+  id: totrans-116
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'Run this test with:'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行此测试命令：
 - en: '[PRE19]'
+  id: totrans-118
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: If you don’t want to hit an outside web server with your tests, you can instead
     test against local files as though they were in the cloud.
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您不想通过测试访问外部 Web 服务器，您可以改为将本地文件当作云文件进行测试。
 - en: '[PRE20]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: This uses the standard Rust environment variable `[CARGO_MANIFEST_DIR](https://doc.rust-lang.org/cargo/reference/environment-variables.html)`
     to find the full path to a text file. It then uses `cloud_file::abs_path_to_url_string`
     to correctly encode that full path into a URL.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 这使用标准的 Rust 环境变量 `[CARGO_MANIFEST_DIR](https://doc.rust-lang.org/cargo/reference/environment-variables.html)`
+    来查找文本文件的完整路径。然后，它使用 `cloud_file::abs_path_to_url_string` 将该完整路径正确编码为 URL。
 - en: Whether you test on http files or local files, the power of `object_store` means
     that your code should work on any cloud service, including AWS S3, Azure, and
     Google Cloud.
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 无论是在 HTTP 文件还是本地文件上进行测试，`object_store` 的强大功能意味着您的代码应该能在任何云服务上运行，包括 AWS S3、Azure
+    和 Google Cloud。
 - en: If you only need to access cloud files for your own use, you can stop reading
     the rules here and skip to the conclusion. If you are adding cloud access to a
     library (Rust crate) for others, keep reading.
+  id: totrans-123
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您只需要访问云文件供自己使用，您可以在这里停止阅读规则并跳到结论部分。如果您是为他人添加云访问到一个库（Rust crate），请继续阅读。
 - en: 'Rule 6: For maximum performance, add cloud-file support to your Rust library
     via an async API.'
+  id: totrans-124
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 6：为了获得最佳性能，通过异步 API 将云文件支持添加到您的 Rust 库中。
 - en: If you offer a Rust crate to others, supporting cloud files offers great convenience
     to your users, but not without a cost. Let’s look at [Bed-Reader](https://pypi.org/project/bed-reader/),
     the genomics crate to which I added cloud support.
+  id: totrans-125
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果您提供 Rust crate 给他人使用，支持云文件为您的用户提供了极大的便利，但也有一定成本。让我们来看看我为 [Bed-Reader](https://pypi.org/project/bed-reader/)
+    添加了云支持的基因组学 crate。
 - en: As previously mentioned, Bed-Reader is a library for reading and writing PLINK
     Bed Files, a binary format used in bioinformatics to store genotype (DNA) data.
     Files in Bed format can be as large as a terabyte. Bed-Reader gives users fast,
@@ -563,333 +845,517 @@
     pieces of metadata, six associated with individuals and six associated with SNPs
     (roughly speaking, DNA locations). The genotype data is often 100,000 times larger
     than the metadata.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 如前所述，Bed-Reader 是一个用于读取和写入 PLINK Bed 文件的库，PLINK Bed 文件是一种在生物信息学中用于存储基因型（DNA）数据的二进制格式。Bed
+    格式的文件可以大到一个 TB。Bed-Reader 为用户提供对大量数据子集的快速随机访问。它返回一个二维数组，用户可以选择 int8、float32 或
+    float64 格式。Bed-Reader 还为用户提供了 12 个元数据字段，其中六个与个体相关，六个与 SNP（大致来说，是 DNA 位置）相关。基因型数据通常比元数据大
+    100,000 倍。
 - en: '![](../Images/210196974c88a9518883ab78d09b7c00.png)'
+  id: totrans-127
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/210196974c88a9518883ab78d09b7c00.png)'
 - en: PLINK stores genotype data and metadata. (Figure by author.)
+  id: totrans-128
   prefs: []
   type: TYPE_NORMAL
+  zh: PLINK 存储基因型数据和元数据。（图由作者提供。）
 - en: 'Aside: In this context, an “[API](https://en.wikipedia.org/wiki/API)” refers
     to an Application Programming Interface. It is the public structs, methods, etc.,
     provided by library code such as Bed-Reader for another program to call.'
+  id: totrans-129
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 旁注：在此上下文中，“[API](https://en.wikipedia.org/wiki/API)”指的是应用程序编程接口。它是由诸如 Bed-Reader
+    之类的库代码提供的公共结构、方法等，供其他程序调用。
 - en: 'Here is some sample code using Bed-Reader’s original “local file” API. This
     code lists the first five individual ids, the first five SNP ids, and every unique
     chromosome number. It then reads every genomic value in chromosome 5:'
+  id: totrans-130
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是使用 Bed-Reader 原始“本地文件”API 的示例代码。该代码列出了前五个个体 ID，前五个 SNP ID，以及每个独特的染色体编号。然后，它读取染色体
+    5 中的每个基因组值：
 - en: '[PRE21]'
+  id: totrans-131
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: 'And here is the same code using the new cloud file API:'
+  id: totrans-132
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是使用新云文件 API 的相同代码：
 - en: '[PRE22]'
+  id: totrans-133
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE22]'
 - en: 'When switching to cloud data, a Bed-Reader user must make these changes:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 当切换到云数据时，Bed-Reader 用户必须做出以下更改：
 - en: They must run in an async environment, here `#[tokio::test]`.
+  id: totrans-135
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们必须在一个异步环境中运行，这里是 `#[tokio::test]`。
 - en: They must use a new struct, `BedCloud` instead of `Bed`. (Also, not shown, `BedCloudBuilder`
     rather than `BedBuilder`.)
+  id: totrans-136
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们必须使用一个新的结构体 `BedCloud`，而不是 `Bed`。（另外，未展示的是，使用 `BedCloudBuilder` 而不是 `BedBuilder`。）
 - en: They give a URL string and optional string options rather than a local file
     path.
+  id: totrans-137
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 它们提供了一个 URL 字符串和可选的字符串选项，而不是本地文件路径。
 - en: They must use `.await` in many, rather unpredictable, places. (Happily, the
     compiler gives a good error message if they miss a place.)
+  id: totrans-138
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 他们必须在许多地方使用 `.await`，这些地方往往是不可预测的。（幸运的是，如果他们漏掉了某个地方，编译器会给出很好的错误提示。）
 - en: The `ReadOptionsBuilder` gets a new method, `read_cloud`, to go along with its
     previous `read` method.
+  id: totrans-139
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`ReadOptionsBuilder` 增加了一个新方法 `read_cloud`，用于配合之前的 `read` 方法。'
 - en: From the library developer’s point of view, adding the new `BedCloud` and `BedCloudBuilder`
     structs costs many lines of main and test code. In my case, 2,200 lines of new
     main code and 2,400 lines of new test code.
+  id: totrans-140
   prefs: []
   type: TYPE_NORMAL
+  zh: 从库开发者的角度来看，添加新的 `BedCloud` 和 `BedCloudBuilder` 结构体需要增加大量的主代码和测试代码。在我的情况下，是 2200
+    行新的主代码和 2400 行新的测试代码。
 - en: 'Aside: Also, see Mario Ortiz Manero’s article “[The bane of my existence: Supporting
     both async and sync code in Rust](https://nullderef.com/blog/rust-async-sync/)”.'
+  id: totrans-141
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 旁注：此外，还可以参考 Mario Ortiz Manero 的文章 “[我生命中的痛苦：在 Rust 中支持异步和同步代码](https://nullderef.com/blog/rust-async-sync/)”。
 - en: The benefit users get from these changes is the ability to read data from cloud
     files with async’s high efficiency.
+  id: totrans-142
   prefs: []
   type: TYPE_NORMAL
+  zh: 用户从这些改动中获得的好处是可以利用异步的高效性从云文件中读取数据。
 - en: Is this benefit worth it? If not, there is an alternative that we’ll look at
     next.
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 这种好处值得吗？如果不值得，接下来我们将看一下替代方案。
 - en: 'Rule 7: Alternatively, for maximum convenience, add cloud-file support to your
     Rust library via a traditional (“synchronous”) API.'
+  id: totrans-144
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 7：或者，为了最大程度的便利，通过传统的（“同步”）API 向你的 Rust 库添加云文件支持。
 - en: If adding an efficient async API seems like too much work for you or seems too
     confusing for your users, there is an alternative. Namely, you can offer a traditional
     (“synchronous”) API. I do this for the Python version of Bed-Reader and for the
     Rust code that supports the Python version.
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果为你添加一个高效的异步 API 看起来太麻烦，或者对你的用户来说太混乱，那也有替代方案。也就是说，你可以提供一个传统的（“同步”）API。我在 Bed-Reader
+    的 Python 版本和支持该 Python 版本的 Rust 代码中就是这么做的。
 - en: 'Aside: See: [Nine Rules for Writing Python Extensions in Rust: Practical Lessons
     from Upgrading Bed-Reader, a Python Bioinformatics Package](https://medium.com/towards-data-science/nine-rules-for-writing-python-extensions-in-rust-d35ea3a4ec29)
     in *Towards Data Science*.'
+  id: totrans-146
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 旁注：见：[用 Rust 编写 Python 扩展的九条规则：从升级 Python 生物信息学包 Bed-Reader 中获得的实际经验教训](https://medium.com/towards-data-science/nine-rules-for-writing-python-extensions-in-rust-d35ea3a4ec29)，《*Towards
+    Data Science*》。
 - en: Here is the Rust function that Python calls to check if a *.bed file starts
     with the correct file signature.
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是 Python 调用的 Rust 函数，用于检查一个 *.bed 文件是否以正确的文件签名开始。
 - en: '[PRE23]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE23]'
 - en: 'Notice that this is *not* an async function. It is a normal “synchronous” function.
     Inside this synchronous function, Rust makes an async call:'
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，这不是一个异步函数。它是一个普通的“同步”函数。在这个同步函数内部，Rust 进行了一个异步调用：
 - en: '[PRE24]'
+  id: totrans-150
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE24]'
 - en: 'We make the async call synchronous by wrapping it in a Tokio runtime:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们通过将异步调用包装在 Tokio 运行时中来使其变为同步：
 - en: '[PRE25]'
+  id: totrans-152
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE25]'
 - en: Bed-Reader’s Python users could previously open a local file for reading with
     the command `open_bed(file_name_string)`. Now, they can also open a cloud file
     for reading with the same command `open_bed(url_string)`. The only difference
     is the format of the string they pass in.
+  id: totrans-153
   prefs: []
   type: TYPE_NORMAL
+  zh: Bed-Reader 的 Python 用户之前可以使用命令 `open_bed(file_name_string)` 打开一个本地文件进行读取。现在，他们也可以用相同的命令
+    `open_bed(url_string)` 打开一个云文件进行读取。唯一的区别是他们传入的字符串格式。
 - en: 'Here is the example from Rule 6, in Python, using the updated Python API:'
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是规则 6 中的示例，使用更新后的 Python API 的 Python 代码：
 - en: '[PRE26]'
+  id: totrans-155
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE26]'
 - en: Notice the Python API also offers a new optional parameter called `cloud_options`.
     Also, behind the scenes, a tiny bit of new code distinguishes between strings
     representing local files and strings representing URLs.
+  id: totrans-156
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，Python API 还提供了一个名为 `cloud_options` 的新可选参数。此外，幕后有一小段新代码，区分了表示本地文件和表示 URL
+    的字符串。
 - en: In Rust, you can use the same trick to make calls to `object_cloud` synchronous.
     Specifically, you can wrap async calls in a runtime. The benefit is a simpler
     interface and less library code. The cost is less efficiency compared to offering
     an async API.
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Rust 中，你也可以使用相同的技巧使 `object_cloud` 的调用变为同步。具体而言，你可以将异步调用包装在运行时中。好处是接口更简单，库代码更少。代价是效率比提供异步
+    API 要低。
 - en: 'If you decide against the “synchronous” alternative and choose to offer an
     async API, you’ll discover a new problem: providing async examples in your documentation.
     We will look at that issue next.'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你决定放弃“同步”替代方案，选择提供异步 API，你会发现一个新问题：如何在文档中提供异步示例。接下来我们将讨论这个问题。
 - en: 'Rule 8: Follow the rules of good API design in part by using hidden lines in
     your doc tests.'
+  id: totrans-159
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 规则 8：通过在文档测试中使用隐藏行，遵循良好的 API 设计规则。
 - en: 'All the rules from the article [Nine Rules for Elegant Rust Library APIs: Practical
     Lessons from Porting Bed-Reader, a Bioinformatics Library, from Python to Rust](https://medium.com/towards-data-science/nine-rules-for-elegant-rust-library-apis-9b986a465247)
     in *Towards Data Science* apply. Of particular importance are these two:'
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: 文章中的所有规则 [优雅 Rust 库 API 的九条规则：从将 Bed-Reader（一种生物信息学库）从 Python 移植到 Rust 中得到的实践经验](https://medium.com/towards-data-science/nine-rules-for-elegant-rust-library-apis-9b986a465247)
+    适用，特别是以下两条：
 - en: '*Write good documentation to keep your design honest.'
+  id: totrans-161
   prefs: []
   type: TYPE_NORMAL
+  zh: '*编写良好的文档，保持设计的诚实。'
 - en: Create examples that don’t embarrass you.*
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建不会让你尴尬的示例。*
 - en: 'These suggest that we should give examples in our documentation, but how can
     we do that with async methods and awaits? The trick is “hidden lines” in our [doc
     tests](https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html).
     For example, here is the documentation for `[CloudFile::read_ranges](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_ranges)`:'
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 这表明我们应该在文档中给出示例，但如何在异步方法和 await 中实现这一点呢？窍门在于在我们的[文档测试](https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html)中使用“隐藏行”。例如，以下是
+    `[CloudFile::read_ranges](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_ranges)`
+    的文档：
 - en: '[PRE27]'
+  id: totrans-164
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE27]'
 - en: /// use cloud_file::CloudFile;
+  id: totrans-165
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// 使用 cloud_file::CloudFile;
 - en: ///
+  id: totrans-166
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: ///
 - en: '/// # Runtime::new().unwrap().block_on(async {'
+  id: totrans-167
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '/// # Runtime::new().unwrap().block_on(async {'
 - en: /// let url = "https://raw.githubusercontent.com/fastlmm/bed-sample-files/main/plink_sim_10s_100v_10pmiss.bim";
+  id: totrans-168
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// let url = "https://raw.githubusercontent.com/fastlmm/bed-sample-files/main/plink_sim_10s_100v_10pmiss.bim";
 - en: /// let cloud_file = CloudFile::new(url)?;
+  id: totrans-169
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// let cloud_file = CloudFile::new(url)?;
 - en: /// let bytes_vec = cloud_file.read_ranges(&[0..10, 1000..1010]).await?;
+  id: totrans-170
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// let bytes_vec = cloud_file.read_ranges(&[0..10, 1000..1010]).await?;
 - en: /// assert_eq!(bytes_vec.len(), 2);
+  id: totrans-171
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// assert_eq!(bytes_vec.len(), 2);
 - en: /// assert_eq!(bytes_vec[0].as_ref(), b"1\t1:1:A:C\t");
+  id: totrans-172
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// assert_eq!(bytes_vec[0].as_ref(), b"1\t1:1:A:C\t");
 - en: /// assert_eq!(bytes_vec[1].as_ref(), b":A:C\t0.0\t4");
+  id: totrans-173
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// assert_eq!(bytes_vec[1].as_ref(), b":A:C\t0.0\t4");
 - en: '/// # Ok::<(), CloudFileError>(())}).unwrap();'
+  id: totrans-174
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '/// # Ok::<(), CloudFileError>(())}).unwrap();'
 - en: '/// # use {tokio::runtime::Runtime, cloud_file::CloudFileError};'
+  id: totrans-175
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: '/// # 使用 {tokio::runtime::Runtime, cloud_file::CloudFileError};'
 - en: /// [PRE28]
+  id: totrans-176
   prefs:
   - PREF_IND
   type: TYPE_NORMAL
+  zh: /// [PRE28]
 - en: The doc test starts with [PRE29] [PRE30]
+  id: totrans-177
   prefs: []
   type: TYPE_NORMAL
+  zh: 文档测试从 [PRE29] [PRE30] 开始
 - en: '[features]'
+  id: totrans-178
   prefs: []
   type: TYPE_NORMAL
+  zh: '[功能]'
 - en: extension-module = ["pyo3/extension-module", "tokio/full"]
+  id: totrans-179
   prefs: []
   type: TYPE_NORMAL
+  zh: extension-module = ["pyo3/extension-module", "tokio/full"]
 - en: default = []
+  id: totrans-180
   prefs: []
   type: TYPE_NORMAL
+  zh: 默认 = []
 - en: '[dependencies]'
+  id: totrans-181
   prefs: []
   type: TYPE_NORMAL
+  zh: '[依赖]'
 - en: '#...'
+  id: totrans-182
   prefs: []
   type: TYPE_NORMAL
+  zh: '#...'
 - en: pyo3 = { version = "0.20.0", features = ["extension-module"], optional = true
     }
+  id: totrans-183
   prefs: []
   type: TYPE_NORMAL
+  zh: pyo3 = { version = "0.20.0", features = ["extension-module"], optional = true
+    }
 - en: tokio = { version = "1.35.0", features = ["full"], optional = true }
+  id: totrans-184
   prefs: []
   type: TYPE_NORMAL
+  zh: tokio = { version = "1.35.0", features = ["full"], optional = true }
 - en: '[PRE31]'
+  id: totrans-185
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE31]'
 - en: '[tool.maturin]'
+  id: totrans-186
   prefs: []
   type: TYPE_NORMAL
+  zh: '[tool.maturin]'
 - en: features = ["extension-module"]
+  id: totrans-187
   prefs: []
   type: TYPE_NORMAL
+  zh: features = ["extension-module"]
 - en: '[PRE32]'
+  id: totrans-188
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE32]'
 - en: '#![cfg(feature = "extension-module")] // ignore file if feature not ''on'''
+  id: totrans-189
   prefs: []
   type: TYPE_NORMAL
+  zh: '#![cfg(feature = "extension-module")] // 如果特性未开启则忽略文件'
 - en: '[PRE33]'
+  id: totrans-190
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE33]'
 - en: '#![cfg(feature = "tokio")]'
+  id: totrans-191
   prefs: []
   type: TYPE_NORMAL
+  zh: '#![cfg(feature = "tokio")]'
 - en: '[PRE34]'
+  id: totrans-192
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE34]'
 - en: /// Chromosome of each SNP (variant)
+  id: totrans-193
   prefs: []
   type: TYPE_NORMAL
+  zh: /// 每个 SNP（变异）的染色体
 - en: /// [...]
+  id: totrans-194
   prefs: []
   type: TYPE_NORMAL
+  zh: /// [...]
 - en: ///
+  id: totrans-195
   prefs: []
   type: TYPE_NORMAL
+  zh: ///
 - en: '/// # Example:'
+  id: totrans-196
   prefs: []
   type: TYPE_NORMAL
+  zh: '/// # 示例：'
 - en: /// [PRE35]
+  id: totrans-197
   prefs: []
   type: TYPE_NORMAL
+  zh: /// [PRE35]
 - en: '```'
+  id: totrans-198
   prefs: []
   type: TYPE_NORMAL
+  zh: '```'
 - en: In this doc test, when the `tokio` feature is ‘on’, the example, uses `tokio`
     and runs four lines of code inside a Tokio runtime. When the `tokio` feature is
     ‘off’, the code within the `#[cfg(feature = "tokio")]` block disappears, effectively
     skipping the asynchronous operations.
+  id: totrans-199
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这个文档测试中，当 `tokio` 功能“开启”时，示例使用 `tokio` 并在 Tokio 运行时中运行四行代码。当 `tokio` 功能“关闭”时，`#[cfg(feature
+    = "tokio")]` 块中的代码消失，从而有效地跳过异步操作。
 - en: 'When formatting the documentation, Rust includes documentation for all features
     by default, so we see the four lines of code:'
+  id: totrans-200
   prefs: []
   type: TYPE_NORMAL
+  zh: 在格式化文档时，Rust 默认包含所有功能的文档，因此我们看到了这四行代码：
 - en: '![](../Images/4544233478a0a6911c16e85bb4a9ab4e.png)'
+  id: totrans-201
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/4544233478a0a6911c16e85bb4a9ab4e.png)'
 - en: 'To summarize Rule 9: By using Cargo features and conditional compilation we
     can ensure that users only pay for the features that they use.'
+  id: totrans-202
   prefs: []
   type: TYPE_NORMAL
+  zh: 总结规则9：通过使用Cargo功能和条件编译，我们可以确保用户只为他们使用的功能付费。
 - en: Conclusion
+  id: totrans-203
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结论
 - en: 'So, there you have it: nine rules for reading cloud files in your Rust program.
     Thanks to the power of the `[object_store](https://docs.rs/object_store/latest/object_store/)`
     crate, your programs can move beyond your local drive and load data from the web,
     AWS S3, Azure, and Google Cloud. To make this a little simpler, you can also use
     the new `[cloud-file](https://crates.io/crates/cloud-file)` wrapping crate that
     I wrote for this article.'
+  id: totrans-204
   prefs: []
   type: TYPE_NORMAL
+  zh: 所以，就这样：九条规则帮助你在Rust程序中读取云文件。借助[`object_store`](https://docs.rs/object_store/latest/object_store/)
+    crate的强大功能，你的程序可以突破本地驱动器的限制，从Web、AWS S3、Azure和Google Cloud加载数据。为了让这一过程更简单，你还可以使用我为本文编写的全新[`cloud-file`](https://crates.io/crates/cloud-file)包装crate。
 - en: I should also mention that this article explored only a subset of `object_store`’s
     features. In addition to what we’ve seen, the `object_store` crate also handles
     writing files and working with folders and subfolders. The `[cloud-file](https://crates.io/crates/cloud-file)`
     crate, on the other hand, only handles reading files. (But, hey, I’m open to pull
     requests).
+  id: totrans-205
   prefs: []
   type: TYPE_NORMAL
+  zh: 我还应该提到，这篇文章仅探讨了`object_store`的一个子集功能。除了我们看到的，`object_store` crate 还处理写入文件和操作文件夹及子文件夹。另一方面，[`cloud-file`](https://crates.io/crates/cloud-file)
+    crate 只处理读取文件。（但嘿，我很欢迎提交Pull Request）。
 - en: Should you add cloud file support to your program? It, of course, depends. Supporting
     cloud files offers a huge convenience to your program’s users. The cost is the
     extra complexity of using/providing an async interface. The cost also includes
     the increased file size of runtimes like Tokio. On the other hand, I think the
     tools for adding such support are good and trying them is easy, so give it a try!
+  id: totrans-206
   prefs: []
   type: TYPE_NORMAL
+  zh: 你是否应该在程序中添加云文件支持？当然，这取决于。支持云文件为你的程序用户提供了巨大的便利。代价是使用/提供异步接口的额外复杂性。代价还包括像Tokio这样的运行时文件大小的增加。另一方面，我认为添加此类支持的工具已经非常好，而且尝试它们也很简单，所以不妨试试看！
 - en: Thank you for joining me on this journey into the cloud. I hope that if you
     choose to support cloud files, these steps will help you do it.
+  id: totrans-207
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢你与我一同踏上云端之旅。如果你选择支持云文件，我希望这些步骤能帮助你实现。
 - en: '*Please* [*follow Carl on Medium*](https://medium.com/@carlmkadie)*. I write
     on scientific programming in Rust and Python, machine learning, and statistics.
     I tend to write about one article per month.*'
+  id: totrans-208
   prefs: []
   type: TYPE_NORMAL
+  zh: '*请* [*关注Carl的Medium账号*](https://medium.com/@carlmkadie)*。我在Rust和Python的科学编程、机器学习和统计学方面写作。我通常每个月写一篇文章。*'

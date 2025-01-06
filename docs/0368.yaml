@@ -1,136 +1,204 @@
 - en: But What is Backpropagation, Really? (Part 1)
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 但反向传播到底是什么呢？（第一部分）
 - en: 原文：[https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07](https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07](https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07)
 - en: Implementing a simple neural network framework from scratch
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 从零开始实现一个简单的神经网络框架
 - en: '[](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[![Matthew
     Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)
     [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[![Matthew
+    Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)
+    [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)
     ·11 min read·Feb 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)
+    ·阅读时间：11分钟·2024年2月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/a32c4308353179756efb049de6ad07a3.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a32c4308353179756efb049de6ad07a3.png)'
 - en: 'Trees — the core of computation. Source: [Adrian Infernus on Unsplash](https://unsplash.com/photos/a-forest-filled-with-lots-of-snow-covered-trees-E4O3FTh9V04).'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 树——计算的核心。来源：[Adrian Infernus on Unsplash](https://unsplash.com/photos/a-forest-filled-with-lots-of-snow-covered-trees-E4O3FTh9V04)
 - en: Despite doing some work and research in the AI ecosystem for some time, I didn’t
     truly stop to think about backpropagation and gradient updates within neural networks
     until recently. This article seeks to rectify that and will hopefully provide
     a thorough yet easy-to-follow dive into the topic by implementing a simple (yet
     somewhat powerful) neural network framework from scratch.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我在人工智能生态系统中做了一段时间的工作和研究，但直到最近，我才真正停下来思考神经网络中的反向传播和梯度更新。本文旨在纠正这一点，并希望通过从零开始实现一个简单（但有些强大的）神经网络框架，为读者提供一个深入且易于跟随的讲解。
 - en: Elementary Operations — The Network’s Core
+  id: totrans-9
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 基本操作——网络的核心
 - en: 'Fundamentally, a neural network is just a mathematical function from our input
     space to our desired output space. In fact, we can effectively “unwrap” any neural
     network into a function. Consider, for instance, the following simple neural network
     with two layers and one input:'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 从本质上讲，神经网络只是从输入空间到目标输出空间的数学函数。实际上，我们可以有效地“解开”任何神经网络，转化为一个函数。比如，考虑下面这个简单的具有两层和一个输入的神经网络：
 - en: '![](../Images/28d8d57c58d3bff09dc26bfd8b862275.png)'
+  id: totrans-11
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/28d8d57c58d3bff09dc26bfd8b862275.png)'
 - en: A simple neural net with two layers and a ReLU activation. Here, the linear
     networks have weights wₙ and biases bₙ
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单的神经网络，包含两层和一个ReLU激活。在这里，线性网络有权重wₙ和偏置bₙ
 - en: 'We can now construct an equivalent function by going forwards layer by layer,
     starting from the input. Let’s follow our final function layer by layer:'
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在可以通过从输入层开始，逐层构建一个等效的函数。让我们逐层跟随我们的最终函数：
 - en: At the input, we start with the identity function *pred(x) = x*
+  id: totrans-14
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在输入层，我们从恒等函数开始 *pred(x) = x*
 - en: At the first linear layer, we get *pred(x) = w*₁*x + b*₁
+  id: totrans-15
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在第一层线性层，我们得到 *pred(x) = w*₁*x + b*₁
 - en: The ReLU nets us *pred(x) = max(0, w*₁*x + b*₁)
+  id: totrans-16
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: ReLU 使我们得到 *pred(x) = max(0, w*₁*x + b*₁)
 - en: At the final layer, we get *pred(x) = w*₂*(max(0, w*₁*x + b*₁)) + *b*₂
+  id: totrans-17
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 在最终层，我们得到 *pred(x) = w*₂*(max(0, w*₁*x + b*₁)) + *b*₂
 - en: With more complicated nets, these functions of course get unwieldy, but the
     point is that we can construct such representations of neural networks.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于更复杂的网络，这些函数当然变得更加复杂，但关键是我们可以构建出神经网络的这种表示形式。
 - en: 'We can go one step further though — functions of this form are not extremely
     convenient for computation, but we can parse them into a more useful form, namely
     a syntax tree. For our simple net, the tree would look like this:'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 然而，我们可以更进一步——这种形式的函数对于计算来说并不是特别方便，但我们可以将其解析为更有用的形式，即语法树。对于我们的简单网络，树形结构如下所示：
 - en: '![](../Images/2381ed9dd06321fd769d6bd9003b27b7.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/2381ed9dd06321fd769d6bd9003b27b7.png)'
 - en: A tree representation of our function
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们函数的树形表示
 - en: In this tree form, our leaves are parameters, constants, and inputs, and the
     other nodes are **elementary operations** whose arguments are their children.
     Of course, these elementary operations don’t have to be binary — the sigmoid operation,
     for instance, is unary (and so is ReLU if we don’t represent it as a max of 0
     and x), and we can choose to support multiplication and addition of more than
     one input.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这种树形结构中，我们的叶节点是参数、常量和输入，其他节点是**基本操作**，它们的参数是它们的子节点。当然，这些基本操作不一定是二元的——例如，Sigmoid
+    操作是单元的（如果我们不将 ReLU 表示为 0 和 x 的最大值的话，ReLU 也是单元的），我们还可以选择支持多个输入的乘法和加法。
 - en: 'By thinking of our network as a tree of these elementary operations, we can
     now do a lot of things very easily with recursion, which will form the basis of
     both our backpropagation and forward propagation algorithms. In code, we can define
     a recursive neural network class that looks like this:'
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过将我们的网络看作是这些基本操作的树形结构，我们现在可以通过递归轻松地完成许多任务，这将构成我们反向传播和前向传播算法的基础。在代码中，我们可以定义一个递归的神经网络类，类似于以下形式：
 - en: '[PRE0]'
+  id: totrans-24
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Going Backwards — Recursive Chain Rule
+  id: totrans-25
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 反向传播 — 递归链式法则
 - en: 'Suppose now that we have a differentiable loss function for our neural network,
     say MSE. Recall that MSE (for one sample) is defined as follows:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在假设我们有一个可微的损失函数，用于我们的神经网络，比如 MSE。回想一下，MSE（对于一个样本）的定义如下：
 - en: '![](../Images/d309e28f0599f66e68be32b3cdc62c61.png)'
+  id: totrans-27
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/d309e28f0599f66e68be32b3cdc62c61.png)'
 - en: The MSE loss function
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: MSE 损失函数
 - en: We now wish to update our parameters (the green circles in our tree representation)
     given the value of our loss. To do this, we need the derivative of our loss function
     with respect to each parameter. Calculating this directly from the loss is extremely
     difficult though — after all, our MSE is calculated in terms of the value predicted
     by our neural net, which can be an extraordinarily complicated function.
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们现在希望根据损失的值来更新我们的参数（树形表示中的绿色圆圈）。为此，我们需要计算损失函数关于每个参数的导数。然而，直接从损失计算这一点是非常困难的——毕竟，我们的
+    MSE 是根据神经网络预测的值计算的，而这个值可能是一个极其复杂的函数。
 - en: This is where very useful piece of mathematics — the chain rule — comes into
     play. Instead of being forced to compute our highly complex derivatives from the
     get-go, we can instead compute a series of simpler derivatives.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 这时非常有用的数学工具——链式法则发挥了作用。我们不需要一开始就计算复杂的导数，而是可以计算一系列更简单的导数。
 - en: 'It turns out that the chain rule meshes very well with our recursive tree structure.
     The idea basically works as follows: assuming that we have simple enough elementary
     operations, each elementary operation knows its derivative with respect to all
@@ -138,29 +206,42 @@
     compute the derivative of each child operation with respect to the loss function
     through simple multiplication. For a simple linear regression model using MSE,
     we can diagram it as follows:'
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 事实证明，链式法则与我们的递归树结构非常契合。基本的思想如下：假设我们有足够简单的基本操作，每个基本操作都知道其关于所有参数的导数。通过父操作的导数，我们可以通过简单的乘法计算每个子操作关于损失函数的导数。对于使用均方误差（MSE）的简单线性回归模型，我们可以将其图示化如下：
 - en: '![](../Images/cf0d461dba33bca20044ddd701532bc2.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/cf0d461dba33bca20044ddd701532bc2.png)'
 - en: Forward and backward pass diagrams for a simple linear classifier with weight
     w1, bias b1\. Note *h*₁ is just the variable returned by our multiplication operation,
     like our prediction is returned by addition.
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个简单线性分类器的前向和反向传递图，权重为 w1，偏置为 b1。注意 *h*₁ 只是我们乘法操作返回的变量，就像我们的预测是通过加法返回的一样。
 - en: 'Of course, some of our nodes don’t do anything with their derivatives — namely,
     only our leaf nodes care. But now each node can get the derivative of its output
     with respect to the loss function through this recursive process. We can thus
     add the following methods to our NeuralNetNode class:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们的一些节点在处理其导数时并没有做任何操作——也就是说，只有我们的叶节点关心导数。但现在每个节点都可以通过这种递归过程得到其输出关于损失函数的导数。因此，我们可以向我们的
+    NeuralNetNode 类添加以下方法：
 - en: '[PRE1]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: '**Exercise 1:** Try creating one of these trees for a simple linear regression
     model and perform the recursive gradient updates by hand for a couple of steps.'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '**练习 1：** 尝试为一个简单的线性回归模型创建一个这样的树，并手动执行几步递归梯度更新。'
 - en: '*Note: For simplicity’s sake, we require our nodes to have only one parent
     (or none at all). If each node is allowed to have multiple parents, our backwards()
     algorithm becomes somewhat more complicated as each child needs to sum the derivative
@@ -170,8 +251,11 @@
     need to do a second pass to actually update all of the parameters). This isn’t
     extraordinarily difficult, so I’ll leave it as an exercise to the reader (and
     will talk about it more in part 2, stay tuned).*'
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：为了简化起见，我们要求节点只有一个父节点（或者根本没有）。如果每个节点可以有多个父节点，那么我们的 `backwards()` 算法会变得稍微复杂一些，因为每个子节点需要将父节点的导数相加以计算自身的导数。我们可以通过拓扑排序迭代进行处理（例如，参见*
+    [*这里*](https://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/slides/lec10.pdf)*)，或者仍然递归地进行，即通过反向累积（尽管在这种情况下，我们需要做第二遍遍历以真正更新所有参数）。这并不特别困难，所以我将其作为练习留给读者（并将在第二部分详细讨论，敬请期待）。*'
 - en: '*Edit: While writing the part two of this article, I noticed that our current
     implementation does work with multiple parent nodes —* `*on_backward*`*will just
     be called multiple times, which will eventually correctly update the weights (I
@@ -179,204 +263,307 @@
     as described are needed (namely in the* `*find_input_nodes*` *method described
     later) to make everything work, but the algorithm itself doesn’t need to change.
     I apologize for the oversight.*'
+  id: totrans-38
   prefs: []
   type: TYPE_NORMAL
+  zh: '*编辑：在撰写本文第二部分时，我注意到我们当前的实现确实支持多个父节点——* `*on_backward*`* 将被多次调用，最终会正确更新权重（我鼓励你思考为什么这样做有效）。为了使一切正常工作，实施过程中需要进行一些小的更新（特别是在后面描述的
+    `*find_input_nodes*` 方法中），但算法本身无需更改。对此疏漏，我深感抱歉。*'
 - en: Building Models
+  id: totrans-39
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 构建模型
 - en: 'The rest of our code really just involves implementing parameters, inputs,
     and operations, and of course running our training. Parameters and inputs are
     fairly simple constructs:'
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 剩下的代码实际上只是实现参数、输入和操作，当然还包括运行训练。参数和输入是相对简单的构造：
 - en: '[PRE2]'
+  id: totrans-41
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Operations are slightly more complicated, though not too much so — we just
     need to calculate their gradients properly. Below are implementations of some
     useful operations:'
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 操作稍微复杂一些，但并不太难——我们只需要正确计算它们的梯度。以下是一些有用操作的实现：
 - en: '[PRE3]'
+  id: totrans-43
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The operation superclass here is not useful yet, though we will need it to more
     easily find our model’s inputs later.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里的操作超类目前并不重要，但稍后我们会需要它来更容易地找到模型的输入。
 - en: Notice how often the gradients of the functions require the values from their
     children, hence we require calling the child’s forward() method. We will touch
     upon this more in a little bit.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，函数的梯度通常需要它们子节点的值，因此我们需要调用子节点的 `forward()` 方法。稍后我们会详细讨论这一点。
 - en: 'Defining a neural network in our framework is a bit verbose but is very similar
     to constructing a tree. Here, for instance, is code for a simple linear classifier
     in our framework:'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的框架中定义一个神经网络有点冗长，但与构建树非常相似。例如，这里是我们框架中一个简单线性分类器的代码：
 - en: '[PRE4]'
+  id: totrans-47
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: Using Our Models
+  id: totrans-48
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用我们的模型
 - en: 'To run a prediction with our model, we have to first populate the inputs in
     our tree and then call forward() on the parent. To populate the inputs though,
     we first need to find them, hence we add the following method to our **Operation**
     class (we don’t add this to our NeuralNetNode class since the Input type isn’t
     defined there yet):'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 要用我们的模型进行预测，我们首先需要填充树中的输入，然后调用父节点的 `forward()`。但为了填充输入，我们首先需要找到它们，因此我们向 **Operation**
+    类中添加以下方法（我们不会将其添加到 NeuralNetNode 类中，因为该类中尚未定义 Input 类型）：
 - en: '[PRE5]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'We can now add the predict() method to the Operation class:'
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在我们可以将 `predict()` 方法添加到 `Operation` 类中：
 - en: '[PRE6]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '**Exercise 2**: The current way we implemented predict() is somewhat inefficient
     since we need to traverse the tree to find all the inputs every time we run predict().
     Write a compile() method that caches the operation’s inputs when it is run.'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: '**练习 2：** 我们当前实现的 `predict()` 方法效率有些低，因为每次运行 `predict()` 时，我们都需要遍历树来找到所有输入。编写一个
+    `compile()` 方法，在执行时缓存操作的输入。'
 - en: 'Training our models is now very straightforward:'
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练我们的模型现在非常直接：
 - en: '[PRE7]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: 'Here, for instance, is how we would train a linear Fahrenheit to Celsius classifier
     using our framework:'
+  id: totrans-56
   prefs: []
   type: TYPE_NORMAL
+  zh: 例如，下面是我们如何使用框架训练一个线性华氏度到摄氏度的分类器：
 - en: '[PRE8]'
+  id: totrans-57
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: After running this, we get
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行此操作后，我们得到
 - en: '[PRE9]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: Which correctly corresponds to a linear classifier with weight 0.56, bias -17.78
     (which is the Fahrenheit to Celsius formula)
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 这正确地对应于一个线性分类器，权重为0.56，偏差为-17.78（这就是华氏度到摄氏度的公式）
 - en: 'We can, of course, also train much more complex models, e.g. here is one for
     predicting if a point (x, y) is above or below the line y = x:'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 当然，我们也可以训练更复杂的模型，例如，下面是一个用于预测一个点(x, y)是否位于y = x线的上方或下方的模型：
 - en: '[PRE10]'
+  id: totrans-62
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: Then we reasonably get
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后我们合理地得到
 - en: '[PRE11]'
+  id: totrans-64
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: 'Though this has reasonable runtime, it is somewhat slower than we would expect.
     This is because we have to call forward() and re-calculate the model inputs *a
     lot* in the call to backwards(). As such, have the following exercise:'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管这有合理的运行时间，但它的速度比我们预期的稍慢。这是因为我们必须调用`forward()`并且在调用`backwards()`时重新计算模型输入*很多次*。因此，以下是这个练习：
 - en: '**Exercise 3**: Add caching to our network. That is, on the call to forward(),
     the model should return the cached value from the previous call to forward() *if
     and only if the inputs haven’t changed since the last call*. Ensure that you run
     forward() again if the inputs have changed.'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: '**练习 3：** 给我们的网络添加缓存。也就是说，在调用`forward()`时，如果输入自上次调用以来没有变化，模型应该返回上次调用`forward()`时缓存的值*仅当输入未改变时*。确保在输入发生变化时再次调用`forward()`。'
 - en: 'And that’s about it! We now have a working neural network framework in which
     we can train just a lot of interesting models (though not networks with nodes
     that feed into multiple other nodes. This isn’t too difficult to add — see the
     note in the discussion of the chain rule), though granted it’s a bit verbose.
     If you’d like to make it better, try some of the following:'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 就是这样！我们现在有一个工作的神经网络框架，在这个框架中，我们可以训练很多有趣的模型（尽管不能训练节点输入多个其他节点的网络。这个并不难添加——请参见链式法则讨论中的注释），但确实有点冗长。如果你想改进它，可以尝试以下一些方法：
 - en: '**Exercise 4:** When you think about it, more “complex” nodes in our network
     (e.g. Linear layers) are really just “macros” in a sense — that is, if we had
     a neural net tree that looked, say, as follows:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: '**练习 4：** 当你深入思考时，我们网络中的“复杂”节点（例如，线性层）实际上只是“宏”——也就是说，如果我们有一个神经网络树，形状如下：'
 - en: '![](../Images/29319be00ff7ceadc6b3612ab061410d.png)'
+  id: totrans-69
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/29319be00ff7ceadc6b3612ab061410d.png)'
 - en: A linear classification model
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个线性分类模型
 - en: 'what you are really doing is this:'
+  id: totrans-71
   prefs: []
   type: TYPE_NORMAL
+  zh: 你真正做的事情是：
 - en: '![](../Images/16b4e8fbc11e64298ec81c1ca432a2b9.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/16b4e8fbc11e64298ec81c1ca432a2b9.png)'
 - en: An equivalent formulation for our linear net
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们线性网络的等效公式
 - en: In other words, *Linear(inp)* is really just a macro for a tree containing *|inp|
     + 1* parameters, the first of which are weights in multiplication and the last
     of which is a bias. Whenever we see *Linear(inp)*, we can thus substitute it for
     an equivalent tree composed only of elementary operations.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 换句话说，*Linear(inp)*实际上只是一个包含*|inp| + 1*个参数的树的宏，其中第一个参数是乘法中的权重，最后一个参数是偏置。因此，每当我们看到*Linear(inp)*时，我们可以将其替换为仅由基本操作组成的等效树。
 - en: For this exercise, your job is thus to implement the **Macro** class. The class
     should be an **Operation** that recursively replaces itself with elementary operations
+  id: totrans-75
   prefs: []
   type: TYPE_NORMAL
+  zh: 对于这个练习，你的任务是实现**Macro**类。该类应该是一个**Operation**，它递归地将自身替换为基本操作。
 - en: '*Note: this step can be done whenever, though it’s likely easiest to add a
     compile() method to the Operation class that you have to call before training
     (or add it to your existing method from Exercise 2). We can, of course, also implement
     more complex nodes in other (perhaps more efficient) ways, but this is still a
     good exercise.*'
+  id: totrans-76
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：这个步骤可以随时进行，尽管通常最容易的方法是向你必须在训练之前调用的Operation类中添加一个`compile()`方法（或者将其添加到你在练习2中已有的方法中）。当然，我们也可以以其他（或许更高效）的方式实现更复杂的节点，但这仍然是一个很好的练习。*'
 - en: '**Exercise 5:** Though we don’t really ever need internal nodes to produce
     anything other than one number as their output, it is sometimes nice for the root
     of our tree (that is, our output layer) to produce something else (e.g. a list
     of numbers in the case of a Softmax). Implement the **Output** class and allow
     it to produce a Listof[float] instead of just a float. As a bonus, try implementing
     the SoftMax output.'
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: '**练习 5：** 尽管我们实际上不需要内部节点输出除一个数字以外的任何其他内容，但有时对于树的根节点（即输出层）输出其他内容（例如，在Softmax的情况下是一个数字列表）是很有用的。实现**Output**类，并允许它输出一个`Listof[float]`而不仅仅是一个`float`。作为奖励，尝试实现SoftMax输出。'
 - en: '*Note: there are a few ways of doing this. You can make Output extend Operation,
     and then modify the NeuralNetNode class’ op() method to return a List[float] instead
     of just a float. Alternatively, you could create a new Node superclass that both
     Output and Operation extend. This is likely easier.*'
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：有几种方法可以实现这一点。你可以让 `Output` 类继承 `Operation`，然后修改 `NeuralNetNode` 类的 `op()`
+    方法，使其返回一个 `List[float]`，而不仅仅是一个浮点数。或者，你可以创建一个新的 `Node` 超类，既让 `Output` 又让 `Operation`
+    继承。这样可能更容易。*'
 - en: '*Note further that although these outputs can produce lists, they will still
     only get one derivative back from the loss function — the loss function will just
     happen to take a list of floats instead of a float (e.g. the Categorical Cross
     Entropy loss)*'
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: '*进一步注意，尽管这些输出可以生成列表，它们仍然只会从损失函数中返回一个导数——损失函数只会接受一个浮点数列表，而不是单一浮点数（例如，分类交叉熵损失）。*'
 - en: '**Exercise 6:** Remember how earlier in the article we said that neural nets
     are just mathematical functions comprised of elementary operations? Add the *funcify()*
     method to the NeuralNetNode class that turns it into such a function written in
     human-readable notation (add parentheses as you please). For example, the neural
     net *Add([Parameter(0.1), Parameter(0.2)])* should collapse to “0.1 + 0.2” (or
     “(0.1 + 0.2)”).'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: '**练习 6：** 还记得在文章前面我们提到过神经网络只是由基本操作组成的数学函数吗？在 `NeuralNetNode` 类中添加一个 *funcify()*
+    方法，将其转换为以人类可读的符号表示的函数（可以根据需要添加括号）。例如，神经网络 *Add([Parameter(0.1), Parameter(0.2)])*
+    应该简化为 “0.1 + 0.2”（或 “(0.1 + 0.2)”）。'
 - en: '*Note: For this to work, inputs should be named. If you did exercise 2, name
     your inputs in the compile() function. If not, you’ll have to figure out a way
     to name your inputs — writing a compile() function is still likely the easiest
     way.*'
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: '*注意：为了使其正常工作，输入应该命名。如果你做了练习 2，请在 `compile()` 函数中为输入命名。如果没有，你需要想办法为输入命名——编写一个
+    `compile()` 函数仍然是最简单的方式。*'
 - en: 'That’s all for now! If you’d like to check out the code, you can look at [this
     google colab](https://colab.research.google.com/drive/1H0qOvXuq0GMxGoTNJmDba0W46bfZRowP?usp=sharing)
     that has everything (except for solutions to every exercise but #6, though I may
     add those in part 2).'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '现在就这些！如果你想查看代码，可以查看 [这个 Google Colab](https://colab.research.google.com/drive/1H0qOvXuq0GMxGoTNJmDba0W46bfZRowP?usp=sharing)，其中包含了所有内容（除了每个练习的解答，但
+    #6 练习的解答可能会在第二部分添加）。'
 - en: Contact me at [mchak@calpoly.edu](mailto:mchak@calpoly.edu) for any inquiries.
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 如有任何问题，请通过 [mchak@calpoly.edu](mailto:mchak@calpoly.edu) 联系我。
 - en: '*Unless otherwise specified, all images are by the author.*'
+  id: totrans-84
   prefs: []
   type: TYPE_NORMAL
+  zh: '*除非另有说明，所有图片均由作者提供。*'
