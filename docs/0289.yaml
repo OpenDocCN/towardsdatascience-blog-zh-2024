@@ -3,16 +3,19 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 如何实现基于 Amazon EC2 的定制训练解决方案
 - en: 原文：[https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30](https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30)
   id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30](https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30)
 - en: A Simple Solution for Managing Cloud-Based ML-Training — Part 2
   id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 云端 ML 训练管理的简单解决方案 — 第2部分
 - en: '[](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Chaim
     Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
@@ -20,24 +23,34 @@
   id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
     ·11 min read·Jan 30, 2024
   id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
+    ·11分钟阅读·2024年1月30日
 - en: --
   id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/811d45664ed39ded00ae5b3892017d18.png)'
   id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/811d45664ed39ded00ae5b3892017d18.png)'
 - en: Photo by [Vlad D](https://unsplash.com/@hiking_corgi?utm_source=medium&utm_medium=referral)
     on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
   id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片由 [Vlad D](https://unsplash.com/@hiking_corgi?utm_source=medium&utm_medium=referral)
+    提供，来源于 [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
 - en: This is a sequel to a [recent post](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
     on the topic of building custom, cloud-based solutions for machine learning (ML)
     model development using low-level instance provisioning services. Our focus in
@@ -45,6 +58,8 @@
   id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是对[上一篇文章](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)的续集，上一篇文章讨论了如何使用低级实例配置服务构建定制的云端机器学习（ML）模型开发解决方案。在本文中，我们的重点将放在
+    [Amazon EC2](https://aws.amazon.com/ec2/) 上。
 - en: Cloud service providers (CSPs) typically offer fully managed solutions for training
     ML models in the cloud. [Amazon SageMaker](https://aws.amazon.com/sagemaker/),
     for example, Amazon’s managed service offering for ML development, simplifies
@@ -60,6 +75,8 @@
   id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 云服务提供商（CSP）通常会提供完全托管的解决方案，用于在云端训练机器学习模型。例如，[Amazon SageMaker](https://aws.amazon.com/sagemaker/)是亚马逊提供的机器学习开发托管服务，它显著简化了训练过程。SageMaker不仅自动化了端到端的训练执行
+    —— 从自动配置所需的实例类型、设置训练环境、执行训练任务，到保存训练产物并关闭所有服务 —— 还提供了多个辅助服务，支持机器学习开发，如[自动模型调优](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html)、[平台优化的分布式训练库](https://docs.aws.amazon.com/sagemaker/latest/dg/distributed-training.html)等。然而，正如高层次解决方案常有的情况，SageMaker的易用性提高的同时，也伴随着对底层流程控制的一定丧失。
 - en: In our [previous post](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
     we noted some of the limitations sometimes imposed by managed training services
     such as SageMaker, including reduced user privileges, inaccessibility of some
@@ -70,16 +87,21 @@
   id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的[上一篇文章](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)中，我们提到了一些由托管训练服务（如
+    SageMaker）有时强加的限制，包括用户权限减少、某些实例类型无法访问、对多节点设备放置的控制减少等。一些场景需要对环境规范和训练流程有更高的自主权。在本文中，我们通过在
+    Amazon EC2 上构建一个自定义训练解决方案，展示了解决这些情况的一种方法。
 - en: Many thanks to [Max Rabin](https://www.linkedin.com/in/maxrabin/) for his contributions
     to this post.
   id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 非常感谢 [Max Rabin](https://www.linkedin.com/in/maxrabin/) 对本文的贡献。
 - en: Poor Man’s Managed Training on Amazon EC2
   id: totrans-12
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 穷人的托管训练在 Amazon EC2 上
 - en: In our previous post we listed a minimal set of features that we would require
     from an automated training solution and proceeded to demonstrate, in a step-by-step
     manner, one way of implementing these in [Google Cloud Platform (GCP)](https://cloud.google.com/).
@@ -100,6 +122,14 @@
   id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们上一篇文章中，我们列出了自动化训练解决方案所需的最小功能集，并逐步展示了如何在 [Google Cloud Platform (GCP)](https://cloud.google.com/)
+    上实现这些功能。尽管相同的步骤序列可以应用于任何其他云平台，但由于每个平台的独特细节，实际情况可能会有所不同。本文的目的是提出一个基于 Amazon EC2
+    的实现方案，使用 [AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)（版本
+    1.34.23）的 [create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    命令。与上一篇文章一样，我们将从一个简单的 EC2 实例创建命令开始，并逐步补充其他组件，以加入我们需要的管理功能。[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    命令支持许多控制选项。在本演示中，我们将只关注与我们解决方案相关的部分。我们假设已存在一个 [默认 VPC](https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html)
+    和一个具有适当权限的 [IAM 实例配置文件](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)（包括访问
+    Amazon EC2、S3 和 CloudWatch 服务的权限）。
 - en: Note that there are multiple ways of using Amazon EC2 to fulfill the minimal
     set of features that we defined. We have chosen to demonstrate one possible implementation.
     Please do not interpret our choice of AWS, EC2, or any details of the specific
@@ -108,11 +138,13 @@
   id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，使用 Amazon EC2 来满足我们定义的最小功能集有多种方式。我们选择演示其中一种可能的实现方式。请不要将我们选择 AWS、EC2 或我们所选特定实现的任何细节视为推荐。适合您的最佳机器学习训练解决方案将极大地依赖于您项目的具体需求和细节。
 - en: 1\. Create an EC2 Instance
   id: totrans-15
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 1\. 创建 EC2 实例
 - en: We begin with a minimal example of a single EC2 instance request. We have chosen
     a GPU accelerated [g5.xlarge](https://aws.amazon.com/ec2/instance-types/g5/) instance
     type and a recent [Deep Learning AMI](https://docs.aws.amazon.com/dlami/) (with
@@ -120,6 +152,8 @@
   id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们从一个最小的单个 EC2 实例请求示例开始。我们选择了一个 GPU 加速的 [g5.xlarge](https://aws.amazon.com/ec2/instance-types/g5/)
+    实例类型和一个最新的 [深度学习 AMI](https://docs.aws.amazon.com/dlami/)（带有 Ubuntu 20.4 操作系统）。
 - en: '[PRE0]'
   id: totrans-17
   prefs: []
@@ -130,6 +164,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 2\. 自动启动训练
 - en: 'The first enhancement we would like to apply is for our training workload to
     automatically start as soon as our instance is up and running, without any need
     for manual intervention. Towards this goal, we will utilize the *UserData* argument
@@ -148,6 +183,11 @@
   id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们希望应用的第一个增强功能是，使我们的训练工作负载在实例启动并运行后自动开始，无需任何人工干预。为了实现这一目标，我们将利用[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    API 的*UserData*参数，该参数使你能够[指定启动时运行的内容](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html)。在下面的代码块中，我们提出了一系列命令，用于设置训练环境（即更新*PATH*环境变量，使其指向我们镜像中包含的预构建
+    PyTorch 环境）、从[Amazon S3](https://aws.amazon.com/s3/)下载我们的训练代码、安装项目依赖项、运行训练脚本，并将输出产物同步到持久化的
+    S3 存储。示例假设训练代码已经创建并上传到云端，并且包含两个文件：一个是依赖文件（*requirements.txt*），另一个是独立的训练脚本（*train.py*）。实际上，启动序列的具体内容将取决于项目需求。我们还包括了指向我们预定义的
+    IAM 实例配置文件的指针，该配置文件是访问 S3 所必需的。
 - en: '[PRE1]'
   id: totrans-20
   prefs: []
@@ -159,11 +199,13 @@
   id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 请注意，上面的脚本只会在训练结束时同步训练产物。一种更具容错性的解决方案是在整个训练任务期间同步中间模型检查点。
 - en: 3\. Self-destruct on Completion
   id: totrans-22
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 3\. 完成后自毁
 - en: When you train using a managed service, your instances are automatically shut
     down as soon as your script completes to ensure that you only pay for what you
     need. In the code block below, we append a self-destruction command to the end
@@ -175,6 +217,10 @@
   id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 当你使用托管服务进行训练时，实例会在脚本完成后自动关闭，以确保你只为需要的部分付费。在下面的代码块中，我们在*UserData*脚本的末尾附加了一个自毁命令。我们通过
+    AWS CLI [terminate-instances](https://docs.aws.amazon.com/cli/latest/reference/ec2/terminate-instances.html)
+    命令来实现这一点。该命令要求我们知道实例的*instance-id*和托管*region*，这些信息可以从[实例元数据](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html)中提取。我们的更新脚本假设我们的
+    IAM 实例配置文件具有适当的实例终止权限。
 - en: '[PRE2]'
   id: totrans-24
   prefs: []
@@ -187,11 +233,13 @@
   id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们强烈建议引入额外的机制来验证适当的实例删除，以避免系统中出现未使用的（“孤立”）实例，从而积累不必要的费用。在一篇[最近的文章](https://medium.com/towards-data-science/using-server-less-functions-to-govern-and-monitor-cloud-based-training-experiments-755c43fba26b)中，我们展示了如何使用无服务器函数来解决这种问题。
 - en: 4\. Apply Custom Tags to EC2 Instances
   id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 4\. 为 EC2 实例应用自定义标签
 - en: Amazon EC2 enables you to apply custom metadata to your instance [using EC2
     instance tags](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html).
     This enables you to pass information to the instance regarding the training workload
@@ -202,6 +250,7 @@
   id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: Amazon EC2允许你通过[使用EC2实例标签](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html)为实例应用自定义元数据。这使得你可以将关于训练工作负载和/或训练环境的信息传递给实例。在这里，我们使用*TagSpecifications*设置传入实例名称和唯一的训练任务ID。我们使用该唯一ID来为我们的任务工件定义一个专用的S3路径。请注意，我们需要通过*MetadataOptions*设置显式启用实例访问元数据标签的功能。
 - en: '[PRE3]'
   id: totrans-28
   prefs: []
@@ -212,11 +261,13 @@
   id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用元数据标签将信息传递给我们的实例，在接下来的部分中将特别有用。
 - en: 5\. Write Application Logs to Persistent Storage
   id: totrans-30
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 5\. 将应用程序日志写入持久存储
 - en: Naturally, we require the ability to analyze our application’s output logs both
     during and after training. This requires that they be periodically synced to persistent
     logging. In this post we implement this using [Amazon CloudWatch](https://docs.aws.amazon.com/cloudwatch/).
@@ -226,6 +277,8 @@
   id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 自然，我们需要能够分析训练过程中的和训练后的应用程序输出日志。这要求日志能够定期同步到持久化日志中。在这篇文章中，我们使用[Amazon CloudWatch](https://docs.aws.amazon.com/cloudwatch/)来实现这一点。以下我们定义了一个最小的JSON配置文件，用于启用CloudWatch日志收集，并将其添加到我们的源代码tar包中，文件名为*cw_config.json*。有关[CloudWatch
+    设置和配置](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html)的详细信息，请参阅官方文档。
 - en: '[PRE4]'
   id: totrans-32
   prefs: []
@@ -240,6 +293,7 @@
   id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实际操作中，我们希望*log_stream_name*能够唯一标识训练任务。为此，我们使用[sed](https://www.gnu.org/software/sed/manual/sed.html)命令将通用的“job-id”字符串替换为上一节中的作业ID元数据标签。我们增强后的脚本还包括CloudWatch启动命令，并修改了将标准输出管道到CloudWatch配置文件中定义的*output.log*的部分。
 - en: '[PRE5]'
   id: totrans-34
   prefs: []
@@ -250,6 +304,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 6\. 支持多节点训练
 - en: Nowadays, it is quite common for training jobs to run on multiple nodes in parallel.
     Modifying our instance request code to support multiple nodes is a simple matter
     of modifying the *num_instances* setting. The challenge is how to configure the
@@ -258,6 +313,8 @@
   id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，训练任务在多个节点并行运行已经相当常见。修改我们的实例请求代码以支持多个节点，只需简单修改*num_instances*设置即可。挑战在于如何以支持分布式训练的方式配置环境，即一种能够
+    — 并且优化 — 实例之间数据传输的方式。
 - en: To minimize the network latency between the instances and maximize throughput,
     we add a pointer to a predefined [cluster placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster)
     in the *Placement* field of our ec2 instance request. The following command line
@@ -265,6 +322,7 @@
   id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了最小化实例之间的网络延迟并最大化吞吐量，我们在ec2实例请求的*Placement*字段中添加了一个指向预定义的[集群放置组](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster)的指针。以下命令行演示了如何创建一个集群放置组。
 - en: '[PRE6]'
   id: totrans-38
   prefs: []
@@ -282,6 +340,7 @@
   id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了让我们的实例能够相互通信，它们需要知道彼此的存在。在这篇文章中，我们将演示运行[数据并行训练](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)所需的最小环境配置，使用[PyTorch](https://pytorch.org/)。对于PyTorch的[DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#module-torch.nn.parallel)（DDP），每个实例需要知道主节点的IP地址、主端口、实例总数以及在所有节点中的序列*rank*。下面的脚本展示了如何使用环境变量*MASTER_ADDR*、*MASTER_PORT*、*NUM_NODES*和*NODE_RANK*配置[数据并行训练](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)作业。
 - en: '[PRE7]'
   id: totrans-40
   prefs: []
@@ -300,10 +359,13 @@
   id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 节点的rank可以从[ami-launch-index](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMI-launch-index-examples.html)中获取。节点的数量和主端口在[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)调用时已知，并可以作为EC2实例标签传递。然而，主节点的IP地址仅在主实例创建后确定，并且只能在[create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)调用之后传递给其他实例。在下面的代码块中，我们选择通过专门调用[AWS
+    Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)的[create_tags](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/create_tags.html)API将主节点地址传递给每个实例。我们还使用相同的调用根据每个实例的启动索引值更新它们的名称标签。
 - en: 'The full solution for multi-node training appears below:'
   id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 多节点训练的完整解决方案如下：
 - en: '[PRE8]'
   id: totrans-43
   prefs: []
@@ -314,6 +376,7 @@
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 7\. 支持使用Spot实例
 - en: A popular way of reducing training costs is to use discounted [Amazon EC2 Spot
     Instances](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc).
     Utilizing Spot instances effectively requires that you implement a way of detecting
@@ -324,6 +387,8 @@
   id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 一种减少训练成本的流行方法是使用折扣[Amazon EC2 Spot实例](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc)。有效地利用Spot实例要求你实现一种检测中断的方式（例如，通过监听[终止通知](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html)）并采取适当的行动（例如，恢复未完成的工作负载）。在下面，我们展示了如何修改脚本，使用*InstanceMarketOptions*
+    API设置来使用Spot实例。
 - en: '[PRE9]'
   id: totrans-46
   prefs: []
@@ -335,11 +400,13 @@
   id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 请查看我们之前的文章（例如，[这里](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)和[这里](/using-server-less-functions-to-govern-and-monitor-cloud-based-training-experiments-755c43fba26b)），了解一些如何实现Spot实例生命周期管理解决方案的思路。
 - en: Summary
   id: totrans-48
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 概要
 - en: Managed cloud services for AI development can simplify model training and lower
     the entry bar for potential incumbents. However, there are some situations where
     greater control over the training process is required. In this post we have illustrated
