@@ -1,44 +1,68 @@
 - en: Conditional Variational Autoencoders with Learnable Conditional Embeddings
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 具有可学习条件嵌入的条件变分自编码器
 - en: 原文：[https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08](https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08](https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08)
 - en: An approach to add conditions to CVAE models without retraining
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 一种向 CVAE 模型中添加条件而不需要重新训练的方法
 - en: '[](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Tim
     Rose](../Images/12bcd585b5dad388dad140b4ca049392.png)](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
     [Tim Rose](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Tim
+    Rose](../Images/12bcd585b5dad388dad140b4ca049392.png)](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
+    [Tim Rose](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
     ·11 min read·Jan 8, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
+    ·阅读时长 11 分钟 ·2024年1月8日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: Requirements
+  id: totrans-6
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 要求
 - en: 'This article is about conditional variational autoencoders (CVAE) and requires
     a minimal understanding of this type of model. If you are not familiar with CVAEs,
     I can recommend the following articles: [VAEs with PyTorch](https://avandekleut.github.io/vae/),
     [Understanding CVAEs](/understanding-conditional-variational-autoencoders-cd62b4f57bf8).
     Please familiarize yourself with CVAEs before reading this article. My code examples
     are written in Python using [PyTorch](https://pytorch.org/) and [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/).'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文介绍了条件变分自编码器（CVAE），需要对这种模型有基本的理解。如果你不熟悉 CVAE，我推荐你阅读以下文章：[使用 PyTorch 的 VAE](https://avandekleut.github.io/vae/)、[理解
+    CVAE](/understanding-conditional-variational-autoencoders-cd62b4f57bf8)。在阅读本文之前，请先了解
+    CVAE。我所提供的代码示例使用 Python 编写，并基于[PyTorch](https://pytorch.org/)和[PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/)。
 - en: Introduction
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 引言
 - en: 'I recently came across the paper: [“Population-level integration of single-cell
     datasets enables multi-scale analysis across samples”](https://doi.org/10.1038/s41592-023-02035-2),
     where the authors developed a CVAE model with learnable conditional embeddings.
@@ -46,8 +70,12 @@
     article, I will not discuss the biological applications of the proposed model,
     but instead, break down their idea for a simple example case on handwritten digits
     from the MNIST dataset.'
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 最近我读到了一篇论文：[“单细胞数据集的种群级整合实现了跨样本的多尺度分析”](https://doi.org/10.1038/s41592-023-02035-2)，作者们提出了一种带有可学习条件嵌入的
+    CVAE 模型。我觉得这个想法非常有趣，并认为值得在这里分享。在本文中，我不会讨论该模型的生物学应用，而是将其思路应用于一个简单的例子，即来自 MNIST
+    数据集的手写数字。
 - en: So, let’s get started. The C in CVAE stands for “conditional”. This means that
     the encoder and decoder in addition to the input data (e.g. image for the encoder
     and latent vector for the decoder) are provided with an encoding for a condition.
@@ -55,25 +83,37 @@
     space since the decoder will also get this information as an extra input. Hence,
     the encoder can regress out the condition and learn e.g. the handwriting style
     as a latent representation.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，让我们开始吧。CVAE 中的 C 代表“条件”。这意味着编码器和解码器除了输入数据（例如编码器的图像和解码器的潜在向量）之外，还会提供一个条件的编码。因此，编码器不需要在潜在空间中表示条件，因为解码器也会将此信息作为额外的输入。因此，编码器可以回归出该条件并学习例如手写风格的潜在表示。
 - en: 'In practice, conditions in CVAE models are commonly one-hot encoded. E.g. for
     the MNIST dataset with 10 different digits, we would use a size 10 vector. PyTorch
     provides a function to create one-hot encodings from integer labels:'
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实际应用中，CVAE 模型中的条件通常是独热编码的。例如，对于包含 10 个不同数字的 MNIST 数据集，我们将使用大小为 10 的向量。PyTorch
+    提供了一个函数，用于从整数标签创建独热编码：
 - en: '[PRE0]'
+  id: totrans-12
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: '[PRE1]'
+  id: totrans-13
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: One-hot encodings work well, however, a trained model is limited to the conditions
     provided during training, due defined dimensions of the condition vector. If a
     CVAE model is trained on the MNSIT dataset for the digits 0–7 (using a size 8
     one hot encoding), inference cannot be performed for digits 8 and 9.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 独热编码效果不错，但训练好的模型仅限于训练时提供的条件，受到条件向量维度的限制。如果一个 CVAE 模型在 MNIST 数据集上只训练数字 0 到 7（使用大小为
+    8 的独热编码），那么就无法对数字 8 和 9 进行推理。
 - en: In the publication that inspired this article, the authors are interested in
     the latent space generated from the encoder and want to integrate new conditions
     into the latent space without retraining the model. To achieve this, they use
@@ -83,130 +123,196 @@
     this approach, is the assumption that the model is essentially learning another
     latent space of condition (digit) representation hat can be used to interpolate
     and create embeddings for new digits the model has not seen before.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 在启发本文的出版物中，作者关注编码器生成的潜在空间，并希望在不重新训练模型的情况下将新条件整合到潜在空间中。为了实现这一点，他们使用每个条件的嵌入向量，这些向量的值在训练过程中学习得到。如果向模型添加了新的条件，除了新条件嵌入向量的值外，所有模型权重都可以被冻结。我认为这个方法有趣之处在于它假设模型本质上是在学习一个条件（数字）表示的潜在空间，可以用来插值并为模型之前未见过的新数字创建嵌入。
 - en: Before implementing such a CVAE model, let’s make a simple CVAE with one-hot
     encoded conditions which we can later compare to the new model.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 在实现这样的 CVAE 模型之前，让我们先创建一个带有独热编码条件的简单 CVAE 模型，之后我们可以将其与新模型进行比较。
 - en: CVAE with one-hot encoded conditions
+  id: totrans-17
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 带有独热编码条件的 CVAE
 - en: 'First, let’s load all required python packages:'
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，让我们加载所有所需的 Python 包：
 - en: '[PRE2]'
+  id: totrans-19
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: 'Next, we load the MNIST data:'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们加载 MNIST 数据：
 - en: '[PRE3]'
+  id: totrans-21
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The model consists of an encoder and decoder (I adapted the model and plots
     from a minimal VAE example from [this post](https://avandekleut.github.io/vae/)).
     We first define the encoder, which takes as input the images and one-hot encoding
     and outputs a latent vector z. Additionally, it computes the [KL-divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence)
     as an additional loss term for the CVAE:'
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 该模型由编码器和解码器组成（我根据 [这篇文章](https://avandekleut.github.io/vae/) 中的最小 VAE 示例调整了模型和图）。我们首先定义编码器，它将图像和独热编码作为输入，并输出一个潜在向量
+    z。此外，它还计算 [KL 散度](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence)，作为
+    CVAE 的额外损失项：
 - en: '[PRE4]'
+  id: totrans-23
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The decoder is much simpler since it just uses the images and one-hot encodings
     to infer images:'
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 解码器要简单得多，因为它只需使用图像和独热编码来推断图像：
 - en: '[PRE5]'
+  id: totrans-25
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: 'In the next step, we combine them into one module:'
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 在下一步中，我们将它们合并为一个模块：
 - en: '[PRE6]'
+  id: totrans-27
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: This module performs both the encoding and decoding in the forward pass.
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个模块在前向传递中执行编码和解码。
 - en: 'Since we will train the model using the lightning framework, we need one more
     wrapper for the CVAE module:'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于我们将使用 Lightning 框架训练模型，因此需要为 CVAE 模块再添加一个包装器：
 - en: '[PRE7]'
+  id: totrans-30
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: In the lightning module, we also perform the one-hot encoding of the digit labels
     during each forward pass.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 在 Lightning 模块中，我们还会在每次前向传递时执行数字标签的独热编码。
 - en: 'Now, let’s train the model:'
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在，让我们开始训练模型：
 - en: '[PRE8]'
+  id: totrans-33
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'We will not perform a quantitative evaluation of the model performance for
     this article, but we can visually check how well the model is able to generate
     digits from the latent space. To do so, we create a grid in the latent space and
     letting the decoder generate images of the digits we are interested in. Since
     we only used a 2-dimensional latent space, we can use a 2D grid. For this, we
     define a plotting function:'
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 本文不会对模型性能进行定量评估，但我们可以通过视觉检查模型从潜在空间生成数字的能力。为此，我们在潜在空间中创建一个网格，并让解码器生成我们感兴趣的数字图像。由于我们只使用了二维潜在空间，因此可以使用二维网格。为此，我们定义了一个绘图函数：
 - en: '[PRE9]'
+  id: totrans-35
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'With this we can have a look at the generated images:'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: 这样我们就可以查看生成的图像：
 - en: '[PRE10]'
+  id: totrans-37
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: '![](../Images/0082c26ff50997ffdd2d5e627ddf604d.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/0082c26ff50997ffdd2d5e627ddf604d.png)'
 - en: Inferred images for the number 8 from a over a grid of the latent space. Image
     created by the author.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 从潜在空间的网格上推断出数字8的图像。图像由作者创建。
 - en: Especially in the center of the latent space, the digits are very clear (Try
     to use other numbers as conditions and plot them yourself). Overall, the decoder
     is able to generate readable images of handwritten digits for all the provided
     numbers during training.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 特别是在潜在空间的中心，数字非常清晰（尝试使用其他数字作为条件并自行绘制）。总体而言，解码器能够为训练期间提供的所有数字生成可读的手写数字图像。
 - en: We are also interested in the latent space representation of all the digits
     in the training data. As mentioned before, we expect the model to remove digit-related
     differences in the latent space and, therefore, e.g. no clusters of images from
     the same digit. Below, we can visualize the 2D latent space and color it by the
     digit label. Further, we expect the latent space to be normally distributed around
     zero (due to our KL loss term).
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们还对训练数据中所有数字的潜在空间表示感兴趣。正如之前提到的，我们希望模型能够去除潜在空间中的与数字相关的差异，因此，例如，不会出现同一数字的图像聚类。下面，我们可以可视化二维潜在空间，并按数字标签为其着色。此外，我们期望潜在空间围绕零正态分布（这是由于我们的KL损失项）。
 - en: '[PRE11]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: '![](../Images/b31dbe1d53e4a044e4e51587f5943a22.png)'
+  id: totrans-43
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b31dbe1d53e4a044e4e51587f5943a22.png)'
 - en: Latent space of the CVAE model on the training data colored by the condition.
     Image created by the author.
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练数据上的CVAE模型的潜在空间，按条件着色。图像由作者创建。
 - en: Learnable conditional embeddings
+  id: totrans-45
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 可学习的条件嵌入
 - en: After building a first model, we switch to learnable embeddings. Instead of
     using one-hot encoding, we will now use learnable embeddings. These are also unique
     vectors for each condition, but with values that will be updated in the training
     process. The model optimizer will update the embedding vectors together with all
     other model parameters to improve the loss during training.
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: 在构建第一个模型后，我们切换到可学习的嵌入。我们不再使用独热编码，而是使用可学习的嵌入。这些嵌入仍然是每个条件的独特向量，但其值会在训练过程中更新。模型优化器将在训练过程中与其他所有模型参数一起更新这些嵌入向量，以改善损失函数。
 - en: So we do not only have a latent space for images but also an embedding space
     for the conditions (digits). One of the central aspects of the paper is that the
     model is encoding information about (in our example case) the condition in the
@@ -217,129 +323,193 @@
     the model are optimized. In the publication, the authors intend to add a new condition
     to the latent space, but in this article, we will check how well the model can
     generate images of unseen digits.
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，我们不仅拥有图像的潜在空间，还有条件（数字）的嵌入空间。本文的一个核心观点是，模型将（在我们示例中）条件的信息编码在嵌入向量中。这意味着我们可以将新的数字添加到模型中，即使它们在训练过程中没有被包含，模型也有可能仅通过新的调整后的条件嵌入来推断出正确的数字。为此，所有模型权重都被冻结，只有需要添加到模型中的新数字的嵌入会被优化。在出版物中，作者计划将新的条件添加到潜在空间中，但在本文中，我们将检查模型生成看不见的数字图像的能力。
 - en: 'First, we train a model on all digits to check the general ability of the CVAE
     model to train with learnable embeddings. For this, we define a new lightning
     module, but in this case include an embedding variable, which stores the embeddings
     and provides them in the forward pass:'
+  id: totrans-48
   prefs: []
   type: TYPE_NORMAL
+  zh: 首先，我们在所有数字上训练模型，以检查CVAE模型使用可学习嵌入进行训练的通用能力。为此，我们定义一个新的Lightning模块，但在这种情况下，加入了一个嵌入变量，它存储嵌入并在前向传递中提供它们：
 - en: '[PRE12]'
+  id: totrans-49
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: 'Next, we can train the model:'
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，我们可以训练模型：
 - en: '[PRE13]'
+  id: totrans-51
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: 'After training, we need a slightly updated plotting function to show generated
     images from the latent space that utilizes the condition embeddings:'
+  id: totrans-52
   prefs: []
   type: TYPE_NORMAL
+  zh: 训练后，我们需要稍微更新一下绘图函数，以展示利用条件嵌入从潜在空间生成的图像：
 - en: '[PRE14]'
+  id: totrans-53
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: And we can finally generate new images. We again plot number 8 digits and can
     see that the model is equally well able to generate the digit.
+  id: totrans-54
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们最终可以生成新的图像。我们再次绘制数字8的图像，可以看到模型同样能够生成该数字。
 - en: '[PRE15]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: '![](../Images/eecb76b70fc22020189c4b8555bb9534.png)'
+  id: totrans-56
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eecb76b70fc22020189c4b8555bb9534.png)'
 - en: Inferred images for the number 8 from a over a grid of the latent space using
     learnable condition embeddings. Image created by the author.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: 从潜在空间的网格上推断出数字8的图像，使用可学习的条件嵌入。图像由作者创建。
 - en: 'To visualize the latent space, we also need a slightly updated plotting function:'
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了可视化潜在空间，我们还需要稍微更新绘图函数：
 - en: '[PRE16]'
+  id: totrans-59
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: '![](../Images/39195f96429cbe2746e91b97cedfcd2f.png)'
+  id: totrans-60
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/39195f96429cbe2746e91b97cedfcd2f.png)'
 - en: Latent space of the CVAE model with learnable condition embeddings on the training
     data colored by the condition. Image created by the author.
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练数据上，带有可学习条件嵌入的CVAE模型的潜在空间，条件通过颜色进行标记。图像由作者创建。
 - en: While we can see a slightly changes distribution, we cannot see strong digit-related
     clusters. This shows that the model using learnable embeddings is similarly able
     to condition on the digits as the one hot encoded model (While the model is actually
     using fewer parameters since we only use an embedding of size 5 instead of 10
     for the one hot encoding).
+  id: totrans-62
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们可以看到分布略有变化，但我们没有看到明显与数字相关的聚类。这表明，使用可学习嵌入的模型能够像使用独热编码模型一样，基于数字进行条件设置（虽然该模型实际上使用了更少的参数，因为我们只用了大小为5的嵌入，而不是独热编码中的10个参数）。
 - en: Adding new conditions to the model
+  id: totrans-63
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 为模型添加新条件
 - en: 'Finally, we are going to train the model only on the digits 0–7\. After training,
     we then optimize the condition embeddings for the digits 8 and 9 while freezing
     all other model weights. This allows us to add these conditions to the latent
     space (and generate new images) without retraining the whole model. To do so,
     we create two new dataloaders, one for providing images of the digits 0–7 (**datatrain**)
     and another for providing the images for the digits 8 and 9 (**data89**):'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 最后，我们将仅在数字0-7的图像上训练模型。训练完成后，我们将优化数字8和9的条件嵌入，同时冻结所有其他模型权重。这使得我们能够将这些条件添加到潜在空间中（并生成新图像），而无需重新训练整个模型。为此，我们创建了两个新的数据加载器，一个用于提供数字0-7的图像（**datatrain**），另一个用于提供数字8和9的图像（**data89**）：
 - en: '[PRE17]'
+  id: totrans-65
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'We then first train the model on images of 0–7 digits:'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们首先在0-7数字的图像上训练模型：
 - en: '[PRE18]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'And then freeze all model parameters, except the condition embeddings. After
     that, we then optimize the embeddings only for images of the digits 8 and 9:'
+  id: totrans-68
   prefs: []
   type: TYPE_NORMAL
+  zh: 然后，我们将冻结所有模型参数，除了条件嵌入。接下来，我们只针对数字8和9的图像优化嵌入：
 - en: '[PRE19]'
+  id: totrans-69
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: Let’s visualize generated numbers and the latent space. Below we can see that
     the model is able to generate the images of the digit 8 similarly to our previous
     models, even though the model was not trained on these images and only the condition
     embedding vector has been updated.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们可视化生成的数字和潜在空间。下面我们可以看到，尽管该模型并未在这些图像上训练，仅更新了条件嵌入向量，但它能够像我们之前的模型一样生成数字8的图像。
 - en: '[PRE20]'
+  id: totrans-71
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE20]'
 - en: '![](../Images/eecb76b70fc22020189c4b8555bb9534.png)'
+  id: totrans-72
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/eecb76b70fc22020189c4b8555bb9534.png)'
 - en: Inferred images for the number 8 from a over a grid of the latent space using
     learnable condition embeddings, which were not part of the training of the full
     model. Image created by the author.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用可学习条件嵌入从潜在空间的网格上推断出数字8的图像，这些条件并未参与整个模型的训练。图像由作者创建。
 - en: If we visualize the latent space, we neither see clusters of 8 and 9 digits
     nor any strong outliers in the distribution.
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果我们可视化潜在空间，我们既看不到8和9的数字聚类，也没有看到分布中的明显异常值。
 - en: '[PRE21]'
+  id: totrans-75
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE21]'
 - en: '![](../Images/36c1a488d22e9868c97c4d16c51529d3.png)'
+  id: totrans-76
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/36c1a488d22e9868c97c4d16c51529d3.png)'
 - en: Latent space of the CVAE model with learnable condition embeddings on the training
     data colored by the condition, where the digits 8&9 have been added without retraining
     of the model. Image created by the author.
+  id: totrans-77
   prefs: []
   type: TYPE_NORMAL
+  zh: 在训练数据上，带有可学习条件嵌入的CVAE模型的潜在空间，条件通过颜色进行标记，其中数字8和9在不重新训练模型的情况下被添加进来。图像由作者创建。
 - en: While we did not do any kind of systematic evaluation of the model performance
     in this article, we can see that learned embedding can be very useful for adding
     new conditions to CVAE models, without retraining the whole model.
+  id: totrans-78
   prefs: []
   type: TYPE_NORMAL
+  zh: 尽管我们在本文中没有对模型性能进行系统的评估，但我们可以看到，学习到的嵌入可以非常有效地为CVAE模型添加新条件，而无需重新训练整个模型。
 - en: One-hot encodings are commonly used in machine learning, but I hope to have
     shown you an interesting alternative for it in CVAE models. If you are also interested
     in the applications of such an approach (e.g. in biology), I recommend the publication
@@ -347,13 +517,22 @@
     across samples”](https://doi.org/10.1038/s41592-023-02035-2), which was the basis
     for this article. It also contains a few other interesting ideas for customizing
     CVAE models for specific applications.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 独热编码在机器学习中被广泛使用，但我希望能够向你展示一种有趣的替代方法，在CVAE模型中应用这种方法。如果你对这种方法的应用（例如在生物学领域）感兴趣，我推荐阅读这篇发表的文章
+    [“Population-level integration of single-cell datasets enables multi-scale analysis
+    across samples”](https://doi.org/10.1038/s41592-023-02035-2)，这篇文章是本文的基础。它还包含了将CVAE模型定制化应用于特定领域的其他一些有趣想法。
 - en: 'Thank you for reading and feel free to explore the source code for this article
     and play with the models. You can find all the code on GitHub: [](https://github.com/tdrose/blogpost-subfigures-code)
     [https://github.com/tdrose/medium-articles-code](https://github.com/tdrose/medium-articles-code)[.](https://github.com/tdrose/lightning-cvae.)'
+  id: totrans-80
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读，欢迎自由探索本文的源代码并尝试模型。你可以在 GitHub 上找到所有代码：[https://github.com/tdrose/blogpost-subfigures-code](https://github.com/tdrose/blogpost-subfigures-code)
+    [https://github.com/tdrose/medium-articles-code](https://github.com/tdrose/medium-articles-code)[.](https://github.com/tdrose/lightning-cvae.)
 - en: All images were created by the author.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有图像均由作者创建。
