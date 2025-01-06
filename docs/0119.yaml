@@ -1,32 +1,50 @@
 - en: Efficient Feature Selection via Genetic Algorithms
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 高效特征选择：基于遗传算法
 - en: 原文：[https://towardsdatascience.com/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274?source=collection_archive---------5-----------------------#2024-01-12](https://towardsdatascience.com/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274?source=collection_archive---------5-----------------------#2024-01-12)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274?source=collection_archive---------5-----------------------#2024-01-12](https://towardsdatascience.com/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274?source=collection_archive---------5-----------------------#2024-01-12)
 - en: Using evolutionary algorithms for fast feature selection with large datasets
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用进化算法进行大数据集的快速特征选择
 - en: '[](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[![Florin
     Andrei](../Images/372ac3e80dbc03cbd20295ec1df5fa6f.png)](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)
     [Florin Andrei](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[![Florin
+    Andrei](../Images/372ac3e80dbc03cbd20295ec1df5fa6f.png)](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)
+    [Florin Andrei](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)
     ·8 min read·Jan 12, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)
+    ·8分钟阅读·2024年1月12日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '*This is the final part of a two-part series about feature selection. Read*
     [*part 1 here*](/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173)*.*'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这是关于特征选择的两部分系列文章的最后一部分。阅读* [*第一部分在这里*](/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173)*.*'
 - en: 'Brief recap: when fitting a model to a dataset, you may want to select a subset
     of the features (as opposed to using all features), for various reasons. But even
     if you have a clear objective function to search for the best combination of features,
@@ -34,15 +52,19 @@
     the best combination is not always easy. Brute-force search generally does not
     work beyond several dozens of features. Heuristic algorithms are needed to perform
     a more efficient search.'
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 简要回顾：在将模型拟合到数据集时，你可能希望选择特征的子集（而不是使用所有特征），原因有很多。但是即使你有一个明确的目标函数来搜索最佳特征组合，如果特征数量N非常大，搜索可能会花费很长时间。寻找最佳组合并不总是容易的。暴力搜索通常无法处理超过几十个特征的情况。需要启发式算法来执行更高效的搜索。
 - en: If you have N features, what you’re looking for is an N-length vector `[1, 1,
     0, 0, 0, 1, ...]` with values from `{0, 1}` . Each vector component corresponds
     to a feature. 0 means the feature is rejected, 1 means the feature is selected.
     You need to find the vector that minimizes the cost / objective function you’re
     using.
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你有N个特征，你要寻找的是一个N长度的向量`[1, 1, 0, 0, 0, 1, ...]`，其中的值来自`{0, 1}`。每个向量分量对应一个特征。0表示该特征被拒绝，1表示该特征被选择。你需要找到那个最小化你使用的成本/目标函数的向量。
 - en: In the previous article, we’ve looked at a classic algorithm, SFS (sequential
     feature search), and compared it with an efficient evolutionary algorithm called
     CMA-ES. We’ve started with the House Prices dataset on Kaggle which, after some
@@ -50,48 +72,69 @@
     tried to fit was `statsmodels.api.OLS()` and the objective function was the model’s
     BIC — Bayesian Information Criterion, a measure of information loss. Lower BIC
     means a better fit, so we’re trying to minimize the objective.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 在上一篇文章中，我们介绍了一个经典算法——SFS（序列特征搜索），并将其与一种高效的进化算法CMA-ES进行了比较。我们从Kaggle的房价数据集开始，该数据集经过处理后包含213个特征和1453条观测数据。我们尝试拟合的模型是`statsmodels.api.OLS()`，目标函数是模型的BIC——贝叶斯信息准则，它衡量信息损失。较低的BIC意味着更好的拟合，因此我们正在尝试最小化这个目标。
 - en: 'In this article, we will look at another evolutionary technique: genetic algorithms.
     The context (dataset, model, objective) remains the same.'
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本文中，我们将讨论另一种进化技术：遗传算法。背景（数据集、模型、目标）保持不变。
 - en: GA — Genetic Algorithms
+  id: totrans-11
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 遗传算法 — Genetic Algorithms
 - en: Genetic algorithms are inspired by biological evolution and natural selection.
     In nature, living beings are (loosely speaking) selected for the genes (traits)
     that facilitate survival and reproductive success, in the context of the environment
     where they live.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传算法的灵感来源于生物进化和自然选择。在自然界中，生物体（宽泛地说）是根据那些有助于生存和繁殖成功的基因（特征）在其所处环境中的适应性被“选择”的。
 - en: Now think of feature selection. You have N features. You’re trying to find N-length
     binary vectors `[1, 0, 0, 1, 1, 1, ...]` that select the features (0 = feature
     rejected, 1= feature included) so as to minimize a cost / objective function.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在想想特征选择。你有N个特征。你试图找到长度为N的二进制向量`[1, 0, 0, 1, 1, 1, ...]`，以选择特征（0 = 特征被排除，1 =
+    特征被包含），从而最小化成本/目标函数。
 - en: Each such vector can be thought of as an “individual”. Each vector component
     (value 0 or value 1) becomes a “gene”. By judiciously applying evolution and selection,
     it might be possible to evolve a population of individuals in such a way as to
     get near the best value for the objective function we’re interested in.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 每个这样的向量可以看作是一个“个体”。每个向量的组成部分（值为0或1）就是一个“基因”。通过合理地应用进化和选择，可能可以使一群个体进化，从而接近我们感兴趣的目标函数的最佳值。
 - en: Here’s GA in a nutshell. Start by generating a population of individuals (vectors),
     each vector of length N. The vector component values (genes) are randomly chosen
     from {0, 1}. In the diagram below, N=12, and the population size is 8.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 简而言之，遗传算法是这样的。首先生成一个个体种群（向量），每个向量的长度为N。向量的组成部分（基因）从{0, 1}中随机选择。在下图中，N=12，种群规模为8。
 - en: '![](../Images/ddd592aacc4b7a015475db6501f619ee.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/ddd592aacc4b7a015475db6501f619ee.png)'
 - en: GA population
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传算法种群
 - en: After the population is created, evaluate each individual via the objective
     function.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在种群生成之后，通过目标函数评估每个个体。
 - en: 'Now perform selection: keep the individuals with the best objective values,
     and discard those with the worst values. There are many possible strategies here,
     from naive ranking (which, counterintuitively, doesn’t work very well), to stochastic
@@ -100,46 +143,66 @@
     traps that slow exploration down. GA is all about exploration. [Here’s a short
     list of selection techniques](https://www.tutorialspoint.com/genetic_algorithms/genetic_algorithms_parent_selection.htm),
     and check the links at the end for more info.'
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 现在进行选择：保留目标值最好的个体，淘汰那些目标值最差的个体。这里有许多可能的策略，从简单的排名选择（反直觉地，这种方法效果不佳）到随机锦标赛选择，这种方法在长期内非常高效。如果你记得探索与开发的困境，那么在遗传算法中，很容易陷入过于简单的开发陷阱，导致探索变慢。遗传算法的核心是探索。[这里有一份简短的选择技术列表](https://www.tutorialspoint.com/genetic_algorithms/genetic_algorithms_parent_selection.htm)，并且可以查看文末的链接获取更多信息。
 - en: 'Once the best individuals have been selected, and the less fit ones have been
     discarded, it’s time to introduce variation in the gene pool via two techniques:
     crossover and mutation.'
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦选择出最优的个体，并淘汰掉不适应的个体，就该通过两种技术：交叉和突变，引入基因池中的变异。
 - en: 'Crossover works exactly like in nature, when two living creatures are mating
     and producing offspring: genetic material from both parents is “mixed” in the
     descendants, with some degree of randomness.'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 交叉的过程完全像自然界中的交配一样，两个生物体交配并产生后代：来自父母的遗传物质在后代中“混合”，并带有一定的随机性。
 - en: '![](../Images/b218ad06454d32e0129d3dd0a38a808f.png)'
+  id: totrans-22
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/b218ad06454d32e0129d3dd0a38a808f.png)'
 - en: GA crossover
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传算法交叉
 - en: Mutation, again, is pretty much what happens in nature when random mutations
     occur in the genetic material, and new values are introduced in the gene pool,
     increasing its diversity.
+  id: totrans-24
   prefs: []
   type: TYPE_NORMAL
+  zh: 突变再次发生时，基本上就像自然界中基因物质发生随机突变一样，新值被引入基因库，从而增加了基因库的多样性。
 - en: '![](../Images/8b3f6f5fc4776706f509b8ab8969d8ac.png)'
+  id: totrans-25
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/8b3f6f5fc4776706f509b8ab8969d8ac.png)'
 - en: GA mutation
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传算法突变
 - en: 'After all that, the algorithm loops back: individuals are again evaluated via
     the objective function, selection occurs, then crossover, mutation, etc.'
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 经过这一切，算法会回到循环：再次通过目标函数评估个体，进行选择，然后是交叉、突变等。
 - en: 'Various stopping criteria can be used: the loop may break if the objective
     function stops improving for some number of generations. Or you may set a hard
     stop for the total number of generations evaluated. Or do something time-based,
     or watch for an external signal, etc. Regardless, the individuals with the best
     objective values should be considered to be the solutions to the problem.'
+  id: totrans-28
   prefs: []
   type: TYPE_NORMAL
+  zh: 可以使用各种停止准则：如果目标函数在若干代中没有改善，循环可能会终止。或者你可以设置一个硬性停止条件来限制评估的代数。或者使用基于时间的停止，或者等待外部信号等。无论如何，目标值最好的个体应被认为是问题的解。
 - en: 'A few words about elitism: with stochastic selection techniques such as tournament,
     the best, absolute top individuals in a generation may actually be discarded by
     pure chance — it’s unlikely, but it does happen. Elitism bypasses this, and simply
@@ -149,44 +212,64 @@
     to confirm the idea that an exploit bias is not beneficial for GA. But your mileage
     may vary; if you like to experiment with algorithm variants, GA gives you many
     opportunities to do so.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: 关于精英策略的几点说明：使用如锦标赛等随机选择技术时，代际中最优秀的个体可能会因为纯粹的偶然而被淘汰——这种情况不太可能，但确实会发生。精英策略绕过了这个问题，直接规定最优秀的个体必须生存下来，无论如何。精英策略是一种利用技巧。它可能会导致算法陷入局部极值，错失全局解。再说一遍，遗传算法的核心是探索。根据我有限的GA经验，似乎表明利用偏向对GA并不有利。但你可以根据自己的需求调整；如果你喜欢实验不同的算法变种，GA为你提供了很多机会。
 - en: 'GA has several hyperparameters you can tune:'
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 遗传算法有几个超参数可以调节：
 - en: population size (number of individuals)
+  id: totrans-31
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 种群大小（个体数量）
 - en: mutation probabilities (per individual, per gene)
+  id: totrans-32
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 变异概率（每个个体，每个基因）
 - en: crossover probability
+  id: totrans-33
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 交叉概率
 - en: selection strategies, etc.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 选择策略等
 - en: Running trials by hand with various hyperparameter values is one way to figure
     out the best code. Or you could encapsulate GA in Optuna and let Optuna find the
     best hyperparameters — but this is computationally expensive.
+  id: totrans-35
   prefs: []
   type: TYPE_NORMAL
+  zh: 通过手动尝试不同超参数值来进行实验是找出最佳代码的一种方式。或者，你可以将GA封装在Optuna中，让Optuna找到最佳超参数——但这在计算上比较昂贵。
 - en: GA for feature selection, in code
+  id: totrans-36
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 用于特征选择的遗传算法（GA），在代码中
 - en: Here’s a simple GA code that can be used for feature selection. It uses [the
     deap library](https://github.com/DEAP/deap), which is very powerful, but the learning
     curve may be steep. This simple version, however, should be clear enough.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个可以用于特征选择的简单GA代码。它使用了[deap库](https://github.com/DEAP/deap)，这个库非常强大，但学习曲线可能较陡。然而，这个简单版本应该足够清晰。
 - en: '[PRE0]'
+  id: totrans-38
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: The code creates the objects that define an individual and the whole population,
     along with the strategies used for evaluation (objective function), crossover
     / mating, mutation, and selection. It starts with a population of 300 individuals,
@@ -194,115 +277,173 @@
     which runs for only 10 generations, for simplicity. Hall of fame with a size of
     1 is defined, where the absolute best individual is preserved against being accidentally
     mutated / skipped during selection, etc.
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 代码创建了定义个体和整个种群的对象，并包含用于评估（目标函数）、交叉/配对、变异和选择的策略。它从一个300个体的种群开始，然后调用`eaSimple()`（一个简单的交叉、变异、选择序列），只运行10代，为了简化。定义了一个大小为1的名人堂，其中最优秀的个体被保存下来，避免在选择等过程中意外被变异或跳过。
 - en: Hall of fame is not elitism. Hall of fame copies the best individual from the
     population, and only keeps an inactive copy in a tin can. Elitism preserves the
     best individual in the active population from one generation to the next.
+  id: totrans-40
   prefs: []
   type: TYPE_NORMAL
+  zh: 名人堂不是精英策略。名人堂复制了种群中最优秀的个体，并只保留一个非活跃的副本在储存中。精英策略则会在每一代中保留最优秀的个体。
 - en: 'This simple code is easy to understand, but inefficient. Check the notebook
     in [the repository](https://github.com/FlorinAndrei/fast_feature_selection) for
     a more complex version of the GA code, which I am not going to quote here. However,
     running the more complex, optimized code from the notebook for 1000 generations
     produces these results:'
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个简单代码易于理解，但效率低下。查看[仓库](https://github.com/FlorinAndrei/fast_feature_selection)中的笔记本，那里有一个更复杂的GA代码版本，我不会在这里引用。不过，从笔记本中运行更复杂、优化过的代码，经过1000代，产生了这些结果：
 - en: '[PRE1]'
+  id: totrans-42
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: 'Again, the baseline BIC before any feature selection is:'
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 再次提醒，任何特征选择前的基准BIC是：
 - en: '[PRE2]'
+  id: totrans-44
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: And here’s the entire history of the full, optimized GA code from the notebook,
     running for 1000 generations, trying to find the best features. From left to right,
     the heatmap indicates the popularity of each feature within the population across
     generations (brighter shade = more popular). You can see how some features are
     always popular, others are rejected quickly, while yet others may become more
     popular or less popular as time goes by.
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: 这里是完整的优化过的GA代码历史，从笔记本中运行，进行了1000代的演化，尝试寻找最佳特征。由左至右，热图显示了各特征在不同代中的受欢迎程度（色块越亮=越受欢迎）。你可以看到一些特征始终受到青睐，另一些特征很快就被淘汰，而其他特征则随着时间的推移可能会变得更受欢迎或逐渐失去关注。
 - en: '![](../Images/618e229be67fc6a6d949c05e038e3ff2.png)'
+  id: totrans-46
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/618e229be67fc6a6d949c05e038e3ff2.png)'
 - en: GA optimization history
+  id: totrans-47
   prefs: []
   type: TYPE_NORMAL
+  zh: GA优化历史
 - en: Comparison between methods
+  id: totrans-48
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 方法比较
 - en: 'We’ve tried three different techniques: SFS, CMA-ES, and GA. How do they compare
     in terms of the best objective found, and the time it took to find it?'
+  id: totrans-49
   prefs: []
   type: TYPE_NORMAL
+  zh: 我们尝试了三种不同的技术：SFS、CMA-ES和GA。它们在找到最佳目标值以及所需时间方面如何比较？
 - en: These tests were performed on an AMD Ryzen 7 5800X3D (8/16 cores) machine, running
     Ubuntu 22.04, and Python 3.11.7\. SFS and GA are running the objective function
     via a multiprocessing pool with 16 workers. CMA-ES is single-process — running
     it multi-process did not seem to provide significant improvements, but I’m sure
     that could change if more work is dedicated to making the algorithm parallel.
+  id: totrans-50
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些测试是在一台配备AMD Ryzen 7 5800X3D（8/16核心）的机器上进行的，运行的是Ubuntu 22.04和Python 3.11.7。SFS和GA通过一个16个工作线程的多进程池运行目标函数。CMA-ES是单进程的——尝试多进程运行时似乎没有显著提升，但我相信如果更多的工作集中在使算法并行化上，结果可能会有所不同。
 - en: These are the run times. For SFS it’s the total run time. For CMA-ES and GA
     it’s the time to the best solution. Less is better.
+  id: totrans-51
   prefs: []
   type: TYPE_NORMAL
+  zh: 这些是运行时间。对于SFS来说是总运行时间，对于CMA-ES和GA来说是达到最佳解的时间。时间越短越好。
 - en: '[PRE3]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: 'The number of times the objective function was invoked — less is better:'
+  id: totrans-53
   prefs: []
   type: TYPE_NORMAL
+  zh: 目标函数调用的次数——次数越少越好：
 - en: '[PRE4]'
+  id: totrans-54
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: 'The best values found for the objective function, compared to the baseline
     — less is better:'
+  id: totrans-55
   prefs: []
   type: TYPE_NORMAL
+  zh: 相较于基准，目标函数找到的最佳值——值越小越好：
 - en: '[PRE5]'
+  id: totrans-56
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: GA was able to beat SFS at the objective function, running the objective function
     on as many CPU cores as were available, but it’s by far the slowest. It invoked
     the objective function more than an order of magnitude more times than the other
     methods. Further hyperparameter optimizations may improve the outcome.
+  id: totrans-57
   prefs: []
   type: TYPE_NORMAL
+  zh: GA能够在目标函数上击败SFS，利用尽可能多的CPU核心运行目标函数，但它是最慢的。它调用目标函数的次数是其他方法的一个数量级以上。进一步的超参数优化可能会改善结果。
 - en: SFS is quick (running on all CPU cores), but its performance is modest. It’s
     also the simplest algorithm by far.
+  id: totrans-58
   prefs: []
   type: TYPE_NORMAL
+  zh: SFS运行迅速（在所有CPU核心上运行），但其性能适中。它也是最简单的算法。
 - en: If you just want a quick estimate of the best feature set, using a simple algorithm,
     SFS is not too bad.
+  id: totrans-59
   prefs: []
   type: TYPE_NORMAL
+  zh: 如果你只是想快速估算最佳特征集，使用简单算法，SFS还不错。
 - en: OTOH, if you want the optimal objective value, CMA-ES seems to be the best.
+  id: totrans-60
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一方面，如果你追求最佳的目标值，CMA-ES似乎是最好的选择。
 - en: '*This is the final part of a two-part series about feature selection. Read*
     [*part 1 here*](/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173)*.*'
+  id: totrans-61
   prefs: []
   type: TYPE_NORMAL
+  zh: '*这是关于特征选择的两部分系列的最后一部分。阅读* [*第一部分这里*](/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173)*。*'
 - en: Notes and links
+  id: totrans-62
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 注意事项和链接
 - en: All images were created by the author.
+  id: totrans-63
   prefs: []
   type: TYPE_NORMAL
+  zh: 所有图像均由作者制作。
 - en: 'Repository with all code: [https://github.com/FlorinAndrei/fast_feature_selection](https://github.com/FlorinAndrei/fast_feature_selection)'
+  id: totrans-64
   prefs: []
   type: TYPE_NORMAL
+  zh: 包含所有代码的代码库：[https://github.com/FlorinAndrei/fast_feature_selection](https://github.com/FlorinAndrei/fast_feature_selection)
 - en: 'The House Prices dataset (MIT license): [https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data)'
+  id: totrans-65
   prefs: []
   type: TYPE_NORMAL
+  zh: 房价数据集（MIT许可证）：[https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data)
 - en: 'The deap library: [https://github.com/DEAP/deap](https://github.com/DEAP/deap)'
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: deap库：[https://github.com/DEAP/deap](https://github.com/DEAP/deap)
 - en: 'A free tutorial for genetic algorithms: [https://www.tutorialspoint.com/genetic_algorithms/index.htm](https://www.tutorialspoint.com/genetic_algorithms/index.htm)'
+  id: totrans-67
   prefs: []
   type: TYPE_NORMAL
+  zh: 一份免费的遗传算法教程：[https://www.tutorialspoint.com/genetic_algorithms/index.htm](https://www.tutorialspoint.com/genetic_algorithms/index.htm)
