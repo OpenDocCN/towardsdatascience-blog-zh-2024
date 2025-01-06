@@ -1,711 +1,1078 @@
 - en: Deploying LLMs Into Production Using TensorRT LLM
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 使用 TensorRT LLM 将 LLM 部署到生产环境
 - en: 原文：[https://towardsdatascience.com/deploying-llms-into-production-using-tensorrt-llm-ed36e620dac4?source=collection_archive---------2-----------------------#2024-02-22](https://towardsdatascience.com/deploying-llms-into-production-using-tensorrt-llm-ed36e620dac4?source=collection_archive---------2-----------------------#2024-02-22)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/deploying-llms-into-production-using-tensorrt-llm-ed36e620dac4?source=collection_archive---------2-----------------------#2024-02-22](https://towardsdatascience.com/deploying-llms-into-production-using-tensorrt-llm-ed36e620dac4?source=collection_archive---------2-----------------------#2024-02-22)
 - en: A guide on accelerating inference performance
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 加速推理性能的指南
 - en: '[](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)[![Het
     Trivedi](../Images/f6f11a66f60cacc6b553c7d1682b2fc6.png)](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)
     [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)[![Het
+    Trivedi](../Images/f6f11a66f60cacc6b553c7d1682b2fc6.png)](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)
+    [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)
     ·14 min read·Feb 22, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)
+    ·14 分钟阅读·2024年2月22日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/dbf53f99c8b64aab618b12890f6e345d.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/dbf53f99c8b64aab618b12890f6e345d.png)'
 - en: Image by author — Created using Stable Diffusion XL
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: 图片来源：作者 — 使用 Stable Diffusion XL 创建
 - en: Intro
+  id: totrans-8
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 简介
 - en: Open-source large language models have lived up to the hype. Many companies
     that use GPT-3.5 or GPT-4 in production have realized that these models are simply
     not scalable from a cost perspective. Because of this, enterprises are looking
     for good open-source alternatives. Recent models like Mixtral and Llama 2 have
     shown stellar results when it comes to output quality. But, scaling these models
     to support thousands of concurrent users still remains a challenge.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 开源的大型语言模型已经兑现了其炒作的承诺。许多使用 GPT-3.5 或 GPT-4 进行生产的公司已经意识到，这些模型在成本角度上根本不可扩展。因此，企业正在寻找更好的开源替代方案。最近的模型，如
+    Mixtral 和 Llama 2，在输出质量方面表现出色。但将这些模型扩展到支持数千个并发用户仍然是一个挑战。
 - en: While frameworks such as [vLLM](https://github.com/vllm-project/vllm) and [TGI](https://github.com/huggingface/text-generation-inference)
     are a great starting point for boosting inference, they lack some optimizations,
     making it difficult to scale them in production.
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然像 [vLLM](https://github.com/vllm-project/vllm) 和 [TGI](https://github.com/huggingface/text-generation-inference)
+    这样的框架在提升推理方面是一个很好的起点，但它们缺乏一些优化，导致它们在生产环境中的扩展性较差。
 - en: This is where [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM) comes in.
     TensorRT-LLM is an open-source framework designed by Nvidia to boost the performance
     of large language models in a production environment. Most of the big shots such
     as Anthropic, OpenAI, Anyscale, etc. are already using this framework to serve
     LLMs to millions of users.
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是 [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM) 的作用所在。TensorRT-LLM
+    是 Nvidia 设计的一个开源框架，旨在提升大型语言模型在生产环境中的性能。许多大公司，如 Anthropic、OpenAI、Anyscale 等，已经在使用这个框架为数百万用户提供
+    LLM 服务。
 - en: Understanding TensorRT-LLM
+  id: totrans-12
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 了解 TensorRT-LLM
 - en: Unlike other inference techniques, TensorRT LLM does not serve the model using
     raw weights. Instead, it compiles the model and optimizes the kernels to enable
     efficient serving on an Nvidia GPU. The performance benefits of running a compiled
     model are far greater than running it raw. This is one of the main reasons why
     TensorRT LLM is blazing fast.
+  id: totrans-13
   prefs: []
   type: TYPE_NORMAL
+  zh: 与其他推理技术不同，TensorRT LLM 并不使用原始权重来提供模型。相反，它会编译模型并优化内核，以便在 Nvidia GPU 上实现高效服务。运行编译后的模型的性能远高于运行原始模型。这也是
+    TensorRT LLM 非常快速的主要原因之一。
 - en: '![](../Images/1c95449fd97a6e24f5c8900d72146452.png)'
+  id: totrans-14
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/1c95449fd97a6e24f5c8900d72146452.png)'
 - en: The raw model gets compiled into an optimized binary
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 原始模型被编译成优化后的二进制文件
 - en: The raw model weights along with optimization options such as quantization level,
     tensor parallelism, pipeline parallelism, etc. get passed to the compiler. The
     compiler then takes that information and outputs a model binary that is optimized
     for the specific GPU.
+  id: totrans-16
   prefs: []
   type: TYPE_NORMAL
+  zh: 原始模型权重以及优化选项（如量化级别、张量并行性、流水线并行性等）被传递给编译器。编译器根据这些信息输出一个针对特定 GPU 优化的模型二进制文件。
 - en: An important thing to note is that the entire model compilation process MUST
     take place on a GPU. The compiled model that gets generated is optimized specifically
     on the GPU that it is run on. For example, if you compile the model on a A40 GPU,
     you won’t be able to run it on an A100 GPU. So whatever GPU is used during compilation,
     the same GPU must get used for inference.
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 一个需要注意的重要事项是，整个模型编译过程必须在 GPU 上进行。生成的已编译模型是专门针对运行时使用的 GPU 进行优化的。例如，如果你在 A40 GPU
+    上编译模型，就不能在 A100 GPU 上运行该模型。因此，无论在编译时使用的是哪个 GPU，推理时必须使用相同的 GPU。
 - en: TensorRT LLM does not support all large language models out of the box. The
     reason is that each model architecture is different and TensorRT does deep graph
     level optimizations. With that being said, most of the popular models such as
     Mistral, Llama, and Qwen are supported. If you’re curious about the full list
     of supported models you can check the [TensorRT LLM Github repository](https://github.com/NVIDIA/TensorRT-LLM?tab=readme-ov-file#models).
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: TensorRT LLM 并不支持所有大型语言模型。原因是每种模型架构不同，而 TensorRT 进行的是深度图优化。因此，大多数流行的模型如 Mistral、Llama
+    和 Qwen 都得到了支持。如果你对支持的模型的完整列表感兴趣，可以查看[TensorRT LLM Github 仓库](https://github.com/NVIDIA/TensorRT-LLM?tab=readme-ov-file#models)。
 - en: Benefits Of Using TensorRT-LLM
+  id: totrans-19
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 使用 TensorRT-LLM 的好处
 - en: The TensorRT LLM python package allows developers to run LLMs at peak performance
     without having to know C++ or CUDA. On top of that, it comes with handy features
     such as token streaming, paged attention, and KV cache. Let’s dig a bit deeper
     into a few of these topics.
+  id: totrans-20
   prefs: []
   type: TYPE_NORMAL
+  zh: TensorRT LLM Python 包使开发者能够在无需了解 C++ 或 CUDA 的情况下，以最高性能运行 LLM。此外，它还附带了一些方便的功能，如标记流、分页注意和
+    KV 缓存。让我们更深入地了解其中的一些主题。
 - en: '**Paged Attention**'
+  id: totrans-21
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '**分页注意**'
 - en: Large language models require a lot of memory to store the keys and values for
     each token. This memory usage grows very large as the input sequence gets longer.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 大型语言模型需要大量内存来存储每个标记的键和值。随着输入序列变长，这种内存使用会急剧增加。
 - en: With regular attention, the keys and values for a sequence have to be stored
     contiguously. So even if you free up space in the middle of the sequence’s memory
     allocation, you can’t use that space for other sequences. This causes fragmentation
     and waste.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用常规注意机制时，一个序列的键和值必须连续存储。因此，即使你在序列内存分配中间释放了空间，你也无法将该空间用于其他序列。这会导致碎片化和浪费。
 - en: '![](../Images/08d85fea7a59e19130c1bb21226f9b37.png)'
+  id: totrans-24
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/08d85fea7a59e19130c1bb21226f9b37.png)'
 - en: '“Attention”: All of the tokens have to be kept in a contiguous block of memory
     even if there is free space'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: “注意”：所有的标记必须保持在一个连续的内存块中，即使存在空闲空间。
 - en: With paged attention, each page of keys/values can be placed anywhere in memory,
     non-contiguous. So if you free up some pages in the middle, that space can now
     be reused for other sequences.
+  id: totrans-26
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用分页注意时，每个键/值的页面可以放置在内存中的任何位置，不需要连续存储。因此，如果你释放了中间的一些页面，这部分空间现在可以被用于其他序列。
 - en: This prevents fragmentation and allows higher memory utilization. Pages can
     be allocated and freed dynamically as needed when generating the output sequence.
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 这可以防止内存碎片化，并提高内存利用率。生成输出序列时，页面可以根据需要动态分配和释放。
 - en: '![](../Images/c8cce889733d34153a40213a72e7d61b.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c8cce889733d34153a40213a72e7d61b.png)'
 - en: '“Paged Attention”: Previously generated tokens can be deleted from memory by
     deleting the whole page. This makes space for new sequences.'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: “分页注意”：可以通过删除整个页面来从内存中删除之前生成的标记。这为新序列腾出了空间。
 - en: 2\. **Efficient KV Caching**
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. **高效的 KV 缓存**
 - en: KV caches stand for “key-value caches” and are used to cache parts of large
     language models (LLMs) to improve inference speed and reduce memory usage.
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: KV 缓存代表“键值缓存”，用于缓存大型语言模型（LLM）的一部分，以提高推理速度并减少内存使用。
 - en: LLMs have billions of parameters, making them slow and memory- intensive to
     run inferences on. KV caches help address this by caching the layer outputs and
     activations of the LLM so they don’t need to be recomputed for every inference.
+  id: totrans-32
   prefs: []
   type: TYPE_NORMAL
+  zh: LLM 拥有数十亿个参数，使得它们在进行推理时变得缓慢且内存密集。KV 缓存通过缓存 LLM 的层输出和激活值，避免了每次推理时都需要重新计算这些值，从而帮助解决这个问题。
 - en: 'Here’s how it works:'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 其工作原理如下：
 - en: During inference, as the LLM executes each layer, the outputs are cached to
     a key-value store with a unique key.
+  id: totrans-34
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在推理过程中，当 LLM 执行每一层时，输出会被缓存到一个带有唯一键的键值存储中。
 - en: When subsequent inferences use the same layer inputs, instead of recomputing
     the layer, the cached outputs are retrieved using the key.
+  id: totrans-35
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 当后续推理使用相同的层输入时，系统不会重新计算该层，而是通过键从缓存中获取输出。
 - en: This avoids redundant computations and reduces activation memory, improving
     inference speed and memory efficiency.
+  id: totrans-36
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这样可以避免冗余计算并减少激活内存，从而提高推理速度和内存效率。
 - en: Alright, enough with the theory. Let’s deploy a model for real!
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 好了，理论部分讲完了。让我们真正部署一个模型吧！
 - en: Hands-On Python Tutorial
+  id: totrans-38
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 实践 Python 教程
 - en: 'There are two steps to deploy a model using TensorRT-LLM:'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 TensorRT-LLM 部署模型有两个步骤：
 - en: Compile the model
+  id: totrans-40
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 编译模型
 - en: Deploy the compiled model as a REST API endpoint
+  id: totrans-41
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: 将编译好的模型部署为 REST API 端点
 - en: 'Step 1: Compiling the model'
+  id: totrans-42
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 步骤 1：编译模型
 - en: For this tutorial, we will be working with [Mistral 7B Instruct v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2).
     As mentioned earlier, the compilation phase requires a GPU. I found the easiest
     way to compile a model is on a Google Colab notebook.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本教程中，我们将使用 [Mistral 7B Instruct v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)。如前所述，编译阶段需要
+    GPU。我发现编译模型最简单的方法是在 Google Colab 笔记本上进行。
 - en: '[](https://colab.research.google.com/drive/1tJSMGbqYDstnChytaFb9F37oBspDcsRL?usp=sharing&source=post_page-----ed36e620dac4--------------------------------)
     [## Mistral 7B Compiler Google Colaboratory'
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://colab.research.google.com/drive/1tJSMGbqYDstnChytaFb9F37oBspDcsRL?usp=sharing&source=post_page-----ed36e620dac4--------------------------------)
+    [## Mistral 7B 编译器 Google Colaboratory'
 - en: Edit description
+  id: totrans-45
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 编辑描述
 - en: colab.research.google.com](https://colab.research.google.com/drive/1tJSMGbqYDstnChytaFb9F37oBspDcsRL?usp=sharing&source=post_page-----ed36e620dac4--------------------------------)
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '[colab.research.google.com](https://colab.research.google.com/drive/1tJSMGbqYDstnChytaFb9F37oBspDcsRL?usp=sharing&source=post_page-----ed36e620dac4--------------------------------)'
 - en: TensorRT LLM is primarily supported on high end Nvidia GPUs. I ran the google
     colab on an A100 40GB GPU and will use the same GPU for deployment as well.
+  id: totrans-47
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: TensorRT LLM 主要支持高端 Nvidia GPU。我在 A100 40GB GPU 上运行了 Google Colab，并将在部署时使用相同的
+    GPU。
 - en: '[PRE0]'
+  id: totrans-48
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE0]'
 - en: Clone the [TensorRT-LLM git repo](https://github.com/NVIDIA/TensorRT-LLM). This
     repo contains all of the modules and scripts we need to compile the model.
+  id: totrans-49
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 克隆 [TensorRT-LLM git 仓库](https://github.com/NVIDIA/TensorRT-LLM)。该仓库包含了我们需要的所有模块和脚本，用于编译模型。
 - en: '[PRE1]'
+  id: totrans-50
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE1]'
 - en: Install the necessary Python dependencies.
+  id: totrans-51
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 安装必要的 Python 依赖项。
 - en: '[PRE2]'
+  id: totrans-52
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE2]'
 - en: Download the Mistral 7B Instruct v0.2 model weights from hugging face and store
     them in a local directory at `tmp/hf_models/mistral-7b-instruct-v0.2`
+  id: totrans-53
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 从 hugging face 下载 Mistral 7B Instruct v0.2 模型权重，并将其存储在本地目录 `tmp/hf_models/mistral-7b-instruct-v0.2`
+    中。
 - en: If you look inside the `tmp/hf_models` directory in Colab you should see the
     model weights there.
+  id: totrans-54
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 如果你查看 Colab 中 `tmp/hf_models` 目录，你应该能看到模型权重。
 - en: '[PRE3]'
+  id: totrans-55
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE3]'
 - en: The raw model weights cannot be compiled. Instead, they have to get converted
     into a specific tensorRT LLM format.
+  id: totrans-56
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 原始模型权重无法被编译。相反，它们必须转换为特定的 tensorRT LLM 格式。
 - en: The `convert_checkpoint.py` script takes the raw Mistral weights and converts
     them into a compatible format.
+  id: totrans-57
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`convert_checkpoint.py` 脚本将原始的 Mistral 权重转换为兼容的格式。'
 - en: The `--model_dir` is the path to the raw model weights.
+  id: totrans-58
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--model_dir` 是原始模型权重的路径。'
 - en: The `--output_dir` is the path to the converted weights.
+  id: totrans-59
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--output_dir` 是转换后的权重的路径。'
 - en: '[PRE4]'
+  id: totrans-60
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE4]'
 - en: The `trtllm-build` command compiles the model. At this stage, you can pass in
     various optimization flags as well. To keep things simple, I have not used any
     additional optimizations.
+  id: totrans-61
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`trtllm-build` 命令用于编译模型。在此阶段，你还可以传入各种优化标志。为了简化，我没有使用任何额外的优化。'
 - en: The `--checkpoint_dir` is the path to the **converted** model weights.
+  id: totrans-62
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--checkpoint_dir` 是 **转换后的** 模型权重的路径。'
 - en: The `--output_dir` is where the compiled model gets saved.
+  id: totrans-63
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`--output_dir` 是编译好的模型保存的路径。'
 - en: Mistral 7B Instruct v0.2 supports a 32K context length. I’ve set that context
     length using the`--max_input_length` flag.
+  id: totrans-64
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: Mistral 7B Instruct v0.2 支持 32K 的上下文长度。我通过 `--max_input_length` 标志设置了这个上下文长度。
 - en: 'Note: Compiling the model can take 15–30 minutes'
+  id: totrans-65
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 注意：编译模型可能需要 15 到 30 分钟。
 - en: Once the model is compiled, you can upload your compiled model to [hugging face
     hub](https://huggingface.co/new). In order the upload files to hugging face hub
     you will need a valid access token that has **WRITE** access.
+  id: totrans-66
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦模型编译完成，你可以将编译好的模型上传到 [hugging face hub](https://huggingface.co/new)。为了将文件上传到
+    hugging face hub，你需要一个有效的访问令牌，并且该令牌具有 **WRITE** 权限。
 - en: '[PRE5]'
+  id: totrans-67
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE5]'
 - en: This code uploads the compiled model, the *.engine* file, to hugging face under
     your user id.
+  id: totrans-68
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 这段代码将编译好的模型，即*.engine*文件，上传到 Hugging Face 并与您的用户 ID 关联。
 - en: Replace the **<your-repo-id>** in the code with your hugging face repo which
     is usually your hugging face user id.
+  id: totrans-69
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在代码中将**<your-repo-id>**替换为您的 Hugging Face 仓库，这通常是您的 Hugging Face 用户 ID。
 - en: Awesome! That finishes the model compilation part. Onto the deployment step.
+  id: totrans-70
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！这就完成了模型编译部分。接下来是部署步骤。
 - en: 'Step 2: Deploying the compiled model'
+  id: totrans-71
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 第2步：部署编译好的模型
 - en: There are a lot of ways to deploy this compiled model. You can use a simple
     tool like [FastAPI](https://fastapi.tiangolo.com/) or something more complex like
     the [triton inference server](https://github.com/triton-inference-server/server).
+  id: totrans-72
   prefs: []
   type: TYPE_NORMAL
+  zh: 部署这个编译模型有很多种方式。您可以使用像[FastAPI](https://fastapi.tiangolo.com/)这样的简单工具，也可以使用更复杂的工具，如[triton推理服务器](https://github.com/triton-inference-server/server)。
 - en: When using a tool like FastAPI, the developer has to set up the API server,
     write the Dockerfile, and configure CUDA correctly. Managing these things can
     be a real pain and it ruins the overall developer experience.
+  id: totrans-73
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用像 FastAPI 这样的工具时，开发者需要自行设置 API 服务器，编写 Dockerfile，并正确配置 CUDA。管理这些内容可能非常麻烦，并且破坏了整体的开发体验。
 - en: 'To avoid these issues, I’ve decided to use a simple open-source tool called
     [Truss](https://github.com/basetenlabs/truss). Truss allows developers to easily
     package their models with GPU support and run them on any cloud environment. It
     has a ton of great features that make containerizing models a breeze:'
+  id: totrans-74
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了避免这些问题，我决定使用一个简单的开源工具叫做[Truss](https://github.com/basetenlabs/truss)。Truss
+    使得开发者能够轻松地将模型打包并支持 GPU，可以在任何云环境中运行。它具有许多很棒的功能，使得模型容器化变得轻松：
 - en: GPU support out of the box. No need to deal with CUDA.
+  id: totrans-75
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 开箱即用的 GPU 支持，无需处理 CUDA。
 - en: Automatic Dockerfile creation. No need to write it yourself.
+  id: totrans-76
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 自动生成 Dockerfile。无需自己编写。
 - en: Production ready API server
+  id: totrans-77
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 生产级 API 服务器
 - en: Simple python interface
+  id: totrans-78
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 简单的 Python 接口
 - en: The main benefit of using Truss is that you can easily containerize a model
     with GPU support and deploy it to any cloud environment.
+  id: totrans-79
   prefs: []
   type: TYPE_NORMAL
+  zh: 使用 Truss 的主要好处是，您可以轻松地将一个支持 GPU 的模型容器化，并部署到任何云环境。
 - en: '![](../Images/02773e33ebbadeef2057f2f78e894370.png)'
+  id: totrans-80
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/02773e33ebbadeef2057f2f78e894370.png)'
 - en: Build the Truss once. Deploy is anywhere.
+  id: totrans-81
   prefs: []
   type: TYPE_NORMAL
+  zh: 构建 Truss 一次，随时部署。
 - en: '**Creating the Truss**'
+  id: totrans-82
   prefs: []
   type: TYPE_NORMAL
+  zh: '**创建 Truss**'
 - en: 'Create or open a python virtual environment with python version ≥ 3.8 and install
     the following dependency:'
+  id: totrans-83
   prefs: []
   type: TYPE_NORMAL
+  zh: 创建或打开一个 Python 虚拟环境，Python 版本需≥ 3.8，并安装以下依赖：
 - en: '[PRE6]'
+  id: totrans-84
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE6]'
 - en: '**(Optional)** If you want to create your Truss project from scratch you can
     run the command:'
+  id: totrans-85
   prefs: []
   type: TYPE_NORMAL
+  zh: '**（可选）** 如果您想从头创建 Truss 项目，可以运行以下命令：'
 - en: '[PRE7]'
+  id: totrans-86
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE7]'
 - en: You will be prompted to give your model a name. Any name such as *Mistral 7B
     Tensort LLM* will do. Running the command above auto generates the required files
     to deploy a Truss.
+  id: totrans-87
   prefs: []
   type: TYPE_NORMAL
+  zh: 系统会提示您为模型命名。任何名称，例如 *Mistral 7B TensorRT LLM* 都可以。运行上述命令会自动生成部署 Truss 所需的文件。
 - en: 'To speed the process up a bit, I have a Github repository that contains the
     required files. Please clone the Github repository below:'
+  id: totrans-88
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了加速这个过程，我有一个包含所需文件的 Github 仓库。请克隆下面的 Github 仓库：
 - en: '[](https://github.com/htrivedi99/mistral-7b-tensorrt-llm-truss?source=post_page-----ed36e620dac4--------------------------------)
     [## GitHub - htrivedi99/mistral-7b-tensorrt-llm-truss'
+  id: totrans-89
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://github.com/htrivedi99/mistral-7b-tensorrt-llm-truss?source=post_page-----ed36e620dac4--------------------------------)
+    [## GitHub - htrivedi99/mistral-7b-tensorrt-llm-truss'
 - en: Contribute to htrivedi99/mistral-7b-tensorrt-llm-truss development by creating
     an account on GitHub.
+  id: totrans-90
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 通过在 GitHub 上创建账户，贡献代码给 htrivedi99/mistral-7b-tensorrt-llm-truss 项目。
 - en: github.com](https://github.com/htrivedi99/mistral-7b-tensorrt-llm-truss?source=post_page-----ed36e620dac4--------------------------------)
+  id: totrans-91
   prefs: []
   type: TYPE_NORMAL
+  zh: github.com](https://github.com/htrivedi99/mistral-7b-tensorrt-llm-truss?source=post_page-----ed36e620dac4--------------------------------)
 - en: 'This is what the directory structure should look like for `mistral-7b-tensorrt-llm-truss`
     :'
+  id: totrans-92
   prefs: []
   type: TYPE_NORMAL
+  zh: 这就是 `mistral-7b-tensorrt-llm-truss` 目录结构应该呈现的样子：
 - en: '[PRE8]'
+  id: totrans-93
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE8]'
 - en: 'Here’s a quick breakdown of what the files above are used for:'
+  id: totrans-94
   prefs: []
   type: TYPE_NORMAL
+  zh: 以下是上述文件用途的简要说明：
 - en: The `config.yaml` is used to set various configurations for your model, including
     its resources, dependencies, environmental variables, and more. This is where
     we can specify the model name, which Python dependencies to install, as well as
     which system packages to install.
+  id: totrans-95
   prefs:
   - PREF_OL
   type: TYPE_NORMAL
+  zh: '`config.yaml` 用于设置模型的各种配置，包括其资源、依赖项、环境变量等。您可以在这里指定模型名称、要安装的 Python 依赖项以及要安装的系统软件包。'
 - en: '2\. The `model/model.py` is the heart of Truss. It contains the Python code
     that will get executed on the Truss server. In the `model.py` there are two main
     methods: `load()` and `predict()` .'
+  id: totrans-96
   prefs: []
   type: TYPE_NORMAL
+  zh: 2\. `model/model.py`是Truss的核心。它包含了将在Truss服务器上执行的Python代码。在`model.py`中有两个主要方法：`load()`和`predict()`。
 - en: The `load` method is where we’ll download the compiled model from hugging face
     and initialize the TensorRT LLM engine.
+  id: totrans-97
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`load`方法是我们从Hugging Face下载已编译模型并初始化TensorRT LLM引擎的地方。'
 - en: The `predict` method receives HTTP requests and calls the model.
+  id: totrans-98
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`predict`方法接收HTTP请求并调用模型。'
 - en: 3\. The `model/utils.py` contains some helper functions for the `model.py` file.
     I did not write the `utils.py` file myself, I took it directly from the [TensorRT
     LLM repository](https://github.com/NVIDIA/TensorRT-LLM/blob/main/examples/utils.py).
+  id: totrans-99
   prefs: []
   type: TYPE_NORMAL
+  zh: 3\. `model/utils.py`包含了一些供`model.py`使用的辅助函数。我并不是自己编写的`utils.py`文件，而是直接从[TensorRT
+    LLM仓库](https://github.com/NVIDIA/TensorRT-LLM/blob/main/examples/utils.py)中获取的。
 - en: 4\. The `requirements.txt` contains the necessary Python dependencies to run
     our compiled model.
+  id: totrans-100
   prefs: []
   type: TYPE_NORMAL
+  zh: 4\. `requirements.txt`包含了运行已编译模型所需的Python依赖项。
 - en: '**Deeper Code Explanation:**'
+  id: totrans-101
   prefs: []
   type: TYPE_NORMAL
+  zh: '**更深入的代码解释：**'
 - en: The `model.py` contains the main code that gets executed, so let’s dig a bit
     deeper into that file. Let’s first take a look at the `load` function.
+  id: totrans-102
   prefs: []
   type: TYPE_NORMAL
+  zh: '`model.py`包含了要执行的主要代码，让我们深入研究一下这个文件。首先来看一下`load`函数。'
 - en: '[PRE9]'
+  id: totrans-103
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE9]'
 - en: 'What’s happening here:'
+  id: totrans-104
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生了什么：
 - en: At the top of the file we import the necessary modules, specifically `tensorrt_llm`
+  id: totrans-105
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 在文件顶部，我们导入了必要的模块，特别是`tensorrt_llm`。
 - en: 'Next, inside the load function, we download the compiled model using the `snapshot_download`
     function. My compiled model is at the following repo id: `htrivedi99/mistral-7b-v0.2-trtllm`
     . If you uploaded your compiled model elsewhere, update this value accordingly.'
+  id: totrans-106
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，在`load`函数内部，我们使用`snapshot_download`函数下载已编译的模型。我的编译模型位于以下仓库ID：`htrivedi99/mistral-7b-v0.2-trtllm`。如果你将已编译的模型上传到其他地方，请相应地更新此值。
 - en: Then, we download the tokenizer for the model using the `load_tokenizer` function
     that comes with `model/utils.py` .
+  id: totrans-107
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后，我们使用`model/utils.py`中提供的`load_tokenizer`函数下载模型的分词器。
 - en: Finally, we use TensorRT LLM to load our compiled model using the `ModelRunner`
     class.
+  id: totrans-108
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 最后，我们使用TensorRT LLM通过`ModelRunner`类加载已编译的模型。
 - en: Cool, let’s take a look at the `predict` function as well.
+  id: totrans-109
   prefs: []
   type: TYPE_NORMAL
+  zh: 很棒，让我们也看看`predict`函数。
 - en: '[PRE10]'
+  id: totrans-110
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE10]'
 - en: 'What’s happening here:'
+  id: totrans-111
   prefs: []
   type: TYPE_NORMAL
+  zh: 发生了什么：
 - en: The `predict` function accepts a few model inputs such as the `prompt` , `max_new_tokens`
     , `temperature` , etc. We extract all of these values at the top of the function
     using the `request.pop` method.
+  id: totrans-112
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: '`predict`函数接受一些模型输入，例如`prompt`、`max_new_tokens`、`temperature`等。我们使用`request.pop`方法在函数顶部提取所有这些值。'
 - en: Next, we format the prompt into the required format for TensorRT LLM using the
     `self.parse_input` helper function.
+  id: totrans-113
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 接下来，我们使用`self.parse_input`辅助函数将提示格式化为TensorRT LLM所需的格式。
 - en: Then, we call our LLM model to generate the outputs using the `self.model.generate`
     function. The generate function accepts a variety of arguments that help control
     the output of the LLM.
+  id: totrans-114
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 然后，我们调用LLM模型，使用`self.model.generate`函数生成输出。generate函数接受多种参数，帮助控制LLM的输出。
 - en: I’ve also added some code to enable streaming by producing a `generator` object.
     If streaming is disabled, the tokenizer simply decodes the output of the LLM and
     returns it as a JSON object.
+  id: totrans-115
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 我还添加了一些代码，通过生成`generator`对象来启用流式传输。如果流式传输被禁用，分词器会直接解码LLM的输出，并将其作为JSON对象返回。
 - en: Awesome! That covers the coding portion. Let’s containerize it.
+  id: totrans-116
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！这部分代码就讲完了。让我们来容器化它。
 - en: '**Containerizing the model:**'
+  id: totrans-117
   prefs: []
   type: TYPE_NORMAL
+  zh: '**容器化模型：**'
 - en: In order to run our model in the cloud we need to containerize it. Truss will
     take care of creating the Dockerfile and packaging everything for us, so we don’t
     have to do much.
+  id: totrans-118
   prefs: []
   type: TYPE_NORMAL
+  zh: 为了在云端运行我们的模型，我们需要将其容器化。Truss会帮我们创建Dockerfile并将所有内容打包，所以我们不需要做太多。
 - en: 'Outside of the `mistral-7b-tensorrt-llm-truss` directory create a file called
     `main.py` . Paste the following code inside it:'
+  id: totrans-119
   prefs: []
   type: TYPE_NORMAL
+  zh: 在`mistral-7b-tensorrt-llm-truss`目录外创建一个名为`main.py`的文件。将以下代码粘贴到文件中：
 - en: '[PRE11]'
+  id: totrans-120
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE11]'
 - en: Run the `main.py` file and look inside the `mistral-7b-tensorrt-llm-truss` directory.
     You should see a bunch of files get auto-generated. We don’t need to worry about
     what these files mean, it’s just Truss doing its magic.
+  id: totrans-121
   prefs: []
   type: TYPE_NORMAL
+  zh: 运行`main.py`文件并查看`mistral-7b-tensorrt-llm-truss`目录。你应该会看到一堆文件被自动生成。我们不需要担心这些文件的含义，这只是Truss在发挥作用。
 - en: 'Next, let’s build our container using docker. Run the commands below sequentially:'
+  id: totrans-122
   prefs: []
   type: TYPE_NORMAL
+  zh: 接下来，让我们使用docker构建我们的容器。按顺序运行下面的命令：
 - en: '[PRE12]'
+  id: totrans-123
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE12]'
 - en: Sweet! We’re ready to deploy the model in the cloud!
+  id: totrans-124
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！我们准备好在云端部署模型了！
 - en: Deploying the model in GKE
+  id: totrans-125
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 在 GKE 上部署模型
 - en: For this section, we’ll be deploying the model on Google Kubernetes Engine.
     If you recall, during the model compilation step we ran the Google Colab on an
     A100 40GB GPU. For TensorRT LLM to work, we need to deploy the model on the exact
     same GPU for inference.
+  id: totrans-126
   prefs: []
   type: TYPE_NORMAL
+  zh: 在本节中，我们将在 Google Kubernetes Engine 上部署模型。如果你还记得，在模型编译步骤中我们使用了 A100 40GB GPU
+    运行 Google Colab。为了使 TensorRT LLM 正常工作，我们需要在完全相同的 GPU 上进行推理部署。
 - en: 'I won’t go super deep into how to set up a GKE cluster as it’s not in the scope
     of this article. But, I will provide the specs I used for the cluster. Here are
     the specs:'
+  id: totrans-127
   prefs: []
   type: TYPE_NORMAL
+  zh: 我不会深入讲解如何设置 GKE 集群，因为这不在本文的范围内。但我会提供我在集群中使用的规格。以下是规格：
 - en: 1 node, standard kubernetes cluster (not autopilot)
+  id: totrans-128
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1 个节点，标准 Kubernetes 集群（非自动驾驶）
 - en: 1.28.5 gke kubernetes version
+  id: totrans-129
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1.28.5 gke kubernetes 版本
 - en: 1 Nvidia A100 40GB GPU
+  id: totrans-130
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 1 个 Nvidia A100 40GB GPU
 - en: a2-highgpu-1g machine (12 vCPU, 85 GB memory)
+  id: totrans-131
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: a2-highgpu-1g 机器（12 vCPU，85 GB 内存）
 - en: Google managed GPU Driver installation (Otherwise we need to install Cuda driver
     manually)
+  id: totrans-132
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 谷歌托管的 GPU 驱动程序安装（否则我们需要手动安装 Cuda 驱动程序）
 - en: All of this will run on a spot instance
+  id: totrans-133
   prefs:
   - PREF_UL
   type: TYPE_NORMAL
+  zh: 所有这些将在一个临时实例上运行
 - en: 'Once the cluster is configured, we can launch it and connect to it. After the
     cluster is active and you’ve successfully connected to it, create the following
     kubernetes deployment:'
+  id: totrans-134
   prefs: []
   type: TYPE_NORMAL
+  zh: 一旦集群配置完成，我们就可以启动它并连接到集群。在集群激活并成功连接后，创建以下 Kubernetes 部署：
 - en: '[PRE13]'
+  id: totrans-135
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE13]'
 - en: This is a standard kubernetes deployment that runs a container with the image
     `htrivedi05/mistral-7b-v0.2-trt:latest` . If you created your own image in the
     previous section, go ahead and use that. Feel free to use mine otherwise.
+  id: totrans-136
   prefs: []
   type: TYPE_NORMAL
+  zh: 这是一个标准的 Kubernetes 部署，它运行一个带有镜像 `htrivedi05/mistral-7b-v0.2-trt:latest` 的容器。如果你在前一节创建了自己的镜像，可以使用自己的镜像。否则，随意使用我的镜像。
 - en: 'You can create the deployment by running the command:'
+  id: totrans-137
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以通过运行以下命令来创建部署：
 - en: '[PRE14]'
+  id: totrans-138
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE14]'
 - en: 'It takes a few minutes for the kubernetes pod to be provisioned. Once the pod
     is running, the load function we wrote earlier will get executed. You can check
     the logs of the pod by running the command:'
+  id: totrans-139
   prefs: []
   type: TYPE_NORMAL
+  zh: Kubernetes pod 配置需要几分钟时间。一旦 pod 启动，之前编写的加载函数将被执行。你可以通过运行以下命令查看 pod 的日志：
 - en: '[PRE15]'
+  id: totrans-140
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE15]'
 - en: 'Once the model is loaded, you will see something like `Completed model.load()
     execution in 449234 ms` in the pod logs. To send a request to the model via HTTP
     we need to port-forward the service. You can use the command below to do that:'
+  id: totrans-141
   prefs: []
   type: TYPE_NORMAL
+  zh: 模型加载完成后，你将在 pod 日志中看到类似 `Completed model.load() execution in 449234 ms` 的内容。为了通过
+    HTTP 向模型发送请求，我们需要进行端口转发。你可以使用以下命令来实现：
 - en: '[PRE16]'
+  id: totrans-142
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE16]'
 - en: 'Great! We can finally start sending requests to the model! Open up any Python
     script and run the following code:'
+  id: totrans-143
   prefs: []
   type: TYPE_NORMAL
+  zh: 太棒了！我们终于可以开始向模型发送请求了！打开任意 Python 脚本并运行以下代码：
 - en: '[PRE17]'
+  id: totrans-144
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE17]'
 - en: 'You will see an output like the following:'
+  id: totrans-145
   prefs: []
   type: TYPE_NORMAL
+  zh: 你将看到如下输出：
 - en: '[PRE18]'
+  id: totrans-146
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE18]'
 - en: 'The performance of TensorRT LLM can be visibly noticed when the tokens are
     streamed. Here’s an example of how to do that:'
+  id: totrans-147
   prefs: []
   type: TYPE_NORMAL
+  zh: 当令牌被流式传输时，TensorRT LLM 的性能是显而易见的。以下是如何做到这一点的示例：
 - en: '[PRE19]'
+  id: totrans-148
   prefs: []
   type: TYPE_PRE
+  zh: '[PRE19]'
 - en: This mistral model has a fairly large context window, so feel free to try it
     out with different prompts.
+  id: totrans-149
   prefs: []
   type: TYPE_NORMAL
+  zh: 这个 mistral 模型有一个相当大的上下文窗口，因此可以随意尝试不同的提示。
 - en: Performance Benchmarks
+  id: totrans-150
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 性能基准测试
 - en: 'Just by looking at the tokens being streamed, you can probably tell TensorRT
     LLM is really fast. However, I wanted to get real numbers to capture the performance
     gains of using TensorRT LLM. I ran some custom benchmarks and got the following
     results:'
+  id: totrans-151
   prefs: []
   type: TYPE_NORMAL
+  zh: 仅通过查看流式传输的令牌，你可能就能看出 TensorRT LLM 的速度非常快。不过，我希望得到真实的数字，以捕捉使用 TensorRT LLM 带来的性能提升。我运行了一些自定义基准测试并得到了以下结果：
 - en: '**Small Prompt:**'
+  id: totrans-152
   prefs: []
   type: TYPE_NORMAL
+  zh: '**小提示：**'
 - en: '![](../Images/5a6f8b5d892474e2c42ece02b29c7454.png)'
+  id: totrans-153
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/5a6f8b5d892474e2c42ece02b29c7454.png)'
 - en: Hugging Face vs TensorRT LLM benchmarks for small prompt
+  id: totrans-154
   prefs: []
   type: TYPE_NORMAL
+  zh: Hugging Face 与 TensorRT LLM 在小提示下的基准测试
 - en: '**Medium prompt:**'
+  id: totrans-155
   prefs: []
   type: TYPE_NORMAL
+  zh: '**中等提示：**'
 - en: '![](../Images/75ce9cad155634a4a8edaf2c4cf452ac.png)'
+  id: totrans-156
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/75ce9cad155634a4a8edaf2c4cf452ac.png)'
 - en: Hugging Face vs TensorRT LLM benchmarks for medium prompt
+  id: totrans-157
   prefs: []
   type: TYPE_NORMAL
+  zh: Hugging Face 与 TensorRT LLM 在中等提示下的基准测试
 - en: '**Large prompt:**'
+  id: totrans-158
   prefs: []
   type: TYPE_NORMAL
+  zh: '**大提示：**'
 - en: '![](../Images/7cdbad4a1946898f79af8aeeeab9d2d3.png)'
+  id: totrans-159
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/7cdbad4a1946898f79af8aeeeab9d2d3.png)'
 - en: Hugging Face vs TensorRT LLM benchmarks for large prompt
+  id: totrans-160
   prefs: []
   type: TYPE_NORMAL
+  zh: Hugging Face 与 TensorRT LLM 在大提示下的基准测试
 - en: Conclusion
+  id: totrans-161
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 结论
 - en: In this blog post, my goal was to demonstrate how state-of-the-art inference
     can be achieved using TensorRT LLM. We covered everything from compiling an LLM
     to deploying the model in production.
+  id: totrans-162
   prefs: []
   type: TYPE_NORMAL
+  zh: 在这篇博客文章中，我的目标是演示如何使用 TensorRT LLM 实现最先进的推理。我们从编译 LLM 到在生产环境中部署模型，涵盖了所有内容。
 - en: While TensorRT LLM is more complex than other inferencing optimizers, the performance
     speaks for itself. This tool provides state-of-the-art LLM optimizations while
     being completely open-source and is designed for commercial use. This framework
     is still in the early stages and is under active development. The performance
     we see today will only improve in the coming years.
+  id: totrans-163
   prefs: []
   type: TYPE_NORMAL
+  zh: 虽然TensorRT LLM比其他推理优化器更为复杂，但其性能不言自明。该工具提供最先进的LLM优化，同时完全开源，并设计用于商业用途。这个框架仍处于早期阶段，并在积极开发中。我们今天看到的性能将在未来几年得到提升。
 - en: I hope you found something valuable in this article. Thanks for reading!
+  id: totrans-164
   prefs: []
   type: TYPE_NORMAL
+  zh: 希望你在这篇文章中找到了有价值的内容。感谢阅读！
 - en: Enjoyed This Story?
+  id: totrans-165
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 喜欢这个故事吗？
 - en: '*Consider* [*subscribing*](https://medium.com/@het.trivedi05/subscribe) *for
     free.*'
+  id: totrans-166
   prefs: []
   type: TYPE_NORMAL
+  zh: '*考虑* [*免费订阅*](https://medium.com/@het.trivedi05/subscribe) *吧。*'
 - en: '[](https://medium.com/@het.trivedi05/subscribe?source=post_page-----ed36e620dac4--------------------------------)
     [## Get an email whenever Het Trivedi publishes.'
+  id: totrans-167
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@het.trivedi05/subscribe?source=post_page-----ed36e620dac4--------------------------------)
+    [## 每当Het Trivedi发布新内容时，您将收到电子邮件。'
 - en: Get an email whenever Het Trivedi publishes. By signing up, you will create
     a Medium account if you don't already have…
+  id: totrans-168
   prefs:
   - PREF_H3
   type: TYPE_NORMAL
+  zh: 每当Het Trivedi发布新内容时，您将收到电子邮件。通过注册，如果您尚未拥有Medium账号，系统将为您创建一个…
 - en: medium.com](https://medium.com/@het.trivedi05/subscribe?source=post_page-----ed36e620dac4--------------------------------)
+  id: totrans-169
   prefs: []
   type: TYPE_NORMAL
+  zh: medium.com](https://medium.com/@het.trivedi05/subscribe?source=post_page-----ed36e620dac4--------------------------------)
 - en: Images
+  id: totrans-170
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 图片
 - en: If not otherwise stated, all images are created by the author.
+  id: totrans-171
   prefs: []
   type: TYPE_NORMAL
+  zh: 除非另有说明，所有图片均由作者创建。
