@@ -1,0 +1,527 @@
+- en: Task-Aware RAG Strategies for When Sentence Similarity Fails
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/task-aware-rag-strategies-for-when-sentence-similarity-fails-54c44690fee3?source=collection_archive---------2-----------------------#2024-06-10](https://towardsdatascience.com/task-aware-rag-strategies-for-when-sentence-similarity-fails-54c44690fee3?source=collection_archive---------2-----------------------#2024-06-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Improving retrieval beyond semantic similarity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@aimichael?source=post_page---byline--54c44690fee3--------------------------------)[![Michael
+    Ryaboy](../Images/783a6c1ed59277776003aaeab69f0b07.png)](https://medium.com/@aimichael?source=post_page---byline--54c44690fee3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54c44690fee3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--54c44690fee3--------------------------------)
+    [Michael Ryaboy](https://medium.com/@aimichael?source=post_page---byline--54c44690fee3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54c44690fee3--------------------------------)
+    ·16 min read·Jun 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/29b772c537ea929ba301f21b378a2693.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [Joshua Golde](https://unsplash.com/@joshgmit) on [Unsplash](https://unsplash.com/photos/white-stage-qIu77BsFdds)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Vector databases have revolutionized the way we search and retrieve information
+    by allowing us to embed data and quickly search over it using the same embedding
+    model, with only the query being embedded at inference time. However, despite
+    their impressive capabilities, vector databases have a fundamental flaw: they
+    treat queries and documents in the same way. This can lead to suboptimal results,
+    especially when dealing with complex tasks like matchmaking, where queries and
+    documents are inherently different.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge of Task-aware RAG (Retriever-augmented Generation) lies in its
+    requirement to retrieve documents based not only on their semantic similarity
+    but also on additional contextual instructions. This adds a layer of complexity
+    to the retrieval process, as it must consider multiple dimensions of relevance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are some examples of Task-Aware RAG problems:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**1\. Matching Company Problem Statements to Job Candidates**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Query: “Find candidates with experience in scalable system design and a proven
+    track record in optimizing large-scale databases, suitable for addressing our
+    current challenge of enhancing data retrieval speeds by 30% within the existing
+    infrastructure.”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Context: This query aims to directly connect the specific technical challenge
+    of a company with potential job candidates who have relevant skills and experience.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**2\. Matching Pseudo-Domains to Startup Descriptions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Query: “Match a pseudo-domain for a startup that specializes in AI-driven,
+    personalized learning platforms for high school students, emphasizing interactive
+    and adaptive learning technologies.”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Context: Designed to find an appropriate, catchy pseudo-domain name that reflects
+    the innovative and educational focus of the startup. A pseudo-domain name is a
+    domain name based on a pseudo-word, which is a word that sound real but isn’t.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**3\. Investor-Startup Matchmaking**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Query: “Identify investors interested in early-stage biotech startups, with
+    a focus on personalized medicine and a history of supporting seed rounds in the
+    healthcare sector.”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Context: This query seeks to match startups in the biotech field, particularly
+    those working on personalized medicine, with investors who are not only interested
+    in biotech but have also previously invested in similar stages and sectors.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**4\. Retrieving Specific Kinds of Documents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Query: “Retrieve recent research papers and case studies that discuss the application
+    of blockchain technology in securing digital voting systems, with a focus on solutions
+    tested in the U.S. or European elections.”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Context: Specifies the need for academic and practical insights on a particular
+    use of blockchain, highlighting the importance of geographical relevance and recent
+    applications'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Challenge
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s consider a scenario where a company is facing various problems, and we
+    want to match these problems with the most relevant job candidates who have the
+    skills and experience to address them. Here are some example problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “High employee turnover is prompting a reassessment of core values and strategic
+    objectives.”
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 2\. “Perceptions of opaque decision-making are affecting trust levels within
+    the company.”
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 3\. “Lack of engagement in remote training sessions signals a need for more
+    dynamic content delivery.”
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'We can generate true positive and hard negative candidates for each problem
+    using an LLM. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Even though the hard negatives may appear similar on the surface and could be
+    closer in the embedding space to the query, the true positives are clearly better
+    fits for addressing the specific problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Solution: Instruction-Tuned Embeddings, Reranking, and LLMs'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To tackle this challenge, we propose a multi-step approach that combines instruction-tuned
+    embeddings, reranking, and LLMs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Instruction-Tuned Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instruction-Tuned embeddings function like a bi-encoder, where both the query
+    and document embeddings are processed separately and then their embeddings are
+    compared. By providing additional instructions to each embedding, we can bring
+    them to a new embedding space where they can be more effectively compared.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key advantage of instruction-tuned embeddings is that they allow us to encode
+    specific instructions or context into the embeddings themselves. This is particularly
+    useful when dealing with complex tasks like job description-resume matchmaking,
+    where the queries (job descriptions) and documents (resumes) have different structures
+    and content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By prepending task-specific instructions to the queries and documents before
+    embedding them, we can theoretically guide the embedding model to focus on the
+    relevant aspects and capture the desired semantic relationships. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This instruction prompts the embedding model to represent the documents as job
+    candidate achievements, making them more suitable for retrieval based on the given
+    job description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Still, RAG systems are difficult to interpret without evals, so let’s write
+    some code to check the accuracy of three different approaches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Naive Voyage AI instruction-tuned embeddings with no additional instructions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Voyage AI instruction-tuned embeddings with additional context to the query
+    and document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Voyage AI non-instruction-tuned embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use Voyage AI embeddings because they are currently best-in-class, and at
+    the time of this writing comfortably sitting at the top of the MTEB leaderboard.
+    We are also able to use three different strategies with vectors of the same size,
+    which will make comparing them easier. 1024 dimensions also happens to be much
+    smaller than any embedding modals that come even close to performing as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9041170cc2c5481c9ba3b1c1f4fe87b6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: MTEB leaderboard
+  prefs: []
+  type: TYPE_NORMAL
+- en: In theory, we should see instruction-tuned embeddings perform better at this
+    task than non-instruction-tuned embeddings, even if just because they are higher
+    on the leaderboard. To check, we will first embed our data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we do this, we try prepending the string: “Represent the most relevant
+    experience of a job candidate for retrieval: “ to our documents, which gives our
+    embeddings a bit more context about our documents.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to follow along, check out this [colab link](https://colab.research.google.com/drive/1iPy1WtOEPHU5YqEzHdiSpvUFL4JElGVJ?usp=sharing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then insert our vectors into a vector database. We don’t strictly need one
+    for this demo, but a vector database with metadata filtering capabilities will
+    allow for cleaner code, and for eventually scaling this test up. We will be using
+    KDB.AI, where I’m a Developer Advocate. However, any vector database with metadata
+    filtering capabilities will work just fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get started with KDB.AI, go to [kdb.ai](https://kdb.ai) to fetch your endpoint
+    and api key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, let’s instantiate the client and import some libraries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Connect to our session with our endpoint and api key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Create our table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Insert the candidate achievements into our index, with an “embedding_type”
+    metadata filter to separate our embeddings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, evaluate the three methods above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The instruct model performed worse on this task!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our dataset is small enough that this isn’t a significantly large difference
+    (under 35 high quality examples.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still, this shows that
+  prefs: []
+  type: TYPE_NORMAL
+- en: a) instruct models alone are not enough to deal with this challenging task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: b) while instruct models can lead to good performance on similar tasks, it’s
+    important to always run evals, because in this case I suspected they would do
+    better, which wasn’t true
+  prefs: []
+  type: TYPE_NORMAL
+- en: c) there are tasks for which instruct models perform worse
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Reranking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While instruct/regular embedding models can narrow down our candidates somewhat,
+    we clearly need something more powerful that has a better understanding of the
+    relationship between our documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After retrieving the initial results using instruction-tuned embeddings, we
+    employ a cross-encoder (reranker) to further refine the rankings. The reranker
+    considers the specific context and instructions, allowing for more accurate comparisons
+    between the query and the retrieved documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reranking is crucial because it allows us to assess the relevance of the retrieved
+    documents in a more nuanced way. Unlike the initial retrieval step, which relies
+    solely on the similarity between the query and document embeddings, reranking
+    takes into account the actual content of the query and documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By jointly processing the query and each retrieved document, the reranker can
+    capture fine-grained semantic relationships and determine the relevance scores
+    more accurately. This is particularly important in scenarios where the initial
+    retrieval may return documents that are similar on a surface level but not truly
+    relevant to the specific query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s an example of how we can perform reranking using the Cohere AI reranker
+    (Voyage AI also has an excellent reranker, but when I wrote this article Cohere’s
+    outperformed it. Since then they have come out with a new reranker that according
+    to their internal benchmarks performs just as well or better.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s define our reranking function. We can also use Cohere’s Python
+    client, but I chose to use the REST API because it seemed to run faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, let’s evaluate our reranker. Let’s also see if adding additional context
+    about our task improves performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, here are our results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: By adding additional context about our task, it might be possible to improve
+    reranking performance. We also see that our reranker performed better than all
+    embedding models, even without additional context, so it should definitely be
+    added to the pipeline. Still, our performance is lacking at under 50% accuracy
+    (we retrieved the top result first for less than 50% of queries), there must be
+    a way to do much better!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best part of rerankers are that they work out of the box, but we can use
+    our golden dataset (our examples with hard negatives) to [fine-tune](https://docs.cohere.com/docs/rerank-starting-the-training)
+    our reranker to make it much more accurate. This might improve our reranking performance
+    by a lot, but it might not generalize to different kinds of queries, and fine-tuning
+    a reranker every time our inputs change can be frustrating.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. LLMs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In cases where ambiguity persists even after reranking, LLMs can be leveraged
+    to analyze the retrieved results and provide additional context or generate targeted
+    summaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs, such as GPT-4, have the ability to understand and generate human-like
+    text based on the given context. By feeding the retrieved documents and the query
+    to an LLM, we can obtain more nuanced insights and generate tailored responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, we can use an LLM to summarize the most relevant aspects of the
+    retrieved documents in relation to the query, highlight the key qualifications
+    or experiences of the job candidates, or even generate personalized feedback or
+    recommendations based on the matchmaking results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is great because it can be done after the results are passed to the user,
+    but what if we want to rerank dozens or hundreds of results? Our LLM’s context
+    will be exceeded, and it will take too long to get our output. This doesn’t mean
+    you shouldn’t use an LLM to evaluate the results and pass additional context to
+    the user, but it does mean we need a better final-step reranking option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s imagine we have a pipeline that looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d69f7309d972dfb1bdf22c6976abfb5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Simple Pipeline
+  prefs: []
+  type: TYPE_NORMAL
+- en: This pipeline can narrow down millions of possible documents to just a few dozen.
+    But the last few dozen is extremely important, we might be passing only three
+    or four documents to an LLM! If we are displaying a job candidate to a user, it’s
+    very important that the first candidate shown is a much better fit than the fifth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We know that LLMs are excellent rerankers, and there are a few reasons for
+    that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LLMs are list aware.** This means they can see other candidates and compare
+    them, which is additional information that can be used. Imagine you (a human)
+    were asked to rate a candidate from 1–10\. Would showing you all other candidates
+    help? Of course!'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**LLMs are really smart.** LLMs understand the task they are given, and based
+    on this can very effectively understand whether a candidate is a good fit, regardless
+    of simple semantic similarity.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We can exploit the second reason with a perplexity based classifier. Perplexity
+    is a metric which estimates how much an LLM is ‘confused’ by a particular output.
+    In other words, we can ask an LLM to classify our candidate into ‘a very good
+    fit’ or ‘not a very good fit’. Based on the certainty with which it places our
+    candidate into ‘a very good fit’ (the perplexity of this categorization,) we can
+    effectively rank our candidates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are all kinds of optimizations that can be made, but on a good GPU (which
+    is highly recommended for this part) we can rerank 50 candidates in about the
+    same time that cohere can rerank 1 thousand. However, we can parallelize this
+    calculation on multiple GPUs to speed this up and scale to reranking thousands
+    of candidates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s install and import [lmppl](https://github.com/asahi417/lmppl),
+    a library that let’s us evaluate the perplexity of certain LLM completions. We
+    will also create a scorer, which is a large T5 model (anything larger runs too
+    slowly, and smaller performs much worse.) If you can achieve similar results with
+    a decoder model, please let me know, as that would make additional performance
+    gains much easier (decoders are getting better and cheaper much more quickly than
+    encoder-decoder models.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, let’s create our evaluation function. This can be turned into a general
+    function for any reranking task, or you can change the classes to see if that
+    improves performance. This example seems to work well. We cache responses so that
+    running the same values is faster, but this isn’t too necessary on a GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, let’s rerank and evaluate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And our result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is much better than our rerankers, and required no fine-tuning! Not only
+    that, but this is much more flexible towards any task, and easier to get performance
+    gains just by modifying classes and prompt engineering. The drawback is that this
+    architecture is unoptimized, it’s difficult to deploy (I recommend [modal](http://modal.com).com
+    for serverless deployment on multiple GPUs, or to deploy a GPU on a VPS.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this neural task aware reranker in our toolbox, we can create a more robust
+    reranking pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1e06164e97d6d7f44554a6e3f5ecb7b4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Robust Multi-Stage Reranking Pipeline
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Conclusion**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Enhancing document retrieval for complex matchmaking tasks requires a multi-faceted
+    approach that leverages the strengths of different AI techniques:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. **Instruction-tuned embeddings** provide a foundation by encoding task-specific
+    instructions to guide the model in capturing relevant aspects of queries and documents.
+    However, evaluations are crucial to validate their performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2. **Reranking** refines the retrieved results by deeply analyzing content relevance.
+    It can benefit from additional context about the task at hand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. **LLM-based classifiers** serve as a powerful final step, enabling nuanced
+    reranking of the top candidates to surface the most pertinent results in an order
+    optimized for the end user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By thoughtfully orchestrating instruction-tuned embeddings, rerankers, and LLMs,
+    we can construct robust AI pipelines that excel at challenges like matching job
+    candidates to role requirements. Meticulous prompt engineering, top-performing
+    models, and the inherent capabilities of LLMs allow for better Task-Aware RAG
+    pipelines — in this case delivering outstanding outcomes in aligning people with
+    ideal opportunities. Embracing this multi-pronged methodology empowers us to build
+    retrieval systems that just retrieving semantically similar documents, but truly
+    intelligent and finding documents that fulfill our unique needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connect with me on [LinkedIn](https://www.linkedin.com/in/michael-ryaboy-software-engineer/)
+    for more AI Engineering tips.
+  prefs: []
+  type: TYPE_NORMAL

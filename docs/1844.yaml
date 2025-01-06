@@ -1,0 +1,368 @@
+- en: Maximize Savings on Your Unused Fabric Capacities
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/maximize-savings-on-your-unused-fabric-capacity-4c74b12505fd?source=collection_archive---------16-----------------------#2024-07-29](https://towardsdatascience.com/maximize-savings-on-your-unused-fabric-capacity-4c74b12505fd?source=collection_archive---------16-----------------------#2024-07-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Automate your Microsoft Fabric capacity state with Azure Logic Apps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chrystasantos.medium.com/?source=post_page---byline--4c74b12505fd--------------------------------)[![Christabelle
+    Santos](../Images/20c287bf86da286ed1307f49b7b932ca.png)](https://chrystasantos.medium.com/?source=post_page---byline--4c74b12505fd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c74b12505fd--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4c74b12505fd--------------------------------)
+    [Christabelle Santos](https://chrystasantos.medium.com/?source=post_page---byline--4c74b12505fd--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c74b12505fd--------------------------------)
+    ·9 min read·Jul 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Disclaimer: This post will not cover what Microsoft Fabric is or how to use
+    it.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Fabric](https://learn.microsoft.com/en-gb/fabric/get-started/microsoft-fabric-overview)
+    is a unified data platform that offers shared experiences, architecture, governance,
+    compliance and billing. Capacities provide the computing power that drives all
+    these experiences. You can read more about fabric capacities [here](https://blog.fabric.microsoft.com/en-US/blog/fabric-capacities-everything-you-need-to-know-about-whats-new-and-whats-coming/).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Imagine this: your Fabric trial is ending, and you’re still in the proof-of-concept
+    phase to determine if Fabric is the right option for you. Managing your capacity
+    efficiently is crucial, as you don’t want to incur unnecessary costs for unused
+    capacity, especially during these testing or evaluation periods.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2de4885cb7856c4e1b9a7376d4324a1f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Carlos Muza](https://unsplash.com/@kmuza?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/laptop-computer-on-glass-top-table-hpjSkU2UYSU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re already using Fabric for production workloads, the strategy we will
+    be discussing in this post won’t work for you, as you’ll likely require some available
+    capacity at all times to support those workloads. You might be more interested
+    in learning how [smoothing and throttling processes work in Fabric](https://learn.microsoft.com/en-us/fabric/data-warehouse/compute-capacity-smoothing-throttling)
+    to estimate your costs and [how to use the capacity metrics app to monitor them](https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the rest of you who are still working in non-production environments, I’ll
+    show you how to automatically pause your Fabric capacity when it’s not needed.
+    This is particularly useful if you’re testing capabilities but won’t be running
+    tests 24/7\. So, how can you ensure you don’t forget to pause your capacity?
+  prefs: []
+  type: TYPE_NORMAL
+- en: You might be wondering, what does it mean to pause your Fabric capacity? Is
+    this even possible? The answer is yes, and I’ll show you how.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we create a [Fabric capacity in the Azure portal](https://learn.microsoft.com/en-us/fabric/enterprise/buy-subscription#buy-an-azure-sku),
+    we will see something like this, where you have an option to pause your capacity,
+    so you’re not being charged for not using it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd95fd5f6de0a7e321972e7a92572e37.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But what if you forget to pause it for a couple of days?
+  prefs: []
+  type: TYPE_NORMAL
+- en: That could lead to a significantly higher Azure bill. To prevent this, let’s
+    create an automated way to pause your Fabric capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Azure Logic Apps to the rescue
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To accomplish this, we will be first creating a logic app in Azure, preferably
+    within the same resource group as your Fabric capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can follow the instructions from [here](https://learn.microsoft.com/en-us/azure/logic-apps/quickstart-create-example-consumption-workflow#create-a-consumption-logic-app-resource)
+    to create your logic app. Be sure to choose the `**Consumption**` plan type instead
+    of the `**Standard**` plan type, as it is easier to use for beginners and you’ll
+    only pay for what you use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we begin designing the logic app, we need to grant the logic app access
+    to modify the state of your Fabric capacity, as security is of the utmost importance.
+    To enable this, navigate to the `**Settings > Identity**` option of your logic
+    app, and turn on the system-assigned managed identity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ac978584d2ed96c68798d679dedda09a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Managed identities provide an automatically managed identity in Entra ID for
+    applications to use when connecting to resources that support Entra ID authentication,
+    without the need to store credentials in your code. This will allow the newly
+    created logic app to securely interact with your Fabric capacity without needing
+    explicit credentials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we’ve enabled the managed identity, we need to give this identity read
+    and write permission on your fabric capacity. In order to this, we will navigate
+    back to our fabric capacity resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/80942363c392d88c25736bcaa5f62beb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On the `**Add Role Assignment**` page, select the `**Contributor**` role under
+    `**Privileged administrator roles**`, as this role provides both read and write
+    access to the Fabric capacity. Then, click `**Next**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/39732f1204db5ac4cc59a85074d6a454.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On the next page, select the managed identity of your logic app. Ensure it appears
+    under `**Selected members**`, then click `**Select**`, followed by `**Next**`.
+    On the final page, simply click `**Review + assign**`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9200d051d374e05698d53943c990f40f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With that, we have successfully granted our logic app the necessary permissions
+    to perform its task! Now, let’s begin. We have five easy steps to build this workflow,
+    which should be followed preferably in order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing the logic app
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To start, navigate to the `**Logic app designer**`, located under the`**Development
+    Tools**`setting in your logic app resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/076ff08af77cdb2d55546cf7477a85ea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Create Parameters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we start adding triggers and actions, we need to define some parameters
+    that will be used with our HTTP request actions later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will need to build our parameters as mentioned below by replacing `your-subscription-id`,`your-resource-group-name`and
+    `your-fabric-capacity-name` with your corresponding subscription ID, resource
+    group name and fabric capacity name values. The first one parameter is to get
+    the status of your Fabric capacity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the second one is to pause your Fabric capacity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/4f8158b9e17f2fac85648d3148881552.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Make sure to save the logic app design at this stage to ensure your parameters
+    are saved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Create Recurrence Schedule Trigger**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once we have our parameters created, we can start the design of our logic app.
+    When we create a logic app, we will always start with adding a trigger. This will
+    define how often the logic app runs. You can set it to run daily, weekly, or at
+    any other interval that suits your needs. This ensures that the logic app checks
+    the status of your Fabric capacity at regular intervals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, click the `**Add Trigger**` button located in the center of the
+    canvas as indicated in the image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/03090a65196f339f688b22f8b7fa7280.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The `**Add a trigger**` pane will open on the right side of the page. Here,
+    you can search for the Schedule trigger and select the `**Recurrence**` option
+    from the two available choices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can then fill out the requested information according to your preference.
+    In the image below, I have set up a recurring trigger to activate every weekday
+    (Monday to Friday) at 12:00 PM and 6:00 PM in my time zone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68799174d1f34639c6e5cb4b64a65de1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Add HTTP Action**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we will add an HTTP action. This action will make an HTTP request to the
+    Fabric API to check the current status of your capacity. Configure the HTTP action
+    with the appropriate method (GET, POST, etc.), URL, and authentication details
+    to securely access the Fabric API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember when we created the managed identity and assigned it the Contributor
+    role? This is where we will utilize the read permission provided by the Contributor
+    role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Click `**Add an action**` as indicated below to find the HTTP action we will
+    be using in this step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8da41efa71450f98de26775c0c39c408.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Search for the HTTP action in the search bar, and select the first option from
+    the three available under the HTTP action on the `**Add an action**` pane.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb5690bb8aa9ba006c15568bc78ec8a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Click the lightning icon to open the drop-down list of previously created parameters,
+    and select the first parameter, `$getfabricstatus`, for the URI field. In the
+    method field, choose `GET`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9017f1d9bca6a22a772507fa801da827.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Then scroll to the bottom of the pane and add the `Authentication` options
+    in the `**Advanced parameters**` section. This will add an Authentication section
+    right below and select the following options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ba8cc0f46be2213f06ef37bd20da8878.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And with that we can securely query the status of the fabric capacity using
+    the managed identity we had created previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Add Parse JSON Action**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once we receive a response from the Fabric API, use the Parse JSON action to
+    process the data. The API request from the previous step will return a lot of
+    information, and it’s up to us to choose which data points to work with. The Parse
+    JSON action helps us extract specific details from the JSON response, such as
+    the current status of the Fabric capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1dfa2b7cd84d57b43a98dc9224be94e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To configure this action correctly, provide a sample JSON payload or schema
+    in the `**Schema**` section, which is provided below for you to copy. For the
+    `**Content**` field, click the lightning icon again and select `Body` from the
+    output of the previous step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5233bd47b7cbc9739dd306ed3d6bdbad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Add Condition Action**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: And now for our second-to-last action, we will add a Condition action to evaluate
+    the status from the parsed JSON data. This condition will determine whether the
+    Fabric capacity needs to be paused. For example, we will be setting the condition
+    to check if the capacity status is not “paused.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/42df78484e3235e2cb646149ba3a83ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To configure the Condition action, we will again use the lightning icon, to
+    find the `Body state` option from the output of the previous step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/888a8eecfb71b65deaaca1c6ef83df83.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Then we will need to change the `is equal to` to `is not equal to` and add
+    the value of `Paused`. The final result should look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3b02f9f34fdeea2122e10a6178d4fca7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If the condition is true (meaning the capacity is not paused), you can add actions
+    in the True section to pause the capacity. If the condition is false (meaning
+    the capacity is already paused), you can leave the False section empty or add
+    a notification action to log that no action was needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our case, we will add our final action, which will be another HTTP action,
+    to the True section. This action will use the second parameter we defined, `$pausefabriccapacity`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ed2ddcfc9eead33dae0d732c602be1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Follow the same steps as for the previous HTTP action, but this time, use the
+    `$pausefabriccapacity` parameter and select the `POST` method instead of the `GET`
+    method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3dd9e871d9b8563efab275f6005e3f75.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Important! Don’t forget to change the authentication settings as we did for
+    the last HTTP action; otherwise, you might encounter an authentication error.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: And with that, we are done with designing our logic app, and after some edits
+    to the names of the steps, we should have a logic app configuration that looks
+    like below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/610f40025fb9701f22429f677c008c06.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: After completing the setup, it’s important to test your logic app to ensure
+    it functions as expected. Run a test, and once it executes successfully, verify
+    that your Fabric capacity has indeed paused. This confirmation step is important
+    to ensure that the automation works correctly and will help prevent unnecessary
+    Azure charges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this setup, you now know how to automate the pausing of your Fabric capacity,
+    giving you peace of mind and more control over your capacities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Happy machine learning and data analyzing with Fabric!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: All images, unless explicitly mentioned, are taken by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

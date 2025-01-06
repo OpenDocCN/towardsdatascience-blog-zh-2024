@@ -1,0 +1,465 @@
+- en: 'Profiling CUDA Using Nsight Systems: A Numba Example'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/profiling-cuda-using-nsight-systems-a-numba-example-fc65003f8c52?source=collection_archive---------4-----------------------#2024-05-22](https://towardsdatascience.com/profiling-cuda-using-nsight-systems-a-numba-example-fc65003f8c52?source=collection_archive---------4-----------------------#2024-05-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Learn about profiling by inspecting concurrent and parallel Numba CUDA code
+    in Nsight Systems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@cdacostaf?source=post_page---byline--fc65003f8c52--------------------------------)[![Carlos
+    Costa, Ph.D.](../Images/fc5e03e455f11b963086355fe0ccc077.png)](https://medium.com/@cdacostaf?source=post_page---byline--fc65003f8c52--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fc65003f8c52--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fc65003f8c52--------------------------------)
+    [Carlos Costa, Ph.D.](https://medium.com/@cdacostaf?source=post_page---byline--fc65003f8c52--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fc65003f8c52--------------------------------)
+    ·14 min read·May 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Optimization is a crucial part of writing high performance code, no matter
+    if you are writing a web server or computational fluid dynamics simulation software.
+    Profiling allows you to make informed decisions regarding your code. In a sense,
+    optimization without profiling is like flying blind: mostly fine for seasoned
+    professionals with expert knowledge and fine-tuned intuition, but a recipe for
+    disaster for almost everyone else.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d423edacc4ce187efb9a0e90523049ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Rafa Sanfilippo](https://unsplash.com/@rafasanfilippo?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In This Tutorial
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Following my initial series CUDA by Numba Examples (see parts [1](https://colab.research.google.com/drive/1h0Savk8HSIgraT61burXQwbEUDMz4HT6?usp=sharing),
+    [2](https://colab.research.google.com/drive/1GkGLDexnYUnl2ilmwNxAlWAH6Eo5ZK2f?usp=sharing),
+    [3](https://colab.research.google.com/drive/1iRUQUiHUVdl3jlKzKucxQHQdDPElPb3M?usp=sharing),
+    and [4](https://colab.research.google.com/drive/1Eq1Xyuq8hJ440ma_9OBrEVdGm3bIyigt?usp=sharing)),
+    we will study a comparison between unoptimized, single-stream code and a slightly
+    better version which uses stream concurrency and other optimizations. We will
+    learn, from the ground-up, how to use [NVIDIA Nsight Systems](https://developer.nvidia.com/nsight-systems)
+    to profile and analyze CUDA code. All the code in this tutorial can also be found
+    in the repo [cako/profiling-cuda-nsight-systems](https://github.com/cako/profiling-cuda-nsight-systems/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nsight Systems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: NVIDIA recommends as best practice to follow the [APOD framework](https://docs.nvidia.com/cuda/cuda-c-best-practices-guide/index.html#assess-parallelize-optimize-deploy)
+    (*Assess, Parallelize, Optimize, Deploy*). There are a variety of proprietary,
+    open-source, free, and commercial software for different types of assessments
+    and profiling. Veteran Python users may be familiar with basic profilers such
+    as `cProfile`, `[line_profiler](https://kernprof.readthedocs.io/en/latest/)`,
+    `memory_profiler` (unfortunately, unmaintaned as of 2024) and more advanced tools
+    like [PyInstrument](https://pyinstrument.readthedocs.io/en/latest/) and [Memray](https://bloomberg.github.io/memray/).
+    These profilers target specific aspects of the "host" such as CPU and RAM usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, profiling “device” (e.g., GPU) code — and its interactions with the
+    host — requires specialized tools provided by the device vendor. For NVIDIA GPUs,
+    Nsight Systems, Nsight Compute, Nsight Graphics are available for profiling different
+    aspects of computation. In this tutorial we will focus on using Nsight Systems,
+    which is a system-wide profiler. We will use it to profile Python code which interacts
+    with the GPU via Numba CUDA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get started, you will need Nsight Systems CLI and GUI. The CLI can be installed
+    separately and will be used to profile the code in a GPGPU-capable system. The
+    full version includes both CLI and GUI. Note that both versions could be installed
+    in a system without a GPU. Grab the version(s) you need from the [NVIDIA website](https://developer.nvidia.com/nsight-systems/get-started).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make it easier to visualize code sections in the GUI, NVIDIA also provides
+    the Python `pip` and `conda`-installable library `[nvtx](https://nvtx.readthedocs.io/en/latest/)`
+    which we will use to annotate sections of our code. More on this later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Setting Everything Up: A Simple Example'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this section we will set our development and profiling environment up. Below
+    are two very simple Python scripts: `kernels.py` and `run_v1.py`. The former will
+    contain all CUDA kernels, and the latter will serve as the entry point to run
+    the example. In this example we are following the "reduce" pattern introduced
+    in article [*CUDA by Numba Examples Part 3: Streams and Events*](/cuda-by-numba-examples-7652412af1ee)
+    to compute the sum of an array.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is a simple script that can just be run with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We also run this code through our profiler, which just entails calling `nsys`
+    with some options before the call to our script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can consult the [Nsight CLI docs](https://docs.nvidia.com/nsight-systems/UserGuide/index.html)
+    for all the available options to the `nsys` CLI. For this tutorial we will always
+    use the ones above. Let''s dissect this command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`profile` puts `nsys` in profile mode. There are many other modes like `export`
+    and `launch`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--trace cuda,osrt,nvtx` ensures we "listen" to all CUDA calls (`cuda`), OS
+    runtime library calls (`osrt`) and `nvtx` annotations (none in this example).
+    There are many more trace options such as `cublas`, `cudnn`, `mpi`,`dx11` and
+    several others. Check the [docs](https://docs.nvidia.com/nsight-systems/UserGuide/index.html)
+    for all options.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--gpu-metrics-device=all` records GPU metrics for all GPUs, including [Tensor
+    Core](https://www.nvidia.com/en-us/data-center/tensor-cores/) usage.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`--cuda-memory-usage` tracks GPU memory usage of kernels. It may significantly
+    slow down execution and requires `--trace=cuda`. We use it because our scripts
+    our pretty fast anyways.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Navigating the Nsight Systems GUI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If the command exited successfully, we will have a `profile_run_v1.nsys-rep`
+    in the current folder. We will open this file by launching the Nsight Systems
+    GUI, `File > Open`. The initial view is slightly confusing. So we will start by
+    decluttering: resize the `Events View` port to the bottom, and minimize `CPU`,
+    `GPU` and `Processes` under the `Timeline View` port. Now expand only `Processes
+    > python > CUDA HW`. See Figures 1a and 1b.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/66267f5fd85f7b4f42ce705216edc596.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1a: Opening an nsys report and decluttering the interface. Credits:
+    Own work. CC BY-SA 4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a0df7779681087a99fe5f56d8a325ed4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1b: nsys report showing host-to-device memory operations (green), device-to-host
+    memory operations (red) and CUDA kernels (blue). Credits: Own work. CC BY-SA 4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First up, let’s find our kernels. On the `CUDA HW` line, you will find green
+    and red blobs, and very small slivers of light blue (see Figure 1b). If you hover
+    over those you will see tooltips saying, "CUDA Memory operations in progress"
+    for red and green, and "CUDA Kernel Running (89.7%)" for the light blues. These
+    are going to be the bread and butter of our profiling. On this line, we will be
+    able to tell when and how memory is being transferred (red and green) and when
+    and how our kernels are running (light blue).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s dig in a little bit more on our kernels. You should see three very small
+    blue slivers, each representing a kernel call. We will zoom into the region by
+    clicking and dragging the mouse from just before the start of the first kernel
+    call to just after the end of the last one, and then pressing Shift + Z. See Figure
+    2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6032ed5cc1bbb9414714374c4665e801.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Navigating an nsys report and zooming into an area of interest. Credits:
+    Own work. CC BY-SA 4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have found our kernels, let’s see some metrics. We open the `GPU
+    > GPU Metrics` tabs for that. In this panel, can find "Warp Occupancy" (beige)
+    for compute kernels. One way to optimize CUDA code is to ensure that the warp
+    occupancy is as close to 100% as possible for as long as possible. This means
+    that our GPU is not idling. We notice that this is happening for the first and
+    last kernels but not the middle kernel. That is expected as the middle kernel
+    launches a single thread. One final thing to note in this section is the `GPU
+    > GPU Metrics > SMs Active > Tensor Active / FP16 Active` line. This line will
+    show whether the tensor cores are being used. In this case you should verify that
+    they are not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s briefly look at the Events View. Right click `Processes > python
+    > CUDA HW` and click "Show in Events View". Then sort the events by descending
+    duration. In Figure 3, we see that the slowest events are two pageable memory
+    transfers. We have seen in [*CUDA by Numba Examples Part 3: Streams and Events*](/cuda-by-numba-examples-7652412af1ee)
+    that pageable memory transfers can be suboptimal, and we should prefer page-locked
+    or "pinned" memory transfers. If we have slow memory transfers due to use of pageable
+    memory, the Events View can be a great location to identify where these slow transfers
+    can be found. Pro tip: you can isolate memory transfers by right clicking `Processes
+    > python > CUDA HW > XX% Memory` instead.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c760b926c35e13ae7463edf08b32a3f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3\. Events View in Nsight Systems showing a pageable (non-pinned) memory
+    transfer. Credits: Own work. CC BY-SA 4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section we learned how to profile a Python program which uses CUDA,
+    and how to visualize basic information of this program in the Nsight Systems GUI.
+    We also noticed that in this simple program, we are using pageable instead of
+    pinned memory, that one of our kernels is not occupying all warps, that the GPU
+    is idle for quite some time between kernels being run and that we are not using
+    tensor cores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Annotating with NVTX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this section we will learn how to improve our profiling experience by annotation
+    sections in Nsight Systems with NVTX. NVTX allows us to mark different regions
+    of the code. It can mark ranges and instantaneous events. For a deeper look, check
+    the [docs](https://nvtx.readthedocs.io/en/latest/index.html). Below we create
+    `run_v2.py`, which, in addition to annotating `run_v1.py`, also changes this line:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'to these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Therefore, in addition to the annotations, we are now using a pinned memory.
+    If you want to learn more about the different types of memories that CUDA supports,
+    see the [CUDA C++ Programming Guide](https://developer.nvidia.com/blog/how-optimize-data-transfers-cuda-cc/).
+    It is of relevance that this is not the only way to pin an array in Numba. A previously
+    created Numpy array can also be created with a context, as explained in the [Numba
+    documentation](https://numba.readthedocs.io/en/stable/cuda/memory.html#pinned-memory).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Comparing the two files, you can see it’s as simple as wrapping some GPU kernel
+    calls with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Pro tip: you can also annotate functions by placing the `@nvtx.annotate` decorator
+    above their definition, automatically annotate everything by calling your script
+    with `python -m nvtx run_v2.py`, or apply the autoannotator selectively in you
+    code by enabling or disabling `nvtx.Profile()`. See the [docs](https://nvtx.readthedocs.io/en/latest/index.html)!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s run this new script and open the results in Nsight Systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we start by minimizing everything, leaving only `Processes > python >
+    CUDA HW` open. See Figure 4\. Notice that we now have a new line, `NVTX`. On this
+    line in the timeline window we should see different colored blocks corresponding
+    to the annotation regions that we created in the code. These are `Compilation`,
+    `H2D Memory`, `Kernels` and `D2H Memory`. Some of these my be too small to read,
+    but will be legible if you zoom into the region.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5d39f2812209ec8b24bb77d6c9c10a41.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4\. Example of NVTX annotations and an Events View with pinned memory.
+    Credits: Own work. CC BY-SA 4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The profiler confirms that this memory is pinned, ensuring that our code is
+    truly using pinned memory. In addition, `H2D Memory` and `D2H Memory` are now
+    taking less than half of the time that they were taking before. Generally we can
+    expect better performance using pinned memory or prefetched mapped arrays (not
+    supported by Numba).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stream Concurrency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we will investigate whether we can improve this code by introducing streams.
+    The idea is that while memory transfers are occurring, the GPU can start processing
+    the data. This allows a level of concurrency, which hopefully will ensure that
+    we are occupying our warps as fully as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bbde1985c738ae6d4cc600f1aa61ad7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5\. Using different streams may allow for concurrent execution. Credits:
+    [Zhang et al. 2021](https://www.mdpi.com/1045598) (CC BY 4.0).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the code below we will split the processing of our array into roughly equal
+    parts. Each part will run in a separate stream, including transferring data and
+    computing the sum of the array. Then, we synchronize all streams and sum their
+    partial sums. At this point we can then launch normalization kernels for each
+    stream independently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We want to answer a few questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will the code below truly create concurrency? Could we be introducing a bug?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Is it faster than the code which uses a single stream?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Is the warp occupancy better?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's run the code and collect results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The program ran and yielded the correct answer. But when we open the profiling
+    file (see Figure 6), we notice that there are two streams instead of 4! And one
+    is basically completely idle! What’s going on here?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0fb44b9158a16628a582cda7e564b1b3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 6\. Example of buggy multi-stream code. Credits: Own work. CC BY-SA
+    4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a bug in the creation of the streams. By doing
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: we are actually creating a single stream and repeating it `nstreams` times.
+    So why are we seeing two streams instead of one? The fact that one is not doing
+    much computation should be an indicator that there is a stream that we are not
+    using. This stream is the default stream, which we are not using at all in out
+    code since all GPU interactions are given a stream, the stream we created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can fix this bug with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code above will also ensure they are really different streams, so it would
+    have caught the bug had we had it in the code. It does so by checking the stream
+    pointer value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can run the fixed code with 1 stream and 8 streams for comparison. See
+    Figures 7 and 8, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7da8e8b11bc79e7ca948e97a21759fb7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7\. Example of single stream code. Credits: Own work. CC BY-SA 4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2da5d025d8a9e310ce1b4eb55ddfd113.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7\. Example of correct multi-stream code. Credits: Own work. CC BY-SA
+    4.0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, both give correct results. By opening the one with 8 streams we see that
+    yes, the bug has been fixed (Figure 7). Indeed, we now see 9 streams (8 created
+    + default). In addition, we see that they are working at the same time! So we
+    have achieved concurrency!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, if we dig a bit deeper we notice that the concurrent code is
+    not necessarily faster. On my machine the critical section of both versions, from
+    start of memory transfer to the last GPU-CPU copy takes around 160 ms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A likely culprit is the warp occupancy. We notice that the warp occupancy is
+    significantly better in the single-stream version. The gains we are getting in
+    this example in compute are likely being lost by not occupying our GPU as efficiently.
+    This is likely related to the structure of the code which (artificially) calls
+    way too many kernels. In addition, if all threads are filled by a single stream,
+    there is no gain in concurrency, since other streams have to be idle until resources
+    free up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example is important because it shows that our preconceived notions of
+    performance are just hypotheses. They need to be verified.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point of APOD, we have assessed, parallelized (both through threads
+    and concurrency) and so the next step would be to deploy. We also noticed a slight
+    performance regression with concurrency, so for this example, a single-stream
+    version would likely be the one deployed. In production, the next step would be
+    to follow the next piece of code which is best suited for parallelization and
+    restarting APOD.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article we saw how to set up, use and interpret results from profiling
+    Python code in NVIDIA Nsight Systems. C and C++ code can be analyzed very similarly,
+    and indeed most of the material out there uses C and C++ examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also show how profiling can allow us to catch bugs and performance test our
+    programs, ensuring that the features we introduce truly are improving performance,
+    and if they are not, why.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,406 @@
+- en: Optimizing the Data Processing Performance in PySpark
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07](https://towardsdatascience.com/optimizing-the-data-processing-performance-in-pyspark-4b895857c8aa?source=collection_archive---------3-----------------------#2024-11-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'PySpark techniques and strategies to tackle common performance challenges:
+    A practical walkthrough'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[![John
+    Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)
+    [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--4b895857c8aa--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4b895857c8aa--------------------------------)
+    ·9 min read·Nov 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Apache Spark](https://spark.apache.org/) has been one of the leading analytical
+    engines in recent years due to its power in distributed data processing. PySpark,
+    the Python API for Spark, is often used for personal and enterprise projects to
+    address data challenges. For example, we can efficiently implement [feature engineering
+    for time-series data](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)
+    using PySpark, including ingestion, extraction, and visualization. However, despite
+    its capacity to handle large datasets, performance bottlenecks can still arise
+    under various scenarios such as extreme data distribution and complex data transformation
+    workflow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article will examine different common performance issues in data processing
+    with PySpark on [Databricks](https://www.databricks.com/), and walk through various
+    strategies for fine-tuning to achieve faster execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a51dfd6e0bb834e68f2dbd4ac63cace.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Veri Ivanova](https://unsplash.com/@veri_ivanova?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine you open an online retail shop that offers a variety of products and
+    is primarily targeted at U.S. customers. You plan to analyze buying habits from
+    current transactions to satisfy more needs of current customers and serve more
+    new ones. This motivates you to put much effort into processing the transaction
+    records as a preparation step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#0 Mock data'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We first simulate 1 million transaction records (surely expected to handle
+    much larger datasets in real big data scenarios) in a CSV file. Each record includes
+    a customer ID, product purchased, and transaction details such as payment methods
+    and total amounts. One note worth mentioning is that a product agent with customer
+    ID #100 has a significant customer base, and thus occupies a significant portion
+    of purchases in your shop for drop-shipping.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below are the codes demonstrating this scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: After mocking the data, we load the CSV file into the PySpark DataFrame using
+    Databrick’s Jupyter Notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We additionally create a reusable decorator utility to measure and compare the
+    execution time of different approaches within each function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Okay, all the preparation is completed. Let’s explore different potential challenges
+    of execution performance in the following sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#1 Storage'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Spark uses [Resilient Distributed Dataset (RDD)](https://spark.apache.org/docs/latest/rdd-programming-guide.html)
+    as its core building blocks, with data typically kept in memory by default. Whether
+    executing computations (like joins and aggregations) or storing data across the
+    cluster, all operations contribute to memory usage in a unified region.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f7f20c42fa3519fee671c569416280dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A unified region with execution memory and storage memory (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we design improperly, the available memory may become insufficient. This
+    causes excess partitions to spill onto the disk, which results in performance
+    degradation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching and persisting intermediate results or frequently accessed datasets
+    are common practices. While both cache and persist serve the same purposes, they
+    may differ in their storage levels. The resources should be used optimally to
+    ensure efficient read and write operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if transformed data will be reused repeatedly for computations
+    and algorithms across different subsequent stages, it is advisable to cache that
+    data.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Code example:** Assume we want to investigate different subsets of transaction
+    records using a digital wallet as the payment method.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inefficient — Without caching
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Efficient — Caching on a critical dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: After caching, even if we want to filter the transformed dataset with different
+    transaction amount thresholds or other data dimensions, the execution times will
+    still be more manageable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#2 Shuffle'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When we perform operations like joining DataFrames or grouping by data fields,
+    shuffling occurs. This is necessary to redistribute all records across the cluster
+    and to ensure those with the same key are on the same node. This in turn facilitates
+    simultaneous processing and combining of the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ab84ce7db5a3682b102879ebcf4c8646.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Shuffle join (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this shuffle operation is costly — high execution times and additional
+    network overhead due to data movement between nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To reduce shuffling, there are several strategies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1) Use broadcast variables for the small dataset, to send a read-only copy
+    to every worker node for local processing
+  prefs: []
+  type: TYPE_NORMAL
+- en: While “small” dataset is often defined by a maximum memory threshold of 8GB
+    per executor, the ideal size for broadcasting should be determined through experimentation
+    on specific case.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/23bfddffdcd8abbc41eace540e8e045e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Broadcast join (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (2) Early filtering, to minimize the amount of data processed as early as possible;
+    and
+  prefs: []
+  type: TYPE_NORMAL
+- en: (3) Control the number of partitions to ensure optimal performance
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Code examples:** Assume we want to return the transaction records that match
+    our list of states, along with their full names'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inefficient — shuffle join between a large dataset and a small one
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Efficient — join the large dataset with the small one using a broadcast variable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '#3 Skewness'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Data can sometimes be unevenly distributed, especially for data fields used
+    as the key for processing. This leads to imbalanced partition sizes, in which
+    some partitions are significantly larger or smaller than the average.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the execution performance is limited by the longest-running tasks, it
+    is necessary to address the over-burdened nodes.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One common approach is salting. This works by adding randomized numbers to the
+    skewed key so that there is a more uniform distribution across partitions. Let’s
+    say when aggregating data based on the skewed key, we will aggregate using the
+    salted key and then aggregate with the original key. Another method is re-partitioning,
+    which increases the number of partitions to help distribute the data more evenly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/119db606882ab6d12a63942cc007751e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data distribution — Before and after salting (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Code examples:** We want to aggregate an asymmetric dataset, mainly skewed
+    by customer ID #100.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inefficient — directly use the skewed key
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Efficient — use the salting skewed key for aggregation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: A random prefix or suffix to the skewed keys will both work. Generally, 5 to
+    10 random values are a good starting point to balance between spreading out the
+    data and maintaining high complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#4 Serialization'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: People often prefer using [user-defined functions (UDFs)](https://spark.apache.org/docs/3.5.2/sql-ref-functions-udf-scalar.html)
+    since it is flexible in customizing the data processing logic. However, UDFs operate
+    on a row-by-row basis. The code shall be serialized by the Python interpreter,
+    sent to the executor JVM, and then deserialized. This incurs high serialization
+    costs and prevents Spark from optimizing and processing the code efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simple and direct approach is to avoid using UDFs when possible.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We should first consider using the [built-in Spark functions](https://spark.apache.org/docs/latest/api/sql/),
+    which can handle tasks such as aggregation, arrays/maps operations, date/time
+    stamps, and JSON data processing. If the built-in functions do not satisfy your
+    desired tasks indeed, we can consider using [pandas *UDFs*](https://databricks.com/blog/2017/10/30/introducing-vectorized-udfs-for-pyspark.html).
+    They are built on top of Apache Arrow for lower overhead costs and higher performance,
+    compared to UDFs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Code examples:** The transaction price is discounted based on the originating
+    state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inefficient — using a UDF
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Efficient — using build-in PySpark functions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, we use the built-in PySpark functions “when and otherwise”
+    to effectively check multiple conditions in sequence. There are unlimited examples
+    based on our familiarity with those functions. For instance, `pyspark.sql.functions.transform`a
+    function that aids in applying a transformation to each element in the input array
+    has been introduced since PySpark version 3.1.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#5 Spill'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As discussed in the Storage section, a spill occurs by writing temporary data
+    from memory to disk due to insufficient memory to hold all the required data.
+    Many performance issues we have covered are related to spills. For example, operations
+    that shuffle large amounts of data between partitions can easily lead to memory
+    exhaustion and subsequent spill.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e0391d49e71ebd4918378b38ed64fe2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Different scenarios of spill due to insufficient memory (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is crucial to examine the performance metrics in Spark UI. If we discover
+    the statistics for Spill(Memory) and Spill(Disk), the spill is probably the reason
+    for long-running tasks. To remediate this, try to instantiate a cluster with more
+    memory per worker, e.g. increase the executor process size, by tuning the configuration
+    value `spark.executor.memory`; Alternatively, we can configure `spark.memory.fraction`
+    to adjust how much memory is allocated for execution and storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping it Up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We came across several common factors leading to performance degradation in
+    PySpark, and the possible improvement methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Storage: use cache and persist to store the frequently used intermediate results'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Shuffle: use broadcast variables for a small dataset to facilitate Spark’s
+    local processing'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Skewness: execute salting or repartitioning to distribute the skewed data more
+    uniformly'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Serialization: prefer to use built-in Spark functions to optimize the performance'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Spill: adjust the configuration value to allocate memory wisely'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recently, [Adaptive Query Execution (AQE)](https://docs.databricks.com/en/optimizations/aqe.html)
+    has been newly addressed for dynamic planning and re-planning of queries based
+    on runtime stats. This supports different features of query re-optimization that
+    occur during query execution, which creates a great optimization technique. However,
+    understanding data characteristics during the initial design is still essential,
+    as it informs better strategies for writing effective codes and queries while
+    using AQE for fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you go
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you enjoy this reading, I invite you tofollow my [Medium page](https://medium.com/@johnleungTJ)
+    and [LinkedIn page](https://www.linkedin.com/in/john-leung-639800115/). By doing
+    so, you can stay updated with exciting content related to data science side projects,
+    Machine Learning Operations (MLOps) demonstrations, and project management methodologies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------)
+    [## Simplifying the Python Code for Data Engineering Projects'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Python tricks and techniques for data ingestion, validation, processing, and
+    testing: a practical walkthrough'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/simplifying-the-python-code-for-data-engineering-projects-95f0c41dc58a?source=post_page-----4b895857c8aa--------------------------------)
+    [](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)
+    [## Feature Engineering for Time-Series Using PySpark on Databricks
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Discover the potentials of PySpark for time-series data: Ingest, extract, and
+    visualize data, accompanied by practical…'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=post_page-----4b895857c8aa--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

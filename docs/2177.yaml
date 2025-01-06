@@ -1,0 +1,393 @@
+- en: Building a Multilingual Multi-Agent Chat Application Using LangGraph — Part
+    I
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-a-multilingual-multi-agent-chat-application-using-langgraph-i-262d40df6b4f?source=collection_archive---------6-----------------------#2024-09-06](https://towardsdatascience.com/building-a-multilingual-multi-agent-chat-application-using-langgraph-i-262d40df6b4f?source=collection_archive---------6-----------------------#2024-09-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In this 3 part series, learn how to build a RAG-based, multilingual, agentic
+    chat application along with an integrated AI assistant to streamline tasks at
+    workplaces
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@RSK2327?source=post_page---byline--262d40df6b4f--------------------------------)[![Roshan
+    Santhosh](../Images/2509f38bf7d5a40c453fa54575293f06.png)](https://medium.com/@RSK2327?source=post_page---byline--262d40df6b4f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--262d40df6b4f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--262d40df6b4f--------------------------------)
+    [Roshan Santhosh](https://medium.com/@RSK2327?source=post_page---byline--262d40df6b4f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--262d40df6b4f--------------------------------)
+    ·10 min read·Sep 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Background**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Despite the advancements in technology, language barriers still exist in today’s
+    world. Whether it’s at work or while you are outside, there are always situations
+    where differences in languages can create awkward situations. This is especially
+    true for large enterprises that have teams spread across different geographies,
+    speaking different languages. As part of the recently concluded Aya Expedition
+    organized by the Cohere for AI research community, I was able to work on a project
+    that aimed to address this language barrier along with other workplace-related
+    inefficiencies by developing a multilingual agentic chat application for workplaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of talking more about the product, I think the best way to introduce
+    the product and what we will be building through this series is to actually watch
+    it in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final demo of chat application
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following tutorial series covers the development of this application which
+    includes :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An agentic workflow for translating to the user’s preferred language
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Building features for the AI assistant: RAG-based question answering, Documentation-on-the-Go,
+    and Smart Summarize features'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Deploying the agentic workflow through FastAPI and developing a web UI to interface
+    with it
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: High-level framework
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Given the popularity of LangChain and its graph based counterpart, LangGraph,
+    I don’t want this to be another tutorial that explains the basics of these packages
+    and their methods. Instead I want to **focus more on the design choices and challenges
+    faced** while implementing our solution through these packages as I feel that
+    would be more useful in the long run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LangChain vs LangGraph**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first design choice we faced was selecting between LangChain and LangGraph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a simple scenario (as pictured below), where every message provided by a
+    user is sent to all other users and translated to their preferred language, then
+    LangChain would have been a sufficient choice. This is a **unidirectional flow**
+    that starts from the user sending the message and ends with the users receiving
+    the messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/00fb860bd624ca99a1d9135b608687fd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Unidirectional information flow without Aya
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the primary constraint in our scenario was the **inclusion of an AI
+    assistant, which we shall be referring to as Aya** (named after the Expedition).
+    Aya was planned to be a significant component of this chat application and added
+    a new layer of complexity to our system. With Aya, messages from the sending user
+    needed to be analyzed and depending on the nature of the message (if it was a
+    command addressed to Aya), the system needed to send back a message, which in
+    turn needed to be sent again to the receiving users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/711ed7a611f3f03fa23f97dd86f1f322.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Information flow with Aya
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Defining a Run:** Another design choice thats relevant here is the definition
+    of one ‘run’ or one ‘iteration’ of the messaging cycle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the definition we chose, we considered each run to be initiated by any user
+    sending a message and it being terminated when all messages related to that initial
+    message reach the receiving users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So if it’s a message that doesn’t address Aya and is just a direct message to
+    other users, the run is considered to be terminated when the initial translated
+    message is received by all users. And if it’s a message that addresses Aya, then
+    it’s considered terminated when the initial message along with the response from
+    Aya, BOTH, reach all users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So with this design choice/definition of a run, we wanted a flow where we wait
+    for the responses from Aya to be generated and pushed to the users before terminating
+    the run. And for implementing such a flow, we used LangGraph, as it was specifically
+    built to solve for such cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building the Agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The backbone of this application are the agents and their interactions. Overall,
+    we had two different types of agents :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'User Agents: Agents attached to each user. Primarily tasked with translating
+    incoming messages into the user’s preferred language'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Aya Agents: Various agents associated with Aya, each with its own specific
+    role/job'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: User Agents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The UserAgent class is used to define an agent that will be associated with
+    every user part of the chat room. Some of the functions implemented by the UserAgent
+    class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Translate incoming messages into the user’s preferred language
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Activate/Invoke graph when a user sends a message
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Maintain a chat history to help provide context to the translation task
+    to allow for ‘context-aware’ translation
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the most part, the implementation of UserAgent is pretty standard LangChain/LangGraph
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define a LangChain chain ( a prompt template + LLM) that is responsible for
+    doing the actual translation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Define a send_text function thats used to invoke the graph whenever a user wants
+    to send a new message
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the most part, the performance of this agent is dependent on the translation
+    quality of the LLM, as translation is the primary objective of this agent. And
+    LLM performance can vary significantly for translation, especially depending on
+    the languages involved. Certain low resource languages don’t have good representation
+    in the training data of some models and this does affect the translation quality
+    for those languages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aya Agents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For Aya, we actually have a system of separate agents that all contributes towards
+    the overall assistant. Specifically, we have
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'AyaSupervisor : Control agent that supervises the operation of the other Aya
+    agents.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'AyaQuery : Agent for running RAG based question answering'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'AyaSummarizer : Agent for generating chat summaries and doing task identification'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'AyaTranslator: Agent for translating messages to English'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Most of these agents have a similar structure, primarily consisting of a LangChain
+    chain consisting of a custom prompt and a LLM. Exceptions include the AyaQuery
+    agent which has an additional vector database retriever to implement RAG and AyaSummarizer
+    which has multiple LLM functions being implemented within it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Design considerations**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Role of AyaSupervisor Agent**: In the design of the graph, we had a fixed
+    edge going from the Supervisor node to the user nodes. Which meant that all messages
+    that reached the Supervisor node were pushed to the user nodes itself. Therefore,
+    in cases where Aya was being addressed, **we had to ensure that only a single
+    final output from Aya was being pushed to the users**. We didn’t want intermediate
+    messages, if any, to reach the users. Therefore, we had the AyaSupervisor agent
+    that acted as the single point of contact for the Aya agent. This agent was primarily
+    responsible for interpreting the intent of the incoming message, direct the message
+    to the appropriate task-specific agent, and then outputting the final message
+    to be shared with the users.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Design of AyaSummarizer:** The AyaSummarizer agent is slightly more complex
+    compared to the other Aya agents as it carries out a two-step process. In the
+    first step, the agent first determines the number of messages that needs to be
+    summarized, which is a LLM call with its own prompt. In the second step, once
+    we know the number of messages to summarize, we collate the required messages
+    and pass it to the LLM to generate the actual summary. In addition to the summary,
+    in this step itself, the LLM also identifies any action items that were present
+    in the messages and lists it out separately.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So broadly there were three tasks: determining the length of the messages to
+    be summarized, summarizing messages, identifying action items. However, given
+    that the first task was proving a bit difficult for the LLM without any explicit
+    examples, I made the choice to have this be a separate LLM call and then combine
+    the two last two tasks as their own LLM call.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It may be possible to eliminate the additional LLM call and combine all three
+    tasks in one call. Potential options include :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Providing very detailed examples that cover all three tasks in one step
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Generating lot of examples to actually finetune a LLM to be able to perform
+    well in this task
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Role of AyaTranslator:** One of the goals with respect to Aya was to make
+    it a multilingual AI assistant which can communicate in the user’s preferred language.
+    However, it would be difficult to handle different languages internally within
+    the Aya agents. Specifically, if the Aya agents prompt is in English and the user
+    message is in a different language, it could potentially create issues. So in
+    order to avoid such situations, as a filtering step, **we translated any incoming
+    user messages to Aya into English**. As a result, all of the internal work within
+    the Aya group of agents was done in English, including the output. We didnt have
+    to translate the Aya output back to the original language because when the message
+    reaches the users, the User agents will take care of translating the message to
+    their respective assigned language.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt Design**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With respect to prompt designs, the majority of the work was focused on getting
+    the LLM to output responses in a particular format in a consistent manner. For
+    most cases, I was able to achieve this by providing explicit instructions. In
+    some cases, instructions alone was not enough and I had to provide examples for
+    the agent to behave consistently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the most part, the prompt template had the following structure :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To take a specific example, we take a look at the prompt used by the User Agent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With regards to this agent, an important constraint was to ensure that the
+    model only outputted the translated text and no supporting text like “Here’s the
+    translated text” or “Sure, the following is a translation for the provided text”.
+    In this case, adding a specific rule to obey (rule #3) was enough to ensure that
+    the models were only outputting the translated text and nothing else.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of an instance that required examples in the prompt were the prompts
+    related to the summarizer agent. Specifically for the agent responsible for identifying
+    the number of messages to summarize over. I found it difficult to get the agent
+    to consistently extract the number of messages listed, if any, and output it in
+    a specific format. Therefore, it became necessary to provide examples to better
+    explain what I was expecting as a response from the agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other implementation details
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: ChatMessage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Those familiar with LangChain should already be aware of AIMessage, HumanMessage
+    classes that are used to hold AI and human messages. For our use case, **we needed
+    to be able to store the ID of the sender for downstream tasks**. Therefore to
+    address this, we created a new derived class called ChatMessage that stores a
+    message along with the sender’s ID
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Graph State
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In LangGraph, one of key elements of the graph is the graph state. The state
+    variable/object is crucial for proper communication between the agents as well
+    as for keeping track of the progress through the graph workflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: In most LangGraph examples, the state variable is a list of strings that keeps
+    getting appended to after passing through every agent. In our use case, **I wanted
+    to exclude the outputs from certain nodes from affecting the state of the graph**,
+    despite the workflow having passed through that node. To accommodate such cases,
+    I differentiated between the two types of state changes by having one as a list
+    and the other as a string. In cases where the state update is in the form of a
+    list, it gets appended to the overall state object. In cases, where the state
+    update is a string, we ignore that update and propagate the existing state. This
+    is achieved using the custom ***reducer*** function defined above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'At this stage, we have covered the design choices of one of the key components
+    of the agentic workflow : the agents. In the next tutorial, we will cover more
+    details about the actual LangGraph graph and its implementation, along with some
+    more details about the features associated with Aya.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For the code, you can refer to the repo here : [Multilingual Chatbot](https://github.com/rsk2327/Multilingual-Chatbot).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless specified otherwise, all images are created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*In addition to Medium, I share my thoughts, ideas and other updates on* [*LinkedIn*](https://www.linkedin.com/in/roshan-santhosh/)*.*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,595 @@
+- en: Running a SOTA 7B Parameter Embedding Model on a Single GPU
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/running-a-sota-7b-parameter-embedding-model-on-a-single-gpu-bb9b071e2238?source=collection_archive---------5-----------------------#2024-08-09](https://towardsdatascience.com/running-a-sota-7b-parameter-embedding-model-on-a-single-gpu-bb9b071e2238?source=collection_archive---------5-----------------------#2024-08-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Running Qwen2 on SageMaker
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@paluchasz?source=post_page---byline--bb9b071e2238--------------------------------)[![Szymon
+    Palucha](../Images/37a33166ccb5b427d8aaf545e3376d59.png)](https://medium.com/@paluchasz?source=post_page---byline--bb9b071e2238--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bb9b071e2238--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bb9b071e2238--------------------------------)
+    [Szymon Palucha](https://medium.com/@paluchasz?source=post_page---byline--bb9b071e2238--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bb9b071e2238--------------------------------)
+    ·16 min read·Aug 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post I will explain how to run a state-of-the-art 7B parameter LLM based
+    embedding model on just a single 24GB GPU. I will cover some theory and then show
+    how to run it with the HuggingFace Transformers library in Python in just a few
+    lines of code!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model that we will run in the [Qwen2](https://arxiv.org/abs/2407.10671)
+    open source model ([Alibaba-NLP/gte-Qwen2–7B-instruct](https://huggingface.co/Alibaba-NLP/gte-Qwen2-7B-instruct))
+    which was released in June 2024, and at the time of finishing this article is
+    in 4th place on the [Massive Text Embeddings Benchmark](https://huggingface.co/spaces/mteb/leaderboard)
+    on HuggingFace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae9c63c85dcebf04f2477d219fbc7493.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ScreenShot of the [MTEB Leaderboard](https://huggingface.co/spaces/mteb/leaderboard)
+    on HuggingFace from July 2024\. The model was in 1st place in June 2024 and has
+    subsequently dropped to 4th place. This shows the pace of development in AI these
+    days!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Theoretical Memory Requirements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Loading a Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The amount of memory required to load a machine learning model (e.g. LLM or
+    Embedding model) can be calculated from the number of its parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, a 7B parameter model in fp32 (float32 precision), means that we
+    need to store 7B numbers in 32-bit precision in order to initialise the model
+    in memory and be able to use it. Therefore, recalling that there are 8 bits in
+    one byte, the memory needed to load the model is
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory of a 7B param model in fp32 = 7B * 32 bits = 7B * 32 / 8 bytes = 28B
+    bytes = **28GB**.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So in order to run this model we need at least 28GB of GPU memory. In fact there
+    is also some additional overhead as described in [this post](https://www.substratus.ai/blog/calculating-gpu-memory-for-llm).
+    As a result to run this model in full precision we cannot use smaller and cheaper
+    GPU’s which have 16GB or 24GB of memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So without a more powerful GPU such as [NVIDIA’s A100](https://www.nvidia.com/en-gb/data-center/a100/),
+    what alternatives do we have? It turns out there a few different techniques to
+    reduce the memory requirement. The simplest one is to reduce the precision of
+    the parameters. Most models can now be used in **half precision** without any
+    significant loss in accuracy. The memory required to load a model in fp16 or [bf16](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format)
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory of a 7B param model in fp16 = 7B * 16 bits = 7B * 16 / 8 bytes = 14B
+    bytes = **14GB**.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Whilst this is already good enough to load the model on a 24GB GPU, we would
+    still struggle to run it on a 16GB GPU, due to the additional overheads and extra
+    requirements during inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reducing the precision anymore than this naively would already start impacting
+    performance but there is a technique called **quantisation** which is able to
+    reduce the precision even further (such as into 8bits or 4bits) without a significant
+    drop in accuracy. Recent research in LLMs has even shown the possibility of using
+    1 bit precision (actually, log_2(3) = 1.58 bits) known as [1-bit LLMs](https://arxiv.org/abs/2402.17764).
+    The parameters of these models can only take the values of 1, -1 or 0!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To read up more on these topics I would recommend:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding floating point representations from the [following tutorial](https://math.libretexts.org/Workbench/Numerical_Methods_with_Applications_(Kaw)/1%3A_Introduction/1.05%3A_Floating-Point_Binary_Representation_of_Numbers#:~:text=A%20machine%20stores%20floating%2Dpoint,the%20magnitude%20of%20the%20mantissa.).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Quantisation Fundamentals with Huggingface](https://www.deeplearning.ai/short-courses/quantization-fundamentals-with-hugging-face/)
+    free course from DeepLearning.AI.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Inference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The above calculations only tell us how much memory we need to simply load the
+    model! On top of this we need additional memory to actually run some input through
+    the model. For the Qwen2 embedding model and LLMs in general the extra memory
+    required depends on the size of the context window (ie. the length of the text
+    passed into the model).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Older Models with Original Self-Attention Mechanism
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before the release of [Flash Attention](https://arxiv.org/abs/2205.14135#) which
+    is now widely adopted, a lot of older Language Models were using the original
+    self-attention from the Transformer architecture. This mechanism requires an additional
+    memory which scales quadratically with the input sequence length. To illustrate
+    why that’s the case below is a great visual reminder of self-attention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a8c914370c08ec222bb4e23b4374895.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A great visual of the self-attention mechanism. Source: Sebastian Raschka,
+    [https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention](https://magazine.sebastianraschka.com/p/understanding-and-coding-self-attention),
+    reproduced with author’s permission.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the diagram we can see that apart from model weights (the *Wq, Wk, Wv*
+    matrices) which we accounted for when calculating the memory required to load
+    the model, there are many additional calculations and their outputs which need
+    to be stored. These include for example, the inputs X, the *Q, K, V* matrices,
+    and the **attention matrix** *QK^T*. It turns out that as the size of the input
+    sequence length, *n*, grows the attention matrix becomes the dominant factor in
+    the extra memory required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand this we can perform a few simple calculations. For example, in
+    the original transformer the embedding dimension size, *d*, was 512\. So for an
+    input sequence of 512 tokens both the inputs X and the attention matrix would
+    require an additional 1MB of memory each in fp32.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 512² floats = 512² * 32 bits = 512² * 4 bytes = 1MB
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If we increase the input sequence length to 8000 tokens, the extra memory requirements
+    would be
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inputs X = 512 * 8000 * 4 bytes = 16MB; Attention Matrix = 8000² * 4 bytes =
+    256MB.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: and if we increase the input sequence length to 32k tokens the extra memory
+    requirements would be
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inputs X = 512 * 32000 * 4 bytes = 65MB; Attention Matrix = 32000² * 4 bytes
+    = 4GB!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As you can see the extra memory required grows very quickly with the size of
+    the context window, and is quickly dominated by the *n²* number of floats in the
+    attention matrix!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above calculations are still very much a simplification as there a lot more
+    details which contribute to even more memory usage. For instance, in the original
+    transformer there is also multi-head attention — where the attention computation
+    is computed in parallel with many different heads (8 in the original implementation).
+    So we need to multiply the required memory by the number of heads. Similarly,
+    the above calculations were for a batch size of 1, if we want to embed many different
+    texts at once we can increase the batch size, but at the cost of additional memory.
+    For a detailed breakdown of the different memory requirements see the following
+    [article](https://huggingface.co/blog/mayank-mishra/padding-free-transformer).
+  prefs: []
+  type: TYPE_NORMAL
+- en: More Recent Models like Qwen2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Since the release of the Transformer in 2017, there has been a lot of research
+    into alternative attention mechanisms to avoid the n² bottleneck. However, they
+    came with the tradeoff of decreased accuracy. In 2022, an exact attention mechanism
+    came out with specific GPU optimisations called [Flash Attention](https://arxiv.org/abs/2205.14135)
+    and has been widely adopted in LLMs. Since then theres been further iterations
+    including the recent [Flash Attention 3](https://arxiv.org/abs/2407.08608) released
+    in July 2024\. The most important takeaway for us is that Flash Attention scales
+    linearly with the input sequence length!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is a theoretical derivation which compares the memory requirements of
+    a 20B parameter model with different sequence lengths of different attention mechanisms.
+    The `Padding-Free Transformer` is yet another optimisation which removes the need
+    of [padding](https://huggingface.co/docs/transformers/en/pad_truncation) — very
+    useful if you have one long sequence and many short sequences in a batch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a941c0fa93eea419f3b66db2022ce8ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Theoretical estimates of memory requirements for a 20B parameter model with
+    different Attention Mechanisms. The main takeaway is the quadratic vs linear scaling.
+    Source: Mayank Mishra, [Saving Memory Using Padding-Free Transformer Layers during
+    Finetuning](https://huggingface.co/blog/mayank-mishra/padding-free-transformer),
+    reproduced with author’s permission.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Qwen2 model uses both the Flash Attention and padding optimisations. Now
+    with the theory covered let’s see how to actually run the Qwen2 model!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running a 7B Qwen2 Model with HuggingFace Transformers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Set Up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The model that we will experiment with is the `Alibaba-NLP/gte-Qwen2-7B-instruct`
+    from Transformers. The model card is [here](https://huggingface.co/Alibaba-NLP/gte-Qwen2-7B-instruct).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To perform this experiment, I have used Python 3.10.8 and installed the following
+    packages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: I ran into some [difficulty](https://github.com/Dao-AILab/flash-attention/issues/246)
+    in installing `flash-attn` required to run this model and so had to install the
+    specific version listed above. If anyone has a better workaround please let me
+    know!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Amazon SageMaker instance I used for this experiment is the `ml.g5.2xlarge`.
+    It has a 24GB NVIDIA A10G GPU and 32GB of CPU memory and it costs $1.69/hour.
+    The below screenshot from AWS shows all the details of the instance
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a03efec36249f1333e76b131a3b3275.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SageMaker g5 instance types from [AWS docs](https://aws.amazon.com/sagemaker/pricing/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Actually to be precise if you run `nvidia-smi` you will see that the instance
+    only has 23GB of GPU memory which is slightly less than advertised. The CUDA version
+    on this GPU is 12.2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Run — In Detail
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you look at the model card, one of the suggested ways to use this model is
+    via the `sentence-transformers` library as show below
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sentence-transformers is an extension of the Transformers package for computing
+    embeddings and is very useful as you can get things working with two lines of
+    code. The downside is that you have less control on how to load the model as it
+    hides away tokenisation and pooling details. The above code **will not run** on
+    our GPU instance because it attempts to load the model in full float32 precision
+    which would take 28GB of memory. When the sentence transformer model is initialised
+    it checks for available devices (cuda for GPU) and automatically shifts the Pytorch
+    model onto the device. As a result it gets stuck after loading 5/7ths of the model
+    and crashes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead we need to be able to load the model in float16 precision before we
+    move it onto the GPU. As such we need to use the lower level Transformers library.
+    (I am not sure of a way to do it with sentence-transformers but let me know if
+    one exists!) We do this as follows
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the `torch_dtype` parameter we specify that the model should be loaded
+    in float16 precision straight away, thus only requiring 14GB of memory. We then
+    need to move the model onto the GPU device which is achieved with the `to` method.
+    Using the above code, the model takes almost 2min to load!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since we are using `transformers` we need to separately load the tokeniser
+    to tokenise the input texts as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next step is to tokenise the input texts which is done as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The maximum length of the Qwen2 model is 32678, however as we will see later
+    we are unable to run it with such a long sequence on our 24GB GPU due to the additional
+    memory requirements. I would recommend reducing this to *no more than 24,000*
+    to avoid out of memory errors. Padding ensures that all the inputs in the batch
+    have the same length whilst truncation ensures that any inputs longer than the
+    maximum length will be truncated. For more information please see the [docs](https://huggingface.co/docs/transformers/en/pad_truncation).
+    Finally, we ensure that we return PyTorch tensors (default would be lists instead)
+    and move these tensors onto the GPU to be available to pass to the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to pass the inputs through our model and perform pooling. This
+    is done as follows
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'with the `last_token_pool` which looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `torch.no_grad()` context manager is used to disable gradient calculation,
+    since we are not training the model and hence to speed up the inference.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We then pass the tokenised inputs into the transformer model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We retrieve the outputs from the last layer of the model with the `last_hidden_state`
+    attribute. This is a tensor of shape *(batch_size, max_sequence_length, embedding
+    dimension)*. Essentially for each example in the batch the transformer outputs
+    embeddings for all the tokens in the sequence.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We now need some way of combining all the token embeddings into a single embedding
+    to represent the input text. This is called `pooling` and it is done in the same
+    way as during training of the model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In older BERT based models the first token was typically used (which represented
+    the special classification [CLS] token). However, the Qwen2 model is LLM-based,
+    i.e. transformer decoder based. In the decoder, the tokens are generated auto
+    regressively (one after another) and so the last token contains all the information
+    encoded about the sentence.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The goal of the `last_token_pool` function is to therefore select the embedding
+    of the last generated token (which was not the padding token) for each example
+    in the batch.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It uses the `attention_mask` which tells the model which of the tokens are padding
+    tokens for each example in the batch (see the [docs](https://huggingface.co/docs/transformers/en/glossary)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Annotated Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s look at an example to understand it in a bit more detail. Let’s say we
+    want to embed two examples in a single batch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The outputs of the tokeniser (the `batch_dict` ) will look as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: From this you can see that the first sentence gets split into four tokens (8687,
+    1467, 220, 16), while the second sentence get split into seven tokens. As a result,
+    the first sentence is padded (with three padding tokens with id 151643) up to
+    length seven — the maximum in the batch. The attention mask reflects this — it
+    has three zeros for the first example corresponding to the location of the padding
+    tokens. Both the tensors have the same size
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now passing the `batch_dict` through the model we can retrieve the models last
+    hidden state of shape:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see that this is of shape *(batch_size, max_sequence_length, embedding
+    dimension)*. Qwen2 has an embedding dimension of 3584!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we are in the `last_token_pool` function. The first line checks if padding
+    exists, it does it by summing the last “column” of the attention_mask and comparing
+    it to the batch_size (given by `attention_mask.shape[0]`. This will only result
+    in true if there exists a 1 in all of the attention mask, i.e. if all the examples
+    are the same length or if we only have one example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: If there was indeed no padding we would simply select the last token embedding
+    for each of the examples with `last_hidden_states[:, -1]`. However, since we have
+    padding we need to select the last non-padding token embedding from each example
+    in the batch. In order to pick this embedding we need to get its index for each
+    example. This is achieved via
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So now we need to simply index into the tensor, with the correct indices in
+    the first two dimensions. To get the indices for all the examples in the batch
+    we can use `torch.arange` as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we can pluck out the correct token embeddings for each example using this
+    and the indices of the last non padding token:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: And we get two embeddings for the two examples passed in!
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Run — TLDR
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The full code separated out into functions looks like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `encode_with_qwen_model` returns a numpy array. In order to convert a PyTorch
+    tensor to a numpy array we first have to move it off the GPU back onto the CPU
+    which is achieved with the `cpu()` method. Please note that if you are planning
+    to run long texts you should reduce the batch size to 1 and only embed one example
+    at a time (thus reducing the list `texts_to_encode` to length 1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Empirical Memory Usage Tests with Context Length
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we saw how the memory usage varies with the input text size from a theoretical
+    standpoint. We can also measure how much memory the GPU actually uses when embedding
+    texts of different length and verify the scaling empirically! I got the idea from
+    this great HuggingFace tutorial: [Getting the most out of LLMs](https://huggingface.co/docs/transformers/v4.35.0/en/llm_tutorial_optimization).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this we will make use of some extra functions
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: as well the
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: function to measure the peak GPU usage. The `flush` function will clear and
+    reset the memory after each pass through the model. We will run texts of different
+    lengths through the model and print out the peak and effective GPU usage. The
+    effective GPU usage is the model size usage subtracted from the total usage which
+    gives us an idea of how much extra memory we need to run the text through the
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full code I used is below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: and the traceback is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see from this that the Qwen2 model indeed scales linearly with the size
+    of the input text. For example, as we double the number of tokens from 8000 to
+    16000, the effective memory usage roughly doubles as well. Unfortunately, trying
+    to run a sequence of length 32000 through the model resulted in a CUDA OOM error
+    so even with a 24GB GPU in float 16 precision we are still unable to utilise the
+    full context window of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other Aspects
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Running Qwen2 in fp32
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To run the Qwen2 model in full precision we have two options. Firstly we can
+    get access to a bigger GPU — for example 40GB would be enough. However, this could
+    be costly. Amazon SageMaker for instance does not have an instance with a single
+    40GB GPU, instead it has an instance with 8 of them! But that wouldn’t be useful
+    as we do not need the other 7 sitting idly. Of course we may also look at other
+    providers as well — there are quite a few now and offering competitive prices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other option is to run the model on an instance with multiple smaller GPUs.
+    The model can be sharded across different GPUs — i.e. different layers of the
+    model are put on different GPUs and the data gets moved across the devices during
+    inference. To do this with HuggingFace you can do
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: For more information on how this works see the following [docs](https://huggingface.co/docs/accelerate/en/usage_guides/big_modeling)
+    and the [conceptual guide](https://huggingface.co/docs/accelerate/en/concept_guides/big_model_inference).
+    The caveat is that this way of doing it is a lot slower — due to the overhead
+    of inter-GPU communication, moving data across the different devices to perform
+    inference. This implementation is also not optimised, meaning execution on each
+    GPU happens sequentially whilst others are sitting idle. If you were embedding
+    thousands of texts or training the model you would ideally have all the GPUs constantly
+    doing some work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running Qwen2 on smaller GPUs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To run this model on even smaller GPUs you would need to quantise the model.
+    Two popular options would be
+  prefs: []
+  type: TYPE_NORMAL
+- en: Via HuggingFace which has various methods available (see [docs](https://huggingface.co/docs/transformers/main/en/quantization/overview)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Via the [vLLM](https://qwen.readthedocs.io/en/latest/deployment/vllm.html) package.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In conclusion in this article we saw how to run a 7B LLM based Qwen2 Embedding
+    model on a single 24GB GPU. We saw how the size of the model is calculated from
+    the number of its parameters and that we need to load the model in float16 precision
+    to fit it onto the 24GB GPU. We then saw that extra memory is required to actually
+    run an example through the model which depends on the size of the context window
+    and varies depending on the underlining attention mechanism used. Finally we saw
+    how to do all of this in just a few lines of code with the Transformers library.
+  prefs: []
+  type: TYPE_NORMAL

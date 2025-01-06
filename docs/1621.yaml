@@ -1,0 +1,484 @@
+- en: 3 Essential Questions to Address When Building an API-Involved Incremental Data
+    Loading Script
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/3-essential-questions-to-address-when-building-an-api-involved-incremental-data-loading-script-03723cad3411?source=collection_archive---------3-----------------------#2024-06-30](https://towardsdatascience.com/3-essential-questions-to-address-when-building-an-api-involved-incremental-data-loading-script-03723cad3411?source=collection_archive---------3-----------------------#2024-06-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)[![Daniel
+    Khoa Le](../Images/5c01c760dc1e92b3048cfae005838ef1.png)](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)
+    [Daniel Khoa Le](https://medium.com/@khoadaniel?source=post_page---byline--03723cad3411--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03723cad3411--------------------------------)
+    ·8 min read·Jun 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TLDR**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article explains both the conceptual framework and practical code implementation
+    for syncing data from API endpoints to your database using dlt (a Python library).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: At the end of this tutorial, you will understand (and know how to implement)
+    the sync behavior in the following illustration where we extract data **incrementally**
+    and write to the destination table with the merge (dedup) strategy.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/e80987236bba43864b69abbfaef3cadd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The context
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You want to sync data from an application (e.g., ads performance, sales figures,
+    etc.) to your database.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Your application provides API endpoints to retrieve its data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The data needs to be synced daily to your database.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You want to load only the ❗***“new” data (or the changes)***❗ into your database.
+    You do not want to load the entire set of data all over again every time you sync.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How would you do it in Python?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will walk you through the solution by addressing the following 3 questions.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '💥 Question 1: What do I need from an API to sync data incrementally?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before developing an incremental loading script, we need to understand the behavior
+    of the API endpoints we are working with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ❗Not all APIs can facilitate incremental loading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '👉 Answer: Query params that support incremental loading'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s look at an example of an application (or “source” application) that tracks
+    your sales performance. In this application, each record represents a product
+    along with its sales volume. The fields `created_at` and `updated_at` indicate
+    when the record was created and updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Changes in the sales data typically occur in two main ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: New products are added to the list.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Updates are made to the sales figures of existing records, **which results in
+    a new value for** `**updated_at**`. This helps us to track the new changes; without
+    it, we cannot know which records have been modified.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 👁️👁️ Below is the example sales table in the source application’s database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '↪️ **Yesterday''s data: 2 records**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fcf8c37fb8ec51718382ef2cb9d09a8b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '↪️ **Today''s data: a new record added and a change made to an existing record**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a7b45d06827f32925d53d8bf2cf1043d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🟢 **Takeaways:** If the API endpoint allows queries based on the`updated_at`
+    parameter, you can implement incremental loading by making requests to retrieve
+    only records that have an `updated_at` value later than the most recent `updated_at`
+    value saved from the previous sync. In this context, `updated_at` is referred
+    to as the incremental cursor, and its value, which persists through to the next
+    sync, is known as the state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `updated_at` field is a common choice for an incremental cursor. Other query
+    params, such as **id** or **sales,** cannot help us to request data incrementally
+    as they cannot tell us which records have been added or updated since the last
+    sync.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Which query param do you need to load data incrementally?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7301b30bfbf0c3f33879ec2791bd4802.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since we’re developing a data loading script that works with API, I’ll introduce
+    two other important aspects of APIs for the code implementation: **pagination
+    and path parameters**. They have nothing to do with incremental loading though.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 🤷 Pagination mechanism
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: APIs often return results in small chunks to enhance performance. For instance,
+    instead of returning 10,000 records at once, an API might limit the response to
+    a maximum of 100 records per request, requiring you to iterate through subsequent
+    batches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To manage this, you typically (not always) need to use two query parameters:
+    `limit` and `skip` (or offset).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a simple example to illustrate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the first request:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`limit`=100'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`skip`=0'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For the second request, to skip the first 100 records we’ve already synced:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`limit`=100'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`skip`=100'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This pattern continues, incrementing the `skip` value by the `limit` after each
+    batch until all records are retrieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🟢 **Takeaways:** You need to understand how APIs return responses so that you
+    won’t miss any records while extracting. There are many approaches an API can
+    use to manage pagination, beyond the commonly used methods of skip and offset.
+    But that’s a story for another day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🤷 Path param
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Path parameters are included directly in the URL of an API and are typically
+    used to distinguish between different segments (partitions) of data. For example,
+    they might specify different campaigns within your marketing account or different
+    sub-accounts managed in the source application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the example below: the path params are `applicationId` and `campaignId`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[https://yourbaseurl.myapp/v1/applications/{applicationId}/campaigns/{campaignId}/](https://yourbaseurl.talon.one/v1/applications/%7BapplicationId%7D/campaigns/%7BcampaignId%7D/coupons/no_total)sales`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🟢 **Takeaways:** You need to decide whether you will sync data from the same
+    API but with different path params to a single table or different tables (sales_campaign_1,
+    sales_campaign_2, etc.).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '💥 Question 2: How do I want to write the extracted records to the destination
+    table?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now let’s say you already extracted a bunch of records by making API requests
+    with the above-mentioned params, it’s time for you to decide how you want to write
+    them to the destination table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '👉 Answer: Merge/Dedup mode (recommended)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This question concerns the choice of **Write disposition** or **Sync mode**.
+    The immediate answer is that, given you are looking to load your data incrementally,
+    you will likely opt to write your extracted data in either append mode or merge
+    mode (also known as deduplication mode).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, let’s step back to examine our options more closely and determine which
+    method is best suited for incremental loading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are the popular write dispositions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🟪 **overwrite/replace:** drop all existing records in the destination tables
+    and then insert the extracted records.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟪 **append:** simply append extracted records to the destination tables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟪 **merge / dedup:** insert new(*) records and update(**) existing records.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '(*) How do we know which records are new?: Usually, we will use a primary key
+    to determine that. If you use dlt, their merging strategy can be more sophisticated
+    than that, including the distinction between `merge_key` and `primary_key` *(one
+    is used for merging and one is used for dedupication before merging)* or `dedup_sort`
+    *(which records are to be deleted with the same key in the dedup process)*. I
+    will leave that part for another tutorial.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (**) This is a simple explanation, if you want to find out more about how dlt
+    handles this merging strategy, read more [here](https://dlthub.com/docs/general-usage/incremental-loading#merge-incremental-loading).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 👁️👁️ Here is an example to help us understand the results of different write
+    dispositions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '↪️ **On 2024.06.19: We make the first sync.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🅰️ **Data in** `**source application**`️️
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74b8a8cbec32ac881ce296f257ab9913.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🅱️ ️**Data loaded to our** `**destination database**`
+  prefs: []
+  type: TYPE_NORMAL
+- en: No matter what sync strategy you choose, the table at the destination is **literally
+    a copy** of the source table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74b8a8cbec32ac881ce296f257ab9913.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Saved state of `updated_at`= 2024–06–03, which is the latest `updated_at` mong
+    the 2 records we synced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '↪️ **On 2024.06.2: We make the second sync.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**🅰️ ️️️️️️️Data in** `**source application**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/43dd22288ef2069f3129fa81154bed22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '✍️ Changes in the source table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Record id=1 was updated (sales figure).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Record id=2 was dropped.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Record id=3 was inserted.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At this sync, we ONLY extract records with the `updated_at`> 2024–06–03 (state
+    saved from last sync). Therefore, we will extracted only record id=1 and id=3\.
+    Since record id=2 was removed from the source data, there is no way for us to
+    recognize this change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the second sync, you now will see the difference among the write strategies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🅱️ **Data loaded to our** `**destination database**`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '❗ **Scenario 1: Overwrite**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/19496a1ddb57a9f1e1107c691ddf441d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The destination table will be overwritten by the 2 records extracted this time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '❗ **Scenario 2: Append**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c30e26065a3f3bf15be9590181267768.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 2 extracted records will be appended to the destination table, the existing
+    records are not affected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '❗ **Scenario 3: Merge or dedup**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/380959de013398c27bd89d42b83d8da6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 2 extracted records with id=1 and 3 will replace the existing records at
+    destination. This processing is so called merging or deduplicating. Record id=2
+    in the destination table remains intact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🟢 **Takeaways:** The merge (dedup) strategy can be effective in the incremental
+    data loading pipeline, but if your table is very large, this dedup process might
+    take a considerable amount of time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '💥 Question 3: How do I implement it in code?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '👉 Answer: dlt — as it is lightweight, well-documented, and has an active community
+    for support.'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[dlt](https://dlthub.com/) is an excellent choice because it provides you with
+    the right level of abstraction. In fact, you can choose how much abstraction you
+    want. As you can see in my example code below, I have taken the liberty of writing
+    my own request loop, but dlt offers helper functions that can do this for you
+    with much fewer lines of code. This flexibility makes dlt stand out compared to
+    other solutions.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You can refer to the diagram for a high-level view and then drill down to the
+    code with detailed remarks below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Quick note: dlt uses the terms **source** and **resources** in its structuring.
+    A resource typically corresponds to an API endpoint and writes data to a table
+    in the destination database. A source is a collection of resources.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the illustration below, you can see the answers to the two questions we
+    discussed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Answer to Question 1: Make requests to an API endpoint using a date cursor
+    to get data incrementally (and persist the cursor value, also known as state,
+    for subsequent runs).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Answer to Question 2: Write data to the destination table using the merge strategy.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/0d48e7a8399a7ac757f7be442cb17cd2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now, you might wonder how to run this Python script? I suggest you to go to
+    [this repository](https://github.com/khoadaniel/incremental-data-loading-guide)
+    and try out yourself. This repository also provides you with a mock API that you
+    can deploy locally for testing purposes. Check out the README for the detailed
+    execution guide.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 💥 Here is a snippet of the dlt implementation with my remarks 💥
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🟣️ **Full code can be seen at the repository** [**here**](https://github.com/khoadaniel/incremental-data-loading-guide)🟣
+  prefs: []
+  type: TYPE_NORMAL
+- en: ✅ This concludes the tutorial. I hope you have learned about the different components
+    that make up an incremental loading script, as well as the code implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re interested in finding out more about how to build an incremental loading
+    script with dlt, check out their documentation [here](https://dlthub.com/docs/general-usage/incremental-loading).
+  prefs: []
+  type: TYPE_NORMAL
+- en: About me
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I am Daniel Le, based in Berlin. I currently work in the fields of Data Engineering
+    and Machine Learning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I am interested in new technologies and how they can be implemented to solve
+    real-world problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Should you have any inquiries or wish to discuss these interests further, please
+    do not hesitate to connect with me on [LinkedIn](https://www.linkedin.com/in/khoadaniel/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[https://dlthub.com/docs/general-usage/incremental-loading](https://dlthub.com/docs/general-usage/incremental-loading)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

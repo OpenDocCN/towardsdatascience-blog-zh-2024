@@ -1,0 +1,357 @@
+- en: How to Fine-Tune a Pretrained Vision Transformer on Satellite Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-fine-tune-a-pretrained-vision-transformer-on-satellite-data-d0ddd8359596?source=collection_archive---------7-----------------------#2024-03-21](https://towardsdatascience.com/how-to-fine-tune-a-pretrained-vision-transformer-on-satellite-data-d0ddd8359596?source=collection_archive---------7-----------------------#2024-03-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step tutorial in PyTorch Lightning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)[![Caroline
+    Arnold](../Images/fb13ba36e302d8161b67c4888d0601e4.png)](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)
+    [Caroline Arnold](https://medium.com/@caroline.arnold_63207?source=post_page---byline--d0ddd8359596--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0ddd8359596--------------------------------)
+    ·6 min read·Mar 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/052cfa4a7466bc057f2271ab6f3aaa70.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by the author using [Midjourney](https://www.midjourney.com/jobs/dc3e78a3-9782-4624-82dd-5d4df21bb17d?index=1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [Vision Transformer](https://arxiv.org/abs/2010.11929) is a powerful AI
+    model for image classification. Released in 2020, it brought the efficient transformer
+    architecture to computer vision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In pretraining, an AI model ingests large amounts of data and learns common
+    patterns. The Vision Transformer was pretrained on [ImageNet-21K](https://arxiv.org/abs/2104.10972),
+    a dataset of 14 million images and 21,000 classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Satellite images are not covered in ImageNet-21K, and the Vision Transformer
+    would perform poorly if applied out-of-the-box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, I will show you how to fine-tune a pretrained Vision Transformer on 27,000
+    satellite images from the [EuroSat dataset](https://zenodo.org/records/7711810#.ZAm3k-zMKEA).
+    We will predict land cover, such as forests, crops, and industrial areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5dc989f9eba1a2ab016f8d1fb6985575.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example images from the [EuroSAT RGB dataset](https://zenodo.org/records/7711810#.ZAm3k-zMKEA).
+    Sentinel data is free and open to the public under EU law.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will work in [PyTorch Lightning](https://lightning.ai), a deep learning library
+    that builds on PyTorch. Lightning reduces the amount of code one has to write,
+    and lets us focus on modeling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All code is available on [GitHub](https://github.com/crlna16/pretrained-vision-transformer/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up the project
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The pretrained Vision Transformer is available on Huggingface. The model architecture
+    and weights can be installed from GitHub. We will also need to install PyTorch
+    Lightning. I used version 2.2.1 for this tutorial, but any version > 2.0 should
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can split our project in four steps, which we will cover in detail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pretrained Vision Transformer: [Lightning Module](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: EuroSAT dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Train the Vision Transformer on the EuroSAT dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Calculate the accuracy on the test set
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Adapting the Vision Transformer to our dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Vision Transformer from Huggingface is optimized for a subset of ImageNet
+    with 1,000 classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our dataset contains only 10 classes for different types of land cover. Therefore,
+    we need to modify the output section of the Vision Transformer to a new classification
+    head with the correct number of classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69ef618dc1fda224692e94b5a4d2833e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Vision Transformer architecture. Adapted by the author from the original paper.
+    [[arxiv]](https://arxiv.org/pdf/2010.11929.pdf)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code for instantiating a pretrained model from Huggingface makes this straightforward.
+    We only need to specify the new number of classes by *num_labels*, and tell the
+    model to ignore the fact we changed the output size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The model reminds us that we now need to re-train:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some weights of ViTForImageClassification were not initialized from the model
+    checkpoint at google/vit-base-patch16–224 and are newly initialized because the
+    shapes did not match:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: …
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You should probably TRAIN this model on a down-stream task to be able to use
+    it for predictions and inference.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can choose different flavours of the Vision Transformer, here we stick with
+    *vit-base-patch16–224*, the smallest model that uses *16 x 16* patches from images
+    with a size of *224 x 224* pixels. This model has 85.8 million parameters and
+    requires 340 MB of memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vision Transformer as a Lightning Module
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In PyTorch Lightning, a deep learning model is defined as a [Lightning Module](https://lightning.ai/docs/pytorch/stable/common/lightning_module.html).
+    We only need to specify
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Setup of the model: Load the pretrained Vision Transformer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Forward step: Apply the model to a batch of data'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Training, validation, and test step
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The optimizer to be used in training
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The training step must return the loss, in this case the cross-entropy loss
+    to quantify the mismatch between the predicted and the true classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logging is convenient. With calls to *self.log*, we can log training and evaluation
+    metrics directly to our preferred logger — in my case, [TensorBoard](https://www.tensorflow.org/tensorboard).
+    Here, we log the training loss and the validation accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that, in order to access the predictions made by Huggingface’s Vision Transformer,
+    we need to retrieve them from the model output as *predictions.logits.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lightning DataModule for the EuroSAT dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can download the EuroSAT dataset from [Zenodo](https://zenodo.org/records/7711810#.ZAm3k-zMKEA).
+    Make sure to select the RGB version, which has already been converted from the
+    original satellite image. We will define the dataset within a [LightningDataModule](https://lightning.ai/docs/pytorch/stable/notebooks/lightning_examples/datamodules.html#Using-DataModules).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The setup stage uses [torchvision](https://pytorch.org/vision/0.17/) transform
+    functions. In order to comply with the input that is expected by the Vision Transformer,
+    we need to upscale the satellite images to 224 x 224 pixels, convert the images
+    to torch datatypes and normalize them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We split the dataset so that 70% remain for training (fine-tuning), 10% for
+    validation, and 20% for testing. By stratifying on the class labels, we ensure
+    an equal distribution of classes across all three subsets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The functions *train_dataloader* etc. are convenient for setting up the dataloaders
+    later in the run script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Putting it all together: the run script'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have the building blocks for the dataset and the model, we can write
+    a run script that performs the fine tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For clarity, I created separate modules for the dataset (*eurosat_module*) and
+    the model (*vision_transformer*) that need to be imported.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Train the model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The [Lightning Trainer](https://lightning.ai/docs/pytorch/stable/common/trainer.html)
+    takes a model and dataloaders for training and validation data. It offers a variety
+    of flags that can be customized to your needs — here we use only three of them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*devices*, to use only one GPU for training'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*early stopping callback*, to stop training if the validation loss does not
+    improve for six epochs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*logger*, to log the training process to TensorBoard'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The beauty of PyTorch Lightning is that training is now done in one line of
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Under the hood, the trainer uses backward propagation and the Adam optimizer
+    to update the model weights. It stops training when the validation accuracy has
+    not improved for the specified number of epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, fine-tuning on EuroSAT is completed within few epochs. The panel shows
+    the training loss, as logged by TensorBoard. After two epochs, the model has already
+    reached 98.3% validation accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1b58b4a473a4f6791d71481a7d1b4de7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Snapshot from TensorBoard created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluate on the test set
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our dataset is small and fine-tuning is fast, so we do not need to store the
+    trained model separately and can apply it directly to the test set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In one line of code, we compute the accuracy on the test set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: With only one epoch of fine-tuning, I achieved a test set accuracy of 98.4%,
+    meaning that the land cover types were correctly classified for almost all satellite
+    images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even with less samples, we can achieve great accuracy. The panel shows the test
+    set accuracy for different numbers of training samples seen only once during fine-tuning.
+    With only 320 satellite images, an average of 32 per class, the test set accuracy
+    is already 80%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fe1672f643e4eeda9b56bd587156dbaf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Key takeaways
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Pretrained models are a great way to reduce your training time. They are already
+    good at a general task and just need to be adapted to your specific dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In real-world applications, data is often scarce. The EuroSAT dataset consists
+    of only 27,000 images, about 0.5% the magnitude of ImageNet-21K. Pretraining takes
+    advantage of larger datasets, and we can efficiently use the application-specific
+    dataset for fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lightning is great for training deep learning models without having to worry
+    about all the technical details. The LightningModule and the Trainer API offer
+    convenient abstractions and are performant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to stay within the Huggingface ecosystem to fine-tune a Vision Transformer,
+    I recommend [this tutorial](https://medium.com/@supersjgk/fine-tuning-vision-transformer-with-hugging-face-and-pytorch-df19839d5396).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The complete code, including configuration files that allow you to add your
+    own datasets, is available on GitHub:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/crlna16/pretrained-vision-transformer?source=post_page-----d0ddd8359596--------------------------------)
+    [## GitHub - crlna16/pretrained-vision-transformer: Pretrained Vision Transformer
+    with PyTorch…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pretrained Vision Transformer with PyTorch Lightning - crlna16/pretrained-vision-transformer
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/crlna16/pretrained-vision-transformer?source=post_page-----d0ddd8359596--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'EuroSAT Dataset: [10.5281/zenodo.7711096](https://zenodo.org/doi/10.5281/zenodo.7711096)
+    ([Copernicus Sentinel Data License](https://sentinel.esa.int/documents/247904/690755/Sentinel_Data_Legal_Notice))'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Dosovitskiy et al, *An Image is Worth 16x16 Words: Transformers for Image Recognition
+    at Scale*, [https://arxiv.org/abs/2010.11929](https://arxiv.org/abs/2010.11929)
+    (2020)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vision Transformer on [Huggingface](https://huggingface.co/docs/transformers/model_doc/vit#vision-transformer-vit)
+    and [GitHub](https://github.com/huggingface/transformers) (Apache 2.0)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,585 @@
+- en: Using LLMs to Learn From YouTube
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/using-llms-to-learn-from-youtube-4454934ff3e0?source=collection_archive---------1-----------------------#2024-05-21](https://towardsdatascience.com/using-llms-to-learn-from-youtube-4454934ff3e0?source=collection_archive---------1-----------------------#2024-05-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/e89496c5a1c58b96a670f468d04c9c69.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author using Midjourney
+  prefs: []
+  type: TYPE_NORMAL
+- en: A conversational question-answering tool built using LangChain, Pinecone, Flask,
+    React and AWS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)[![Alok
+    Suresh](../Images/13c5a5d18cff88db8d5c6e903177c03b.png)](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------)
+    [Alok Suresh](https://medium.com/@suresha?source=post_page---byline--4454934ff3e0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4454934ff3e0--------------------------------)
+    ·17 min read·May 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Have you ever encountered a podcast or a video you wanted to watch, but struggled
+    to find the time due to its length? Have you wished for an easy way to refer back
+    to specific sections of content in this form ?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an issue I’ve faced many times when it comes to YouTube videos of popular
+    podcasts like The Diary of a CEO. Indeed, a lot of the information covered in
+    podcasts such as this is readily available through a quick Google search. But
+    listening to an author’s take on something they are passionate about, or hearing
+    about a successful entrepreneur’s experience from their perspective tends to provide
+    much more insight and clarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Motivated by this problem and a desire to educate myself on LLM-powered applications
+    and their development, I decided to build a chatbot which allows users to ask
+    questions about the content of YouTube videos using the RAG (Retrieval Augmented
+    Generation) framework. In the rest of this post, I’ll talk through my experience
+    developing this application using LangChain, Pinecone, Flask, and React, and deploying
+    it with AWS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dabe57eb81469c898bca326bc2e88548.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I’ve limited code snippets to those that I think will be most useful. For anyone
+    interested, the complete codebase for the application can be found [here](https://github.com/suresha97/ChatYTT/tree/main).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Backend
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ll be using the transcripts of YouTube videos as the source from which the
+    LLM generates answers to user-defined questions. To facilitate this, the backend
+    will need a method of retrieving and appropriately storing these for use in real
+    time, as well as one for using them to generate answers. We also want a way of
+    storing chat histories so that users can refer back to them at a later time. Let’s
+    see how the backend can be developed to satisfy all of these requirements now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Response generation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Since this is a conversational question-answering tool, the application must
+    be able to generate answers to questions while taking both the relevant context
+    *and* chat history into account. This can be achieved using Retrieval Augmented
+    Generation with Conversation Memory, as illustrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d42fbc44892a532842fd1efa30543943.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'For clarity, the steps involved are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question summarisation**: The current question and the chat history are condensed
+    into a standalone question using an appropriate prompt asking the LLM to do so.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Semantic search**: Next, the YouTube transcript chunks that are most relevant
+    to this condensed question must be retrieved. The transcripts themselves are stored
+    as embeddings, which are numerical representations of words and phrases, learned
+    by an embedding model that captures their content and semantics. During the semantic
+    search, the components of each transcript whose embeddings are most similar to
+    those of the condensed question are retrieved.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Context-aware generation**: These retrieved transcript chunks are then used
+    as the context within another prompt to the LLM asking it to answer the condensed
+    question. Using the condensed question ensures that the generated answer is relevant
+    to the current question as well as previous questions asked by the user during
+    the chat.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Data Pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before moving on to the implementation of the process outlined above, let’s
+    take a step back and focus on the YouTube video transcripts themselves. As discussed,
+    they must be stored as embeddings to efficiently search for and retrieve them
+    during the semantic search phase of the RAG process. Let’s go through the source,
+    method of retrieval and method of storage for these now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Source**: YouTube provides access to metadata like video IDs, as well as
+    autogenerated transcripts through its Data API. To begin with, I’ve selected [this](https://www.youtube.com/watch?v=vOvLFT4v4LQ&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2)
+    playlist from The Diary of a CEO podcast, in which various money experts and entrepreneurs
+    discuss personal finance, investing, and building successful businesses.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Retrieval:** I make use of one class responsible for [retrieving metadata](https://github.com/suresha97/ChatYTT/blob/main/chatytt/youtube_data/playlist_data_loader.py)
+    on YouTube videos like Video IDs by interacting directly with the YouTube Data
+    API, and another which uses the [youtube-transcript-API](https://pypi.org/project/youtube-transcript-api/)
+    Python package to [retrieve the video transcripts](https://github.com/suresha97/ChatYTT/blob/main/chatytt/youtube_data/transcript_fetcher.py).
+    These transcripts are then stored as JSON files in an S3 bucket in their raw form.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Storage:** Next, the transcripts need to be converted to embeddings and stored
+    in a vector database. However, a pre-requisite to this step is splitting them
+    into chunks so that upon retrieval, we get segments of text that are of the highest
+    relevance to each question while also minimising the length of the LLM prompt
+    itself. To satisfy this requirement I define a custom S3JsonFileLoader class [here](https://github.com/suresha97/ChatYTT/blob/main/chatytt/embeddings/s3_json_document_loader.py)
+    (due to some issues with LangChain’s out-of-the-box version), and make use of
+    the [text splitter object](https://python.langchain.com/docs/modules/data_connection/document_transformers/recursive_text_splitter)
+    to split the transcripts at load time. I then make use of LangChain’s interface
+    to the Pinecone Vectorstore (my vector store of choice for efficient storage,
+    search and retrieval of the transcript embeddings) to store the transcript chunks
+    as embeddings expected by OpenAI’s gpt-3.5-turbo model:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also make use of a few AWS services to automate these steps using a
+    workflow configured to run periodically. I do this by implementing each of the
+    three steps mentioned above in separate AWS Lamba Functions (a form of serverless
+    computing, which provisions and utilises resources as needed at runtime), and
+    defining the order of their execution using AWS Step Functions (a serverless orchestration
+    tool). This workflow is then executed by an Amazon EventBridge schedule which
+    I’ve set to run once a week so that any new videos added to the playlist are retrieved
+    and processed automatically:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9d3baac2678cfdc95ae37ac3461e78e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note that I have obtained permission from the The Diary of a CEO channel, to
+    use the transcripts of videos from the playlist mentioned above. Anyone wishing
+    to use third party content in this way, should first obtain permission from the
+    original owners.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implementing RAG
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now that the transcripts for our playlist of choice are periodically being
+    retrieved, converted to embeddings and stored, we can move on to the implementation
+    of the core backend functionality for the application i.e. the process of generating
+    answers to user-defined questions using RAG. Luckily, LangChain has a ConversationalRetrievalChain
+    that does exactly that out of the box! All that’s required is to pass in the query,
+    chat history, a vector store object that can be used to retrieve transcripts chunks,
+    and an LLM of choice into this chain like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: I’ve also implemented the functionality of this chain from scratch, as described
+    in LangChain’s tutorials, using both LangChain Expression Language [here](https://github.com/suresha97/ChatYTT/blob/main/chatytt/chains/custom/conversational_qa_lcel_chain.py)
+    and SequentialChain [here](https://github.com/suresha97/ChatYTT/blob/main/chatytt/chains/custom/conversational_qa_sequential_chain.py)
+    . These may provide more insight into all of the actions taking place under the
+    hood in the chain used above.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Saving Chat History
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The backend can generate answers to questions now, but it would also be nice
+    to store and retrieve chat history so that users can refer to old chats as well.
+    Since this is a known access pattern of the same item for different users I decided
+    to use DynamoDB, a NoSQL database known for its speed and cost efficiency in handling
+    unstructured data of this form. In addition, the boto3 SDK simplifies interaction
+    with the database, requiring just a few functions for storing and retrieving data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exposing Logic via an API
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have now covered all of the core functionality, but the client side of the
+    app with which the user interacts will need some way of triggering and making
+    use of these processes. To facilitate this, each of the three pieces of logic
+    (generating answers, saving chat history, and retrieving chat history) are exposed
+    through separate endpoints within a Flask API, which will be called by the front
+    end:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lastly, I use AWS Lambda to wrap the three endpoints in a [single function](https://github.com/suresha97/ChatYTT/blob/main/server/lambda_handler.py)
+    that is then triggered by an API Gateway resource, which routes requests to the
+    correct endpoint by constructing an appropriate payload for each as needed. The
+    flow of this setup now looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4c9a5431cecd5d35c0d1530b6378003e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Frontend
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the backend for the app complete, I’ll briefly cover the implementation
+    of the user interface in React, giving special attention to the interactions with
+    the server component housing the API above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I make use of dedicated functional components for each section of the app,
+    covering all of the typical requirements one might expect in a chatbot application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A container for user inputs with a send chat button.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A chat feed in which user inputs and answers are displayed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A sidebar containing chat history, a new chat button and a save chat button.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The interaction between these components and the flow of data is illustrated
+    below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f765c74fd06a1ee00f201f96d3216938.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The API calls to each of the three endpoints and the subsequent change of state
+    of the relevant variables on the client side, are defined in separate functional
+    components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic for retrieving the generated answer to each question:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '2\. Saving chat history when the user clicks the save chat button:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '3\. Retrieving chat history when the app first loads up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the UI itself, I chose something very similar to ChatGPT’s own interface
+    housing a central chat feed component, and a sidebar containing supporting content
+    like chat histories. Some quality-of-life features for the user include automatic
+    scrolling to the most recently created chat item, and previous chats loading upon
+    sign-in (I have not included these in the article, but you can find their implementation
+    in the relevant functional component [here](https://github.com/suresha97/ChatYTT/tree/main/client/src/components)).
+    The final UI appears as shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a86a50109291a9161564dee2fdacf26b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Now that we have a fully functional UI, all that’s left is hosting it for use
+    online which I’ve chosen to do with AWS Amplify. Among other things, Amplify is
+    a fully managed web hosting service that handles resource provisioning and hosting
+    of web applications. User authentication for the app is managed by Amazon Cognito
+    allowing user sign-up and sign-on, alongside handling credential storage and management:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/deea70d1bf5d430b0bb988e66223257c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison to ChatGPT responses
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve discussed the process of building the app, let’s have a deep
+    dive into the responses generated for some questions, and compare these to the
+    same question posed to ChatGPT*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that this type of comparison is inherently an “unfair” one since the underlying
+    prompts to the LLM used in our application will contain additional context (in
+    the form of relevant transcript chunks) retrieved from the semantic search step.
+    However, it will allow us to qualitatively assess just how much of a difference
+    the prompts created using RAG make, to the responses generated by the same underlying
+    LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**All ChatGPT responses are from gpt-3.5, since this was the model used in
+    the application.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 1:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You want to learn about the contents in [this video](https://www.youtube.com/watch?v=vOvLFT4v4LQ&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&index=1)
+    where Steven Bartlett chats to Morgan Housel, a financial writer and investor.
+    Based on the title of the video, it looks like he’s against buying a house — but
+    suppose you don’t have time to watch the whole thing to find out why. Here is
+    a snippet of the conversation I had with the application asking about it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3b7266647d4afd4f998fdbfe7fed81e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can also see the conversation memory in action here, where in follow-up
+    questions I make no mention of Morgan Housel explicitly or even the words “house”
+    or “buying”. Since the summarised query takes previous chat history into account,
+    the response from the LLM reflects previous questions and their answers. The portion
+    of the video in which Housel mentions the points above can be found roughly an
+    hour and a half into the podcast — around the [1:33:00–1:41:00 timestamp](https://youtu.be/vOvLFT4v4LQ?list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&t=5586).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I asked ChatGPT the same thing, and as expected got a very generic answer that
+    is non-specific to Housel’s opinion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5dd70a411ea8fd9f0becebf84bfd0012.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It’s arguable that since the video came out after the model’s last “knowledge
+    update” the comparison is flawed, but Housel’s opinions are also well documented
+    in his book ‘The Psychology of Money’ which was published in 2020\. Regardless,
+    the reliance on these knowledge updates further highlights the benefits of context-aware
+    answer generation over standalone models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Below are some snippets from a chat about [this discussion](https://www.youtube.com/watch?v=x3e73Qn6NOo&list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2&index=4)
+    with Alex Hormozi, a monetization and acquisitions expert. From the title of the
+    video, it looks like he knows a thing or two about successfully scaling businesses
+    so I ask for more details on this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/75e9ad41f70927529044b2b9a1a7454f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This seems like a reasonable answer, but let’s see if we can extract any more
+    information from the same line of questioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/27f33a139167e3a5a4db013ca0875b15.png)![](../Images/8369575cafd74f7be63e054395d263fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice the level of detail the LLM is able to extract from the YouTube transcripts.
+    All of the above can be found over a 15–20 minute portion of the video around
+    the [17:00–35:00 timestamp.](https://www.youtube.com/watch?v=x3e73Qn6NOo&t=2106s)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, the same question posed to ChatGPT returns a generic answer about the
+    entrepreneur but lacks the detail made available through the context within the
+    video transcripts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f582a9f5f2b328ab6d0c402435afcf6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Deployment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The final thing we’ll discuss is the process of deploying each of the components
+    on AWS. The data pipeline, backend, and frontend are each contained within their
+    own CloudFormation stacks (collections of AWS resources). Allowing these to be
+    deployed in isolation like this, ensures that the entire app is not redeployed
+    unnecessarily during development. I make use of AWS SAM (Serverless Application
+    Model) to deploy the infrastructure for each component as code, leveraging the
+    SAM template specification and CLI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The SAM template specification — A short-hand syntax, that serves as an extension
+    to AWS CloudFormation, for defining and configuring collections of AWS resources,
+    how they should interact, and any required permissions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The SAM CLI — A command line tool used, among other things, for building and
+    deploying resources as defined in a SAM template. It handles the packaging of
+    application code and dependencies, converting the SAM template to CloudFormation
+    syntax and deploying templates as individual stacks on CloudFormation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rather than including the complete templates (resource definitions) of each
+    component, I will highlight specific areas of interest for each service we’ve
+    discussed throughout the post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Passing sensitive environment variables to AWS resources:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'External components like the Youtube Data API, OpenAI API and Pinecone API
+    are relied upon heavily throughout the application. Although it is possible to
+    hardcode these values into the CloudFormation templates and pass them around as
+    ‘parameters’, a safer method is to create secrets for each in AWS SecretsManager
+    and reference these secrets in the template like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Defining a Lambda Function:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These units of serverless code form the backbone of the data pipeline and serve
+    as an entry point to the backend for the web application. To deploy these using
+    SAM, it’s as simple as defining the path to the code that the function should
+    run when invoked, alongside any required permissions and environment variables.
+    Here is an example of one of the functions used in the data pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Retrieving the definition of the data pipeline in Amazon States Language:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to use Step Functions as an orchestrator for the individual Lambda
+    functions in the data pipeline, we need to define the order in which each should
+    be executed as well as configurations like max retry attempts in Amazon States
+    Language. An easy way to do this is by using the [Workflow Studio](https://docs.aws.amazon.com/step-functions/latest/dg/workflow-studio.html)
+    in the Step Functions console to diagrammatically create the workflow, and then
+    take the autogenerated ASL definition of the workflow as a starting point that
+    can be altered appropriately. This can then be linked in the CloudFormation template
+    rather than being defined in place:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: See [here](https://github.com/suresha97/ChatYTT/blob/main/deploy/chatytt-workflows/statemachine/embedding_retriever.asl.json)
+    for the ASL definition used for the data pipeline discussed in this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Defining the API resource:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since the API for the web app will be hosted separately from the front-end,
+    we must enable CORS (cross-origin resource sharing) support when defining the
+    API resource:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will allow the two resources to communicate freely with each other. The
+    various endpoints made accessible through a Lambda function can be defined like
+    so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Defining the React app resource:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'AWS Amplify can build and deploy applications using a reference to the relevant
+    Github repository and an appropriate access token:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once the repository itself is accessible, Ampify will look for a configuration
+    file with instructions on how to build and deploy the app:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a bonus, it is also possible to automate the process of continuous deployment
+    by defining a branch resource that will be monitored and used to re-deploy the
+    app automatically upon further commits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With deployment finalised in this way, it is accessible to anyone with the
+    link made available from the AWS Amplify console. A recorded demo of the app being
+    accessed like this can be found [here](https://github.com/suresha97/ChatYTT/blob/main/docs/Screen-2023-12-21-180035.mp4):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'At a high level, we have covered the steps behind:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a data pipeline for the collection and storage of content as embeddings.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Developing a backend server component which performs Retrieval Augmented Generation
+    with Conversation Memory.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Designing a user interface for surfacing generated answers and chat histories.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How these components can be connected and deployed to create a solution that
+    provides value and saves time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We’ve seen how an application like this can be used to streamline and in some
+    ways ‘optimise’ the consumption of content such as YouTube videos for learning
+    and development purposes. But these methods can just as easily be applied in the
+    workplace for internal use or for augmenting customer-facing solutions. This is
+    why the popularity of LLMs, and the RAG technique in particular has garnered so
+    much attention in many organisations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope this article has provided some insight into how these relatively new
+    techniques can be utilised alongside more traditional tools and frameworks for
+    developing user-facing applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Acknowledgements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I would like to thank The Diary of a CEO team, for their permission to use the
+    transcripts of videos from this [playlist](https://www.youtube.com/playlist?list=PL22egh3ok4cOaKRqIt6LwBRXcyiVcS5k2)
+    in this project, and in the writing of this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images, unless otherwise noted, are by the author.
+  prefs: []
+  type: TYPE_NORMAL

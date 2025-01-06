@@ -1,0 +1,359 @@
+- en: Conditional Variational Autoencoders with Learnable Conditional Embeddings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08](https://towardsdatascience.com/conditional-variational-autoencoders-with-learnable-conditional-embeddings-e22ee5359a2a?source=collection_archive---------1-----------------------#2024-01-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An approach to add conditions to CVAE models without retraining
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Tim
+    Rose](../Images/12bcd585b5dad388dad140b4ca049392.png)](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
+    [Tim Rose](https://tdrose1.medium.com/?source=post_page---byline--e22ee5359a2a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e22ee5359a2a--------------------------------)
+    ·11 min read·Jan 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Requirements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This article is about conditional variational autoencoders (CVAE) and requires
+    a minimal understanding of this type of model. If you are not familiar with CVAEs,
+    I can recommend the following articles: [VAEs with PyTorch](https://avandekleut.github.io/vae/),
+    [Understanding CVAEs](/understanding-conditional-variational-autoencoders-cd62b4f57bf8).
+    Please familiarize yourself with CVAEs before reading this article. My code examples
+    are written in Python using [PyTorch](https://pytorch.org/) and [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I recently came across the paper: [“Population-level integration of single-cell
+    datasets enables multi-scale analysis across samples”](https://doi.org/10.1038/s41592-023-02035-2),
+    where the authors developed a CVAE model with learnable conditional embeddings.
+    I found this idea pretty interesting and think it is worth sharing here. In this
+    article, I will not discuss the biological applications of the proposed model,
+    but instead, break down their idea for a simple example case on handwritten digits
+    from the MNIST dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let’s get started. The C in CVAE stands for “conditional”. This means that
+    the encoder and decoder in addition to the input data (e.g. image for the encoder
+    and latent vector for the decoder) are provided with an encoding for a condition.
+    Therefore, the encoder does not need to represent the condition in the latent
+    space since the decoder will also get this information as an extra input. Hence,
+    the encoder can regress out the condition and learn e.g. the handwriting style
+    as a latent representation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In practice, conditions in CVAE models are commonly one-hot encoded. E.g. for
+    the MNIST dataset with 10 different digits, we would use a size 10 vector. PyTorch
+    provides a function to create one-hot encodings from integer labels:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: One-hot encodings work well, however, a trained model is limited to the conditions
+    provided during training, due defined dimensions of the condition vector. If a
+    CVAE model is trained on the MNSIT dataset for the digits 0–7 (using a size 8
+    one hot encoding), inference cannot be performed for digits 8 and 9.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the publication that inspired this article, the authors are interested in
+    the latent space generated from the encoder and want to integrate new conditions
+    into the latent space without retraining the model. To achieve this, they use
+    embedding vectors for each condition, whose values are learned during training.
+    If a new condition is added to the model, all model weights can be frozen except
+    the values of a new condition embedding vector. What I find interesting about
+    this approach, is the assumption that the model is essentially learning another
+    latent space of condition (digit) representation hat can be used to interpolate
+    and create embeddings for new digits the model has not seen before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before implementing such a CVAE model, let’s make a simple CVAE with one-hot
+    encoded conditions which we can later compare to the new model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CVAE with one-hot encoded conditions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'First, let’s load all required python packages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we load the MNIST data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The model consists of an encoder and decoder (I adapted the model and plots
+    from a minimal VAE example from [this post](https://avandekleut.github.io/vae/)).
+    We first define the encoder, which takes as input the images and one-hot encoding
+    and outputs a latent vector z. Additionally, it computes the [KL-divergence](https://en.wikipedia.org/wiki/Kullback%E2%80%93Leibler_divergence)
+    as an additional loss term for the CVAE:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The decoder is much simpler since it just uses the images and one-hot encodings
+    to infer images:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the next step, we combine them into one module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This module performs both the encoding and decoding in the forward pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since we will train the model using the lightning framework, we need one more
+    wrapper for the CVAE module:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the lightning module, we also perform the one-hot encoding of the digit labels
+    during each forward pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s train the model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will not perform a quantitative evaluation of the model performance for
+    this article, but we can visually check how well the model is able to generate
+    digits from the latent space. To do so, we create a grid in the latent space and
+    letting the decoder generate images of the digits we are interested in. Since
+    we only used a 2-dimensional latent space, we can use a 2D grid. For this, we
+    define a plotting function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this we can have a look at the generated images:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0082c26ff50997ffdd2d5e627ddf604d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Inferred images for the number 8 from a over a grid of the latent space. Image
+    created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Especially in the center of the latent space, the digits are very clear (Try
+    to use other numbers as conditions and plot them yourself). Overall, the decoder
+    is able to generate readable images of handwritten digits for all the provided
+    numbers during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are also interested in the latent space representation of all the digits
+    in the training data. As mentioned before, we expect the model to remove digit-related
+    differences in the latent space and, therefore, e.g. no clusters of images from
+    the same digit. Below, we can visualize the 2D latent space and color it by the
+    digit label. Further, we expect the latent space to be normally distributed around
+    zero (due to our KL loss term).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b31dbe1d53e4a044e4e51587f5943a22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Latent space of the CVAE model on the training data colored by the condition.
+    Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learnable conditional embeddings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After building a first model, we switch to learnable embeddings. Instead of
+    using one-hot encoding, we will now use learnable embeddings. These are also unique
+    vectors for each condition, but with values that will be updated in the training
+    process. The model optimizer will update the embedding vectors together with all
+    other model parameters to improve the loss during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So we do not only have a latent space for images but also an embedding space
+    for the conditions (digits). One of the central aspects of the paper is that the
+    model is encoding information about (in our example case) the condition in the
+    embedding vector. This means that we can add new digits to the model that were
+    not included during training and the model might be able to infer the correct
+    digit just with a new adjusted condition embedding. For this, all model weights
+    are frozen and only the embeddings for the new digits which should be added to
+    the model are optimized. In the publication, the authors intend to add a new condition
+    to the latent space, but in this article, we will check how well the model can
+    generate images of unseen digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we train a model on all digits to check the general ability of the CVAE
+    model to train with learnable embeddings. For this, we define a new lightning
+    module, but in this case include an embedding variable, which stores the embeddings
+    and provides them in the forward pass:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we can train the model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After training, we need a slightly updated plotting function to show generated
+    images from the latent space that utilizes the condition embeddings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: And we can finally generate new images. We again plot number 8 digits and can
+    see that the model is equally well able to generate the digit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/eecb76b70fc22020189c4b8555bb9534.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Inferred images for the number 8 from a over a grid of the latent space using
+    learnable condition embeddings. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To visualize the latent space, we also need a slightly updated plotting function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/39195f96429cbe2746e91b97cedfcd2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Latent space of the CVAE model with learnable condition embeddings on the training
+    data colored by the condition. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While we can see a slightly changes distribution, we cannot see strong digit-related
+    clusters. This shows that the model using learnable embeddings is similarly able
+    to condition on the digits as the one hot encoded model (While the model is actually
+    using fewer parameters since we only use an embedding of size 5 instead of 10
+    for the one hot encoding).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding new conditions to the model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Finally, we are going to train the model only on the digits 0–7\. After training,
+    we then optimize the condition embeddings for the digits 8 and 9 while freezing
+    all other model weights. This allows us to add these conditions to the latent
+    space (and generate new images) without retraining the whole model. To do so,
+    we create two new dataloaders, one for providing images of the digits 0–7 (**datatrain**)
+    and another for providing the images for the digits 8 and 9 (**data89**):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then first train the model on images of 0–7 digits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then freeze all model parameters, except the condition embeddings. After
+    that, we then optimize the embeddings only for images of the digits 8 and 9:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s visualize generated numbers and the latent space. Below we can see that
+    the model is able to generate the images of the digit 8 similarly to our previous
+    models, even though the model was not trained on these images and only the condition
+    embedding vector has been updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/eecb76b70fc22020189c4b8555bb9534.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Inferred images for the number 8 from a over a grid of the latent space using
+    learnable condition embeddings, which were not part of the training of the full
+    model. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we visualize the latent space, we neither see clusters of 8 and 9 digits
+    nor any strong outliers in the distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/36c1a488d22e9868c97c4d16c51529d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Latent space of the CVAE model with learnable condition embeddings on the training
+    data colored by the condition, where the digits 8&9 have been added without retraining
+    of the model. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While we did not do any kind of systematic evaluation of the model performance
+    in this article, we can see that learned embedding can be very useful for adding
+    new conditions to CVAE models, without retraining the whole model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One-hot encodings are commonly used in machine learning, but I hope to have
+    shown you an interesting alternative for it in CVAE models. If you are also interested
+    in the applications of such an approach (e.g. in biology), I recommend the publication
+    [“Population-level integration of single-cell datasets enables multi-scale analysis
+    across samples”](https://doi.org/10.1038/s41592-023-02035-2), which was the basis
+    for this article. It also contains a few other interesting ideas for customizing
+    CVAE models for specific applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thank you for reading and feel free to explore the source code for this article
+    and play with the models. You can find all the code on GitHub: [](https://github.com/tdrose/blogpost-subfigures-code)
+    [https://github.com/tdrose/medium-articles-code](https://github.com/tdrose/medium-articles-code)[.](https://github.com/tdrose/lightning-cvae.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images were created by the author.
+  prefs: []
+  type: TYPE_NORMAL

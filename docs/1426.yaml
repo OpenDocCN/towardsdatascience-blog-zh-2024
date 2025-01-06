@@ -1,0 +1,407 @@
+- en: How to Build a Generative Search Engine for Your Local Files Using Llama 3
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965?source=collection_archive---------0-----------------------#2024-06-08](https://towardsdatascience.com/how-to-build-a-generative-search-engine-for-your-local-files-using-llama-3-399551786965?source=collection_archive---------0-----------------------#2024-06-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Use Qdrant, NVidia NIM API, or Llama 3 8B locally for your local GenAI assistant
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)[![Nikola
+    Milosevic (Data Warrior)](../Images/ebea6501c00030561a59a4a12ab7a79a.png)](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------)
+    [Nikola Milosevic (Data Warrior)](https://datawarrior.medium.com/?source=post_page---byline--399551786965--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--399551786965--------------------------------)
+    ·12 min read·Jun 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the 23rd of May, I received an email from a person at Nvidia inviting me
+    to the [Generative AI Agents Developer Contest by NVIDIA and LangChain](https://www.nvidia.com/en-us/ai-data-science/generative-ai/developer-contest-with-langchain/?ncid=em-anno-571922&DkwibgoBGQo58Ndn2XA_QZk4Oek6oAyhMHrbuo7f2iF8fmTr0phnYJSKrENRDiGu3MOeEry08HydZtz_EiC0eg=&mkt_tok=MTU2LU9GTi03NDIAAAGTQxOVSz583h1Gr6TvRfnNz4TJLyss1TypLIotdWccXzlkMpJ8mAtsKiyWooZ5pnhPM3ALyJdxJh6gpak9YASo8xEIOWv-5FZaaptj4FmiBLsaCVMdI5w).
+    My first thought was that it is quite a little time, and given we had a baby recently
+    and my parents were supposed to come, I would not have time to participate. But
+    then second thoughts came, and I decided that I could code something and submit
+    it. I thought about what I could make for a few days, and one idea stuck with
+    me — an Open-Source Generative Search Engine that lets you interact with local
+    files. Microsoft Copilot already provides something like this, but I thought I
+    could make an open-source version, for fun, and share a bit of learnings that
+    I gathered during the quick coding of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: System Design
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to build a local generative search engine or assistant, we would need
+    several components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An index with the content of the local files, with an information retrieval
+    engine to retrieve the most relevant documents for a given query/question.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A language model to use selected content from local documents and generate a
+    summarized answer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A user interface
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How the components interact is presented in a diagram below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/93ac4331f5c89da60084b967ac949115.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: System design and architecture. Qdrant is used for vector store, while Streamlit
+    is for the user interface. Llama 3 is either used via Nvidia NIM API (70B version)
+    or is downloaded via HuggingFace (8B version). Document chunking is done using
+    Langchain. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to index our local files into the index that can be queried for
+    the content of the local files. Then, when the user asks a question, we would
+    use the created index, with some of the asymmetric paragraph or document embeddings
+    to retrieve the most relevant documents that may contain the answer. The content
+    of these documents and the question are passed to the deployed large language
+    model, which would use the content of given documents to generate answers. In
+    the instruction prompt, we would ask a large language model to also return references
+    to the used document. Ultimately, everything will be visualized to the user on
+    the user interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s have a look in more detail at each of the components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Semantic Index
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We are building a semantic index that will provide us with the most relevant
+    documents based on the similarity of the file's content and a given query. To
+    create such an index we will use Qdrant as a vector store. Interestingly, a [Qdrant
+    client library](https://github.com/qdrant/qdrant-client) does not require a full
+    installation of [Qdrant server](https://qdrant.tech/) and can do a similarity
+    of documents that fit in working memory (RAM). Therefore, all we need to do is
+    to pip install Qdrant client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can initialize Qdrant in the following way (note that the hf parameter is
+    later defined due to the story flow, but with Qdrant client you already need to
+    define which vectorization method and metric is being used):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to create a vector index, we will have to embed the documents on the
+    hard drive. For embeddings, we will have to select the right embedding method
+    and the right vector comparison metric. Several paragraph, sentence, or word embedding
+    methods can be used, with varied results. The main issue with creating vector
+    search, based on the documents, is the problem of asymmetric search. Asymmetric
+    search problems are common to information retrieval and happen when one has short
+    queries and long documents. Word or sentence embeddings are often fine-tuned to
+    provide similarity scores based on documents of similar size (sentences, or paragraphs).
+    Once that is not the case, the proper information retrieval may fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, we can find an embedding methodology that would work well on asymmetric
+    search problems. For example, models fine-tuned on the MSMARCO dataset usually
+    work well. MSMARCO dataset is based on Bing Search queries and documents and has
+    been released by Microsoft. Therefore, it is ideal for the problem we are dealing
+    with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this particular implementation, I have selected an already fine-tuned model,
+    called:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This model is based on BERT and it was fine-tuned using dot product as a similarity
+    metric. We have already initialized qdrant client to use dot product as a similarity
+    metric in line (note this model has dimension of 768):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We could use other metrics, such as cosine similarity, however, given this
+    model is fine-tuned using dot product, we will get the best performance using
+    this metric. On top of that, thinking geometrically: Cosine similarity focuses
+    solely on the difference in angles, whereas the dot product takes into account
+    both angle and magnitude. By normalizing data to have uniform magnitudes, the
+    two measures become equivalent. In situations where ignoring magnitude is beneficial,
+    cosine similarity is useful. However, the dot product is a more suitable similarity
+    measure if the magnitude is significant.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code for initializing the MSMarco model is (in case you have available
+    GPU, use it. by all means):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next problem: we need to deal with is that BERT-like models have limited
+    context size, due to the quadratic memory requirements of transformer models.
+    In the case of many BERT-like models, this context size is set to 512 tokens.
+    There are two options: (1) we can base our answer only on the first 512 tokens
+    and ignore the rest of the document, or (2) create an index, where one document
+    will be split into multiple chunks and stored in the index as chunks. In the first
+    case, we would lose a lot of important information, and therefore, we picked the
+    second variant. To chunk documents, we can use a prebuilt chunker from LangChain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the provided part of the code, we chunk text into the size of 500 tokens,
+    with a window of 50 overlapping tokens. This way we keep a bit of context on the
+    places where chunks end or begin. In the rest of the code, we create metadata
+    with the document path on the user’s hard disk and add these chunks with metadata
+    to the index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, before we add the content of the files to the index, we need to read
+    it. Even before we read files, we need to get all the files we need to index.
+    For the sake of simplicity, in this project, the user can define a folder that
+    he/she would like to index. The indexer retrieves all the files from that folder
+    and its subfolder in a recursive manner and indexes files that are supported (we
+    will look at how to support PDF, Word, PPT, and TXT).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can retrieve all the files in a given folder and its subfolder in a recursive
+    way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once all the files are retrieved in the list, we can read the content of files
+    containing text. In this tool, for start, we will support MS Word documents (with
+    extension “.docx”), PDF documents, MS PowerPoint presentations (with extension
+    “.pptx”), and plain text files (with extension “.txt”).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to read MS Word documents, we can use the docx-python library. The
+    function reading documents into a string variable would look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A similar thing can be done with MS PowerPoint files. For this, we will need
+    to download and install the pptx-python library and write a function like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Reading text files is pretty simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For PDF files we will in this case use the PyPDF2 library:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, the whole indexing function would look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we stated, we use TokenTextSplitter from LangChain to create chunks of 500
+    tokens with 50 token overlap. Now, when we have created an index, we can create
+    a web service for querying it and generating answers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generative Search API
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will create a web service using FastAPI to host our generative search engine.
+    The API will access the Qdrant client with the indexed data we created in the
+    previous section, perform a search using a vector similarity metric, use the top
+    chunks to generate an answer with the Llama 3 model, and finally provide the answer
+    back to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to initialize and import libraries for the generative search component,
+    we can use the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: As previously mentioned, we are using FastAPI to create the API interface. We
+    will utilize the qdrant_client library to access the indexed data we created and
+    leverage the langchain_qdrant library for additional support. For embeddings and
+    loading Llama 3 models locally, we will use the PyTorch and Transformers libraries.
+    Additionally, we will make calls to the NVIDIA NIM API using the OpenAI library,
+    with the API keys stored in the environment_var (for both Nvidia and HuggingFace)
+    file we created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We create class Item, derived from BaseModel in Pydantic to pass as parameters
+    to request functions. It will have one field, called query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can start initializing our machine-learning models
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the first few lines, we load weights for the BERT-based model fine-tuned
+    on MSMARCO data that we have also used to index our documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we check whether nvidia_key is provided, and if it is, we use the OpenAI
+    library to call NVIDIA NIM API. When we use NVIDIA NIM API, we can use a big version
+    of the Llama 3 instruct model, with 70B parameters. In case nvidia_key is not
+    provided, we will load Llama 3 locally. However, locally, at least for most consumer
+    electronics, it would not be possible to load the 70B parameters model. Therefore,
+    we will either load the Llama 3 8B parameter model or the Llama 3 8B parameters
+    model that has been additionally quantized. With quantization, we save space and
+    enable model execution on less RAM. For example, Llama 3 8B usually needs about
+    14GB of GPU RAM, while Llama 3 8B quantized would be able to run on 6GB of GPU
+    RAM. Therefore, we load either a full or quantized model depending on a parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now initialize the Qdrant client
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Also, FastAPI and create a first mock GET function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function would return JSON in format {“message”:”Hello World”}
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, for this API to be functional, we will create two functions, one that
+    performs only semantic search, while the other would perform search and then put
+    the top 10 chunks as a context and generate an answer, referencing documents it
+    used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both functions are POST methods, and we use our Item class to pass the query
+    via JSON body. The first method returns the 10 most similar document chunks, with
+    the path, and assigns document ID from 0–9\. Therefore, it just performs the plain
+    semantic search using dot product as similarity metric (this was defined during
+    indexing in Qdrant — remember line containing distance=Distance.DOT).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second function, called ask_localai is slightly more complex. It contains
+    a search mechanism from the first method (therefore it may be easier to go through
+    code there to understand semantic search), but adds a generative part. It creates
+    a prompt for Llama 3, containing instructions in a system prompt message saying:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Answer the user’s question using the documents given in the context. In the
+    context are documents that should contain an answer. Please always reference the
+    document ID (in square brackets, for example [0],[1]) of the document that was
+    used to make a claim. Use as many citations and documents as it is necessary to
+    answer a question.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The user’s message contains a list of documents structured as an ID (0–9) followed
+    by the document chunk on the next line. To maintain the mapping between IDs and
+    document paths, we create a list called list_res, which includes the ID, path,
+    and content. The user prompt ends with the word “Question” followed by the user’s
+    query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The response contains context and generated answer. However, the answer is again
+    generated by either the Llama 3 70B model (using NVIDIA NIM API), local Llama
+    3 8B, or local Llama 3 8B quantized depending on the passed parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The API can be started from a separate file containing the following lines
+    of code (given, that our generative component is in a file called api.py, as the
+    first argument in Uvicorn maps to the file name):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Simple User Interface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The final component of our local generative search engine is the user interface.
+    We will build a simple user interface using [Streamlit](https://streamlit.io/),
+    which will include an input bar, a search button, a section for displaying the
+    generated answer, and a list of referenced documents that can be opened or downloaded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The whole code for the user interface in Streamlit has less than 45 lines of
+    code (44 to be exact):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It will all end up looking like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a81808986db73b743ff6767665018ad7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example of an answered question in the built user interface. Screenshot by
+    author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Availability
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The entire code for the described project is available on GitHub, at [https://github.com/nikolamilosevic86/local-genAI-search](https://github.com/nikolamilosevic86/local-genAI-search).
+    In the past, I have worked on several generative search projects, on which there
+    have also been some publications. You can have a look at [https://www.thinkmind.org/library/INTERNET/INTERNET_2024/internet_2024_1_10_48001.html](https://www.thinkmind.org/library/INTERNET/INTERNET_2024/internet_2024_1_10_48001.html)
+    or [https://arxiv.org/abs/2402.18589](https://arxiv.org/abs/2402.18589).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article showed how one can leverage generative AI with semantic search
+    using Qdrant. It is generally a Retrieval-Augmented Generation (RAG) pipeline
+    over local files with instructions to reference claims to the local documents.
+    The whole code is about 300 lines long, and we have even added complexity by giving
+    a choice to the user between 3 different Llama 3 models. For this use case, both
+    8B and 70B parameter models work quite well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I wanted to explain the steps I did, in case this can be helpful for someone
+    in the future. However, if you want to use this particular tool, the easiest way
+    to do so is by just getting it from [GitHub](https://github.com/nikolamilosevic86/local-genAI-search),
+    it is all open source!
+  prefs: []
+  type: TYPE_NORMAL

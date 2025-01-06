@@ -1,0 +1,513 @@
+- en: Improving the Analysis of Object (or Cell) Counts with Lots of Zeros
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/improving-the-analysis-of-object-or-cells-counts-with-lots-of-zeros-f343d1430637?source=collection_archive---------6-----------------------#2024-04-27](https://towardsdatascience.com/improving-the-analysis-of-object-or-cells-counts-with-lots-of-zeros-f343d1430637?source=collection_archive---------6-----------------------#2024-04-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An approach using hurdle and zero-inflated models with brms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)[![Daniel
+    Manrique-Castano](../Images/06f857ae6e82688113f1089c7f03be88.png)](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)
+    [Daniel Manrique-Castano](https://medium.com/@damanrique?source=post_page---byline--f343d1430637--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f343d1430637--------------------------------)
+    ·13 min read·Apr 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7ca3306348a80ac2c32c3bb56be3f0cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: NeuN and GFAP staining in a mouse brain following cerebral ischemia. [Manrique-Castano
+    et al](https://www.biorxiv.org/content/10.1101/2023.10.04.560910v1). (2024) (CC-BY).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Counting is a fundamental task in biomedical research, particularly when analyzing
+    cell populations. Imagine staring at countless cells within a tiny brain region
+    — sometimes numbering in the hundreds or thousands. Yet, in other areas, these
+    numbers may dwindle to few or even none.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge arises in how we analyze these counts. For large numbers, linear
+    models, which assume a normal distribution, often serve as a reasonable approximation.
+    Though not optimal, they provide a logical framework for initial analysis. However,
+    the scenario shifts dramatically when cell counts are low or predominantly zeros.
+    Here, traditional linear models (like those t-tests we run in GraphPad) falter,
+    losing their effectiveness and relevance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As researchers, we must strive for better, going beyond t-tests and ANOVAs.
+    This post aims to explore alternative statistical methods that more accurately
+    reflect the realities of our data, especially when dealing with low or zero counts.
+    By embracing more fitted approaches, we can enhance the precision of our findings
+    and deepen our understanding of our cell populations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s load the necessary libraries and create a visual theme for our
+    plots.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is the issue with counting zeros?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In many studies, like the one shown in the graph by ([*1*](#ref-baraibar2020)),
+    we encounter the challenge of low cell counts, particularly where one group —
+    marked here in black — appears to be dominated by zero counts. This scenario is
+    not uncommon in biomedical literature, where straightforward linear models are
+    frequently applied to analyze such data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/03b18f75422dabf28c42ebb43ddf279f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: CD3+ cells by Baraibar et. al (2020) (CC-BY)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the use of these models in cases of low or zero counts can be problematic.
+    Without access to the original datasets — which researchers often do not share
+    — it’s difficult to evaluate the efficacy of the analysis fully. To better understand
+    this issue, let’s consider a separate dataset from my own research. Several years
+    ago, I undertook the task of counting BrdU+ cells following an ischemic event
+    in a specific brain area called the subventricular zone (SVZ). This particular
+    experience inclined me to evaluate more suitable statistical approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These are the data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/fc557806dbde71b37b57f919be9b7ea2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can visualize that the contralateral hemisphere has a lot of null cell counts.
+    We can have a better angle if we use a boxplot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1f2ef5bb688bbce545181496a6029bc4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Cell counts by hemisphere'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 2](#fig-EDA) vividly illustrates the substantial disparities in cell
+    counts across hemispheres. To examine what happens when we apply a typical (and
+    horrific) linear model to such data, we’ll proceed with a practical demonstration
+    using the `brms`. This will help us understand the effects of these variations
+    when analyzed under a traditional framework predicated on normal distribution
+    assumptions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, I’ll fit a linear model where the factor variable “hemisphere”
+    is the sole predictor of the cell counts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Are you willing to bet on what the results will be? Let’s find out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef819bf385242f34194a1aac4ad0180e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you like, you can fit a frequentist (OLS) model with `lm` and you will certainly
+    get the same results. In these results, the intercept represents an estimate of
+    cell counts for the contralateral hemisphere, which serves as our reference group.
+    However, a significant inconsistency arises when employing a normal distribution
+    for data that includes numerous zero counts or values close to zero. In such cases,
+    the model is inappropriately “forced” to predict that cell counts in our hemisphere
+    could be negative, such as -1 to -2 cells, with a confidence interval ranging
+    from -1.5 to 3.7\. This prediction is fundamentally flawed because it disregards
+    the intrinsic nature of cells as entities that can only assume non-negative integer
+    values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This issue stems from the fact that our model, in its current form, does not
+    comprehend the true characteristics of the data it’s handling. Instead, it merely
+    follows our directives — albeit incorrectly — to fit the data to a linear model.
+    This common oversight often leads researchers to further exacerbate the problem
+    by applying t-tests and ANOVAs, thereby superimposing additional analysis onto
+    a model that is fundamentally unsound. It is imperative that we, as researchers,
+    recognize and harness our capabilities and tools to develop and utilize more appropriate
+    and logically sound modeling methods that respect the inherent properties of our
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s plot the results using the great `TidyBayes` package ([*2*](#ref-tidybayes))
+    by the great [Matthew Kay](https://www.mjskay.com/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c06d291722fd2e60a45af8adc86ee81b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3: Posterior distribution for cell counts by hemisphere'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also see this inconsistency if we perform `pp_check` to compare the
+    observations with the model predictions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ba8710d00422226c3c7c6fd1a7278fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4: Posterior predictive checks gaussian model'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once again, we encounter irrational predictions of cell counts falling below
+    zero. As scientists, it’s crucial to reflect on the suitability of our models
+    in relation to the data they are intended to explain. This consideration guides
+    us toward **generative models**, which are build under the premise that they could
+    plausibly have generated the observed data. Clearly, the linear model currently
+    in use falls short of this criterion. It predicts impossible negative values for
+    cell counts. Let’s try to find out a better model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working with lots of zeros
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A zero-inflated model effectively captures the nuances of datasets characterized
+    by a preponderance of zeros. It operates by distinguishing between two distinct
+    processes: 1) Determining whether the result is zero, and 2) predicting the values
+    for non-zero results. This dual approach is particularly apt for asking questions
+    like, “Are there any cells present, and if so, how many?”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For handling datasets with an abundance of zeros, we employ models such as `hurdle_poisson()`
+    and `Zero_inflated_poisson`, both designed for scenarios where standard count
+    models like the Poisson or negative binomial models prove inadequate ([*3*](#ref-feng2021a)).Loosely
+    speaking, a key difference between `hurdle_poisson()` and `Zero_inflated_poisson`
+    is that the latter incorporates an additional probability component specifically
+    for zeros, enhancing their ability to handle datasets where zeros are not merely
+    common but significant. We’ll see the impact these features have in our modeling
+    strategy using `brms`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fitting a hurdle_poisson model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s start by using the `hurdle_poisson()` distribution in our modeling scheme:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s see the results using the standard summary function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0d23609c27931943a7d384c039567cf6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Given this family distribution, the estimates are shown in the log scale (mu
+    = log). In practical terms, this means that the number of cells in the contralateral
+    subventricular zone (SVZ) can be expressed as exp(1.11) = 3.03\. Similarly, the
+    ipsilateral hemisphere is estimated to have exp(1.07) = 2.91 times the number
+    of cells. These results align well with our expectations and offer a coherent
+    interpretation of the cell distribution between the two hemispheres.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, the `hu` parameter within the “Family Specific Parameters” sheds
+    light on the likelihood of observing zero cell counts. It indicates a 38% probability
+    of zero occurrences. This probability highlights the need for a zero-inflated
+    model approach and justifies its use in our analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To better visualize the implications of these findings, we can leverage the
+    `conditional_effects` function. This tool in the `brms` package allows us to plot
+    the estimated effects of different predictors on the response variable, providing
+    a clear graphical representation of how the predictors influence the expected
+    cell counts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0dc34c66ed8f38f315e0fdf6d7f771f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5: Conditional effects for the hurdle fit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These plots draw a more logical picture than our first model. The graph on
+    the left shows the two parts of the model (“mu” and “hu”). Also, if this model
+    is suitable, we should see more aligned predictions when using `pp_check`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2121effaca5730a4b7207ef53287e026.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 6: Posterior predictive checks hurdle model'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As expected, our model predictions have a lower boundary at 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modeling the dispersion of the data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Observing the data presented in the right graph of [Figure 5](#fig-HurdleCE)
+    reveals a discrepancy between our empirical findings and our theoretical understanding
+    of the subject. Based on established knowledge, we expect a higher probability
+    of non-zero cell counts in the subventricular zone (SVZ) of the ipsilateral hemisphere,
+    especially following an injury. This is because the ipsilateral SVZ typically
+    becomes a hub of cellular activity, with significant cell proliferation post-injury.
+    Our data, indicating prevalent non-zero counts in this region, supports this biological
+    expectation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the current model predictions do not fully align with these insights.
+    This divergence underscores the importance of incorporating scientific understanding
+    into our statistical modeling. Relying solely on standard tests without contextual
+    adaptation can lead to misleading conclusions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To address this, we can refine our model by specifically adjusting the `hu`
+    parameter, which represents the probability of zero occurrences. This allows us
+    to more accurately reflect the expected biological activity in the ipsilateral
+    hemisphere’s SVZ. We build then a second hurdle model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s see first if the results graph aligns with our hypothesis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1abbbbecb854b57c1c450cfd57e7d50c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7: Conditional effects for the hurdle fit 2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This revised modeling approach seems to be a substantial improvement. By specifically
+    accounting for the higher probability of zero counts (~75%) in the contralateral
+    hemisphere, the model now aligns more closely with both the observed data and
+    our scientific knowledge. This adjustment not only reflects the expected lower
+    cell activity in this region but also enhances the precision of our estimates.
+    With these changes, the model now offers a more nuanced interpretation of cellular
+    dynamics post-injury. Let’s see the summary and the TRANSFORMATION FOR THE `hu`
+    parameters (do not look at the others) to visualize them in a probability scale
+    using the `logit2prob` [function](https://sebastiansauer.github.io/convert_logit2prob/)
+    we created at the beginning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/eab8d96043a26084cf01440fb870ea1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Although the estimates for the number of cells are similar, the `hu` parameters
+    (in the logit scale) tells us that the probability for seeing zeros in the contralateral
+    hemisphere is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/64254e6b3d45eb207beacb2df19b24aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Conversely:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/835e1ce50dbb7ba0c7e6563d5a4cf441.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Depicts a drastic reduction to about 0.23% probability of observing zero cell
+    counts in the injured (ipsilateral) hemisphere. This is a remarkable change in
+    our estimates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s explore if a `zero_inflated_poisson()` distribution family changes
+    these insights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fitting a zero-inflated Poisson model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we modeled the broad variations in cell counts between the ipsilateral and
+    contralateral hemispheres using the `hu` parameter, we’ll fit as well these two
+    parts of the model in our `zero_inflated_poisson()`. Here, the count part of the
+    model uses a “log” link, and the excess of zeros is modeled with a “logit” link.
+    These are linked functions associated to the distribution family that we’ll not
+    discuss here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before we look at the results, let’s do some basic diagnostics to compare the
+    observations and the model predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/48058f3c848ad77b1ad76deb3726e23a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 8: Model diagnostics for the zero-inflated regression'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From [Figure 8](#fig-ZeroInflatedDiag1), we can see that the predictions deviate
+    from the observed data in a similar way to the hurdle model. So, we have no major
+    changes up to this point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s see the numerical results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, we do see tiny changes in the estimates. The estimate for the number
+    of cells is similar with small changes in the credible intervals. Otherwise, the
+    parameter for the number of zeros seems to experience a larger shift. Let’s see
+    if this has any effect on our conclusions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b0441637655fcc4cf8ea62529c43f93c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Indicates that there is approximately a 77% probability of observing zero counts
+    in the reference hemisphere. Now, for the injured hemisphere, we have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/933eaff53d574b13b9cc95a322868a03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Again, this signals a drastic reduction in observing zero cell counts in the
+    injured (ipsilateral) hemisphere. Evaluating the results using scientific knowledge,
+    I would say that both models provide similarly sound predictions. The graphical
+    results for our `zero_inflated_poisson` model are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c63a4acd4ca85e86eed8b6ebb4db3f29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 9: Conditional effects for the Inflated fit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results seem analogous to those of the hurdle model. However, we can observe
+    that the estimates for the probability of 0 in the contralateral hemisphere is
+    more restrictive for the `zero_inflated_poisson`. The reason is, as I explained
+    at the beginning, that the zero-inflated model locates a larger probability of
+    zeros than the `hurdle_poisson` distribution. Let’s compare the models to finish
+    this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model comparison
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We carry out leave-one-out cross-validation using the the `loo` package ([*4*](#ref-loo),
+    [*5*](#ref-vehtari2016)). WAIC ([*6*](#ref-gelman2013)) is another approach you
+    can explore in [this](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)
+    post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f76a5e8c28e127995d0b6817b7b7c593.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Even though if our model predictions are alike, the “pareto-k-diagnostic” indicates
+    that the `hurdle_poisson` model has 1 `very bad` value, whereas this value shifts
+    to `bad` in the `zero_inflated_poisson()`. I judge that this “bad and very bad”
+    value may be a product of the extreme observation that we see as a black dot in
+    the contralateral count in [Figure 2](#fig-EDA). We could fit another model excluding
+    this value and re-evaluate the results. However, this procedure would only aim
+    to evaluate the effect of this extreme observation and inform the audience of
+    a possible bias in the estimates (which should be fully reported). This is a thorough
+    and transparent way to interpret the data. I wrote another [post](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)
+    concerning extreme values that may be of interest to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I conclude that the modeling performed in this post is a more appropriate approach
+    than a naive linear model based on a Gaussian distribution. It is an ethical and
+    professional responsibility of scientists to use the most appropriate statistical
+    modeling tools available. Fortunately, `brms` exists!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would appreciate your comments or feedback letting me know if this journey
+    was useful to you. If you want more quality content on data science and other
+    topics, you might consider becoming a [medium member](https://medium.com/membership).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the future, you can find an updated version of this post on my [GitHub site](https://github.com/daniel-manrique/MediumBlog/blob/main/2024-04-19_CountsZeroInflated.qmd).
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images, unless otherwise stated, were generated using the displayed R code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 1.I. Baraibar, M. Roman, M. Rodríguez-Remírez, I. López, A. Vilalta, E. Guruceaga,
+    M. Ecay, M. Collantes, T. Lozano, D. Alignani, A. Puyalto, A. Oliver, S. Ortiz-Espinosa,
+    H. Moreno, M. Torregrosa, C. Rolfo, C. Caglevic, D. García-Ros, M. Villalba-Esparza,
+    C. De Andrea, S. Vicent, R. Pío, J. J. Lasarte, A. Calvo, D. Ajona, I. Gil-Bazo,
+    [Id1 and PD-1 Combined Blockade Impairs Tumor Growth and Survival of KRAS-mutant
+    Lung Cancer by Stimulating PD-L1 Expression and Tumor Infiltrating CD8+ T Cells](https://doi.org/10.3390/cancers12113169).
+    *Cancers*. **12**, 3169 (2020).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. M. Kay, *tidybayes: Tidy data and geoms for Bayesian models* (2023; [http://mjskay.github.io/tidybayes/](http://mjskay.github.io/tidybayes/)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. C. X. Feng, A comparison of zero-inflated and hurdle models for modeling
+    zero-inflated count data. *Journal of Statistical Distributions and Applications*.
+    **8** (2021), doi:[10.1186/s40488–021–00121–4](https://doi.org/10.1186/s40488-021-00121-4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. A. Vehtari, J. Gabry, M. Magnusson, Y. Yao, P.-C. Bürkner, T. Paananen,
+    A. Gelman, Loo: Efficient leave-one-out cross-validation and WAIC for bayesian
+    models (2022) (available at [https://mc-stan.org/loo/](https://mc-stan.org/loo/)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. A. Vehtari, A. Gelman, J. Gabry, [Practical Bayesian model evaluation using
+    leave-one-out cross-validation and WAIC](https://doi.org/10.1007/s11222-016-9696-4).
+    *Statistics and Computing*. **27**, 1413–1432 (2016).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. A. Gelman, J. Hwang, A. Vehtari, [Understanding predictive information criteria
+    for Bayesian models](https://doi.org/10.1007/s11222-013-9416-2). *Statistics and
+    Computing*. **24**, 997–1016 (2013).
+  prefs: []
+  type: TYPE_NORMAL

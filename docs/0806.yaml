@@ -1,0 +1,266 @@
+- en: Intersect Multiple 3D Lines (Closest Point)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/intersect-multiple-3d-lines-closest-point-93e06b296f15?source=collection_archive---------11-----------------------#2024-03-27](https://towardsdatascience.com/intersect-multiple-3d-lines-closest-point-93e06b296f15?source=collection_archive---------11-----------------------#2024-03-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Seeking intersection of a batch of 3D lines is more of a minimization problem
+    than an actual intersection test, as usually done with 2 rays
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)[![Thomas
+    Rouch](../Images/a8440bbed59cd8d9cdd752cf1fea2831.png)](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)
+    [Thomas Rouch](https://medium.com/@thom01.rouch?source=post_page---byline--93e06b296f15--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--93e06b296f15--------------------------------)
+    ·5 min read·Mar 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/23b99afae4ea83fbbf90d039e7880ddd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Baudouin Wisselmann](https://unsplash.com/@baud_wisselmann?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Motivation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Figuring out where several 3D lines meet is really useful in fields like 3D
+    Reconstruction or Augmented Reality. For instance, it helps us triangulate a 3D
+    point from its multi-view 2D image detections or find the main 3D center of attention
+    of a camera rotating around an object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though each line may contain some noise, having many of them helps reducing
+    the variability, much like when we calculate the average of several samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two rays VS multiple rays
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In a previous article called [***Intersect 3D Rays (Closest Point)***](https://medium.com/towards-data-science/3d-ray-intersection-closest-point-dc8c72122224)I
+    explained how to intersect a pair of 3D rays. But, what if we want to intersect
+    `n` rays? As we’ll see in this article, moving from 2 to `n` rays isn’t just a
+    generalization, it’s fundamentally different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1b07c39a95a5ac807f401cb8542537f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Intersecting two rays VS intersecting multiple rays — Figure by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simple fact of asking a question implies that the question is worth asking.
+    Thus, seeking the intersection of a group of 3D rays inherently suggests the existence
+    of such a common point of convergence, even if there’s some noise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Quick reminder: Mathematically, a ray is defined by its origin `*o*` and direction
+    `*d*`. Since it’s a 1D space, any point along the ray is parametrized by its positive
+    distance (or time) `*t*` with respect to the origin.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/b203aab18b69d9958f77df43a81e9975.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the case of two rays, we solve for the parametrization `t1` and `t2` along
+    each ray near the closest point, then determine from this whether the rays intersect
+    or not, i.e. if `t1>0` and `t2>0`. Since optimal `t1` and `t2`can be computed
+    independently, this method also allows early stopping, e.g. skip computation of
+    `t2` if `t1<0`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of `n` rays, we can assume that the rays are intersecting and directly
+    solve for the 3D intersection point, instead of solving for the `n` optimal parametrizations
+    along each ray. Hence, it’s more of a minimization problem than an actual intersection
+    test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ray or Line ?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Since we’re not checking the parametrization along each ray, it’s more accurate
+    to talk about lines instead of rays; hence the title of the article. A line is
+    just a ray without the constraint on `t`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf400ffcbad1d9aadc8070d6c7e1efc5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Ben Wicks](https://unsplash.com/@profwicks?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Analytical Solution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Useful vector trick
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before diving into the main topic, I’d like to quickly discuss a vector trick
+    that will be very useful to us later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scaling a vector by a dot product can also be seen as a matrix-vector product.
+    Terms can indeed be re-arranged thanks to the associative property of the product
+    operator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will help us factorize an equation by highlighting its linearity in variable
+    `c`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1d4319308900121a6598c77f4ebe650.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Minimization Problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The intersection point can be defined as the 3D point `x` that minimizes the
+    sum of squared distances with respect to each input ray.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d403e6a27a2ff2bcc0d3e96325c0e595.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Orthogonal Projection of a point onto a line
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The vector going from the ray origin `o` to the point `x` can be expressed as
+    the sum of two orthogonal vectors. As illustrated in the diagram below, the first
+    one goes from `o` to `p` along the line, whereas the second one goes from `p`
+    to `x`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we know the coordinates of this point `p`, i.e. the projection of `x`,
+    we can deduce the distance from the point `x` to the line by computing the norm
+    of the vector `x-p`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/64f27de9b05c63410518f2bef96796a2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Point-Line distance — Figure by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s compute `p`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As illustrated in the system of equations below, the point `p` is defined by
+    two key properties: it belongs to the line (with unknown ray parameter `tp`) and
+    is such as `x-p` is orthogonal to the line.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0fb7bb8ad8a1414552434596ea33ed5c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Introducing the ray parametrization into the second equation yields the value
+    of `tp`, which is the dot product between `x-o` and `d`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: N.B. We assume that the ray direction `d` has been normalized.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/1c44f02776cff66034693bcfb45907a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can now put it back into the ray parametrization to retrieve point `p`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06e5b5e3e9e225349ed2706a4bd4dffd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The vector trick mentioned previously is helpful here to emphasize the linearity
+    with respect to `x-o`, which will help the factorization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b04856deed4550341f6d8420785b00a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Point-Line Distance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As explained previously, the point-line distance can now be computed from the
+    norm of `x-p`. Note the nice factorization in `x-o`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/027e5ab503c42eef4076e4784444edd0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Loss Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The point-line distance formula gives us the loss function `L` we seek to minimize.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c9728f659328ff17ac5550964f64766e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The factorization in `x-o` makes it straightforward to derive its gradient with
+    respect to `x`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a7e5da2ad869b81e396dbaad7c533648.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The minimum value of this convex loss function can now be obtained by identifying
+    the point where its gradient equals zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9a31697717faecae4cc637d755618af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We end up with a linear `3x3` system of equations `Ax=b`, where the matrix
+    `A` and vector `b` are defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/184740c7a3c7faa5ffe524f5425ef3dd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The 3D point closest to all the lines is thus obtained by inverting `A`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/472bb130b9bc6c9d2050a35ad7d6d48f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Least-Squares minimization can often be reduced to a plain normal equation,
+    where the pseudo-inverse matrix is used to aggregate the `n` observations into
+    a square invertible matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth mentioning that we don’t require the pseudo-inverse here, as the
+    square shape naturally arises from the sum of outer products of the ray directions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you enjoyed reading this article and that it gave you more insights on
+    how to intersect multiple 3D lines!
+  prefs: []
+  type: TYPE_NORMAL

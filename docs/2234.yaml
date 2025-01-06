@@ -1,0 +1,305 @@
+- en: Can You See the War from Space?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/can-you-see-the-war-from-space-6d847d755edf?source=collection_archive---------6-----------------------#2024-09-12](https://towardsdatascience.com/can-you-see-the-war-from-space-6d847d755edf?source=collection_archive---------6-----------------------#2024-09-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Case study of the Russian-Ukrainian war
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@alexroz?source=post_page---byline--6d847d755edf--------------------------------)[![Aleksei
+    Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--6d847d755edf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6d847d755edf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6d847d755edf--------------------------------)
+    [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--6d847d755edf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6d847d755edf--------------------------------)
+    ·7 min read·Sep 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/37f76406467e64438710bfbca28feafd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Dmytro Tolokonov](https://unsplash.com/@dtolokonov?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Almost three years have passed since Russia invaded Ukraine’s territory on February
+    24th, 2024\. This bloody war has destroyed or somehow affected dozens of thousands
+    of families on both sides of the conflict. There is plenty of evidence across
+    the internet shedding light on human suffering and pain brought by this war, one
+    of the main sources of data being aerial and space imagery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many private and military high-resolution space sensors are monitoring this
+    region to obtain crucial information about troop movement, infrastructure, and
+    environment near-real time. Unfortunately, this kind of data is often not available
+    to a regular user, like we are, but a great amount of other satellites pass over
+    Ukraine daily, so we could try to extract some meaningful information from free-access
+    datasets and have a look at what’s going on there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this article, let’s try to find out if there is a change in ***night time
+    lights radiance*** after the beginning of the war and see if there is a decline
+    of this value in contrast, before/after the beginning of the war. This short investigation
+    will be focused on three major cities in Ukraine: **Kiev**, **Kharkov,** and **Odessa**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NASA Visible Infrared Imaging Radiometer Suite (VIIRS) has Day/Night Band (DNB)
+    onboard, which is perfect for our purposes. This data is distributed with daily
+    temporal resolution and ~500 m spatial one. But since we don’t want to deal with
+    at least 365*3 files to produce the analysis, instead we’ll investigate *monthly
+    average composites* with atmospheric corrections. [This data product](https://developers.google.com/earth-engine/datasets/catalog/NOAA_VIIRS_DNB_MONTHLY_V1_VCMSLCFG#description)
+    is distributed by Google Earth Engine (GEE) with free access, so no data downloading
+    is required.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The content of the article is split on the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data acquisition and preprocessing**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Anomaly calculation**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Mapping and creating a GIF**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Correlation with attacks**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As always the code of this article you can find on my [GitHub](https://github.com/alexxxroz/Medium/blob/main/WarFromSpace.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Data acquisition and preprocessing**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'First thing first, to begin the analysis we need to have on hand the actual
+    territory of these cities. To get them you can either use Google Earth Engine
+    dataset called [FAO GAUL: Global Administrative Unit Layers 2015](https://developers.google.com/earth-engine/datasets/catalog/FAO_GAUL_2015_level2)
+    or the [GADM website](https://gadm.org/data.html). As a result we should end up
+    with a bunch of polygons each resembling a Ukrainian region.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a59bddb3908c1e9369082c1e238ebe1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To create such a visualization you’ll need to download the aforementioned boundaries
+    and read them using *geopandas* library:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The second step for us is going to be acquisition of VIIRS data through GEE.
+    If you download the shape of Ukrainian regions from the internet, you’ll need
+    to wrap it into a GEE geometry object. Otherwise you’ve already got it ready to
+    use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s define the timeline of our research. Conceptually, to understand
+    if the night time light radiance after the beginning of the war was anomalous,
+    we need to know the values before. So we will be working with the whole time frame
+    available: from **2012–01–01** to **2024–04–01**. Data before 2022–02–01 will
+    be considered as **«a norm»** and everything after will be subtracted from this
+    norm, hence, representing a **deviation (anomaly)**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our final result will include a map and anomaly plot. To perform this visualization
+    we need to collect **monthly night time lights radiancemaps** between 2022–02–01
+    and 2024–04–01 and **average monthly night time lights radiance** *(in the form
+    of time series)* for each region. The best way to do that is to iterate through
+    a list of GEE images and saving a *.csv* and *.npy* files as the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Important!** The VIIRS dataset comprises a really valuable variable **cf_cvg**,
+    which describes the total number of observations that went into each pixel (cloud-free
+    pixels). In essence, it’s a quality flag. The bigger this number, the higher quality
+    we have. In this analysis, when calculating the norm, we will filter out all the
+    pixels with ***cf_cvg≤1****.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Anomaly Calculation**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The generated files of the format *city.csv* with the ***avg_rad*** time series
+    inside are perfect for anomaly calculation. The process is extremely simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filter out observations before 2022–02–01;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Group by all the observations by month (in total — 12 groups);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Take a mean;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Subtract the mean from the observations after 2022–02–01 for **each month respectively**.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Mapping and creating a GIF**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Our last step to actually see the first result is building two subplots: a
+    map + anomalies time series. We are not going to do any static maps today. To
+    implement a GIF, let’s build a nested function drawing our subplots:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code above might be challenging to understand at first glance. But it’s
+    actually quite simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Defining the update function.** This function is used by matplotlib function
+    *FuncAnimation*. The idea is that it passes (adds) new data to the existing plot
+    and returns a new figure (frame). A list of frames is then transformed to a GIF
+    file.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Creating a custom color map.** This one is the easiest. I simply don’t like
+    the colors of the built-in matplotlib cmaps for this project. Since we are working
+    with light in the current analysis, let’s use black and yellow.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Building and formating the plots.** Everything else is just a regular map
+    + line plot with labels, limits and ticks formatting. Nothing special.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Let’s see what we’ve got here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Kiev
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/31587dd2d798117f0b9de6cd169cea58.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Kharkov
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/2f416f937e3cfcee1c5f7c036b5fdd73.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Odessa
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/f35fda514db278333ad580b0c965d26e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I don’t know about you, but these images really terrify me. Large developed
+    cities, like Kiev and Kharkov, are clearly being “turned off” right after February
+    2024.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s compare the lineplots separately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0af2274a0b185e86b83e31912e16098f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without any statistical analysis, there is an evident correlation between these
+    three time series. By analysing anomalies (not the actual time series) we tried
+    to exclude seasonal component (change in night time lights radiance cause by snow).
+    So arguably, all the negative anomalies we see should be related to the drone/missile
+    attacks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The plots clearly indicate that Kiev and Kharkov experienced very similar blackouts
+    in January of 2023 and 2024, whereas Odessa almost avoided any negative anomalies
+    over this time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summing up, this article is **not a scientific research**. To become one, it
+    definitely needs more high-resolution data, statistical analysis, and uncertainty
+    estimation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, being a brief geospatial investigation, it gives a good perspective
+    on how this bloodshed affected the three largest Ukrainian cities and the people
+    living there. Hopefully it’ll inspire you to dig deeper into the topic and produce
+    your own comprehensive analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make love and data science, not war
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Peace🕊️
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ===========================================
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All my publications on Medium are free and open-access, that’s why I’d really
+    appreciate if you followed me here!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: P.s. I’m extremely passionate about (Geo)Data Science, ML/AI and Climate Change.
+    So if you want to work together on some project pls contact me in [LinkedIn](https://www.linkedin.com/in/alexxxroz/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🛰️Follow for more🛰️
+  prefs: []
+  type: TYPE_NORMAL

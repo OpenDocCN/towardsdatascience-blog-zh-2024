@@ -1,0 +1,346 @@
+- en: The Mystery Behind the PyTorch Automatic Mixed Precision Library
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-mystery-behind-the-pytorch-automatic-mixed-precision-library-d9386e4b787e?source=collection_archive---------4-----------------------#2024-09-17](https://towardsdatascience.com/the-mystery-behind-the-pytorch-automatic-mixed-precision-library-d9386e4b787e?source=collection_archive---------4-----------------------#2024-09-17)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to get 2X speed up model training using three lines of code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--d9386e4b787e--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--d9386e4b787e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d9386e4b787e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d9386e4b787e--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--d9386e4b787e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d9386e4b787e--------------------------------)
+    ·8 min read·Sep 17, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have you ever wished your deep-learning model could run faster?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The GPU is expensive. The dataset is enormous, and the training session seems
+    endless; you have a million experiments to run and a deadline to hit — all these
+    are good reasons to expect a particular form of training acceleration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But which one to choose?
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are already good references on performance tuning for model training from
+    [PyTorch](https://pytorch.org/tutorials/recipes/recipes/tuning_guide.html), [HuggingFace](https://huggingface.co/docs/transformers/v4.15.0/performance),
+    and [Nvidia](https://docs.nvidia.com/deeplearning/performance/index.html), including
+    asynchronous data loading, buffer checkpointing, distributed data parallelization,
+    and **automatic mixed precision**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I’ll introduce the automatic mixed precision technique. I’ll
+    start with a brief introduction to Nvidia’s tensor core design, then the groundbreaking
+    work “Mixed Precision Training” paper published in ICLR 2018, and lastly, proceed
+    to a simple example of training a ResNet50 on FashionMNIST and how to speed up
+    the training by 2X while loading 2X a batch size, with **only three extra lines
+    of code**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c4fce0287d310bd6839f85ae33144b2a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/872846](https://pxhere.com/en/photo/872846)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hardware Fundamentals — Nvidia Tensor Cores**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, let’s recap some of the fundamentals of the GPU design. One of Nvidia
+    GPUS's most popular commercial products is the Volta family, e.g., V100 GPUs,
+    based on the GV100 GPU design. So, we’ll *base our discussions around the GV100
+    architecture* below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For GV100, the **Streaming Multiprocessor (SM)** is the core design for computation.
+    Each GPU contains 6 GPU Processing Clusters (GPCs) and S84 SMs (or 80 SMs for
+    V100). The overall design looks like the one below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dbf7020857a40f17d2576b5ced5b5123.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Volta GV100 GPU design. Each GPU contains 6 GPCs, and each GPC contains 14
+    SMs. Image source: [https://arxiv.org/pdf/1803.04014](https://arxiv.org/pdf/1803.04014)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For each SM, it contains two types of cores: CUDA cores and Tensor cores. **CUDA
+    cores** were Nvidia’s original design introduced in 2006, which was an essential
+    part of the CUDA platform. The CUDA cores can be divided into three types: FP64
+    core/unit, FP32 core/unit, and Int32 core/unit. Each GV100 SM contains 32 FP64
+    cores, 64 FP32 cores, and 64 Int32 cores. **Tensor cores** were introduced in
+    the Volta/Turing (2017) series GPUs to separate from the previous Pascal (2016)
+    series. Each SM on a GV100 contains 8 Tensor cores. A full list of details is
+    [given here](https://datacrunch.io/blog/nvidia-v100-gpu-specs) for V100 GPUs.
+    A detailed look at the SM design is below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e200f32cb2b5c8c316fddbb749d81e98.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A sub-ward of a Streaming Processor (SM). Each SM would contain four sub-warps.
+    Image source: [https://arxiv.org/pdf/1903.03640](https://arxiv.org/pdf/1903.03640)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Why Tensor cores? Nvidia Tensor cores are dedicated to performing general
+    matrix multiplication (GEMM) and half-precision matrix multiplication and accumulation
+    (HMMA) operations.** In short, GEMM performs matrix operations in the format of
+    A*B + C, and HMMA converts the operation into the half-precision format. A detailed
+    discussion can be found [here](https://leimao.github.io/blog/NVIDIA-Tensor-Core-Programming/).
+    Since deep learning involves MMA heavily, the **Tensor cores are essential in
+    today’s model training and speed-up**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/79b6bd3fc6116e9b9ae38ea680529295.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example of a GEMM operation. For HMMA, A and B are usually converted to FP16,
+    while C and D could be FP16 or FP32\. Image source: [https://arxiv.org/pdf/1811.08309](https://arxiv.org/pdf/1811.08309)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, when switching to mixed precision training, always check the specification
+    of the GPU you’re using. Only the [latest GPU series support Tensor cores](https://www.wevolver.com/article/tensor-cores-vs-cuda-cores),
+    and mixed precision training can only be used on these machines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data Format Fundamentals — Single Precision (FP32) vs Half Precision (FP16)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now, let’s take a closer look at FP32 and FP16 formats. The FP32 and FP16 are
+    IEEE formats that represent floating numbers using 32-bit binary storage and 16-bit
+    binary storage. Both formats comprise three parts: a) a sign bit, b) exponent
+    bits, and c) mantissa bits. The FP32 and FP16 differ in the **number of bits allocated
+    to exponent and mantissa**, which result in different value ranges and precisions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/215ad72e4c2afa8517c0686351fff244.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Difference between FP16 (IEEE standard), BF16 (Google Brain-standard), FP32
+    (IEEE-standard), and TF32 (Nvidia-standard). Image source: [https://en.wikipedia.org/wiki/Bfloat16_floating-point_format](https://en.wikipedia.org/wiki/Bfloat16_floating-point_format)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do you convert FP16 and FP32 to real values? According to IEEE-754 standards,
+    the decimal value for FP32 = (-1)^(sign) × 2^(decimal exponent —127 ) × (implicit
+    leading 1 + decimal mantissa), where 127 is the biased exponent value. For FP16,
+    the formula becomes (-1)^(sign) × 2^(decimal exponent — 15) × (implicit leading
+    1 + decimal mantissa), where 15 is the corresponding biased exponent value. See
+    further details of the biased exponent value [here](https://en.wikipedia.org/wiki/Exponent_bias).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this sense, the value range for FP32 is approximately [-2¹²⁷, 2¹²⁷] ~[-1.7*1e38,
+    1.7*1e38], and the value range for FP16 is approximately [-2¹⁵, 2¹⁵]=[-32768,
+    32768]. Note that the decimal exponent for FP32 is between 0 and 255, and we’re
+    excluding the largest value 0xFF as it represents NAN. That’s why the largest
+    decimal exponent is 254–127 = 127\. A similar rule applies to FP16.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the precision, note that both the exponent and mantissa contributes to the
+    precision limits (which is also called **denormalization**, see [detailed discussion
+    here](https://cs.stackexchange.com/questions/101632/understanding-denormalized-numbers-in-floating-point-representation)),
+    so FP32 can represent precision up to 2^(-23)*2^(-126)=2^(-149), and FP16 can
+    represent precision up to 2^(10)*2^(-14)=2^(-24).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference between FP32 and FP16 representations brings the key concerns
+    of mixed precision training, as **different layers/operations of deep learning
+    models are either insensitive or sensitive to value ranges and precision and need
+    to be addressed separately**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Mixed Precision Training**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have learnt the hardware foundation for MMA, the concept of Tensor
+    cores, and the key difference between FP32 and FP16, we can further discuss the
+    details for mixed precision training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea of mixed precision training was first proposed in the 2018 ICLR paper
+    “[Mixed Precision Training](https://arxiv.org/abs/1710.03740)”, which converts
+    deep learning models into half-precision floating point during training without
+    losing model accuracy or modifying hyper-parameters. As mentioned above, since
+    the key difference between FP32 and FP16 are the value ranges and precisions,
+    the paper discussed in detail **why the FP16 causes the gradients to vanish**
+    and how to fix the issue by **loss scaling**. Besides, the paper proposes tricks
+    like using FP32 master weight copy and using FP32 for specific operations like
+    reductions and vector dot-production accumulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Loss scaling**. The paper gives an example of training a Multibox SSD detector
+    network using FP32 precision, as shown below. Without any scaling, the exponent
+    range of the FP16 gradients ≥ 2^(-24), and everything below would become zero,
+    which is insufficient compared to FP32\. However, with an experiment, scaling
+    the gradients simply by 2³=8 times can bring the half-precision training accuracy
+    back to match with FP32\. In this sense, the authors argue that the extra few
+    percent of gradients between [2^(-27), 2^(-24)] are still important in the training
+    process, while the value below 2^(-27) is not important.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a45fe75b18cd7c86e9d63a193f9f30d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Gradient value range using FP32 precision in the Multibox SSD training example.
+    Note that the values between [2^(-27), 2^(-24)] are beyond the FP16 denormalization
+    range and only take a few percent of the total gradients but are still important
+    in the overall training. Image source: [https://arxiv.org/pdf/1710.03740](https://arxiv.org/pdf/1710.03740)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The way to address this scale difference is to apply loss scaling. According
+    to the chain’s rule, scaling the loss will ensure the same amount scales all the
+    gradients. The gradients need to be unscaled before the final weight update.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Automatic Mixed Precision Training**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Nvidia first developed Automatic Mixed Precision Training as a PyTorch extension
+    called APEX, which was then widely adopted by mainstream frameworks like PyTorch,
+    TensorFlow, MXNet, etc. See Nvidia [docs here](https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html#).
+    We’ll only introduce PyTorch’s automatic mixed precision library for simplicity:
+    [https://pytorch.org/docs/stable/amp.html](https://pytorch.org/docs/stable/amp.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The amp library can automatically handle most of the mixed precision training
+    techniques, like the FP32 master weight copy. The users are mainly exposed to
+    **ops autocast** and **gradient/loss scaling**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Ops autocast.** Although we mentioned that tensor cores could largely improve
+    the performance of GEMM operations, certain operations are unsuitable for half-precision
+    representations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The amp library gives out a [list of CUDA ops](https://pytorch.org/docs/stable/amp.html#autocast-op-reference)
+    eligible for half precision. Most matrix multiplication, convolutions, and linear
+    activations are fully covered by the amp.autocast, however, for reduction/sum,
+    softmax, and loss calculations, the calculations are still performed in FP32 as
+    they are more sensitive to data range and precision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Gradient/loss scaling.** The amp library provides [automatic gradient scaling](https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html#scalefactor)
+    techniques so the user doesn’t have to adjust the scaling during training manually.
+    A more detailed algorithm for the scaling factor can be found [here](https://docs.nvidia.com/deeplearning/performance/mixed-precision-training/index.html#scalefactor).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the gradient is scaled, it needs to be scaled back before gradient clipping
+    and regularization. More details can be found [here](https://pytorch.org/docs/stable/amp.html#autocast-op-reference).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A FashionMNIST Training Example**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The torch.amp library is relatively easy to use and only requires three lines
+    of code to boost your training speed by 2X.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start with a very simple task training a ResNet50 model on the FashionMNIST
+    dataset ([MIT licence](https://github.com/zalandoresearch/fashion-mnist/blob/master/LICENSE))
+    using FP32; we can see the training time is 333 seconds for ten epochs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa7d6413a871ff3c3b806bff458fcddd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ResNet50 training on FashionMNIST. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35c410a68cae78f6b83badcb647fa49e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The ratio between gradients less than 2**(-24) and the total gradients. We can
+    see that FP16 would turn almost 1/4 of the total gradients into zero. Image by
+    author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa65d416e3eb94c05cc56ef30eab8e1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Evaluation results. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we use the amp library. The amp library only requires three extra lines
+    of code for mixed precision training. We can see the training finished within
+    141 seconds, which is 2.36X speed up than the FP32 training, while achieving the
+    same precision, recall and F1-score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/130adb13d32d608790dbc8b828d9ea5f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training code with amp. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d6afd6d8ec261110cf753fb45cfdbea1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The scaling factor during training. The scaling factor only changed atthe first
+    step and kept unchanged. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60a8df649cc72aa64cdad00e012f89f2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Final result comparable to the FP32 training result. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The github link for the code above is [here](https://github.com/adoskk/MachineLearningBasics/blob/main/mixed_precision_training/mixed_precision_training.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Mixed Precision Training is a valuable technique for accelerating deep learning
+    model training. It not only speed up the floating point operations, but also saves
+    the GPU memories as the training batch can be converted to FP16, which saves half
+    the GPU memory. With PyTorch’s amp library, the extra code could be minimized
+    to three additional lines, as the weight copy, loss scaling, operation type casts
+    are all handled by the library internally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, mixed precision training doesn’t really resolve the GPU memory issue
+    if the model weight size is much larger than the data batch. For one thing, only
+    certain layers of the model is casted into FP16 while the rest are still calculated
+    in FP32; second, weight update need FP32 copies, which still takes much GPU memory;
+    third, parameters from optimizers like Adam takes much GPU memory during training
+    and the mixed precision training keeps the optimizer parameters unchanged. In
+    that sense, more advanced techniques like DeepSpeed’s ZERO algorithm is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Micikevicius et al., Mixed precision training. ICLR 2018
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'PyTorch AMP library: [https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html](https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Nvidia CUDA floating point: [https://docs.nvidia.com/cuda/floating-point/index.html](https://docs.nvidia.com/cuda/floating-point/index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

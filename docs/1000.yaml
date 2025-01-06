@@ -1,0 +1,663 @@
+- en: Calculating the Previous Value in Power BI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19](https://towardsdatascience.com/calculating-the-previous-value-in-power-bi-9ddc062ef2df?source=collection_archive---------8-----------------------#2024-04-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Calculating the consumption based on meter data looks easy. However, complex
+    situations can be challenging. Let’s see how we can solve this.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--9ddc062ef2df--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ddc062ef2df--------------------------------)
+    ·10 min read·Apr 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*When we have Meter data, like we can get from our energy or water meters at
+    home, we want to calculate consumption from these values over time. What is very
+    simple with one meter can be complicated if we have multiple meters for different
+    areas, values, etc. Let’s see how we can solve this in Power BI.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c6e4c7004e145b72d8aa37563ad2bf9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Doris Morgan](https://unsplash.com/@d_morgan?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most of the time, we work with transactional data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each row describes one event (or transaction) from the source system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then we have stock data, like the number of units of a specific product in our
+    store, which can change over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or we have meter data, which changes over time, like, for example, the electricity
+    meter at home.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we want to calculate the consumption, we order the data by the date and
+    time we got the value from the meter and subtract the current value from the previous
+    value. Et voila, we have the consumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now imagine we have multiple houses at different addresses and with multiple
+    meters in each home.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, we must calculate the previous value for each meter and get the
+    correct value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This poses some challenges when we must do it in Power BI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the way, in SQL, we have some techniques to solve this challenge with minimal
+    effort. So, when you have your data in a relational Database, do it there. It’s
+    much easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let’s see how we can solve it in Power BI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I do it once in Power Query and then with DAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I generate the data from my Date table to load the result in a table with the
+    following SQL Query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: I execute this query multiple times to get the needed data while setting the
+    variable @dimId to values between 2 and 6.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The result is a list of changing values over time for each Meter ID:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5985f0a4a1189c4861ee7337c03921a8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Data for my scenario (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I import this table into Power BI twice and name them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MeterData_PQ → For the Power Query approach
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MeterData_DAX → For the DAX approach
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I need these two tables to compare them side-by-side after completion to analyze
+    which approach could be better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing it in Power Query
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I found this approach after a little search on the Internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I added a link to the original article in the Reference section below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To ensure that the data is in the right order for the next step, I add a Sorting
+    Expression by House, Meter, and DateKey to ensure that all rows are together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the result after sorting the data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9e78062f3cb7c7d6315884599e506a86.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Table after sorting operation (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This pattern is repeated automatically for each nested table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I use the Group By transformation in Power Query to group all rows for
+    each combination of House and Meter together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/deeb6dbcce7b185f1cbb7cb2deac4b43.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Group all Value rows together (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now the data looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44b1ee9245b7ef3ed438a36444cd8871.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Data after grouping (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When I click on a cell for the ValueTable column, I see all rows associated
+    with that row as a nested table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f0f169a45083a598f1429d07338f5a74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Nested table for each combination of House and Meter (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The subsequent transformations must be applied to the nested tables. The Power
+    Query Interface doesn’t support such operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, I must add the successive transformations as manual steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/41492a771947706e023b3bb290dffdd6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 — Add a new step to Power Query (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I enter the following expression to add an Index column to the data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the result inside the nested table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/19de2020f63559739873d351d4d3ca84.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Adding an Index to the nested tables (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Index column is calculated based on the order of the data. This is why we
+    must order the data accordingly before we add this index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make this more readable, I rename this step to “AddIndexColumn”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I add another step to get the previous value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result of the new column in the nested table(s) is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b3b5feae21e9f5649ea202f6ec16a599.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8 — Nested table with the previous value (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, I use the Drill Down transformation to expand the nested table(s) into
+    the original table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3035522d1db3a924ac7b05912dd631bc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9 — Drill down into the nested table(s) (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now I have a List with all nested tables. I add a new step to do it with the
+    following expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result is the table with all original rows but with the additional column
+    “PrevValue”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To complete the task, I can add a new calculated column to detract the column
+    “Value” from “PrevValue” to get the needed consumption:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60ca6527aa9b504749742dd31b31a5b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10 — Calculate the consumption (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, I must set the correct data type for the new numeric columns to “Decimal
+    Number”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After loading the result into Power BI, I can create a consumption chart per
+    Meter and House:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9d8a80dc192911b8397dbe3c08e17c39.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 11 — Consumption over time for each House and Meter (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the expected result, and I can start creating a nice report and useful
+    visualizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But first, I wanted to show you the approach with DAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing it in DAX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After seeing how to do it in Power Query, let’s do it in DAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here we have two possible scenarios:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fixed intervals between the readings of the Meters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Changing interval between the readings.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To get the consumption of the first scenario is easy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I must identify the row with the previous day’s value.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Get the value from that row.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate the consumption.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Let’s do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I do it by creating two Key columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One for the current reading
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: One for the reading of the previous day (This can be the previous day, week,
+    month, or whichever interval you have).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Due to how I generated my data, I have one reading for every Meter ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, to create the first key column, I create a calculated column with
+    the following expression (ignoring the House column for now):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: I use the format “YYYYMMDD” for better readability of the result as it’s
+    a general format.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I need the date from the date table for the previous day to apply date calculations,
+    like [DATEADD()](https://dax.guide/dateadd/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then I can go back by one day:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lastly, I can use [LOOKUPVALUE()](https://dax.guide/lookupvalue/) to get the
+    previous value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or I can use [CALCULATE()](https://dax.guide/calculate/) to achieve the same
+    result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the result of these three expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb4137e6b5e1349ad635af58eb5841e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 12 — Results for the previous values on day-by-day readings (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: But this approach doesn’t work with irregular readings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When I look at my data (including the Houses), I see this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7171389c369957350f0fa35e028c4160.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 13 — Filtered view of the readings by house and Meter (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, there are intervals between the readings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get the correct result, I use an approach with two steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get the date of the previous readings.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Get the value for that date.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'I create a Measure for the first step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, I store the current Date, House, and Meter in variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, I calculate the highest value for DateKey while removing all Filters from
+    the table, adding Filters for the Current House and Meter, and including only
+    the DateKey lower than the current DateKey.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With a table with more columns, I might have used a slightly different approach
+    by not removing all filters from the tables but only for the columns I must, for
+    example, only for DateKey, House, and Meter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the result is as needed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c80c9686a15771fcbcaeb48b5d471ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 14 — Result of the Measure to get the date of the previous reading (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By using Context Transition, I can use this Measure to create a new version
+    of the Previous Key column (I include the House in the expression for the CurrentKey
+    column as well):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, I can use the same expression as before to get the previous value based
+    on the two Key columns to get the needed result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ebc4b0ccf9beab330741d3c60766193e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 15 — Result to calculate the previous value with variable intervals (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After adding the same line Visual as before, the result is identical to the
+    results I get from data manipulated with Power Query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2a179c0eff88350824620d1e49c07a33.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 16 — Chart for 2024 with the calculation done in DAX (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lastly, I can get rid of the intermediate Key columns by calculating them directly
+    within a compacted and self-contained version of the Previous Value columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here the results, side-by-side, which are identical:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0f8354093ce3feb4ac0dd1c3d1e005ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 17 — Result to calculate the previous value with the intermediate Key-columns
+    and with the compacted (self-contained) version (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have multiple solutions, which one is the better one?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which one is better
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: How should we decide which approach is the better one?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In my opinion, it comes down to the skills available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By this, I mean the skills available in the team of those who must maintain
+    the solution. This can be you or a client team.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which is my preferred approach?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do I want to prepare all the data as early as possible?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or do I want to have the simplest solution?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or do I have a preference for a Language?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this case, it is about using Power Query or DAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I prefer to prepare my data as early as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, I prefer using Power Query to prepare the data and have it ready
+    to use without the need to add calculated columns in Power BI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, considering the simplicity, I must confess that the approach with the
+    self-contained calculated column with DAX is the best solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But it’s not that easy to exactly understand what happens and why.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we can use hard facts to analyze the efficiency of the two approaches:
+    Model statistics.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I use DAX Studio to get the Metrics (Advanced Menu and View Metrics).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I get the following information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/807bf8c298739f4f278c0617b8647399.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 18 — Metrics of the Data model with both tables (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I can see that the Approach with the calculated columns in DAX uses much more
+    memory than the Power Query approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But when we detract the size of the two Key columns (Above in red), we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 930’634–332’745–332’813 = 265’076 bytes
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, I must detract one of the two columns for the Previous Value (Above in
+    blue): 265’076–48’248 = 207’828 bytes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference in space compared to the table prepared with Power Query is marginal
+    in this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But I have only 6’005 rows. It can make a huge difference when we have hundreds
+    of thousands or even millions of rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I already had situations where the client wanted the solution in a specific
+    way, as he wasn’t familiar with the other approach, even though it would deliver
+    the solution more efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deciding on the best approach is challenging, as you might have to consider
+    different factors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that you have the information for two solutions, it’s your turn to choose
+    the right one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c9e479b08dbd0f22ce24e760264d3437.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Brendan Church](https://unsplash.com/@bdchu614?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As mentioned above, the data is self-generated without relation to the real
+    world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Approach with Power Query is deduced from this Blog Post and Video:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with](https://gorilla.bi/power-query/get-previous-row-value/#:~:text=The%20earlier%20row%20has%20an,a%20table%20to%20merge%20with).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is my article about Context Transition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
+    [## What’s fancy about context transition in DAX'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Row and filter context are well-known concepts in DAX. But we can switch between
+    these two with context transition.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----9ddc062ef2df--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other solutions and approaches include using single M-expressions in Power Query.
+    I decided to use this one because it is straightforward to implement and easy
+    to understand what happens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Please consider Following me and Subscribe to get E-Mails as soon as I add
+    new content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----9ddc062ef2df--------------------------------)
+    [## Get an email whenever Salvatore Cagliari publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
+    create a Medium account if you don't…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----9ddc062ef2df--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I make my articles accessible to everyone, even though Medium has a paywall.
+    This allows me to earn a little for each reader, but I turn it off so you can
+    read my pieces without cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work, which I do during my free time, through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

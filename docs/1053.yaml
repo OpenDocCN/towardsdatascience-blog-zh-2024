@@ -1,0 +1,614 @@
+- en: Temperature Scaling and Beam Search Text Generation in LLMs, for the ML-Adjacent
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26](https://towardsdatascience.com/temperature-scaling-and-beam-search-text-generation-in-llms-for-the-ml-adjacent-21212cc5dddb?source=collection_archive---------1-----------------------#2024-04-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What “temperature” is, how it works, its relationship to the beam search heuristic,
+    and how LLM output generation can still go haywire
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Mike
+    Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)
+    [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--21212cc5dddb--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--21212cc5dddb--------------------------------)
+    ·19 min read·Apr 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/48deee7f0c8dc77db834aa1f4a6bc09a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Paul Green](https://unsplash.com/@pgreen1983?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/photography-of-spot-light-turned-on-mln2ExJIkfc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash);
+    all other images by author unless otherwise noted
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’ve spent any time with APIs for LLMs like those from [OpenAI](https://platform.openai.com/docs/api-reference/chat/create)
+    or [Anthropic](https://docs.anthropic.com/claude/reference/messages_post), you’ll
+    have seen the `temperature` setting available in the API. How is this parameter
+    used, and how does it work?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From the [Anthropic chat API documentation](https://docs.anthropic.com/claude/reference/messages_post):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Temperature (as is generally implemented) doesn’t really *inject randomness*
+    into the response. In this post, I’ll walk through what this setting does, and
+    how it’s used in beam search, the most common text generation technique for LLMs,
+    as well as demonstrate some output-generation examples (failures and successes)
+    using a [reference implementation in Github](https://github.com/mikecvet/beam/tree/main).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What you’re getting yourself into:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Revisiting LLM Inference and Token Prediction](#84c0)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Greedy Search](#d2c9)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Beam Search](#e148)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Temperature](#4e6e)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Implementation Details](#e9f6)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Greedy Search and Beam Search Generation Examples](#db73)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '- [Greedy Search](#4100)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- [Beam Search](#45c4)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- [Beam Search with Temperature](#3289)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- [Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo and Scoring
+    Penalties](#f0e1)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[Conclusion](#f732)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Revisiting LLM Inference and Token Prediction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you’re here, you probably have *some* understanding of how LLMs work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At a high level, LLM text generation involves predicting the next token in
+    a sequence, which depends on the cumulative probability of the preceding tokens.
+    This process utilizes internal probability distributions that are shaped by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model’s internal, learned weights, refined through extensive training on
+    vast datasets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The entire input context (the query and any other augmenting data or documents)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The set of tokens generated thus far
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Transformer](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture))-based
+    generative models build representations of their input contexts through [Self-Attention](/illustrated-self-attention-2d627e33b20a),
+    allowing them to dynamically assess and prioritize different parts of the input
+    based on their relevance to the current prediction point. During sequence decoding,
+    these models evaluate how *each part* of the input influences the emerging sequence,
+    ensuring that each new token reflects an integration of both the input and the
+    evolving output (largely through [Cross-Attention](https://vaclavkosar.com/ml/cross-attention-in-transformer-architecture)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [Stanford CS224N course materials](https://web.stanford.edu/class/archive/cs/cs224n/cs224n.1194/readings/cs224n-2019-notes06-NMT_seq2seq_attention.pdf)
+    are a great resource for these concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The key point I want to make here is that when the model decides on the probabilistically
+    best token, it''s generally evaluating the *entire* input context, as well as
+    the *entire* generated sequence in-progress. However, the most intuitive process
+    for using these predictions to iteratively build text sequences is simplistic:
+    a [greedy algorithm](https://en.wikipedia.org/wiki/Greedy_algorithm), where the
+    output text is built based on the most-likely token at every step.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below I’ll discuss how it works, where it fails, and some techniques used to
+    adapt to those failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Greedy Search
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The most natural way to use a model to build an output sequence is to gradually
+    predict the next best token, append it to a generated sequence, and continue until
+    the end of generation. This is called *greedy search*, and is the most simple
+    and efficient way to generate text from an LLM (or other model). In its most basic
+    form, it looks something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Undergrad Computer Science algorithms classes have a section on [graph traversal](https://en.wikipedia.org/wiki/Graph_traversal)
+    algorithms. If you model the universe of potential LLM output sequences as a graph
+    of tokens, then the problem of finding the optimal output sequence, given input
+    context, closely resembles the problem of traversing a weighted graph. In this
+    case, the edge “weights” are probabilities generated from attention scores, and
+    the goal of the traversal is to minimize the overall cost (maximize the overall
+    probability) from beginning to end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e5446cdc7c9cecce5286dafcf4ec74aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Greedy best-first search traverses through the conceptual graph tokens by making
+    the seemingly best possible decision at every step in a forwards-only direction
+  prefs: []
+  type: TYPE_NORMAL
+- en: Out of all possible text generation methods, this is the most computationally
+    efficient — the number of inferences is 1:1 with the number of output tokens.
+    However, there are some problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At every step of token generation, the algorithm selects the highest-probability
+    token given the output sequence so far, and appends it to that sequence. This
+    is the simplicity and flaw of this approach, along with all other greedy algorithms
+    — it gets trapped in [local minima](https://en.wikipedia.org/wiki/Maximum_and_minimum).
+    Meaning, what appears to be the next best token *right now* may not, in fact,
+    be the next best token for the generated output *overall*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given some input context and the generated string so far, `We can treat it as
+    a matter of course` seems like a logical and probable sequence to generate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what if the contextually-accurate sentence is `We can treat it as a matter
+    of cause and effect`? Greedy search has no way to backtrack and rewrite the sequence
+    token `course` with `cause and effect`. What seemed like the best token at the
+    time actually trapped output generation into a suboptimal sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The need to account for lower-probability tokens at each step, in the hope that
+    better output sequences are generated later, is where beam search is useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beam Search
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Returning to the graph-search analogy, in order to generate the optimal text
+    for any given query and context, we’d have to fully explore the universe of potential
+    token sequences. The solution resembles the [A* search algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+    (more closely than [Dijkstra’s algorithm](https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm),
+    since we don’t necessarily want shortest path, but lowest-cost/highest-likelihood).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6fc0bbc1ddd5079610f4145be84f080c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A* search illustration by [Wgullyn](https://commons.wikimedia.org/w/index.php?title=User%3AWgullyn&action=edit&redlink=1)
+    from [https://en.wikipedia.org/wiki/A*_search_algorithm](https://en.wikipedia.org/wiki/A*_search_algorithm)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we’re working with natural language, the complexity involved is far too
+    high to exhaust the search space for every query in most contexts. The solution
+    is to trim that search space down to a reasonable number of candidate paths through
+    the candidate token graph; maybe just 4, 8, or 12.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Beam search](https://en.wikipedia.org/wiki/Beam_search) is the heuristic generally
+    used to approximate that ideal A*-like outcome. This technique maintains `k` *candidate
+    sequences* which are incrementally built up with the respective *top-k* most likely
+    tokens. Each of these tokens contributes to an overall sequence score, and after
+    each step, the total set of candidate sequences are pruned down to the best-scoring
+    top `k`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e81d6f9091c89b995172fb8fb2992900.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Beam search, similarly to A* search, maintains multiple paths from start to
+    end, evaluating the overall score of a limited number of candidate sequences under
+    evaluation. The number is referred to as the “beam width”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The “beam” in beam search [borrows the analogy of a flashlight](https://web.stanford.edu/%7Ejurafsky/slp3/ed3book.pdf),
+    whose beam can be widened or narrowed. Taking the example of generating *the quick
+    brown fox jumps over the lazy dog* with a beam width of `2`, the process looks
+    something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/357234441d2c6f0bc675c925594f8b71.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'At this step, two candidate sequences are being maintained: “*the*” and “*a*”.
+    Each of these two sequences need to evaluate the top-two most likely tokens to
+    follow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1d20191c70190ef7f97d32413b19b63f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: After the next step, “*the speedy*” has been eliminated, and “*the quick*” has
+    been selected as the first candidate sequence. For the second, “*a lazy*” has
+    been eliminated, and “*a quick*” has been selected, as it has a higher cumulative
+    probability. Note that if both candidates above the line have a higher likelihood
+    that both candidates below the line, then they will represent the two candidate
+    sequences after the subsequent step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e85a3ab3d02ab9a852646a3c3eaacd42.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This process continues until either a maximum token length limit has been reached,
+    or all candidate sequences have appended an end-of-sequence token, meaning we’ve
+    concluded generating text for that sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Increasing the beam width increases the search space, increasing the likelihood
+    of a better output, but at a corresponding increase space and computational cost.
+    Also note that a beam search with `beam_width=1` is effectively identical to greedy
+    search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Temperature
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now, what does `temperature` have to do with all of this? As I mentioned above,
+    this parameter doesn’t really `inject randomness` into the generated text sequence,
+    but it does modify the *predictability* of the output sequences. Borrowing from
+    [information theory](https://en.wikipedia.org/wiki/Information_theory): temperature
+    can increase or decrease the [entropy](https://en.wikipedia.org/wiki/Entropy_(information_theory))
+    associated with a token prediction.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The [softmax](https://en.wikipedia.org/wiki/Softmax_function) [activation function](https://en.wikipedia.org/wiki/Activation_function)
+    is typically used to convert the raw outputs (ie, [logits](https://deepai.org/machine-learning-glossary-and-terms/logit))
+    of a model’s (including LLMs) prediction into a probability distribution (I walked
+    through this a little [here](https://betterprogramming.pub/word2vec-embeddings-from-the-ground-up-for-the-ml-adjacent-8d8c484e7cb5)).
+    This function is defined as follows, given a vector `Z` with `n` elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/17663ffca4ce96dfc2648f4c52fa803c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sigma is generally used to refer to the softmax function
+  prefs: []
+  type: TYPE_NORMAL
+- en: This function emits a vector (or [tensor](https://en.wikipedia.org/wiki/Tensor))
+    of probabilities, which sum to `1.0` and can be used to clearly assess the model’s
+    confidence in a class prediction in a human-interpretable way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A “temperature” scaling parameter `T` can be introduced which scales the logit
+    values prior to the application of softmax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/325914dbd49526f978ec826d353b6761.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The application of the temperature scaling parameter T to the inputs to the
+    softmax function
+  prefs: []
+  type: TYPE_NORMAL
+- en: The application of `T > 1.0` has the effect of *scaling down* logit values and
+    produces the effect of the muting the largest differences between the probabilities
+    of the various classes (it increases entropy within the model’s predictions)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a temperature of `T < 1.0` has the opposite effect; it *magnifies* the
+    differences, meaning the most confident predictions will stand out even more compared
+    to alternatives. This reduces the entropy within the model’s predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In code, it looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Take a look at the effect over 8 possible classes, given some hand-written
+    logit values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/138299975434200047e05f840538fd66.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated via the script in my linked repository
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The above graph was plotted using the following values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The bars represent the logit values (outputs from model prediction), and the
+    lines represent the probability distribution over those classes, with probabilities
+    defined on the right-side label. The thick red line represents the expected distribution,
+    with temperature `T=1.0`, while the other lines demonstrate the change in relative
+    likelihood with a temperature range from `0.5` to `8.0`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can clearly see how `T=0.5` emphasizes the likelihood of the largest-magnitude
+    logit index, while `T=8.0` reduces the difference in probabilities between classes
+    to almost nothing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, this doesn’t necessarily change the *relative likelihood* between any two
+    classes (numerical stability issues aside), so how does this have any practical
+    effect in sequence generation?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer lies back in the mechanics of beam search. A temperature value greater
+    than `1.0` makes it less likely a high-scoring individual token will outweigh
+    a series of slightly-less-likely tokens, which in conjunction result in a better-scoring
+    output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In summary, a higher temperature setting allows beam search to explore a greater
+    variety of candidate sequence paths through the token graph. A lower temperature
+    setting makes it increasingly focus on the most likely predictions at each step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation Details
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Beam search implementations typically work with [log-probabilities](https://en.wikipedia.org/wiki/Log_probability)
+    of the softmax probabilities, which is common in the ML domain among many others.
+    The reasons include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The probabilities in use are often vanishingly small; using log probs improves
+    [numerical stability](https://en.wikipedia.org/wiki/Numerical_stability)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can compute a cumulative probability of outcomes via the addition of logprobs
+    versus the multiplication of raw probabilities, which is slightly computationally
+    faster as well as more numerically stable. Recall that `p(x) * p(y) == log(p(x))
+    + log(p(y))`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optimizers, such as [gradient descent](https://en.wikipedia.org/wiki/Gradient_descent),
+    are simpler when working with log probs, which makes derivative calculations more
+    simple and loss functions like cross-entropy loss already involve logarithmic
+    calculations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This also means that the values of the log probs we’re using as scores are
+    negative real numbers. Since softmax produces a probability distribution which
+    sums to `1.0`, the logarithm of any class probability is thus `≤ 1.0` which results
+    in a negative value. This is slightly annoying, however it is consistent with
+    the property that higher-valued scores are better, while greatly negative scores
+    reflect extremely unlikely outcomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here’s most of the example code, highly annotated, also available on [Github](https://github.com/mikecvet/beam/blob/main/src/beam.py#L8).
+    Definitions for `GeneratedSequence` and `ScoredToken` can be [found here](https://github.com/mikecvet/beam/blob/main/src/sequence.py);
+    these are mostly simple wrappers for tokens and scores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the next section, you can find some results of running this code on a few
+    different datasets with different parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Greedy Search and Beam Search Generation Examples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As I mentioned, [I’ve published some example code to Github](https://github.com/mikecvet/beam),
+    which uses the `t5-small` [transformer model from Hugging Face](https://huggingface.co/docs/transformers/en/model_doc/t5)
+    and its corresponding [T5Tokenizer](https://huggingface.co/docs/transformers/v4.40.0/en/model_doc/t5#transformers.T5Tokenizer).
+    The examples below were run through the T5 model against the [quick brown fox
+    etc](https://en.wikipedia.org/wiki/The_quick_brown_fox_jumps_over_the_lazy_dog)
+    Wikipedia page, sanitized through an [extractor script](https://github.com/mikecvet/beam/blob/main/wiki-extract.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Greedy Search
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Running `--greedy` [mode](https://github.com/mikecvet/beam/blob/main/src/greedy.py):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This output summarizes part of the article well, but overall is not great. It’s
+    missing initial context, repeats itself, and doesn’t state what the phrase actually
+    is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beam Search
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s try again, this time [using beam search](https://github.com/mikecvet/beam/blob/main/src/beam.py)
+    for output generation, using an initial beam width of `4` and the default `temperature`
+    of `1.0`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This output is **far** superior to the greedy output above, and the most remarkable
+    thing is that we’re *using the same model, prompt and input context to generate
+    it*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are still a couple mistakes in it; for example “*typing typewriters”,*
+    and perhaps “*keyboards*” is ambiguous.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The beam search code I shared [will emit](https://github.com/mikecvet/beam/blob/main/src/beam.py)
+    its decision-making progress as it progresses through the text generation (full
+    output [here](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_1.out)).
+    For example, the first two steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now if we look at the set of candidates in the last step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the top-scoring sentence containing `typing typewriters` outscored
+    the sentence containing `testing typewriters` by `-15.39` to `-16.06`, which,
+    if we raise to [Euler’s constant](https://en.wikipedia.org/wiki/Euler%27s_constant)
+    to convert back into cumulative probabilities, is a probabilistic difference of
+    just `0.00001011316%`. There must be a way to overcome this tiny difference!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beam Search with Temperature
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s see if this summarization could be improved by applying a temperature
+    value to smooth over some of the log probability scores. Again, everything else,
+    the model, and the input context, will otherwise be identical to the examples
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This output correctly emitted “*testing typewriters*” rather than “*typing typewriters*”
+    and specified “*computer keyboards*”. It also, interestingly, chose the historical
+    fact that this phrase originally started with “**a** quick brown fox” over the
+    Zaner-Bloser competition fact above. The full output is also available [here](https://github.com/mikecvet/beam/blob/main/example_runs/fox_b_4.out).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether or not this output is better is a subjective matter of opinion. It's
+    different in a few nuanced ways, and the usage and setting of temperature values
+    will vary by application. I think its better, and again, its interesting because
+    no model weights, model architecture, or prompt was changed to obtain this output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buffalo buffalo Buffalo buffalo buffalo buffalo Buffalo buffalo and Scoring
+    Penalties
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s see if the beam search, with temperature settings used above, works properly
+    for my favorite English-language linguistic construct: [Buffalo buffalo Buffalo
+    buffalo buffalo buffalo Buffalo buffalo](https://en.wikipedia.org/wiki/Buffalo_buffalo_Buffalo_buffalo_buffalo_buffalo_Buffalo_buffalo).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Utter disaster, though a predictable one. Given the complexity of this input
+    document, we need additional techniques to handle contexts like this. Interestingly,
+    the final iteration candidates didn’t include a single rational sequence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can [apply a token-specific score decay](https://github.com/mikecvet/beam/blob/main/src/beam.py#L98)
+    (more like a *penalty)* to repeated tokens, which makes them appear less attractive
+    (or more accurately, *less likely solutions*) to the beam search algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Which results in the following, more reasonable output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[You can see](https://github.com/mikecvet/beam/blob/main/example_runs/buffalo_b_4_decay.out#L285)
+    where where the scoring penalty pulled the *infinite buffalos* sequence below
+    the sequence resulting in the above output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: So it turns out we need additional hacks (*techniques*) like this, to handle
+    special kinds of edge cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This turned out to be much longer than what I was planning to write; I hope
+    you have a few takeaways. Aside from simply understanding how beam search and
+    temperature work, I think the most interesting illustration above is how, even
+    given the incredible complexity and capabilities of LLMs, implementation choices
+    affecting how their predictions are used have a huge effect on the quality on
+    their output. The application of simple undergraduate Computer Science concepts
+    to sequence construction can result in dramatically different LLM outputs, even
+    with all other input being identical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we encounter hallucinations, errors, or other quirks when working with
+    LLMs, its entirely possible (and perhaps likely) that these are quirks with the
+    output sequence construction algorithms, rather than any “fault” of the trained
+    model itself. To the user of an API, it’s almost impossible to tell the difference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I think this is an interesting example of the complexity of the machinery *around*
+    LLMs which make them such powerful tools and products today.
+  prefs: []
+  type: TYPE_NORMAL

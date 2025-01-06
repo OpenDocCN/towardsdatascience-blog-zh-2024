@@ -1,0 +1,491 @@
+- en: Diving into Word Embeddings with EDA
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/eda-for-word-embeddings-224c524b5769?source=collection_archive---------1-----------------------#2024-07-12](https://towardsdatascience.com/eda-for-word-embeddings-224c524b5769?source=collection_archive---------1-----------------------#2024-07-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Visualizing unexpected insights in text data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)[![Harys
+    Dalvi](../Images/cf7fa3865063408efd1fd4c0b4b603db.png)](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------)
+    [Harys Dalvi](https://medium.com/@crackalamoo?source=post_page---byline--224c524b5769--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--224c524b5769--------------------------------)
+    ·14 min read·Jul 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: When starting work with a new dataset, it’s always a good idea to start with
+    some **exploratory data analysis** (EDA). Taking the time to understand your data
+    before training any fancy models can help you understand the structure of the
+    dataset, identify any obvious issues, and apply domain-specific knowledge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You see EDA in various forms with everything from [house prices](https://www.kaggle.com/code/spscientist/a-simple-tutorial-on-exploratory-data-analysis)
+    to advanced applications in the data science industry. But I still haven’t seen
+    it for the hottest new dataset: **word embeddings**, the basis of our best large
+    language models. So why not try it?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we’ll **apply EDA to GloVe word embeddings**, using techniques
+    like **covariance matrices, clustering, PCA, and vector math**. This will help
+    us understand the structure of word embeddings, giving us a useful starting point
+    for building more powerful models with this data. As we discover this structure,
+    we’ll find that it’s not always what it seems, and some surprising biases are
+    hidden in the corpus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You will need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic understanding of linear algebra, statistics, and vector mathematics
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Python packages: `numpy`, `sklearn`, and `matplotlib`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: About 3 GB of spare disk space
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To get started, download the dataset at [huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip](https://huggingface.co/stanfordnlp/glove/resolve/main/glove.6B.zip)[1].
+    This contains three text files, each containing a list of words along with their
+    vector representations. We will use the **300-dimensional representations** (glove.6B.300d.txt).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A quick note on where this dataset comes from: essentially, this is a list
+    of word embeddings derived from 6 billion tokens’ worth of **co-occurrence data**
+    from Wikipedia and various news sources. A useful side effect of using co-occurrence
+    is that **words that mean similar things tend to be close together**. For example,
+    since “the *red* bird” and “the *blue* bird” are both valid sentences, we might
+    expect the vectors for “red” and “blue” to be close to each other. For more technical
+    information, you can check [the original GloVe paper](https://nlp.stanford.edu/pubs/glove.pdf)[1].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be clear, these are **not** word embeddings trained for the purpose of large
+    language models. They are a fully unsupervised technique based on a large corpus.
+    But they display a lot of similar properties to language model embeddings, and
+    are interesting in their own right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each line of this text file consists of a word, followed by all 300 vector components
+    of the associated embedding separated by spaces. We can load that in with Python.
+    (To reduce noise and speed things up, I’m using the top 10% of the full dataset
+    here with the `//10`, but you can change that if you’d like.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: That leaves us with 40,000 embeddings loaded in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarity Metrics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'One natural question we might ask is: **are vectors generally close to other
+    vectors with similar meaning?** And as a follow-up question, how do we quantify
+    this?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two main ways we will quantify similarity between vectors: one is
+    **Euclidean distance**, which is simply the natural Pythagorean theorem distance
+    we are familiar with. The other is **cosine similarity**, which measures the cosine
+    of the *angle* between two vectors. A vector has a cosine similarity of 1 with
+    itself, -1 with an opposite vector, and 0 with an orthogonal vector.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s implement these in NumPy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can find all the closest vectors to a given word or embedding vector!
+    We’ll do this in increasing order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can write a function to display the 10 most similar words. It will be
+    useful to include a reverse option as well, so we can display the *least* similar
+    words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we can test it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Looks like the Boston Red Sox made an unexpected appearance here. But other
+    than that, this is about what we would expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maybe we can try some verbs, and not just nouns and adjectives? How about a
+    nice and kind verb like “share”?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: I guess “share” isn’t often used as a verb in this dataset. Oh well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can try some more conventional examples as well:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reasoning by Analogy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the fascinating properties about word embeddings is that **analogy is
+    built in** using vector math. The example from the GloVe paper is *king - queen
+    = man - woman.* In other words, rearranging the equation, we expect *king = man
+    - woman + queen*. Is this true?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Not quite: the closest vector to *man - woman + queen* turns out to be *queen*
+    (cosine similarity 0.78), followed somewhat distantly by *king* (cosine similarity
+    0.66). Inspired by this excellent [3Blue1Brown video](https://www.youtube.com/watch?v=wjZofJX0v4M),
+    we might try *aunt* and *uncle* instead:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is better (cosine similarity 0.7348 vs 0.7344), but still doesn’t work
+    perfectly. But we can try switching to Euclidean distance. Now we need to set
+    `reverse=True`, because a *higher* Euclidean distance is actually a *lower* similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we got it. But it seems like the analogy math might not be as perfect as
+    we hoped, at least in the naïve way that we are doing it here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Magnitude
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Cosine similarity is all about the *angles* between vectors. But is the **magnitude**
+    of a vector also important?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can reuse our existing code by expressing magnitude as the Euclidean distance
+    from the zero vector. Let’s see which words have the largest and smallest magnitudes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: It doesn’t look like there’s much of a pattern to the meaning of the large magnitude
+    vectors, but they all seem to have very specific (and sometimes confusing) meanings.
+    On the other hand, the smallest magnitude vectors tend to be very common words
+    that can be found in a variety of contexts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There’s a **huge range between magnitudes**: from about 2.6 for the smallest
+    vector all the way to about 17 for the largest. What does this distribution look
+    like? We can plot a **histogram** to get a better picture of this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1cc1402864a59a660414c0cefbb9d77f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A histogram of magnitudes of our word embeddings
+  prefs: []
+  type: TYPE_NORMAL
+- en: This distribution looks approximately normal. If we wanted to test this further,
+    we could use a [Q-Q plot](https://medium.com/analytics-vidhya/what-are-qq-plots-4beb00670d81).
+    But for our purposes right now, this is fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataset Bias
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It turns out that directions and subspaces in vector embeddings can encode various
+    kinds of concepts, often in biased ways. [This paper](https://arxiv.org/pdf/1607.06520)[2]
+    studied how this works for **gender bias**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can replicate this concept in our GloVe embeddings, too. First, let’s find
+    the direction of the concept of “masculinity”. We can accomplish this by taking
+    the average of **differences between vectors** like *he* and *she*, *man* and
+    *woman*, and so on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can find the “most masculine” and “most feminine” vectors, as judged
+    by the embedding space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we can run an easy test to detect bias in the dataset: compute the similarity
+    between *nurse* and each of *man* and *woman*. Theoretically, these should be
+    about equal: nurse is not a gendered word. Is this true?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s a pretty big difference! (Remember cosine similarity runs from -1 to
+    1, with positive associations in the range 0 to 1.) For reference, 0.45 is also
+    close to the cosine similarity between *cat* and *leopard*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clustering
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s see if we can **cluster words with similar meaning** using ***k*-means
+    clustering**. This is easy to do with the package `scikit-learn`. We are going
+    to use 300 clusters, which sounds like a lot, but trust me: almost all of the
+    clusters are so interesting, you could write an entire article just interpreting
+    them!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: There’s a lot to look at here. We have clusters for things as diverse as New
+    York City (`manhattan, n.y., brooklyn, hudson, borough`), molecular biology (`protein,
+    proteins, enzyme, beta, molecules`), and Indian names (`singh, ram, gandhi, kumar,
+    rao`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: But **sometimes these clusters are not what they seem**. Let’s write code to
+    display all words of a cluster containing a given word, along with the nearest
+    and farthest cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let’s try out this code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You might not get exactly this result every time: the clustering algorithm
+    is non-deterministic. But much of the time, “birds” is associated with disease
+    words rather than animal words. It seems the original dataset tends to use the
+    word “bird” in the context of disease vectors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are literally hundreds more clusters for you to explore the contents of.
+    Some other clusters I found interesting are “Illinois” and “Genghis”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Principal Component Analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Principal Component Analysis (PCA)** is a tool we can use to find the directions
+    in vector space associated with the most variance in our dataset. Let’s try it.
+    Like clustering, `sklearn` makes this easy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Like our *k*-means experiment, a lot of these PCA vectors are really interesting.
+    For example, let’s take a look at principal component 9:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: It looks like positive values for component 9 are associated with Middle Eastern,
+    South Asian and Southeast Asian terms, while negative values are associated with
+    North American and British terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another interesting one is component 3\. All the positive terms are decimal
+    numbers, apparently quite a salient feature for this model. Component 8 also shows
+    a similar pattern.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Dimensionality Reduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the main benefits of PCA is that it allows us to **take a very high-dimensional
+    dataset** (300-dimensional in this case) and **plot it in just two or three dimensions**
+    by projecting onto the first components. Let’s try a two-dimensional plot and
+    see if there is any information we can gather from it. We’ll also include color-coding
+    by cluster using *k*-means.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8754000d85b058dbbdcf1ea2133c5029.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A plot of the first (X) and second (Y) principal components for our embeddings
+    dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, this plot is a total mess! It’s difficult to learn much from
+    it. It looks like just two dimensions in isolation are not very easy to interpret
+    among 300 total dimensions, at least in the case of this dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two exceptions. First, we see that names tend to cluster near the
+    top of this graph. Second, there is a little section that sticks out like a sore
+    thumb at the bottom left. This area appears to be associated with numbers, particularly
+    decimal numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Covariance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is often helpful to get an idea of the **covariance between input features**.
+    In this case, our input features are just abstract vector directions that are
+    difficult to interpret. Still, a covariance matrix can tell us how much of this
+    information is actually being used. If we see high covariance, it means some dimensions
+    are strongly correlated, and maybe we could get away with reducing the dimensionality
+    a little bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/bdf321419db9850f8aaabea3567d3ad2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A covariance matrix for all 300 vector components in our dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, there’s a big line down the major diagonal, representing that each
+    component is strongly correlated with itself. Other than that, this isn’t a very
+    interesting graph. Everything looks mostly blank, which is a good sign.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you look closely, there’s one exception: components 9 and 276 seem somewhat
+    strongly related (covariance of 0.308).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bd08c04d3fad3c5c45538546d37a43e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The covariance matrix zoomed in on components 9 and 276\. Observe the somewhat
+    bright red dot here, along with strange behavior along the row and column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s investigate this further by printing the vectors that are most associated
+    with components 9 and 276\. This is equivalent to cosine similarity to a basis
+    vector of all zeros, except for a one in the relevant component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: These results are strange, and not very informative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But wait: we can also have a positive covariance in these components if words
+    with a very *negative* value in one tend to also be very negative in the other.
+    Let’s try reversing the direction of similarity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: It looks like both of these components are associated with basic function words
+    and numbers that can be found in many different contexts. This helps explain the
+    covariance between them, at least more so than the positive case did.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article we applied a variety of **exploratory data analysis (EDA)**
+    techniques to a 300-dimensional dataset of **GloVe word embeddings**. We used
+    cosine similarity to measure the similarity between the meaning of words, clustering
+    to group words into related groups, and principal component analysis (PCA) to
+    identify the directions in vector space that are most important to the embedding
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We visually observed overall minimal covariance between the input features using
+    principal component analysis. We tried using PCA to plot all of our 300-dimensional
+    data in just two dimensions, but this was still a little messy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also tested assumptions and biases in our dataset. We identified gender bias
+    in our dataset by comparing the cosine similarity of *nurse* with each of *man*
+    and *woman*. We tried using vector math to represent analogies (like “king” is
+    to “queen” as “man” is to “woman”), with some success. By subtracting various
+    examples of vectors referring to males and females, we were able to discover a
+    vector direction associated with gender, and display the “most masculine” and
+    “most feminine” vectors in the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There’s a lot more EDA you could try on a dataset of word embeddings, but I
+    hope this was a good starting point to understand both some techniques of EDA
+    in general and the structure of word embeddings in particular. If you want to
+    see the full code associated with this article, plus some additional examples,
+    you can check out my GitHub at [crackalamoo/glove-embeddings-eda](https://github.com/crackalamoo/glove-embeddings-eda).
+    Thank you for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] J. Pennington, R. Socher and C.Manning, [GloVe: Global Vectors for Word
+    Representation](https://nlp.stanford.edu/projects/glove/) (2014), Stanford NLP
+    (Public Domain Dataset)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] T. Bolukbasi, K. Chang, J. Zou, V. Saligrama and A. Kalai, [Man is to Computer
+    Programmer as Woman is to Homemaker? Debiasing Word Embeddings](https://arxiv.org/pdf/1607.06520)
+    (2016), Microsoft Research New England'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images created by the author using Matplotlib.*'
+  prefs: []
+  type: TYPE_NORMAL

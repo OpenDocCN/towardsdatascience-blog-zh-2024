@@ -1,0 +1,345 @@
+- en: 'ML Engineering 101: A Thorough Explanation of The Error “DataLoader worker
+    (pid(s) xxx) exited unexpectedly”'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/ml-engineering-101-a-thorough-explanation-of-the-error-dataloader-worker-pid-s-xxx-exited-f3a6a983911e?source=collection_archive---------6-----------------------#2024-06-03](https://towardsdatascience.com/ml-engineering-101-a-thorough-explanation-of-the-error-dataloader-worker-pid-s-xxx-exited-f3a6a983911e?source=collection_archive---------6-----------------------#2024-06-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A deep dive into PyTorch DataLoader with Multiprocessing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--f3a6a983911e--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--f3a6a983911e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f3a6a983911e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f3a6a983911e--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--f3a6a983911e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f3a6a983911e--------------------------------)
+    ·6 min read·Jun 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: As one of the many who use the PyTorch library on a day-to-day basis, I believe
+    many ML engineer sooner or later encounters the problem “DataLoader worker (pid(s)
+    xxx) exited unexpectedly” during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s frustrating.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This error is often triggered when calling the DataLoader with parameter *num_workers
+    > 0*. Many online posts provide simple solutions like setting the num_workers=0,
+    which makes the current issue go away but causes problems new in reality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post will show you some tricks that may help resolve the problem. I’m going
+    to do a deeper dive into the Torch.multiprocessing module and show you some useful
+    virtual memory monitoring and leakage-preventing techniques. In a really rare
+    case, the asynchronous memory occupation and release of the torch.multiprocessing
+    workers could still trigger the issue, even without leakage. The ultimate solution
+    is to optimize the virtual memory usage and understand the torch.multiprocessing
+    behaviour, and perform garbage collection in the __getitem_ method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: the platform I worked on is Ubuntu 20.04\. To adapt to other platforms,
+    many terminal commands need to be changed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/506f6a7810c2c2408d0d19a4c61dc831.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/1379760#google_vignette](https://pxhere.com/en/photo/1379760#google_vignette)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Brute-force Solution and the Cons**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you search on the web, most people encountering the same issue will tell
+    you the brute-force solution; just set num_workers=0 in the DataLoader, and the
+    issue will be gone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It will be the easiest solution if you have a small dataset and can tolerate
+    the training time. However, the underlying issue is still there, and if you have
+    a very large dataset, setting *num_workers=0* will result in a very slow performance,
+    sometimes 10x slower. That’s why we must look into the issue further and seek
+    alternative solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Monitor Your Virtual Memory Usage**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What exactly happens when the dataloader worker exits?
+  prefs: []
+  type: TYPE_NORMAL
+- en: To catch the last error log in the system, run the following command in the
+    terminal, which will give you a more detailed error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Usually, you’ll see the real cause is “out of memory”. But why is there an out-of-memory
+    issue? What specifically caused the extra memory consumption?
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we set *num_workers =0* in the DataLoader, a single main process runs the
+    training script. It will run properly as long as the data batch can fit into memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, when setting *num_workers > 0*, things become different. DataLoader
+    will start child processes alongside preloading *prefetch_factor*num_workers*
+    into the memory to speed things up. By default, *prefetch_factor = 2*. The prefetched
+    data will consume the machine’s virtual memory (but the good news is that it doesn’t
+    eat up GPUs, so you don’t need to shrink the batch size). So, the first thing
+    we need to do is to monitor the system’s virtual memory usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the easiest ways to monitor virtual memory usage is the *psutil* package,
+    which will monitor the percentage of virtual memory being used
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can also use the tracemalloc package, which will give you more detailed
+    information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When the actual RAM is full, idle data will flow into the swap space (so it’s
+    part of your virtual memory). To check the swap, use the command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And to change your swap size temporarily during training (e.g., increase to
+    16G) in the terminal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*/dev/shm* (or, in certain cases, */run/shm* ) is another file system for storing
+    temporary files, which should be monitored. Simply run the following, and you
+    will see the list of drives in your file system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To resize it temporarily (e.g., increase to 16GB), simply run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Torch.multiprocessing Best Practices**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, virtual memory is only one side of the story. What if the issue doesn’t
+    go away after adjusting the swap disk?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The other side of the story is the underlying issues of the torch.multiprocessing
+    module. There are a number of best practices recommendations on the official webpage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[## Multiprocessing best practices - PyTorch 2.3 documentation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: torch.multiprocessing is a drop in replacement for Python's module. It supports
+    the exact same operations, but extends…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: pytorch.org](https://pytorch.org/docs/stable/notes/multiprocessing.html?source=post_page-----f3a6a983911e--------------------------------#)
+  prefs: []
+  type: TYPE_NORMAL
+- en: But besides these, three more approaches should be considered, especially regarding
+    memory usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The first thing is shared memory leakage**. Leakage means that memory is
+    not released properly after each run of the child worker, and you will observe
+    this phenomenon when you monitor the virtual memory usage at runtime. Memory consumption
+    will keep increasing and reach the point of being “out of memory.” This is a very
+    typical memory leakage.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what will cause the leakage?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s take a look at the DataLoader class itself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://github.com/pytorch/pytorch/blob/main/torch/utils/data/dataloader.py](https://github.com/pytorch/pytorch/blob/main/torch/utils/data/dataloader.py)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Looking under the hood of DataLoader, we’ll see that when nums_worker > 0,
+    _MultiProcessingDataLoaderIter is called. Inside _MultiProcessingDataLoaderIter,
+    Torch.multiprocessing creates the worker queue. Torch.multiprocessing uses two
+    different strategies for memory sharing and caching: *file_descriptor* and *file_system.*
+    While *file_system* requires no file descriptor caching, it is prone to shared
+    memory leaks.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To check what sharing strategy your machine is using, simply add in the script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To get your system file descriptor limit (Linux), run the following command
+    in the terminal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To switch your sharing strategy to *file_descriptor*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To count the number of opened file descriptors, run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: As long as the system allows, the *file_descriptor* strategy is recommended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The second is the multiprocessing worker starting method.** Simply put, it’s
+    the debate as to whether to use a fork or spawn as the worker-starting method.
+    Fork is the default way to start multiprocessing in Linux and can avoid certain
+    file copying, so it is much faster, but it might have issues handling CUDA tensors
+    and third-party libraries like OpenCV in your DataLoader.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To use the spawn method, you can simply pass the argument *multiprocessing_context=*
+    *“spawn”*. to the DataLoader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Three, make the Dataset Objects Pickable/Serializable**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is a super nice post further discussing the “copy-on-read” effect for
+    process folding: [https://ppwwyyxx.com/blog/2022/Demystify-RAM-Usage-in-Multiprocess-DataLoader/](https://ppwwyyxx.com/blog/2022/Demystify-RAM-Usage-in-Multiprocess-DataLoader/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Simply put, it’s **no longer a good approach** to create a list of filenames
+    and load them in the __getitem__ method. Create a numpy array or panda dataframe
+    to store the list of filenames for serialization purposes. And if you’re familiar
+    with HuggingFace, using a CSV/dataframe is the recommended way to load a local
+    dataset: [https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/loading_methods#datasets.load_dataset.example-2](https://huggingface.co/docs/datasets/v2.19.0/en/package_reference/loading_methods#datasets.load_dataset.example-2)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What If You Have a Really Slow Loader?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Okay, now we have a better understanding of the multiprocessing module. But
+    is it the end of the story?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It sounds really crazy. If you have a large and heavy dataset (e.g., each data
+    point > 5 MB), there is a weird chance of encountering the above issues, and I’ll
+    tell you why. The secret is the asynchronous memory release of the multiprocessing
+    workers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The trick is simple: hack into the torch library and add a *psutil.virtual_memory().percent*
+    line before and after the data queue in the _MultiProcessingDataLoaderIter class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/pytorch/pytorch/blob/70d8bc2da1da34915ce504614495c8cf19c85df2/torch/utils/data/dataloader.py?source=post_page-----f3a6a983911e--------------------------------#L1130)
+    [## pytorch/torch/utils/data/dataloader.py at 70d8bc2da1da34915ce504614495c8cf19c85df2
+    ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tensors and Dynamic neural networks in Python with strong GPU acceleration -
+    pytorch/torch/utils/data/dataloader.py at…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/pytorch/pytorch/blob/70d8bc2da1da34915ce504614495c8cf19c85df2/torch/utils/data/dataloader.py?source=post_page-----f3a6a983911e--------------------------------#L1130)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Something like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In my case, I started my DataLoader with num_workers=8 and observed something
+    like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f36f97f1e7987c83092f6e9ea35452e5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So the memory keeps flowing up — but is it memory leakage? Not really. It’s
+    simply because the dataloader workers load faster than they release, creating
+    8 jobs while releasing 2\. And that’s the root cause of the memory overflowing.
+    The solution is simple: just add a garbage collector to the beginning of your
+    *__getitem__* method*:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now you’re good!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3be6a5dc984f45eb7fb8957b5f146e25.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**References**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/multiprocessing.html#sharing-strategies](https://pytorch.org/docs/stable/multiprocessing.html#sharing-strategies)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://stackoverflow.com/questions/76491885/how-many-file-descriptors-are-open](https://stackoverflow.com/questions/76491885/how-many-file-descriptors-are-open)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://psutil.readthedocs.io/en/latest/index.html#psutil.virtual_memory](https://psutil.readthedocs.io/en/latest/index.html#psutil.virtual_memory)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://stackoverflow.com/questions/4970421/whats-the-difference-between-virtual-memory-and-swap-space](https://stackoverflow.com/questions/4970421/whats-the-difference-between-virtual-memory-and-swap-space)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://ploi.io/documentation/server/change-swap-size-in-ubuntu](https://ploi.io/documentation/server/change-swap-size-in-ubuntu)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://stackoverflow.com/questions/58804022/how-to-resize-dev-shm](https://stackoverflow.com/questions/58804022/how-to-resize-dev-shm)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/data.html](https://pytorch.org/docs/stable/data.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://britishgeologicalsurvey.github.io/science/python-forking-vs-spawn/](https://britishgeologicalsurvey.github.io/science/python-forking-vs-spawn/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn](https://stackoverflow.com/questions/64095876/multiprocessing-fork-vs-spawn)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

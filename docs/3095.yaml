@@ -1,0 +1,447 @@
+- en: Segmenting Water in Satellite Images Using PaliGemma
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/segmenting-water-in-satellite-images-using-paligemma-b172dc0cf55d?source=collection_archive---------2-----------------------#2024-12-29](https://towardsdatascience.com/segmenting-water-in-satellite-images-using-paligemma-b172dc0cf55d?source=collection_archive---------2-----------------------#2024-12-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Some insights on using Google’s latest Vision Language Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://anamabo3.medium.com/?source=post_page---byline--b172dc0cf55d--------------------------------)[![Dr.
+    Carmen Adriana Martínez Barbosa](../Images/caad66f044af1131e17dc28ea2f48863.png)](https://anamabo3.medium.com/?source=post_page---byline--b172dc0cf55d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b172dc0cf55d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b172dc0cf55d--------------------------------)
+    [Dr. Carmen Adriana Martínez Barbosa](https://anamabo3.medium.com/?source=post_page---byline--b172dc0cf55d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b172dc0cf55d--------------------------------)
+    ·9 min read·Dec 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9d032d36ebb9f252e75c1a95d5b64cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Hutt Lagoon, Australia. Depending on the season, time of day, and cloud coverage,
+    this lake changes from red to pink or purple. Source: Google Maps.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multimodal models are architectures that simultaneously integrate and process
+    different data types, such as text, images, and audio. Some examples include CLIP
+    and DALL-E from OpenAI, both released in 2021\. CLIP understands images and text
+    jointly, allowing it to perform tasks like zero-shot image classification. DALL-E,
+    on the other hand, generates images from textual descriptions, allowing the automation
+    and enhancement of creative processes in gaming, advertising, and literature,
+    among other sectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visual language models (VLMs) are a special case of multimodal models. VLMs
+    generate language based on visual inputs. One prominent example is Paligemma,
+    which Google introduced in May 2024\. Paligemma can be used for Visual Question
+    Answering, object detection, and image segmentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some blog posts explore the capabilities of Paligemma in object detection,
+    such as this excellent read from Roboflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://blog.roboflow.com/how-to-fine-tune-paligemma/?source=post_page-----b172dc0cf55d--------------------------------)
+    [## Fine-tune PaliGemma for Object Detection with Custom Data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn how to fine-tune the PaliGemma multimodal model to detect custom objects.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: blog.roboflow.com](https://blog.roboflow.com/how-to-fine-tune-paligemma/?source=post_page-----b172dc0cf55d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, by the time I wrote this blog, the existing documentation on preparing
+    data to use Paligemma for object segmentation was vague. That is why I wanted
+    to evaluate whether it is easy to use Paligemma for this task. Here, I share my
+    experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Brief introduction of Paligemma
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before going into detail on the use case, let’s briefly revisit the inner workings
+    of Paligemma.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e3f8adc404fa7c8dd20c873399e6032a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Architecture of Paligemma2\. Source: [https://arxiv.org/abs/2412.03555](https://arxiv.org/abs/2412.03555)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Paligemma combines a [SigLIP-So400m vision encoder](https://arxiv.org/abs/2303.15343)
+    with a [Gemma language model](https://developers.googleblog.com/en/gemma-explained-overview-gemma-model-family-architectures/)
+    to process images and text (see figure above). In the new version of Paligemma
+    released in December of this year, the vision encoder can preprocess images at
+    three different resolutions: 224px, 448px, or 896px. The vision encoder preprocesses
+    an image and outputs a sequence of image tokens, which are linearly combined with
+    input text tokens. This combination of tokens is further processed by the Gemma
+    language model, which outputs text tokens. The Gemma model has different sizes,
+    from 2B to 27B parameters.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of model output is shown in the following figure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bb5b62fcee9bc621f472c12acb4655ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example of an object segmentation output. Source: [https://arxiv.org/abs/2412.03555](https://arxiv.org/abs/2412.03555)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Paligemma model was trained on various datasets such as [WebLi](https://paperswithcode.com/dataset/webli),
+    [openImages](https://storage.googleapis.com/openimages/web/index.html), [WIT](https://github.com/google-research-datasets/wit),
+    and others (see this [Kaggle blog](https://www.kaggle.com/models/google/paligemma)
+    for more details). This means that Paligemma can identify objects without fine-tuning.
+    However, such abilities are limited. That’s why Google recommends fine-tuning
+    Paligemma in domain-specific use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input format
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To fine-tune Paligemma, the input data needs to be in JSONL format. A dataset
+    in JSONL format has each line as a separate JSON object, like a list of individual
+    records. Each JSON object contains the following keys:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Image:** The image’s name.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prefix:** This specifies the task you want the model to perform.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Suffix:** This provides the ground truth the model learns to make predictions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Depending on the task, you must change the JSON object''s prefix and suffix
+    accordingly. Here are some examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Image captioning:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Question answering:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Object detection:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you have several categories to be detected, add a semicolon (;) among each
+    category in the prefix and suffix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A complete and clear explanation of how to prepare the data for object detection
+    in Paligemma can be found in [this Roboflow post](https://blog.roboflow.com/how-to-fine-tune-paligemma/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Image segmentation:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that for segmentation, apart from the object’s bounding box coordinates,
+    you need to specify 16 extra segmentation tokens representing a mask that fits
+    within the bounding box. According to [Google’s Big Vision repository](https://github.com/google-research/big_vision/blob/main/big_vision/configs/proj/paligemma/README.md#tokenizer),
+    those tokens are codewords with 128 entries (<seg000>…<seg127>). How do we obtain
+    these values? In my personal experience, it was challenging and frustrating to
+    get them without proper documentation. But I’ll give more details later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are interested in learning more about Paligemma, I recommend these blogs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://huggingface.co/blog/paligemma2?source=post_page-----b172dc0cf55d--------------------------------)
+    [## Welcome PaliGemma 2 — New vision language models by Google'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’re on a journey to advance and democratize artificial intelligence through
+    open source and open science.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'huggingface.co](https://huggingface.co/blog/paligemma2?source=post_page-----b172dc0cf55d--------------------------------)
+    [](https://www.datature.io/blog/introducing-paligemma-googles-latest-visual-language-model?source=post_page-----b172dc0cf55d--------------------------------)
+    [## Introducing PaliGemma: Google''s Latest Visual Language Model'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PaliGemma pushes the boundaries for efficient multi-modality in Visual Language
+    Models through task-specific finetuning…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.datature.io](https://www.datature.io/blog/introducing-paligemma-googles-latest-visual-language-model?source=post_page-----b172dc0cf55d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Satellite images of water bodies
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As mentioned above, Paligemma was trained on different datasets. Therefore,
+    this model is expected to be good at segmenting “traditional” objects such as
+    cars, people, or animals. But what about segmenting objects in satellite images?
+    This question led me to explore Paligemma’s capabilities for segmenting water
+    in satellite images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kaggle’s [Satellite Image of Water Bodies dataset](https://www.kaggle.com/datasets/franciscoescobar/satellite-images-of-water-bodies)
+    is suitable for this purpose. This dataset contains 2841 images with their corresponding
+    masks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad8e9458fd86cd6d05b75a1c60a1563f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here''s an example of the water bodies dataset: The RGB image is shown on the
+    left, while the corresponding mask appears on the right.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some masks in this dataset were incorrect, and others needed further preprocessing.
+    Faulty examples include masks with all values set to water, while only a small
+    portion was present in the original image. Other masks did not correspond to their
+    RGB images. When an image is rotated, some masks make these areas appear as if
+    they have water.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b74083bafddf71b84cdbbc2f3cfd00f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of a rotated mask. When reading this image in Python, the area outside
+    the image appears as it would have water. In this case, image rotation is needed
+    to correct this mask. Image made by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given these data limitations, I selected a sample of 164 images for which the
+    masks did not have any of the problems mentioned above. This set of images is
+    used to fine-tune Paligemma.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preparing the JSONL dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As explained in the previous section, Paligemma needs entries that represent
+    the object’s bounding box coordinates in normalized image-space (<loc0000>…<loc1023>)
+    plus an extra 16 segmentation tokens representing 128 different codewords (<seg000>…<seg127>).
+    Obtaining the bounding box coordinates in the desired format was easy, thanks
+    to [Roboflow’s explanation](https://blog.roboflow.com/how-to-fine-tune-paligemma/).
+    But how do we obtain the 128 codewords from the masks? There was no clear documentation
+    or examples in the Big Vision repository that I could use for my use case. I naively
+    thought that the process of creating the segmentation tokens was similar to that
+    of making the bounding boxes. However, this led to an incorrect representation
+    of the water masks, which led to wrong prediction results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the time I wrote this blog (beginning of December), Google announced the
+    second version of Paligemma. Following this event, Roboflow published [a nice
+    overview](https://blog.roboflow.com/fine-tune-paligemma-2/) of preparing data
+    to fine-tune Paligemma2 for different applications, including image segmentation.
+    I use part of their code to finally obtain the correct segmentation codewords.
+    What was my mistake? Well, first of all, the masks need to be resized to a tensor
+    of shape [None, 64, 64, 1] and then use a pre-trained variational auto-encoder
+    (VAE) to convert annotation masks into text labels. Although the usage of a VAE
+    model was briefly mentioned in the Big Vision repository, there is no explanation
+    or examples on how to use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The workflow I use to prepare the data to fine-tune Paligemma is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31298a3389159effa1b9eff062b5b8cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Steps to convert one original mask from the filtered [water bodies dataset](https://www.kaggle.com/datasets/franciscoescobar/satellite-images-of-water-bodies)
+    to a JSON object. This process is repeated over the 164 images of the train set
+    and the 21 images of the test dataset to build the JSONL dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As observed, the number of steps needed to prepare the data for Paligemma is
+    large, so I don’t share code snippets here. However, if you want to explore the
+    code, you can visit [this GitHub repository](https://github.com/anamabo/SegmentWaterWithPaligemma).
+    The script *convert.py* has all the steps mentioned in the workflow shown above.
+    I also added the selected images so you can play with this script immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When preprocessing the segmentation codewords back to segmentation masks, we
+    note how these masks cover the water bodies in the images:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/21e69594fd0053603c25be1b6e07aaba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Resulting masks when decoding the segmentation codewords in the train set. Image
+    made by the author using [this Notebook](https://github.com/anamabo/SegmentWaterWithPaligemma/blob/main/finetune_paligemma_for_segmentation.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How is Paligemma at segmenting water in satellite images?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before fine-tuning Paligemma, I tried its segmentation capabilities on the models
+    uploaded to Hugging Face. This platform ha[s a demo](https://huggingface.co/spaces/big-vision/paligemma)
+    where you can upload images and interact with different Paligemma models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/13a159f2e23495fa1218fc60692ec45e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Default Paligemma model at segmenting water in satellite images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The current version of Paligemma is generally good at segmenting water in satellite
+    images, but it’s not perfect. Let’s see if we can improve these results!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two ways to fine-tune Paligemma, either through [Hugging Face’s Transformer
+    library](https://huggingface.co/blog/paligemma#using-transformers-1) or by using
+    Big Vision and JAX. I went for this last option. Big Vision provides a [Colab
+    notebook](https://colab.research.google.com/github/google-research/big_vision/blob/main/big_vision/configs/proj/paligemma/finetune_paligemma.ipynb),
+    which I modified for my use case. You can open it by going to my [GitHub repository](https://github.com/anamabo/SegmentWaterWithPaligemma?tab=readme-ov-file):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/anamabo/SegmentWaterWithPaligemma/blob/main/finetune_paligemma_for_segmentation.ipynb?source=post_page-----b172dc0cf55d--------------------------------)
+    [## SegmentWaterWithPaligemma/finetune_paligemma_for_segmentation.ipynb at main
+    ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Segmentation of water in Satellite images using Paligemma …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/anamabo/SegmentWaterWithPaligemma/blob/main/finetune_paligemma_for_segmentation.ipynb?source=post_page-----b172dc0cf55d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used a *batch size* of 8 and a *learning rate* of 0.003\. I ran the training
+    loop twice, which translates to 158 training steps. The total running time using
+    a T4 GPU machine was 24 minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results were not as expected. Paligemma did not produce predictions in some
+    images, and in others, the resulting masks were far from the ground truth. I also
+    obtained segmentation codewords with more than 16 tokens in two images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9ba415d9a14a051d7c5168dee08e1d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of the fine-tuning where there were predictions. Image made by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth mentioning that I use the first Paligemma version. Perhaps the results
+    are improved when using Paligemma2 or by tweaking the batch size or learning rate
+    further. In any case, these experiments are out of the scope of this blog.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The demo results show that the default Paligemma model is better at segmenting
+    water than my finetuned model. In my opinion, UNET is a better architecture if
+    the aim is to build a model specialized in segmenting objects. For more information
+    on how to train such a model, you can read my previous blog post:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/detecting-clouds-with-ai-b553e6576af6?source=post_page-----b172dc0cf55d--------------------------------)
+    [## Detecting Clouds with AI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From Random Forest to YOLO: Comparing different algorithms for cloud segmentation
+    in satellite Images.'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/detecting-clouds-with-ai-b553e6576af6?source=post_page-----b172dc0cf55d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Other limitations:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I want to mention some other challenges I encountered when fine-tuning Paligemma
+    using Big Vision and JAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up different model configurations is difficult because there’s still
+    little documentation on those parameters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The first version of Paligemma has been trained to handle images of different
+    aspect ratios resized to 224x224\. Make sure to resize your input images with
+    this size only. This will prevent raising exceptions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When fine-tuning with Big Vision and JAX, You might have JAX GPU-related problems.
+    Ways to overcome this issue are:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a. Reducing the samples in your training and validation datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: b. Increasing the batch size from 8 to 16 or higher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fine-tuned model has a size of ~ 5GB. Make sure to have enough space in
+    your Drive to store it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Takeaway messages
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Discovering a new AI model is exciting, especially in this age of multimodal
+    algorithms transforming our society. However, working with state-of-the-art models
+    can sometimes be challenging due to the lack of available documentation. Therefore,
+    the launch of a new AI model should be accompanied by comprehensive documentation
+    to ensure its smooth and widespread adoption, especially among professionals who
+    are still inexperienced in this area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite the difficulties I encountered fine-tuning Paligemma, the current pre-trained
+    models are powerful at doing zero-shot object detection and image segmentation,
+    which can be used for many applications, including assisted ML labeling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Are you using Paligemma in your Computer Vision projects? Share your experience
+    fine-tuning this model in the comments!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you enjoyed this post. Once more, thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can contact me via LinkedIn at:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://www.linkedin.com/in/camartinezbarbosa/](https://www.linkedin.com/in/camartinezbarbosa/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Acknowledgments: I want to thank José Celis-Gil for all the fruitful discussions
+    on data preprocessing and modeling.*'
+  prefs: []
+  type: TYPE_NORMAL

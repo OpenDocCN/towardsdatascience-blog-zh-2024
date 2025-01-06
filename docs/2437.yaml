@@ -1,0 +1,440 @@
+- en: 'The Rise of Pallas: Unlocking TPU Potential with Custom Kernels'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-rise-of-pallas-unlocking-tpu-potential-with-custom-kernels-67be10ab846a?source=collection_archive---------5-----------------------#2024-10-06](https://towardsdatascience.com/the-rise-of-pallas-unlocking-tpu-potential-with-custom-kernels-67be10ab846a?source=collection_archive---------5-----------------------#2024-10-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Accelerating AI/ML Model Training with Custom Operators — Part 3
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--67be10ab846a--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--67be10ab846a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--67be10ab846a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--67be10ab846a--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--67be10ab846a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--67be10ab846a--------------------------------)
+    ·15 min read·Oct 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7b6e80b948d3befa2dd1c167781b063.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Hendrik Morkel](https://unsplash.com/@hendrikmorkel?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the third part of a [series of posts](https://chaimrand.medium.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)
+    on the topic of building custom operators for optimizing AI/ML workloads. In our
+    [previous post](https://chaimrand.medium.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e)
+    we demonstrated the simplicity and accessibility of Triton. Named for the [Greek
+    god of the sea](https://en.wikipedia.org/wiki/Triton_(mythology)), Triton empowers
+    Python developers to increase their control over the GPU and optimize its use
+    for the specific workload at hand. In this post we move one step down the lineage
+    of Greek mythology to Triton’s daughter, [Pallas](https://en.wikipedia.org/wiki/Pallas_(daughter_of_Triton))
+    and discuss her namesake, the [JAX extension](https://jax.readthedocs.io/en/latest/pallas/index.html)
+    for writing custom kernels for GPU and TPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most important features of NVIDIA GPUs — and a significant factor
+    in their rise to prominence — is their programmability. A key ingredient of the
+    GPU offering are frameworks for creating General-Purpose GPU (GPGPU) operators,
+    such as [CUDA](https://developer.nvidia.com/cuda-toolkit) and [Triton](https://triton-lang.org/main/index.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In previous posts (e.g., [here](/tpu-training-6eb84100d138)) we discussed the
+    opportunity for running ML workloads on [Google TPUs](/tpu-training-6eb84100d138)
+    and the potential for a meaningful increase in price performance and a reduction
+    in training costs. One of the disadvantages that we noted at the time was the
+    absence of tools for creating custom operators. As a result, models requiring
+    unique operators that were either unsupported by the underlying ML framework (e.g.,
+    TensorFlow/XLA) or implemented in a suboptimal manner, would underperform on TPU
+    compared to GPU. This development gap was particularly noticeable over the past
+    few years with the frequent introduction of newer and faster solutions for computing
+    [attention](https://en.wikipedia.org/wiki/Attention_(machine_learning)) on GPU.
+    Enabled by GPU kernel development frameworks, these led to a significant improvement
+    in the efficiency of [transformer models](https://en.wikipedia.org/wiki/Transformer_(deep_learning_architecture)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: On TPUs, on the other hand, the lack of appropriate tooling prevented this innovation
+    and transformer models were stuck with the attention mechanisms that were supported
+    by the official SW stack. Fortunately, with the advent of [Pallas](https://jax.readthedocs.io/en/latest/pallas/index.html)
+    this gap has been addressed. Built as an extension to [JAX](https://jax.readthedocs.io/en/latest/)
+    and with [dedicated support](https://github.com/pytorch/xla/blob/3c59087e894013559b58dcb147869c4a81ca07d3/docs/pallas.md#adopt-the-above-kernel-to-be-compatible-with-pytorchxla)
+    for [PyTorch/XLA](https://pytorch.org/xla/release/r2.4/index.html), Pallas enables
+    the creation of custom kernels for GPU and TPU. For its GPU support Pallas utilizes
+    Triton, and for its TPU support it uses a library called Mosaic. Although we will
+    focus on custom kernels for TPU, it is worth noting that when developing in JAX,
+    GPU kernel customization with Pallas offers some advantages over Triton (e.g.,
+    see [here](https://www.youtube.com/watch?v=OR8NZyTz-yo)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our intention in this post is to draw attention to Pallas and demonstrate its
+    potential. Please do not view this post as a replacement for the official [Pallas
+    documentation](https://jax.readthedocs.io/en/latest/pallas/index.html#). The examples
+    we will share were chosen for demonstrative purposes, only. We have made no effort
+    to optimize these or verify their robustness, durability, or accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, at the time of this writing Pallas is an *experimental* feature
+    and still under active development. The samples we share (which are based on [JAX](https://pypi.org/project/jax/)
+    version 0.4.32 and [PyTorch](https://pypi.org/project/torch/) version 2.4.1) may
+    become outdated by the time you read this. Be sure to use the most up-to-date
+    APIs and resources available for your Pallas development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many thanks to [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/)
+    for his contributions to this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Environment Setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For the experiments described below we use the following [environment setup](https://cloud.google.com/tpu/docs/v5e-training#train-resnet-using-the-pjrt-runtime)
+    commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Pallas Kernels for TPU
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the toy example of our first post in this series, we distinguished between
+    two different ways in which custom kernel development can potentially boost performance.
+    The first is by combining (fusing) together multiple operations in a manner that
+    reduces the overhead of: 1) loading multiple individual kernels, and 2) reading
+    and writing intermediate values (e.g., see [PyTorch’s tutorial on multiply-add
+    fusion](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)).
+    The second is by meticulously applying the resources of the underlying accelerator
+    in manner that optimizes the function at hand. We briefly discuss these two opportunities
+    as they pertain to developing custom TPU kernels and make note of the limitations
+    of the Pallas support.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Operator Fusion on TPU
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The TPU is an [XLA](https://openxla.org/xla) (Accelerated Linear Algebra) device,
+    i.e., it runs code that has been generated by the [XLA compiler](https://cloud.google.com/tpu/docs/intro-to-tpu#xla_compiler).
+    When training an AI model in a frameworks such as [JAX](https://jax.readthedocs.io/en/latest/index.html)
+    or [PyTorch/XLA](https://pytorch.org/xla/release/r2.4/index.html), the training
+    step is first transformed into an intermediate graph representation (IR). This
+    computation graph is then fed to the XLA compiler which converts it into machine
+    code that can run on the TPU. Contrary to *eager* execution mode, in which operations
+    are executed individually, this mode of running models enables XLA to identify
+    and implement opportunities for operator fusion during compilation. And, in fact,
+    operator [fusion](https://openxla.org/xla/tf2xla) is the XLA compiler’s most important
+    optimization. Naturally, no compiler is perfect and we are certain to come across
+    additional opportunities for fusion through custom kernels. But, generally speaking,
+    we might expect the opportunity for boosting runtime performance in this manner
+    to be lower than in the case of *eager* execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing TPU Utilization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Creating optimal kernels for TPU requires a comprehensive and intimate understanding
+    of the [TPU system architecture](https://cloud.google.com/tpu/docs/system-architecture-tpu-vm).
+    Importantly, TPUs are [very different](https://cloud.google.com/tpu/docs/intro-to-tpu)
+    from GPUs: expertise in GPUs and CUDA does not immediately carry over to TPU development.
+    For example, while GPUs contain a large number of processors and draw their strength
+    from their ability to perform massive parallelization, TPUs are primarily *sequential*
+    with dedicated engines for running highly vectorized operations and [support for
+    asynchronous scheduling and memory loading](https://jax.readthedocs.io/en/latest/pallas/tpu/pipelining.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The differences between the underlying architectures of the GPU and TPU can
+    have significant implications on how custom kernels should be designed. Mastering
+    TPU kernel development requires 1) appropriate overlapping of memory and compute
+    operations via [pipelining](https://jax.readthedocs.io/en/latest/pallas/tpu/pipelining.html),
+    2) knowing how to mix between the use of the scalar, vector (VPU) and matrix (MXU)
+    compute units and their associated scalar and vector registers (SREG and VREG)
+    and memory caches (SMEM and VMEM), 3) a comprehension of the [costs of different
+    low-level operations](https://jax.readthedocs.io/en/latest/pallas/tpu/details.html#elementwise-operations),
+    4) appropriate [megacore configuration](https://jax.readthedocs.io/en/latest/pallas/tpu/pipelining.html#tpus-in-megacore-configuration)
+    (on supporting TPU generations), 5) a grasp of the different types of [TPU topologies](https://jax.readthedocs.io/en/latest/pallas/tpu/distributed.html#tpu-topologies)
+    and their implications on how to support [distributed computing](https://jax.readthedocs.io/en/latest/pallas/tpu/distributed.html#),
+    and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Framework Limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While the ability to create custom operators in *Python* using JAX functions
+    and APIs greatly increases the simplicity and accessibility of Pallas kernel development,
+    it also limits its expressivity. Additionally, (as of the time of this writing)
+    there are some JAX APIs that are not supported by Pallas on TPU (e.g., see [here](https://jax.readthedocs.io/en/latest/pallas/tpu/details.html#supported-operations)).
+    As a result, you may approach Pallas with the intention of implementing a particular
+    operation only to discover that the framework does not support the APIs that you
+    need. This is in contrast to frameworks such as CUDA which enable a great deal
+    of flexibility when developing custom kernels (for GPU).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [matrix multiplication](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html)
+    tutorial in the Pallas documentation provides an excellent introduction to Pallas
+    kernel development, highlighting the potential for operator fusion and customization
+    alongside the challenges involved in optimizing performance (e.g., appropriate
+    tuning of the input *block size*). The tutorial clearly illustrates that maximizing
+    the *full* potential of the TPU requires a certain degree of specialization. However,
+    as we intend to demonstrate, even the novice ML developer can benefit from Pallas
+    kernels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integrating the Use of Existing Pallas Kernels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To benefit from custom Pallas kernels you do not necessarily need to know how
+    to build them. In our first example we demonstrate how you can leverage existing
+    Pallas kernels from dedicated public repositories.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example — Flash Attention in Torch/XLA
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The JAX github repository includes implementations of a number of Pallas kernels,
+    including [flash attention](https://github.com/jax-ml/jax/blob/jaxlib-v0.4.32/jax/experimental/pallas/ops/tpu/flash_attention.py).
+    Here we will demonstrate its use in a Torch/XLA [Vision Transformer](https://en.wikipedia.org/wiki/Vision_transformer)
+    (ViT) model. Although Pallas kernels are developed in JAX, they can be adopted
+    into Torch/XLA, e.g., via the [make_kernel_from_pallas](https://github.com/pytorch/xla/blob/v2.4.0/torch_xla/experimental/custom_kernel.py#L132)
+    utility (see the [documentation](https://github.com/pytorch/xla/blob/3c59087e894013559b58dcb147869c4a81ca07d3/docs/pallas.md)
+    for details). In the case of [flash attention](https://github.com/pytorch/xla/blob/v2.4.0/torch_xla/experimental/custom_kernel.py#L425)
+    the adoption is implemented by Torch/XLA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following code block we define a stripped down version of the classic
+    *timm* [attention block](https://github.com/huggingface/pytorch-image-models/blob/v1.0.9/timm/models/vision_transformer.py#L124)
+    with an option to define the underlying attention operator in the constructor.
+    We will use this option to compare the performance of the [flash attention](https://github.com/pytorch/xla/blob/v2.4.0/torch_xla/experimental/custom_kernel.py#L425)
+    Pallas kernel to its alternatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the following block we train a simple ViT-backed classification model using
+    the input dataset and attention function (*attn_fn*) of choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note the specific configuration we chose for the [VisionTransformer](https://github.com/huggingface/pytorch-image-models/blob/v1.0.9/timm/models/vision_transformer.py#L414).
+    This is to comply with certain restrictions (as of the time of this writing) of
+    the custom flash attention kernel (e.g., on tensor shapes).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, we define a dataset and compare the runtimes of training with three
+    different attention routines, 1\. using native PyTorch functions, 2\. using PyTorch’s
+    built in [SDPA](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html)
+    function, and 3\. using the custom Pallas operator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The comparative results are captured in the table below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6850e69e43e23d9a1964fe7da0551f62.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Step time for different attention blocks (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Although our Pallas kernel clearly underperforms when compared to its alternatives,
+    we should not be discouraged:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is likely that these results could be improved with appropriate tuning.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: These results are specific to the model and runtime environment that we chose.
+    The Pallas kernel may exhibit wholly different comparative results in other use
+    cases.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The real power of Pallas is in the ability to create and adjust low level operators
+    to our specific needs. Although runtime performance is important, a 23% performance
+    penalty (as in our example) may be a small price to pay for this flexibility.
+    Moreover, the opportunity for customization may open up possibilities for optimizations
+    that are not supported by the native framework operations.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Enhancing Existing Kernels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Oftentimes it may be easier to tweak an existing Pallas kernel to your specific
+    needs, rather than creating one from scratch. This is especially recommended if
+    the kernel has already been optimized as performance tuning can be tedious and
+    time-consuming. The official [matrix multiplication](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html)
+    tutorial includes a few examples of how to [extend](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html#templating-the-matrix-multiplication)
+    and [enhance](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html#fused-activation-function)
+    an existing kernel. Here we undertake one of the [suggested exercises](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html#conclusion):
+    we implement `int8` matrix multiplication and assess its performance advantage
+    over its `bfloat16` alternative.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example — Int8 Matrix Multiplication
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the code block below we implement an `int8` version of the [matrix multiplication](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html)
+    example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note our use of an `int32` accumulation matrix for addressing the possibility
+    of overflow. Also note our use of the [*interpret*](https://github.com/jax-ml/jax/blob/jaxlib-v0.4.32/jax/_src/pallas/pallas_call.py#L1238)flag
+    for debugging of Pallas kernels on CPU (as recommended [here](https://youtu.be/OR8NZyTz-yo?t=855)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To assess our kernel, we introduce a slight modification to the benchmarking
+    utilities defined in the [tutorial](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html#performance-of-pipelined-kernels)
+    and compare the runtime results to both the jnp.float16 Pallas matmulkernel and
+    the built-in JAX [matmul](https://jax.readthedocs.io/en/latest/_autosummary/jax.numpy.matmul.html)
+    API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results of our experiment are captured in the table below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f08becc69e1ae67e2b6baa93d5f7da2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Matmul time and utilization (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using `int8` matrices (rather than `bfloat16`matrices) on tpuv5e we can boost
+    the runtime performance of our custom matrix multiplication kernel by 71%. However,
+    as in the case of the [bfloat16 example](https://jax.readthedocs.io/en/latest/pallas/tpu/matmul.html#performance-of-pipelined-kernels),
+    additional tuning is required to match the performance of the built-in matmul
+    operator. The potential for improvement is highlighted by the drop in system utilization
+    when compared to `bfloat16`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a Kernel from Scratch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While leveraging existing kernels can be greatly beneficial, it is unlikely
+    to solve all of your problems. Inevitably, you may need to implement an operation
+    that is either unsupported on TPU or exhibits suboptimal performance. Here we
+    demonstrate the creation of a relatively simple pixel-wise kernel. For the sake
+    of continuity, we choose the same [Generalized Intersection Over Union (GIOU)](https://giou.stanford.edu/)
+    operation as in our [previous posts](/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example — A GIOU Pallas Kernel
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the code block below we define a Pallas kernel that implements GIOU on pairs
+    of batches of bounding boxes, each of dimension *BxNx4* (where we denote the batch
+    size by *B* and the number of boxes per sample by *N*). The function returns a
+    tensor of scores of dimension *BxN*. We choose a block size of 128 on both the
+    *batch* axis and the *boxes* axis, i.e., we divide each of the tensors into blocks
+    of *128x128x4* and pass them to our kernel function. The [*grid*](https://jax.readthedocs.io/en/latest/pallas/grid_blockspec.html#grid-a-k-a-kernels-in-a-loop)and
+    [BlockSpec *index_map*](https://jax.readthedocs.io/en/latest/pallas/grid_blockspec.html#blockspec-a-k-a-how-to-chunk-up-inputs)
+    are defined accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Although the creation of a new TPU kernel is certainly cause for celebration
+    (especially if it enables a previously blocked ML workload) our work is not done.
+    A critical part of Pallas kernel development is tuning the operator, (e.g. the
+    [*block size*](https://jax.readthedocs.io/en/latest/pallas/grid_blockspec.html#blockspec-a-k-a-how-to-chunk-up-inputs))
+    for optimal runtime performance. We omit this stage in the interest of brevity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To asses the performance of our kernel, we compare it to the following native
+    JAX GIOU implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We generate two batches of randomly generated bounding boxes and measure the
+    performance of our functions using the *benchmark* function defined above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The comparative results appear in the table below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/955378e825c927199dbea52380144e37.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Avg time of different GIOU implementations (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that JIT-compiling our naive JAX implementation results in slightly
+    better performance than our Pallas kernel. Once again, we can see that matching
+    or surpassing the performance results of JIT compilation (and its inherent kernel
+    fusion) would require fine-tuning of our custom kernel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Utilizing the Sequential Nature of TPUs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While the ability to develop custom kernels for TPU offers great potential,
+    our examples thus far have demonstrated that reaching optimal runtime performance
+    could be challenging. One way to overcome this is to seek opportunities to utilize
+    the unique properties of the TPU architecture. One example of this is the [sequential
+    nature of the TPU processor](https://jax.readthedocs.io/en/latest/pallas/tpu/details.html#what-is-a-tpu).
+    Although deep learning workloads tend to rely on operations that are easily parallelizable
+    (e.g., matrix multiplication), on occasion they require algorithms that are inherently
+    sequential. These can pose a serious challenge for the [SIMT](https://en.wikipedia.org/wiki/Single_instruction,_multiple_threads)
+    (single instruction multi thread) model of GPUs and can sometimes have a disproportionate
+    impact on runtime performance. In a [sequel to this post](https://chaimrand.medium.com/implementing-sequential-algorithms-on-tpu-41d75c6aaa95),
+    we demonstrate how we can implement sequential algorithms in a way that takes
+    advantage of the TPUs sequential processor and in a manner that minimizes their
+    performance penalty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The introduction of Pallas marks an important milestone in the evolution of
+    TPUs. By enabling customization of TPU operations it can potentially unlock new
+    opportunities for TPU programmability, particularly in the world of ML. Our intention
+    in this post was to demonstrate the accessibility of this powerful new feature.
+    While our examples have indeed shown this, they have also highlighted the effort
+    required to reach optimal runtime performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post has merely scratched the surface of Pallas kernel development. Be
+    sure to see the official documentation to learn more about [automatic differentiation
+    in Pallas](https://jax.readthedocs.io/en/latest/pallas/design.html#grad-of-pallas-call),
+    [developing sparse kernels](https://jax.readthedocs.io/en/latest/pallas/tpu/sparse.html),
+    and more.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,413 @@
+- en: Exploring Medusa and Multi-Token Prediction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-medusa-and-multi-token-prediction-de7f8312e4a7?source=collection_archive---------5-----------------------#2024-07-10](https://towardsdatascience.com/exploring-medusa-and-multi-token-prediction-de7f8312e4a7?source=collection_archive---------5-----------------------#2024-07-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This blog post will go into detail on the “MEDUSA: Simple LLM Inference Acceleration
+    Framework with Multiple Decoding Heads” paper'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)[![Matthew
+    Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)
+    [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--de7f8312e4a7--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de7f8312e4a7--------------------------------)
+    ·11 min read·Jul 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e02e454ed5ba0a04be55227f7cacff07.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author — SDXL
+  prefs: []
+  type: TYPE_NORMAL
+- en: The internet is an incredibly competitive place. Studies show that customers
+    leave webpages if it takes longer than 5 seconds for the webpage to load [2][3].
+    This poses a challenge for most Large Language Models (LLMs), as they are without
+    a doubt one of the slowest programs out there. While custom hardware can dramatically
+    speed up your LLM, running on this hardware is currently expensive. If we can
+    find ways to make the most of standard hardware, we will be able to dramatically
+    increase the customer experience for LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The authors of the [“MEDUSA: Simple LLM Inference Acceleration Framework with
+    Multiple Decoding Heads”](https://arxiv.org/pdf/2401.10774) paper have an architectural
+    change that when run on existing hardware achieves a 2x–3x speed up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s dive in!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Speculative Decoding
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Speculative Decoding was introduced as a way to speed up inferencing for an
+    LLM. You see, LLMs are autoregressive, meaning we take the output token that we
+    just predicted and use it to help predict the next token we want. Typically we
+    are predicting one-token at a time (or one-token per forward pass of the neural
+    network). However, because the attention pattern for the next token is very similar
+    to the attention pattern from the previous one, we are repeating most of the same
+    calculations and not gaining much new information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Speculative decoding means that rather than doing one forward pass for one
+    token, instead after one forward pass we try to find as many tokens as we can.
+    In general there are three steps for this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1) Generate the candidates
+  prefs: []
+  type: TYPE_NORMAL
+- en: (2) Process the candidates
+  prefs: []
+  type: TYPE_NORMAL
+- en: (3) Accept certain candidates
+  prefs: []
+  type: TYPE_NORMAL
+- en: Medusa is a type of speculative decoding, and so its steps map directly onto
+    these. Medusa appends decoding heads to the final layer of the model as its implementation
+    of (1). Tree attention is how it processes the candidates for (2). Finally, Medusa
+    uses either rejection sampling or a typical acceptance scheme to accomplish (3).
+    Let’s go through each of these in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decoding Heads & Medusa
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A decoding head takes the internal representation of the hidden state produced
+    by a forward pass of the model and then creates the probabilities that correspond
+    to different tokens in the vocabulary. In essence, it is converting the things
+    the model has learned into probabilities that will determine what the next token
+    is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/511e7f7d6cf360ccbacb72a1f608ff3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Medusa adjusts the architecture of a typical Transformer by appending multiple
+    decoding heads to the last hidden layer of the model. By doing so, it can predict
+    more than just one token given a forward pass. Each additional head that we add
+    predicts one token further. So if you have 3 Medusa heads, you are predicting
+    the first token from the forward pass, and then 3 more tokens after that with
+    the Medusa heads. In the paper, the authors recommend using 5, as they saw this
+    gave the best balance between speed-up and quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To accomplish this, the authors of the paper proposed the below decoder head
+    for Medusa:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ad84dc2b1aa122e7b19d8186a6cc665.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Definition of the k-th head [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This equation gives us the probability of token *t* from the *k*-th head. We
+    start off by using the weights we’ve found through training the Medusa head, *W1,*
+    and multiplying them by our internal state for token *t*. We use the `SiLU` activation
+    function to pass through only selective information(`SiLU = x * sigmoid(x)`).
+    We add to this the internal state a second time as part of a skip connection,
+    which allows the model to be more performant by not losing information during
+    the linear activation of the `SiLU`. We then multiply the sum by the second set
+    of weights we’ve trained for the head, *W2*, and run that product through a `softmax`
+    to get our probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tree Attention
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first Medusa heads give the model probabilities they should consider based
+    off the forward pass, but the subsequent Medusa heads need to figure out what
+    token they should pick based off what the prior Medusa heads chose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Naturally, the more options the earlier Medusa heads put forward (hyperparameter
+    *sk*), the more options future heads need to consider. For example, when we consider
+    just the top two candidates from head 1 (s1=2) and the top three from head 2 (s2=3),
+    we wind up with 6 different situations we need to compute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to this expansion, we would like to generate and verify these candidates
+    as concurrently as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/185f85e016eb50d22de132284bf2480c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above matrix shows how we can run all of these calculations within the same
+    batch via tree attention. Unlike typical causal self-attention, only the tokens
+    from the same continuation are considered relevant for the attention pattern.
+    As the matrix illustrates with this limited space, we can fit our candidates all
+    into one batch and run attention on them concurrently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge here is that each prediction needs to consider only the candidate
+    tokens that would be directly behind it. In other words, if we choose “It” from
+    head 1, and we are evaluating which token should come next, we do not want to
+    have the attention pattern for “I” being used for the tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The authors avoid this kind of interference by using a mask to avoid passing
+    data about irrelevant tokens into the attention calculation. By using this mask,
+    they can be memory efficient while they calculate the attention pattern & then
+    use that information in the decoding head to generate the subsequent token candidates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the above matrix shows us considering every prediction the same, if we
+    have a probability for each prediction, we can treat these differently based on
+    how likely they are to be the best choice. The below tree visualizes just that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/912064c61e8ae73612d140145fd743d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the above, there are 4 Medusa heads each giving multiple candidates. However,
+    not every prediction gets calculated. We add nodes onto our tree based off the
+    probability of them being right. Here, the tree is heavily weighted towards the
+    left, showing that the higher the probability of the prediction, the more possibilities
+    it is shown. In short, what we are doing here is only loading in predictions to
+    the tree attention that we feel have a reasonable likelihood of being the best
+    choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using probability to determine which calculations to continue with is a mindset
+    we’ll see again with the candidate acceptance criteria we’re about to discuss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typical Acceptance Scheme vs Rejection Sampling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we reach the final stage, determining which predictions to use (if any).
+    As we said from the start, models are auto-regressive, so if we predict the next
+    5 tokens from the forward-pass, we can simply put in those next 5 into the model
+    for the next go around and enjoy the inference speed increase. However, we only
+    want to do so if the predictions we are getting are high quality. How do we determine
+    this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: One method is Rejection Sampling where we have a separate model that can determine
+    if the next token is good enough (this was used by Meta in their Ghost Attention
+    fine-tuning, [learn more here](/understanding-ghost-attention-in-llama-2-dba624901586)).
+    Naturally, this method is fully dependent on the quality of your other model.
+    If it is good enough, then this works great! Note, however, that to maintain low
+    latency, you’ll want this other model to run quite fast, a difficult thing to
+    balance with high quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a consequence of that difficulty, the authors came up with the typical acceptance
+    scheme to make the determination. As all of the predictions are probabilities,
+    we can use them to set a threshold above which we accept a token. The below equation
+    shows how we do so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e2032bdb68e3b0421624f270b3822eb6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Equation showing Typical Acceptance Scheme [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key here is that we are going to use the probabilities generated by the
+    original model on these tokens to determine if the predictions are valid. We have
+    tokens *X1* through *Xn* as the context for our model to determine the probability
+    for token *Xn+k*. *p* represents the probability distribution of our original
+    model, while ϵ and δ are thresholds set to determine when a probability is high
+    enough to merit being included in the model response. The big picture here is
+    that high probability tokens will flow through, but so will tokens that have lower
+    probabilities yet come from a probability distribution where most of the probabilities
+    are low.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, this function leads to important behavior when we adjust temperature.
+    In general, users increase temperature on an LLM to give more creative responses.
+    Thus, when the temperature is set at zero, typical acceptance ensures that only
+    the first token predicted from the forward pass comes through, giving the most
+    consistent results. However, as the temperature increases, the probability distribution
+    of the LLM changes, leaving us with more predictions that could reach the threshold
+    to be accepted. This leads to both faster results but often times more creative
+    ones as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Self-Distillation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The authors propose that to create Medusa models we don’t train from scratch
+    but rather take high-quality foundation models (we’ll call this the backbone part
+    of the model) and add the Medusa heads on top of these. Once we’ve fine-tuned
+    them to understand the new heads, the speed will increase without major performance
+    loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless fine-tuning requires quality data. The authors were kind enough
+    to explain how they created the data corpus needed to train Medusa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, they used the [ShareGPT dataset](https://sharegpt.com/) to find high-quality
+    interactions that people expect to have with their LLM. They took all the prompts
+    from the dataset and then ran these through the backbone model to get the ground-truth
+    to fine-tune on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this worked well for fine-tuning the Medusa heads (Medusa-1 which we’ll
+    go into below more), this did not work well when fine-tuning the entire new model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This degradation implied that the ground-truth was not enough information to
+    retrain the model with and still retain high performance. Instead, they rewrote
+    the loss function so that it used the probability distributions as the ground-truth.
+    This required reformulating their loss function like the below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ef892782a996461022896502732195a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Loss Equation for the new model [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To briefly explain, we’re using Kullback–Leibler divergence (KL) to measure
+    the difference between the original probability distribution for a token and the
+    new probability distribution (t[o learn more about KL, there is a wonderful post
+    by Aparna Dhinakaran on the topic](/understanding-kl-divergence-f3ddc8dff254)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This formulation, however, requires that we maintain the probabilities of both
+    the original and the new model — which is both storage and memory intensive. To
+    reduce our consumption, the authors recommend using LoRA to fine-tune, as this
+    naturally maintains the original weights and the additional weights [(to learn
+    more about LoRA check out my blog post on the topic)](/understanding-low-rank-adaptation-lora-in-fine-tuning-llms-d3dd283f1f0a).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training Medusa
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have the data, we can begin to fine-tune!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we’ve seen, Medusa requires adding additional parameters to the model to
+    allow this to work, which we’ll have to train. To reduce the amount of computations
+    (and thus training cost) required, the authors introduced two forms of fine-tuning
+    for Medusa: Medusa-1 and Medusa-2.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Medusa-1
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Medusa-1 involves freezing all of the weights in the model except for the ones
+    in the Medusa heads. By only running the gradient through the Medusa heads we
+    don’t worry about reducing the performance of the original model (it remains the
+    same), and we can increase the performance of the Medusa heads. The loss function
+    below shows how they match the correct ground-truth token to the correct Medusa
+    head.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/53112499061ce92bc706b1a07397b449.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Equation 1 [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Medusa-1’s focus on only the additional Medusa weights means that it is more
+    cost-effective than Medusa-2 (which we’ll dive into in a moment). For people who
+    are price-sensitive with training, the authors recommend using a quantized backbone
+    model to further reduce memory requirements along with using the Quantized Low
+    Rank Adaptation (QLoRA) fine-tuning methodology to further reduce costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Medusa-2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While Medusa-1 is more cost-effective, the best performance still comes when
+    we update all of the weights in the model to account for the new Medusa heads
+    we’ve added. Interestingly, this was not as straight-forward as simply doing LoRA
+    with the gradient passing to all of the weights (rather than just the Medusa weights).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, the authors first ran Medusa-1 to get the Medusa weights to a reasonable
+    performance. Then they chose separate learning rates for the Medusa weights and
+    the backbone model weights. Logically, this was done because the backbone weights
+    were likely close to where they already needed to be, while the Medusa weights
+    should change more. Finally, they added the loss function for the backbone model
+    (denoted *Llm*) with the Medusa-1 loss function scaled by a value *λ0*. This lambda
+    is done to balance the loss so that we do not compute an overly large loss value
+    on account of the Medusa heads alone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae042130c976c1d6ba8103a33fd622c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Equation 2 [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/c8a8036c81a9b78d45870e10e64f3d22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 [from the paper](https://arxiv.org/pdf/2401.10774)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Medusa leads to fairly radical improvements in speed. From the graph above,
+    we see that the authors attained between a two to three times speedup for Vicuna
+    — a popular open-source LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Speed is critically important, both on the internet and also on device. As we’ve
+    seen more companies push to create local LLMs, methods like Medusa seem critical
+    to getting great speed on limited hardware. It would be very interesting to see
+    how much a small model like Phi-3 would speed up (at publishing time Phi-3 ran
+    at 12 tokens per second on the A16 Bionic iPhone chip — [see my blog post for
+    more information](/phi-3-and-the-beginning-of-highly-performant-iphone-models-d413d8ea0714)).
+    For developers, this may open the door to running many different kinds of open-source
+    models locally — even if they weren’t initially designed for fast inference like
+    Phi-3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, it would be interesting to run experiments on how much of the forward
+    pass’ attention pattern Medusa heads need to increase performance. Right now they
+    have very little context but still perform well. With more context, perhaps the
+    number of Medusa heads could be increased to achieve even better speed up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s an exciting time to be building.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Cai, T., et al, [“MEDUSA: Simple LLM Inference Acceleration Framework with
+    Multiple Decoding Heads”](https://arxiv.org/pdf/2401.10774) (2024), arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Clabaugh, J., [“How long do you wait for a webpage to load?”](https://wtop.com/business-finance/2022/02/how-long-do-you-wait-for-a-web-page-to-load/)
+    (2022), wtop'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Das, S., [“How fast should a website load in 2023?”](https://www.browserstack.com/guide/how-fast-should-a-website-load)
+    (2023), BrowserStack'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,279 @@
+- en: A Practical Guide to Contrastive Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-practical-guide-to-contrastive-learning-26e912c0362f?source=collection_archive---------1-----------------------#2024-07-30](https://towardsdatascience.com/a-practical-guide-to-contrastive-learning-26e912c0362f?source=collection_archive---------1-----------------------#2024-07-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to build your very first SimSiam model with FashionMNIST
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--26e912c0362f--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--26e912c0362f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26e912c0362f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--26e912c0362f--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--26e912c0362f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26e912c0362f--------------------------------)
+    ·10 min read·Jul 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contrastive learning has many use cases these days. From NLP and computer vision
+    to recommendation systems, contrastive learning can be used to learn underlying
+    data representations without any explicit labels, which can then be used for downstream
+    classification, detection, similarity search, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many online resources to help the audience understand the basic ideas
+    of contrastive learning so that I won’t add one more blog post repeating the information.
+    Instead, I will show you how to convert your supervised learning problem into
+    a contrastive learning problem in this article. Specifically, I will start with
+    a basic classification model for the [FashionMNIST](https://github.com/zalandoresearch/fashion-mnist/tree/master)
+    ([MIT licence](https://github.com/zalandoresearch/fashion-mnist/blob/master/LICENSE)).
+    Then, I will proceed to an advanced problem with limited training labels (e.g.,
+    reducing the full training set of 60,000 labels to 1,000). I will introduce [SimSiam](https://arxiv.org/pdf/2011.10566),
+    a state-of-the-art method for contrastive learning, and show step-by-step instructions
+    on modifying the original linear layers in the SimSiam style. Ultimately, I’ll
+    show the results — SimSiam could improve the F1 score by 15% with a very basic
+    configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8640abb31d4b5da8c81b4a240542a64b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/395408](https://pxhere.com/en/photo/395408)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s start. First, we’ll load in the FashionMNIST dataset. A custom FashionMNIST
+    class is used to obtain a subset of the training set named the finetune_dataset.
+    The source code for the customer FashionMNIST class will be given at the end of
+    this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code will show a grid of images from the train_dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b4d3bbce67a51d76de2166c7d47e17c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: First 16 images from the FashionMNIST training set. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we’ll define the supervised classification model. The architecture contains
+    a backbone of convolutional layers and an MLP head of two linear layers. This
+    will set a consistent baseline for the following experiments, as SimSiam will
+    only replace the MLP head for contrastive learning purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’ll train the model for 10 epochs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using the classification_report from the scikit-learn package, we’ll get the
+    following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b99775d536be606ab36bba78f5014a32.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classification results of the fully supervised model. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s think about **a new problem**. What should we do if we’re given
+    a limited subset of the training set labels, e.g., only 1000 images out of the
+    total 60,000 images are annotated? The natural idea is to simply train the model
+    on the limited annotated dataset. So without changing the backbone, we let the
+    model train on the limited subset for 100 epochs (we increase the epochs to have
+    a fair comparison to our SimSiam training):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/17e7139fe4c8f3e1fff111b4c66fbfc9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fully supervised training loss on the limited training set. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a1010578e8405e600400d717408e350.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Quantitative evaluation results on the testing set. Note the performance drops
+    more than 25% by reducing the training size. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it’s time for some **contrastive learning**. To mitigate the issue of insufficient
+    annotation labels and fully utilize the large quantity of unlabelled data, contrastive
+    learning could be used to effectively help the backbone learn the data representations
+    without a specific task. The backbone could be frozen for a given downstream task
+    and only train a shallow network on a limited annotated dataset to achieve satisfactory
+    results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most commonly used contrastive learning approaches include SimCLR, SimSiam,
+    and MOCO (see my [previous article on MOCO](https://medium.com/towards-data-science/from-moco-v1-to-v3-towards-building-a-dynamic-dictionary-for-self-supervised-learning-part-1-745dc3b4e861)).
+    Here, we compare SimCLR and SimSiam.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SimCLR** calculates over positive and negative pairs within the data batch,
+    which requires hard negative mining, NT-Xent loss (which extends the cosine similarity
+    loss over a batch) and a large batch size. SimCLR also requires the LARS optimizer
+    to accommodate a large batch size.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SimSiam,** however, uses a Siamese architecture, which avoids using negative
+    pairs and further avoids the need for large batch sizes. The differences between
+    SimSiam and SimCLR are given in the table below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/543adb5cca61405edac9477bfbeac9f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison between SimCLR and SimSiam. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a9008b9698d06ee3fddd458255e54136.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The SimSiam architecture. Image source: [https://arxiv.org/pdf/2011.10566](https://arxiv.org/pdf/2011.10566)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see from the figure above that the SimSiam architecture only contains
+    two parts: the encoder/backbone and the predictor. During training time, the gradient
+    propagation of the Siamese part is stopped, and the cosine similarity is calculated
+    between the outputs of the predictors and the backbone.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, how do we implement this architecture in reality? Continuing on the supervised
+    classification design, we **keep the backbone the same and only modify the MLP
+    layer**. In the supervised learning architecture, the MLP outputs a 10-element
+    vector indicating the probabilities of the 10 classes. But for SimSiam, the purpose
+    is not to perform “classification” but to learn the “representation,” so we need
+    the output to be of the same dimension as the backbone output for loss calculation.
+    And the negative_cosine_similarity is given below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The pseudo-code for training the SimSiam is given in the original paper below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/168babbce2573a8be4068e0476bb70fd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Training pseudo-code for SimSiam. Source: [https://arxiv.org/pdf/2011.10566](https://arxiv.org/pdf/2011.10566)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And we convert it into real training code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We trained for 100 epochs as a fair comparison to the limited supervised training;
+    the training loss is shown below. Note: Due to its Siamese design, SimSiam could
+    be very sensitive to hyperparameters like learning rate and MLP hidden layers.
+    The original SimSiam paper provides a detailed configuration for the ResNet50
+    backbone. For the ViT-based backbone, we recommend reading the [MOCO v3 paper](https://arxiv.org/abs/2104.02057),
+    which adopts the SimSiam model in a momentum update scheme.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/650a9d50562c4074180b497046a8f065.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training loss for SimSiam. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we run the trained SimSiam on the testing set and visualize the representations
+    using UMAP reduction:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/34435a04bcac905eee507c19a059ffbf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The UMAP of the SimSiam representation over the testing set. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s interesting to see that there are two small islands in the reduced-dimension
+    map above: class 5, 7, 8, and some 9\. If we pull out the FashionMNIST class list,
+    we know that these classes correspond to footwear such as “Sandal,” “Sneaker,”
+    “Bag,” and “Ankle boot.” The big purple cluster corresponds to clothing classes
+    like “T-shirt/top,” “Trousers,” “Pullover,” “Dress,” “Coat,” and “Shirt.” The
+    SimSiam demonstrates learning a meaningful representation in the vision domain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have the correct representations, how can they benefit our classification
+    problem? We simply load the trained SimSiam backbone into our classification model.
+    However, instead of fine-tuning the whole architecture in the limited training
+    set, we fine-tuned the linear layers and froze the backbone because we didn’t
+    want to corrupt the representation already learned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is the evaluation result of the SimSiam-pre-trained classification model.
+    The average F1 score is increased by 15% compared to the supervised-only method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b58599f74751115b271a349a81cf8209.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The classification scores of the SimSiam model fine-tune on the limited set.
+    Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary. We showcase a simple but intuitive example, using FashionMNIST for
+    contrastive learning. By using SimSiam for backbone pre-training and only fine-tuning
+    the linear layers on the limited training set (which contains only 2% of the labels
+    of the full training set), we increased the average F1 score by 15% over the fully
+    supervised learning method. The trained weights, the notebook, and the customized
+    FashionMNIST dataset class are all included in this [GitHub repository](https://github.com/adoskk/MachineLearningBasics/tree/main/unsupervised_learning/simsiam).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Give it a try!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chen et al., Exploring simple siamese representation learning. CVPR 2021.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chen et al., A simple framework for contrastive learning of visual representations.
+    ICML 2020.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chen et al., An Empirical Study of Training Self-Supervised Vision Transformers.
+    ICCV 2021.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Xiao et al., Fashion-MNIST: a Novel Image Dataset for Benchmarking Machine
+    Learning Algorithms. arXiv preprint 2017\. Github: [https://github.com/zalandoresearch/fashion-mnist](https://github.com/zalandoresearch/fashion-mnist)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

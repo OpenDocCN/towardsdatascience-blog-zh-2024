@@ -1,0 +1,813 @@
+- en: Build Your Own ChatGPT-like Chatbot with Java and Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/build-your-own-chatgpt-like-chatbot-with-java-and-python-5def2c4852c3?source=collection_archive---------1-----------------------#2024-05-30](https://towardsdatascience.com/build-your-own-chatgpt-like-chatbot-with-java-and-python-5def2c4852c3?source=collection_archive---------1-----------------------#2024-05-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Creating a custom LLM inference infrastructure from scratch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://cardstdani.medium.com/?source=post_page---byline--5def2c4852c3--------------------------------)[![Daniel
+    García Solla](../Images/b6e7bc9fdfdfcda7875215b1e0264d9e.png)](https://cardstdani.medium.com/?source=post_page---byline--5def2c4852c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5def2c4852c3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5def2c4852c3--------------------------------)
+    [Daniel García Solla](https://cardstdani.medium.com/?source=post_page---byline--5def2c4852c3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5def2c4852c3--------------------------------)
+    ·25 min read·May 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04f5c0784845e51a157b80a2649323bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In recent years, [**Large Language Models (LLMs)**](https://aws.amazon.com/what-is/large-language-model/)
+    have emerged as a game-changing technology that has revolutionized the way we
+    interact with machines. These models, represented by OpenAI’s GPT series with
+    examples such as GPT-3.5 or GPT-4, can take a sequence of input text and generate
+    coherent, contextually relevant, and human-sounding text in reply. Thus, its applications
+    are wide-ranging and cover a variety of fields, such as customer service, content
+    creation, language translation, or code generation. However, at the core of these
+    capabilities are advanced machine-learning/statistical techniques, including attention
+    mechanisms for improving the natural language understanding process, transfer
+    learning to provide foundational models at scale, data augmentation, or even [**Reinforcement
+    Learning From Human Feedback**](https://huggingface.co/blog/rlhf), which enable
+    these systems to extend their training process and improve their performance continuously
+    along inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a subset of artificial intelligence, machine learning is responsible for
+    processing datasets to identify patterns and develop models that accurately represent
+    the data’s nature. This approach generates valuable knowledge and unlocks a variety
+    of tasks, for example, content generation, underlying the field of [**Generative
+    AI**](https://en.wikipedia.org/wiki/Generative_artificial_intelligence) that drives
+    large language models. It is worth highlighting that this field is not solely
+    focused on natural language, but also on any type of content susceptible to being
+    generated. From audio, with models capable of generating sounds, voices, or music;
+    videos through the latest models like OpenAI’s [**SORA**](https://openai.com/index/sora/);
+    or images, as well as editing and style transfer from text sequences. The latter
+    data format is especially valuable, since by using multimodal integration and
+    the help of image/text embedding technologies, it is possible to effectively illustrate
+    the potential of knowledge representation through natural language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless, creating and maintaining models to perform this kind of operation,
+    particularly at a large scale, is not an easy job. One of the main reasons is
+    data, as it represents the major contribution to a well-functioning model. That
+    is, training a model with a structurally optimal architecture and high-quality
+    data will produce valuable results. Conversely, if the provided data is poor,
+    the model will produce misleading outputs. Therefore, when creating a dataset,
+    it should contain an appropriate volume of data for the particular model architecture.
+    This requirement complicates data treatment and quality verification, in addition
+    to the potential legal and privacy issues that must be considered if the data
+    is collected by automation or scraping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another reason lies in hardware. Modern deployed models, which need to process
+    vast amounts of data from many users simultaneously, are not only large in size
+    but also require substantial computing resources for performing inference tasks
+    and providing quality service to their clients. That is reflected in equally significant
+    costs in economic terms. On the one hand, setting up servers and data centers
+    with the right hardware, considering that to provide a reliable service you need
+    GPUs, [**TPUs**](https://cloud.google.com/tpu/docs/intro-to-tpu), [**DPUs**](https://blogs.nvidia.com/blog/whats-a-dpu-data-processing-unit/),
+    and carefully selected components to maximize efficiency, is incredibly expensive.
+    On the other hand, its maintenance requires skilled human resources — qualified
+    people to solve potential issues and perform system upgrades as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Objective
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are many other issues surrounding the construction of this kind of model
+    and its large-scale deployment. Altogether, it is difficult to build a system
+    with a supporting infrastructure robust enough to match leading services on the
+    market like [**ChatGPT**](https://openai.com/chatgpt/). Still, we can achieve
+    rather acceptable and reasonable approximations to the reference service due to
+    the wide range of open-source content and technologies available in the public
+    domain. Moreover, given the high degree of progress presented in some of them,
+    they prove to be remarkably simple to use, allowing us to benefit from their abstraction,
+    modularity, ease of integration, and other valuable qualities that enhance the
+    development process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, the purpose of this article is to show how we can design, implement,
+    and deploy a computing system for supporting a ChatGPT-like service. Although
+    the eventual result may not have the expected service capabilities, using high-quality
+    dependencies and development tools, as well as a good architectural design, guarantees
+    the system to be easily scalable up to the desired computing power according to
+    the user's needs. That is, the system will be prepared to run on very few machines,
+    possibly as few as one, with very limited resources, delivering a throughput consistent
+    with those resources, or on larger computer networks with the appropriate hardware,
+    offering an extended service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Initially, the primary system functionality will be to allow a client to submit
+    a text query, which is processed by an LLM model and then returned to the source
+    client, all within a reasonable timeframe and offering a fair quality of service.
+    This is the highest level description of our system, specifically, of the application
+    functionality provided by this system, since all the implementation details like
+    communication protocols between components, data structures involved, etc. are
+    being intentionally omitted. But, now that we have a clear objective to reach,
+    we can begin a decomposition that gradually increases the detail involved in solving
+    the problem, often referred to as [**Functional Decomposition**](https://stackoverflow.com/questions/947874/what-is-functional-decomposition).
+    Thus, starting from a black-box system [*(abstraction)*](https://en.wikipedia.org/wiki/Black_box)
+    that receives and returns queries, we can begin to comprehensively define how
+    a client interacts with the system, together with the technologies that will enable
+    this interaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c4a11ecb1f9470fd5e8601f5d500cba8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: At first, we must determine what constitutes a client, in particular, what tools
+    or interfaces the user will require to interact with the system. As illustrated
+    above, we assume that the system is currently a fully implemented and operational
+    functional unit; allowing us to focus on clients and client-system connections.
+    In the client instance, the interface will be available via a website, designed
+    for versatility, but primarily aimed at desktop devices. A mobile app could also
+    be developed and integrated to use the same system services and with a specific
+    interface, but from an abstract point of view, it is desirable to unify all types
+    of clients into one, namely the web client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subsequently, it is necessary to find a way to connect a client with the system
+    so that an exchange of information, in this case, queries, can occur between them.
+    At this point, it is worth being aware that the web client will rely on a specific
+    technology such as JavaScript, with all the communication implications it entails.
+    For other types of platforms, that technology will likely change, for example
+    to Java in mobile clients or C/C++ in IoT devices, and compatibility requirements
+    may demand the system to adapt accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1ae51d8c94d610afad19d5df59daf004.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to establish communication would be to use [**Sockets**](https://www.geeksforgeeks.org/socket-in-computer-network/)and
+    similar tools at a lower level, allowing exhaustive control of the whole protocol.
+    However, this option would require meeting the compatibility constraints described
+    above with all client technologies, as the system will need to be able to collect
+    queries from all available client types. Additionally, having exhaustive control
+    implies a lengthier and potentially far more complex development, since many extra
+    details must be taken into account, which significantly increases the number of
+    lines of code and complicates both its maintainability and extensibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see above, the most optimal alternative is to build an [**Application
+    Programming Interface (API)**](https://www.ibm.com/topics/api) that intermediates
+    between the clients and the system part in charge of the computing, i.e. the one
+    that solves queries. The main advantage of using an API is that all the internal
+    connection handling, such as opening and closing sockets, thread pooling, and
+    other important details *(data serialization)*, is performed by the framework
+    from which the API is built. In this way, we ensure that the client will only
+    have to send its query to the server where the API is executed and wait for its
+    response, all of this relying on dependencies that simplify the management of
+    these API requests. Another benefit derived from the previous point is the ease
+    of service extension by modifying the API [**endpoints**](https://www.baeldung.com/cs/api-endpoints).
+    For example, if we want to add a new model to the system or any other functionality,
+    it is enough to add and implement a new endpoint, without having to change the
+    communication protocol itself or the way a client interacts with the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compute Service
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once we set up a mechanism for clients to communicate elegantly with the system,
+    we must address the problem of how to process incoming queries and return them
+    to their corresponding clients in a reasonable amount of time. But first, it is
+    relevant to point out that when a query arrives at the system, it must be redirected
+    to a machine with an LLM loaded in memory with its respective inference pipeline
+    and traverse the query through that pipeline, obtaining the result text *(LLM
+    answer)* that will be later returned. Consequently, the inference process cannot
+    be distributed among several machines for a query resolution. With that in mind,
+    we can begin the design of the infrastructure that will support the inference
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous image, the compute service was represented as a single unit.
+    If we consider it as a machine connected, this time, through a single channel
+    using Sockets with the API server, we will be able to redirect all the API queries
+    to that machine, concentrating all the system load in a single place. As you can
+    imagine, this would be a good choice for a home system that only a few people
+    will use. However, in this case, we need a way to make this approach scalable,
+    so that with an increase in computing resources we can serve as many additional
+    users as possible. But first, we must segment the previously mentioned computational
+    resources into units. In this way, we will have a global vision of their interconnection
+    and will be able to optimize our project throughput by changing their structure
+    or how they are composed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A computational unit, which from now on we will call node for the convenience
+    of its implementation, will be integrated by a physical machine that receives
+    requests *(not all of them)* needing to be solved. Additionally, we can consider
+    a node as virtualization of a *(possibly reduced)* amount of machines, with the
+    purpose of increasing the total throughput per node by introducing parallelism
+    locally. Regarding the hardware employed, it will depend to a large extent on
+    how the service is oriented and how far we want to go. Nevertheless, for the version
+    presented in this case, we will assume a standard CPU, a generous amount of RAM
+    to avoid problems when loading the model or forwarding queries, and dedicated
+    processors as GPUs, with the possibility of including TPUs in some specific cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/438dae7ba400296bda5f07129e1e5d9b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can establish a network that links multiple nodes in such a way that
+    via one of them, connected to the API server, queries can be distributed throughout
+    the network, leveraging optimally all the system’s resources. Above, we can notice
+    how all the nodes are structurally connected in a tree-like shape, with its root
+    being responsible for collecting API queries and forwarding them accordingly.
+    The decision of how they should be interconnected depends considerably on the
+    exact system’s purpose. In this case, a tree is chosen for simplicity of the distribution
+    primitives. For example, if we wanted to maximize the number of queries transmitted
+    between the API and nodes, there would have to be several connections from the
+    API to the root of several trees, or another distinct data structure if desired.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we need to define how a query is forwarded and processed when it reaches
+    the root node. As before, there are many available and equally valid alternatives.
+    However, the algorithm we will follow will also serve to understand why a tree
+    structure is chosen to connect the system nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/56ace988d96c7a69a2176147578c375b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since a query must be solved on a single node, the goal of the distribution
+    algorithm will be to find an idle node in the system and assign it the input query
+    for its resolution. As can be seen above, if we consider an ordered sequence of
+    queries numbered in natural order *(1 indexed)*, each number corresponds to the
+    edge connected with the node assigned to solve that query. To understand the numbering
+    in this concrete example, we can assume that the queries arriving at a node take
+    an infinite time to be solved, therefore ensuring that each node is progressively
+    busy facilitates the understanding of the algorithm heuristic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In short, we will let the root not to perform any resolution processing, reserving
+    all its capacity for the forwarding of requests with the API. For any other node,
+    when it receives a query from a hierarchically superior node, the first step is
+    to check if it is performing any computation for a previous query; if it is idle,
+    it will resolve the query, and in the other case it will forward it by [**Round
+    Robin**](https://en.wikipedia.org/wiki/Round-robin_scheduling) to one of its descendant
+    nodes. With Round Robin, each query is redirected to a different descendant for
+    each query, traversing the entire descendant list as if it were a circular buffer.
+    This implies that the local load of a node can be evenly distributed downwards,
+    while efficiently leveraging the resources of each node and our ability to scale
+    the system by adding more descendants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, if the system is currently serving many users, and a query arrives
+    at a leaf node that is also busy, it will not have any descendants for redirecting
+    it to. Therefore, all nodes will have a query queuing mechanism in which they
+    will wait in these situations, being able to apply batch operations between queued
+    queries to accelerate LLM inference. Additionally, when a query is completed,
+    to avoid overloading the system by forwarding it upwards until it arrives at the
+    tree top, it is sent directly to the root, subsequently reaching the API and client.
+    We could connect all nodes to the API, or implement other alternatives, however,
+    to keep the code as simple and the system as performant as possible, they will
+    all be sent to the root.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Web Client
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After having defined the complete system architecture and how it will perform
+    its task, we can begin to build the web client that users will need when interacting
+    with our solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As expected, the web client is implemented in basic HTML, CSS and JavaScript,
+    everything embedded in a single .html file for convenience. This file will be
+    provided by the API each time the client makes a request corresponding to the
+    application startup, that is, when the client enters the browser and inputs the
+    address where the API has hosted the entry point, it will return the .html file
+    to be rendered in the browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subsequently, when the user wishes to send a text query to the system, JavaScript
+    internally submits an HTTP request to the API with the corresponding details such
+    as the data type, endpoint, or [**CSRF**](https://en.wikipedia.org/wiki/Cross-site_request_forgery)
+    security token. By using [**AJAX**](https://www.w3schools.com/js/js_ajax_intro.asp)
+    within this process, it becomes very simple to define a primitive that executes
+    when the API returns some value to the request made, in charge of displaying the
+    result on the screen. Additionally, it is worth mentioning that the messages sent
+    are not directly the written or returned text, but are wrapped in a [**JSON**](https://en.wikipedia.org/wiki/JSONç)with
+    other important parameters, like the timestamp, offering the possibility to add
+    extra fields on the fly to manage the synchronization of some system components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Django API
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When the web client is ready, we can proceed to implement the API which will
+    provide the necessary service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many technologies available to build an API, but in this project we
+    will specifically use [**Django**](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/Introduction)through
+    Python on a dedicated server. This decision is motivated by the high scalability
+    and ease of integration with other Python dependencies offered by this framework,
+    in addition to other useful properties such as security or the default administration
+    panel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/622d9f5b9d5667ffb824103b9612709a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the endpoints to configure is the entry point for the web client, represented
+    by the default URL slash /. Thus, when a user accesses the server through a default
+    HTTP request like the one shown above, the API will return the HTML code required
+    to display the interface and start making requests to the LLM service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/58ad783edf8b7866cec09b9f4a188446.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the same time, it will have to support the client’s requests once it has
+    accessed the interface. These, as they have to be managed in a special way, will
+    have their own endpoint called “/arranca” to where the query data will be sent
+    in the corresponding JSON format, and the API returns the solved query after processing
+    it with the node tree. In this endpoint, the server uses a previously established
+    Socket channel with the root node in the hierarchy to forward the query, waiting
+    for its response through a synchronization mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concerning the code, in the **urls.py** file we will store the associations
+    between URLs and endpoints, so that the default empty URL is assigned to its corresponding
+    function that reads the .html from the templates folder and sends it back, or
+    the URL /arranca that executes the function which solves a query. In addition,
+    a views function will be executed to launch the main server thread. Meanwhile,
+    in **settings.py**, the only thing to change is the DEBUG parameter to False and
+    enter the necessary permissions of the hosts allowed to connect to the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, there is the **views.py** script, where all the API functionality is
+    implemented. First, we have a main thread in charge of receiving and handling
+    incoming connections (from the root node). Initially, this connection will be
+    permanent for the whole system's lifetime. However, it is placed inside an infinite
+    loop in case it is interrupted and has to be reestablished. Secondly, the default
+    endpoint is implemented with the **index()** function, which returns the .html
+    content to the client if it performs a GET request. Additionally, the queries
+    the user submits in the application are transferred to the API through the ***/arranca***
+    endpoint, implemented in the function with the same name. There, the input query
+    is forwarded to the root node, blocking until a response is received from it and
+    returned to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This blocking is achieved through [**locks**](https://docs.python.org/3/library/threading.html#condition-objects)
+    and a synchronization mechanism where each query has a unique identifier, inserted
+    by the ***arranca()*** function as a field in the JSON message, named **request_id**.
+    Essentially, it is a natural number that corresponds to the query arrival order.
+    Therefore, when the root node sends a solved query to the API, it is possible
+    to know which of its blocked executions was the one that generated the query,
+    unblocking, returning, and re-blocking the rest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Java Compute Nodes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the API operational, we will proceed to implement the node system in Java.
+    The main reason for choosing this language is motivated by the technology that
+    enables us to communicate between nodes. To obtain the simplest possible communication
+    semantics at this level, we will discard the use of sockets and manually serialized
+    messages and replace them with [**RMI**](https://www.javatpoint.com/RMI), which
+    in other platforms would be somewhat more complicated, although they also offer
+    solutions such as [**Pyro4**](https://pyro4.readthedocs.io/en/stable/) in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**Remote Method Invocation (RMI)**](https://en.wikipedia.org/wiki/Java_remote_method_invocation)
+    is a communication paradigm that enables the creation of distributed systems composed
+    of remote objects hosted on separate machines, with the ability to obtain remote
+    references to each other and to invoke remote methods within their service interface.
+    Hence, due to the high degree of abstraction in Java, the query transfer between
+    nodes will be implemented with a remote call to an object referenced by the sender
+    node, leaving the complex process of API connection to be handled manually, as
+    it was previously done in Python.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the outset, we should define the remote interface that determines the remote
+    invocable methods for each node. On the one hand, we have methods that return
+    relevant information for debugging purposes ***(log() or getIP())***. On the other
+    hand, there are those in charge of obtaining remote references to other nodes
+    and registering them into the local hierarchy as an ascending or descending node,
+    using a name that we will assume unique for each node. Additionally, it has two
+    other primitives intended to receive an incoming query from another node ***(receiveMessage())***
+    and to send a solved query to the API ***(sendMessagePython())***, only executed
+    in the root node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the interface, we can implement its operations inside the node class, instantiated
+    every time we start up the system and decide to add a new machine to the node
+    tree. Among the major features included in the node class is the **getRemoteNode()**
+    method, which obtains a remote reference to another node from its name. For this
+    purpose, it accesses the name registry and executes the lookup() primitive, returning
+    the remote reference in the form of an interface, if it is registered, or null
+    otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obtaining remote references is essential in the construction of the tree, in
+    particular for other methods that connect a parent node to a descendant or obtain
+    a reference to the root to send solved queries. One of them is connectParent(),
+    invoked when a descendant node needs to connect with a parent node. As you can
+    see, it first uses getRemoteNode() to retrieve the parent node, and once it has
+    the reference, assigns it to a local variable for each node instance. Afterwards
+    it calls on the **connectChild()**, which appends to the descendant list the remote
+    node from which it was invoked. In case the parent node does not exist, it will
+    try to call a function on a null object, raising an exception. Next, it should
+    be noted that the methods to receive queries from the API **receiveMessagePython()**
+    and from other nodes **receiveMessage()** are protected with the synchronized
+    clause to avoid race conditions that may interfere with the system’s correct operation.
+    These methods are also responsible for implementing the query distribution heuristic,
+    which uses a local variable to determine the corresponding node to which an incoming
+    query should be sent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At last, the node class has a thread pool used to manage the query resolution
+    within the **consultLLM()** method. In this way, its calls will be immediately
+    terminated within the Java code, since the pool will assign a thread to the execution
+    of the required computation and will return the control to the program so it can
+    accept additional queries. This is also an advantage when detecting whether a
+    node is performing any computation or not, since it is enough to check if the
+    number of active threads is greater than 0\. On the other hand, the other use
+    of threads in the node class, this time outside the pool, is in the **connectServer()**
+    method in charge of connecting the root node with the API for query exchange.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the **Utilities** class, we only have the method to create an LDAP usage
+    context, with which we can register and look up remote references to nodes from
+    their names. This method could be placed in the node class directly, but in case
+    we need more methods like this, we leave it in the Utilities class to take advantage
+    of the design pattern.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The creation of node instances, as well as their management, which is performed
+    manually for each of them, is implemented in the Launcher class. It uses a command
+    line interface for instructing the respective node, which is created at startup
+    with a specific name registered in the designated LDAP server. Some of the commands
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**log:** Prints useful information to know the node status.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**parent:** Connects the node to a specified parent from its name.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**registry:** Lists all nodes currently registered in the LDAP directory under
+    the organizational unit **ou=Nodes**. This could be useful for monitoring the
+    registry server or creating new nodes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**server:** Connects the node to a server specified by its address and port
+    number. Primarily, the server will be the Python API, although it could also serve
+    other functionalities.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LDAP Server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since nodes are remote objects, they must have access to a registry that enables
+    them to obtain remote references to other nodes from their name. The solution
+    provided by Java is to use **rmiregistry** to initialize a registry service on
+    a machine. However, when protected operations such as rebind() are executed from
+    another host, it throws a security exception, preventing a new node from registering
+    on a machine other than the one containing the registry. For this reason, and
+    in addition to its simplicity, this project will use an Apache server as a registry
+    using the [**Lightweight Directory Access Protocol (LDAP)**](https://learn.microsoft.com/en-us/previous-versions/windows/desktop/ldap/lightweight-directory-access-protocol-ldap-api).
+    This protocol allows to manage the storage of *Name->Remote_Node* pairs in a directory
+    system, with other additional functionalities that significantly improve the registry
+    service with respect to the one offered by the Java registry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The advantages of using LDAP begin with its complexity of operation, which at
+    first glance might seem the opposite, but in reality, is what enables the system
+    to be adapted to various security and configuration needs at a much higher level
+    of detail. On the one hand, the authentication and security features it offers
+    allow any host to perform a protected operation such as registering a new node,
+    as long as the host is identified by the LDAP server. For example, when a context
+    object is created to access the server and be able to perform operations, there
+    is the option of adding parameters to the HashMap of its constructor with authentication
+    data. If the context is created, it means that the data matches what the server
+    expects, otherwise, it could be assumed that the connection is being made by an
+    unauthenticated *(“malicious”)* host, ensuring that only system nodes can manipulate
+    the server information. On the other hand, LDAP allows for much more efficient
+    centralization of node registration, and much more advanced interoperability,
+    as well as easy integration of additional services like [**Kerberos**](https://www.ibm.com/docs/en/aix/7.3?topic=network-kerberos).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To ensure a server can operate as a node registry, we have to apply a specific
+    configuration to it. First, since the project will not be deployed in an environment
+    with real (and potentially malicious) users, all authentication options are omitted
+    to keep things simple and clean. Next, a [**Distinguished Name**](https://www.ibm.com/docs/en/i/7.5?topic=eim-distinguished-name)
+    must be defined so that a node name can be associated with its corresponding remote
+    object. In this case, assuming that we prevent the registration of several nodes
+    with the same name, we simply have to store the node name in an attribute such
+    as cn= (Common Name) within a given organizational unit, ou=Nodes. Therefore,
+    the distinguished name will be of the form: **cn=Node_Name,ou=Nodes**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bb0053eddbdfba4f5fd216e06c3bdb0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever a new node is created, it is registered in the LDAP server using its
+    distinguished name and Node instance as a new entry in the form of a directory.
+    Likewise, deleting a node or getting its remote reference from the registry requires
+    using the distinguished name as well. Performing these operations on the registry
+    implies having an open connection to the LDAP server. But, since the nodes are
+    made with Java, we can use services that allow us to abstract the whole connection
+    process and focus only on invoking the operations. The service to be used by nodes
+    will be a directory context, commonly defined by the [**DirContext**](https://docs.oracle.com/javase/8/docs/api/javax/naming/directory/DirContext.html)interface.
+    Thus, the process of accessing the server and performing some management is as
+    simple as creating an object that implements the DirContext interface, in this
+    case, InitialDirContext, assigning it the appropriate parameters to identify the
+    server, including a URL of the form **ldap://IP:port/**, an identification of
+    the protocol to be used, and even authentication parameters, which in this project
+    will not be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lookup, Bind, and Unbind
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For simplicity, Launcher will have its own context object, while each node will
+    also have its own one. This allows Launcher to create entries and perform deletions,
+    while each node will be able to perform lookup operations to obtain remote references
+    from node names. Deletion operations are the simplest since they only require
+    the distinguished name of the server entry corresponding to the node to be deleted.
+    If it exists, it is deleted and the call to **unbind()** ends successfully, otherwise,
+    it throws an exception. On the other hand, the lookup and register operations
+    require following [**RFC-2713**](https://www.rfc-editor.org/rfc/rfc2713.html).
+    In the case of appending a node to the server, the **bind()** primitive is used,
+    whose arguments are the distinguished name of the entry in which that node will
+    be hosted, and its remote object. However, the bind function is not given the
+    node object as is, nor its interface, since the object is not serializable and
+    bind() cannot obtain an interface *“instance”* directly. As a workaround, the
+    above RFC forces the node instance to be masked by a [**MarshalledObjec**](https://docs.oracle.com/javase/8/docs/api/java/rmi/MarshalledObject.html)t.
+    Consequently, bind will receive a MarshalledObject composed of the node being
+    registered within the server, instead of the original node instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the lookup operation is performed from the **lookup()** primitive over
+    a context. If the name and node have not been previously registered or an unexpected
+    error occurs in the process, an exception is thrown. Conversely, if the operation
+    succeeds, it returns the MarshalledObject associated with the distinguished name
+    of the query. However, the remote reference returned by lookup() is contained
+    in the MarshalledObject wrapper with which it was stored in the registry. Therefore,
+    the **get()** operation of the MarshalledObject must be used to obtain the usable
+    remote reference. Additionally, with this functionality it is possible to prevent
+    the registration of a node with the same name as another already registered, as
+    before executing bind() it would be checked with a lookup() if there is any exception
+    related to the existence of the distinguished name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM Inference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Concerning the inference process at each node, the node tree has an LLMProcess
+    class in charge of instantiating a process implemented in Python where the queries
+    will be transferred before they are returned solved, since in Python we can easily
+    manage the LLM and its inference pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a new LLMProcess is instantiated, it is necessary to find an available
+    port on the machine to communicate the Java and Python processes. For simplicity,
+    this data exchange will be accomplished with Sockets, so after finding an available
+    port by opening and closing a ServerSocket, the **llm.py** process is launched
+    with the port number as an argument. Its main functions are **destroyProcess()**,
+    to kill the process when the system is stopped, and **sendQuery()**, which sends
+    a query to llm.py and waits for its response, using a new connection for each
+    query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inside llm.py, there is a loop that continuously waits to accept an incoming
+    connection from the Java process. When such a connection is established, it is
+    handled by a [**ThreadPoolExecutor()**](https://docs.python.org/3/library/concurrent.futures.html#threadpoolexecutor)
+    thread via the **handle_connection()** function, which reads the input data from
+    the channel, interprets it in JSON format and forwards the “text” field to the
+    inference pipeline. Once the data is returned, it is sent back to the Java process
+    *(on the other side of the connection)* and the functions are returned, also releasing
+    their corresponding threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As can be seen in the script, the pipeline instance allows us to select the
+    LLM model that will be executed at the hosted node. This provides us with access
+    to all those uploaded to the [**Huggingface**](https://huggingface.co/models?pipeline_tag=text-generation&sort=trending)website,
+    with very diverse options such as code generation models, chat, general response
+    generation, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By default, we use the **gpt2** model, which with about [**117M parameters**](https://huggingface.co/transformers/v2.2.0/pretrained_models.html)
+    and about 500MB of weight, is the lightest and easiest option to integrate. As
+    it is such a small model, its answers are rather basic, noting that a query resolution
+    closely matches the prediction of the following text to the input one, as for
+    example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'User: Hello.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'GPT: Hello in that the first thing I’d like to mention is that there…'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'There are other versions of gpt2 such as **gpt2-large** or **gpt2-xl**, all
+    available from Huggingface, the most powerful is XL, with 1.5B of parameters and
+    6GB of weight, significantly more powerful hardware is needed to run it, producing
+    coherent responses like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'User: Hello.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'GPT: Hello everyone — thanks for bearing with me all these months! In the past
+    year I’ve put together…..'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Apart from the OpenAI GPT series, you can choose from many other available models,
+    although most of them require an [**authentication token**](https://huggingface.co/docs/hub/en/security-tokens)to
+    be inserted in the script. For example, recently modern models have been released,
+    optimized in terms of occupied space and time required for a query to go through
+    the entire inference pipeline. Llama3 is one of them, with small versions of [**8B
+    parameters**](https://huggingface.co/nvidia/Llama3-ChatQA-1.5-8B), and large-scale
+    versions of [**70B**](https://huggingface.co/nvidia/Llama3-ChatQA-1.5-70B).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, choosing a model for a system should not be based solely on the number
+    of parameters it has, since its architecture denotes the amount of knowledge it
+    can model. For this reason, small models can be found with very similar performance
+    to large-scale models, i.e., they produce answers with a very similar language
+    understanding level, while optimizing the necessary computing resources to generate
+    them. As a guide, you can use [**benchmarks**](https://huggingface.co/collections/open-llm-leaderboard/the-big-benchmarks-collection-64faca6335a7fc7d4ffe974a),
+    also provided by Huggingface itself, or [**specialized tests**](https://github.com/leobeeson/llm_benchmarks)
+    to measure the above parameters for any LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results in the above tests, along with the average time it takes to respond
+    on a given hardware is a fairly complete indicator for selecting a model. Although,
+    always keep in mind that the LLM must fit in the chip memory on which it is running.
+    Thus, if we use GPU inference, with CUDA as in the llm.py script, the graphical
+    memory must be larger than the model size. If it is not, you must distribute the
+    computation over [**several GPUs**](https://huggingface.co/docs/diffusers/training/distributed_inference),
+    on the same machine, or on more than one, depending on the complexity you want
+    to achieve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kotlin Mobile Client
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we finish, we can see how a new type of client could be included in the
+    system, thus demonstrating the extensibility offered by everything we have built
+    so far. This project is of course an attempt at a [**Distributing System**](https://www.geeksforgeeks.org/what-is-a-distributed-system/)
+    so of course you would expect it to be compatible with mobile devices just like
+    the regular ChatGPT app is compatible with Android and iOS. In our case, we can
+    develop an app for native Android, although a much better option would be to adapt
+    the system to a multi-platform jetpack compose project. This option remains a
+    possibility for a future update.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The initial idea is to connect the mobile client to the API and use the same
+    requests as the web one, with dependencies like [**HttpURLConnection**](https://developer.android.com/reference/kotlin/java/net/HttpURLConnection).
+    The code implementation isn't difficult and the documentation Android provides
+    on the official page is also useful for this purpose. However, we can also emulate
+    the functionality of the API with a custom Kotlin intermediate component, using
+    ordinary TCP Android sockets for communication. Sockets are relatively easy to
+    use, require a bit of effort to manage, ensure everything works correctly, and
+    provide a decent level of control over the code. To address the lack of a regulatory
+    API, we can place a Kotlin node between the mobile client and the Java node tree,
+    which would manage the connection between the root node and only the mobile client
+    as long as the web clients and the API are separate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regarding the interface, the application we are imitating, ChatGPT, has a very
+    clean and modern look, and since the HTTP version is already finished, we can
+    try to copy it as closely as possible in the Android Studio editor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/330bb76614059e14df78a0e575d37464.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: When working with sockets, we have to make sure that the user is connected to
+    the correct IP address and port of the server which will solve his queries. We
+    can achieve this with a new initial interface that appears every time you open
+    the application. It's a simple View with a button, a text view to enter the IP
+    address and a small text label to give live information of what was happening
+    to the user, as you can see above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we need the interface to resemble a real chat, where new messages appear
+    at the bottom and older ones move up. To achieve this, we can insert a RecyclerView,
+    which will take up about 80% of the screen. The plan is to have a predefined message
+    view that could be dynamically added to the view, and it would change based on
+    whether the message was from the user or the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the problem with Android connections is that you can’t do any Network
+    related operation in the main thread as it would give the [**NetworkOnMainThreadException**](https://developer.android.com/reference/android/os/NetworkOnMainThreadException).
+    But at the same time, you can’t manage the components if you aren’t in the main
+    thread, as it will throw the [**CalledFromWrongThreadException**](https://stackoverflow.com/questions/44483224/how-can-i-fix-this-calledfromwrongthreadexception).
+    We can deal with it by moving the connection view into the main one, and most
+    importantly making good use of coroutines, enabling you to perform network-related
+    tasks from them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7ce7122e49603c9bd56764e9a97a5fc8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, if you run the system and enter a text query, the answer should appear
+    a few seconds after sending it, just like in larger applications such as ChatGPT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Despite having a functional system, you can make significant improvements depending
+    on the technology used to implement it, both software and hardware. However, it
+    can provide a decent service to a limited number of users, ranging largely depending
+    on the available resources. Finally, it should be noted that achieving the performance
+    of real systems like ChatGPT is complicated, since the model size and hardware
+    required to support it is particularly expensive. The system shown in this article
+    is highly scalable for a small, even an intermediate solution, but achieving a
+    large-scale solution requires far more complex technology, and possibly leveraging
+    some of the structure of this system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Acknowledgments
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thanks to [**deivih84**](https://medium.com/@forexsencillo)for the collaboration
+    in the **Kotlin** Mobile Client section, [**carolinaherasc**](https://medium.com/@carolinaherasc)in
+    the RMI and Distributed System implementation, and [**hugodiezrubio**](https://medium.com/@hugodiezrubio)in
+    developing some of the system’s management components.
+  prefs: []
+  type: TYPE_NORMAL

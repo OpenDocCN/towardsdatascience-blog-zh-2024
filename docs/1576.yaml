@@ -1,0 +1,243 @@
+- en: A Guide to Python’s Weak References Using the weakref Module
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-guide-to-pythons-weak-references-using-weakref-module-d3381b01db99?source=collection_archive---------6-----------------------#2024-06-25](https://towardsdatascience.com/a-guide-to-pythons-weak-references-using-weakref-module-d3381b01db99?source=collection_archive---------6-----------------------#2024-06-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Learn all about weak references in Python: reference counting, garbage collection,
+    and practical uses of the `weakref` module'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)[![Martin
+    Heinz](../Images/a8d1540fd32998ee9bda4af0f0232f7d.png)](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------)
+    [Martin Heinz](https://medium.com/@martin.heinz?source=post_page---byline--d3381b01db99--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d3381b01db99--------------------------------)
+    ·6 min read·Jun 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/85fbf17d8afe2376e51b58139e0a9847.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Dan Cristian Pădureț](https://unsplash.com/@dancristianpaduret?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/blue-and-white-abstract-painting-SMSLyc9FHl0?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chances are that you never touched and maybe haven’t even heard about Python’s
+    `weakref` module. While it might not be commonly used in your code, it's fundamental
+    to the inner workings of many libraries, frameworks and even Python itself. So,
+    in this article we will explore what it is, how it is helpful, and how you could
+    incorporate it into your code as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Basics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To understand `weakref` module and *weak references*, we first need a little
+    intro to garbage collection in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python uses *reference counting* as a mechanism for garbage collection — in
+    simple terms — Python keeps a reference count for each object we create and the
+    reference count is incremented whenever the object is referenced in code; and
+    it’s decremented when an object is de-referenced (e.g. variable set to `None`).
+    If the reference count ever drop to zero, the memory for the object is deallocated
+    (garbage-collected).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s look at some code to understand it a little more:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we define a class that only implements a `__del__` method, which is called
+    when object is garbage-collected (GC'ed) - we do this so that we can see when
+    the garbage collection happens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After creating an instance of this class, we use `sys.getrefcount` to get current
+    number of references to this object. We would expect to get `1` here, but the
+    count returned by `getrefcount` is generally one higher than you might expect,
+    that's because when we call `getrefcount`, the reference is copied by value into
+    the function's argument, temporarily bumping up the object's reference count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, if we declare `obj2 = obj` and call `getrefcount` again, we get `3` because
+    it's now referenced by both `obj` and `obj2`. Conversely, if we assign `None`
+    to these variables, the reference count will decrease to zero, and eventually
+    we will get the message from `__del__` method telling us that the object got garbage-collected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, and how do weak references fit into this? If only remaining references
+    to an object are *weak references*, then Python interpreter is free to garbage-collect
+    this object. In other words — a weak reference to an object is not enough to keep
+    the object alive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we again declare a variable `obj` of our class, but this time instead of
+    creating second strong reference to this object, we create weak reference in `reference`
+    variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we then check the reference count, we can see that it did not increase, and
+    if we set the `obj` variable to `None`, we can see that it immediately gets garbage-collected
+    even though the weak reference still exist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, if try to access the weak reference to the already garbage-collected
+    object, we get a *“dead”* reference and `None` respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also notice that when we used the weak reference to access the object, we had
+    to call it as a function ( `reference()`) to retrieve to object. Therefore, it
+    is often more convenient to use a *proxy* instead, especially if you need to access
+    object attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: When To Use It
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we know how weak references work, let’s look at some examples of how
+    they could be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A common use-case for weak references is tree-like data structures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we implement a tree using a `Node` class where child nodes have weak reference
+    to their parent. In this relation, the child `Node` can live without parent `Node`,
+    which allows parent to be silently removed/garbage-collected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Alternatively, we can flip this around:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here instead, the parent keeps a dictionary of weak references to its children.
+    This uses `WeakValueDictionary` — whenever an element (weak reference) referenced
+    from the dictionary gets dereferenced elsewhere in the program, it automatically
+    gets removed from the dictionary too, so we don't have manage lifecycle of dictionary
+    items.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another use of `weakref` is in [*Observer* design pattern](https://en.wikipedia.org/wiki/Observer_pattern):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Observable` class keeps weak references to its observers, because it doesn't
+    care if they get removed. As with previous examples, this avoids having to manage
+    the lifecycle of dependant objects. As you probably noticed, in this example we
+    used `WeakSet` which is another class from `weakref` module, it behaves just like
+    the `WeakValueDictionary` but is implemented using `Set`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Final example for this section is borrowed from `[weakref](https://docs.python.org/3/library/weakref.html#comparing-finalizers-with-del-methods)`
+    [docs](https://docs.python.org/3/library/weakref.html#comparing-finalizers-with-del-methods):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This showcases one more feature of `weakref` module, which is `weakref.finalize`.
+    As the name suggest it allows executing a finalizer function/callback when the
+    dependant object is garbage-collected. In this case we implement a `TempDir` class
+    which can be used to create a temporary directory - in ideal case we would always
+    remember to clean up the `TempDir` when we don't need it anymore, but if we forget,
+    we have the finalizer that will automatically run `rmtree` on the directory when
+    the `TempDir` object is GC'ed, which includes when program exits completely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Real-World Examples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The previous section has shown couple practical usages for `weakref`, but let''s
+    also take a look at real-world examples—one of them being creating a cached instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above is basic usage of Python’s builtin `logging` module - we can see that
+    it allows to only associate a single logger instance with a given name - meaning
+    that when we retrieve same logger multiple times, it always returns the same cached
+    logger instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we wanted to implement this, it could look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And finally, Python itself uses weak references, e.g. in implementation of
+    `OrderedDict`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above is snippet from [CPython’s](https://github.com/python/cpython/blob/0c0348adbfca991f78b3aaa6790e5c26606a1c0f/Lib/collections/__init__.py#L103)
+    `[collections](https://github.com/python/cpython/blob/0c0348adbfca991f78b3aaa6790e5c26606a1c0f/Lib/collections/__init__.py#L103)`
+    [module](https://github.com/python/cpython/blob/0c0348adbfca991f78b3aaa6790e5c26606a1c0f/Lib/collections/__init__.py#L103).
+    Here, the `weakref.proxy` is used to prevent circular references (see the doc-strings
+    for more details).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '`weakref` is fairly obscure, but at times very useful tool that you should
+    keep in your toolbox. It can be very helpful when implementing caches or data
+    structures that have reference loops in them, such as doubly linked lists.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With that said, one should be aware of `weakref` support — everything said here
+    and in the docs is CPython specific and different Python implementations will
+    have different `weakref` behavior. Also, many of the builtin types don't support
+    weak references, such as `list`, `tuple` or `int`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This article was originally posted at* [*martinheinz.dev*](https://martinheinz.dev/blog/112)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may also like…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=post_page-----d3381b01db99--------------------------------)
+    [## Everything You Can Do with Python’s textwrap Module'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn about all the things you can do with Python’s textwrap module, including
+    formatting, text wrapping, trimming and…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/everything-you-can-do-with-pythons-textwrap-module-0d82c377a4c8?source=post_page-----d3381b01db99--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

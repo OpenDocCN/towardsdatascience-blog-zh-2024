@@ -1,0 +1,949 @@
+- en: Approximating Stochastic Functions with Multivariate Outputs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/approximating-stochastic-functions-with-multivariate-outputs-ffefc7099a90?source=collection_archive---------10-----------------------#2024-09-04](https://towardsdatascience.com/approximating-stochastic-functions-with-multivariate-outputs-ffefc7099a90?source=collection_archive---------10-----------------------#2024-09-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A novel method for training generative machine learning models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@nicolas.arroyo.duran?source=post_page---byline--ffefc7099a90--------------------------------)[![Nicolas
+    Arroyo Duran](../Images/a755f8b85873b94c1714e113d4ceaa18.png)](https://medium.com/@nicolas.arroyo.duran?source=post_page---byline--ffefc7099a90--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ffefc7099a90--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ffefc7099a90--------------------------------)
+    [Nicolas Arroyo Duran](https://medium.com/@nicolas.arroyo.duran?source=post_page---byline--ffefc7099a90--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ffefc7099a90--------------------------------)
+    ·21 min read·Sep 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/522cfa51317ab1b574f2ce704fff8216.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Pin Movement Training — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can reproduce the experiments in this article by cloning [https://github.com/narroyo1/pmt](https://github.com/narroyo1/pmt).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The previous article in this series named [*Approximating stochastic functions*](https://medium.com/p/be7d6ccf4f6)
+    introduced a novel method to train generative machine learning models capable
+    of approximating any stochastic function with a single output variable. From this
+    point on I will refer to this method as ***Pin Movement Training*** or ***PMT***
+    for short. This because of the analogy of placing pins on fabric and moving them
+    that is used to illustrate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method was described for functions with any number of inputs ***X*** but
+    with only a single output ***Y***. The present article will generalize ***PMT***
+    for functions with any number of outputs. A summary of the method will be provided
+    and should be enough to understand how it works, but if you would like a more
+    in depth description you can read the previous article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The generalized method, for reasons you will learn below, utilizes an architecture
+    similar to that of autoencoders. Because of this and because the uniform sampling
+    distribution may be more convenient for many applications, I believe this method
+    is a valid alternative to Variational Autoencoders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refresher of the original method
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s say that we want to use the a neural network to approximate a stochastic
+    function defined as 𝑓(𝑥) → 𝑌 where ***x*** is an input of any number of dimensions
+    in ***X*** and ***Y*** is a one dimensional random variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first thing we will do is to introduce a secondary input ***Z*** that we
+    define as a uniformly distributed random variable in a range *[Zₘᵢₙ, Zₘₐₓ]*. This
+    is necessary in order to introduce randomness to an otherwise deterministic system.
+    This gives us a neural network defined by 𝑓𝜃(𝑥,𝑧∼𝑍) → 𝑌 where 𝜃 represents the
+    network trained weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s visualize any given point 𝑥′, 𝑠.𝑡. *x*′ *∈ X*. For this ***x’*** we
+    want to map the whole range *[Zₘᵢₙ, Zₘₐₓ]* to *Yₓ*′. That is *f(x′, Zₘᵢₙ)* should
+    be as similar as possible to *min(Yₓ′)* and *f(x′, Zₘₐₓ)* should be as similar
+    as possible to *max(Yₓ′)*. Additionally the mid-points *f(x′, mid(Z))* and *mid(Yₓ′)*
+    should be as similar as possible and of course the same goes for every other point
+    in the range (see **Fig. 1).**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c6a0137b571f10fe4c1d034114540bfb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 1** Mapping ***Z*** to ***Y*** — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to achieve this let’s think of model 𝑓𝜃 as a stretchable and transparent
+    fabric on which ***X*** is represented horizontally and ***Z*** is represented
+    vertically. Also let’s imagine a board with all the data points in the dataset
+    plotted in it, in this board ***X*** is represented horizontally and ***Y*** is
+    represented vertically. We then proceed to place the fabric on top of the board.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For every data point we place a “pin” on the fabric at the vertical midpoint
+    of ***Z*** or *mid(Z)*. We then compare the positions of the pin and the data
+    point. If the data point is higher than the pin then, without unpinning the pin
+    on the fabric, we move the pin upwards a predefined distance so that it lands
+    in a higher position on the board. The pin will stretch or shrink the fabric with
+    this motion. If it is lower then we move the pin downwards a predefined distance.
+    We add the distances moved upwards and downwards and call the sum total movement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After processing every data point, if the pin was not initially in the midpoint,
+    the total movement will be greater in the direction of the actual midpoint. After
+    repeating the process enough times the pin will reach a position close to the
+    midpoint where the total movement upwards and downwards is equal, that is, the
+    number of data points above it is the same as the number of data points below
+    it. See **Fig. 2** for an animation of how this process stabilizes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/93fa85f00020c63dca89927509511737.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 2** Moving pin towards observed points until it stabilizes in the middle
+    position — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now if instead of putting the pin on the midpoint of ***Z*** we put it in a
+    point ***1/3*** of the distance in range *[Zₘᵢₙ, Zₘₐₓ]* from the lowest point
+    *Zₘᵢₙ.* And instead of moving it the same predetermined distance upwards and downwards,
+    we move it *1.5* times the predetermined distance when going downwards and *0.75*
+    times the predetermined distance when going upwards. Then this pin will reach
+    a stability point (where the total movement upwards and total movement downwards
+    are equal) at a place roughly above ***1/3*** of the data points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is because *distance upwards* * *higher data points* = *distance downwards*
+    * *lower data points* or (0.75∗2/3=1.5∗1/3=0.5). See **Fig. 3** for an animation
+    of how this process stabilizes for pins at *Zₘᵢₙ + 1/3* and *Zₘᵢₙ + 2/3*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a41298fa268d0806434ba71f0037e866.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 3** Moving 2 pins towards observed points until they stabilize — Image
+    by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***How do we achieve this movement using a neural network?*** In order to move
+    the “pins on the fabric” with a neural network, we select a value in ***Z*** (which
+    we call a ***z-pin***) and do backpropagation with the target value being the
+    ***z-pin*** plus/minus the predetermined distance, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c449a2686c392296c2282a93f98ec1f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Leveraging this principle we can select points uniformly in ***Z*** and over
+    a number of epochs we obtain the mapping we require. i.e. 𝑓𝜃(𝑥,𝑧∼𝑍) → 𝑌.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notes from the original article
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the original article the fabric stretching/shrinking analogy referred to
+    *pins* that were used to reshape the model, however the model definitions and
+    training method used the term ***z-samples*** to refer to the same concrete term.
+    In the present article and in the future these will be referred to exclusively
+    as ***z-pins***.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When selecting ***z-pins*** the original article always placed them evenly distributed
+    in ***Z*** and also used the same positions on every data point for every epoch.
+    This is not necessary though, the only requirement is that the ***z-pins*** are
+    uniformly distributed in ***Z***.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The original article would use multiple ***z-pins*** per data point. This is
+    also not necessary and it is sufficient to select a single ***z-pin*** per data
+    point. In the present article all the experiments will select a single ***z-pin***
+    per data point per epoch.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Generalizing for multiple outputs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Having revisited the original method for one output, lets move on to the changes
+    necessary to work for multiple outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Redefining the Z-space
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s define ***Z***, the sampling ground from where we select our ***z-pins***.
+    In the original article ***Z*** was defined as a single dimensional range described
+    simply by lower and upper bounds *[Zₘᵢₙ, Zₘₐₓ]*. However in the generalized method
+    and in order to be able to handle multidimensional outputs ***Y***, ***Z*** must
+    be defined in multiple dimensions as well (note however that the number of dimensions
+    in ***Z*** and ***Y*** need not be the same).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In theory it could be any bounded n-dimensional space, but because it makes
+    calculating the scalars easier as you’ll see later, I chose to use a [*hyper-sphere*](https://en.wikipedia.org/wiki/N-sphere)
+    that can be defined by an origin ***O***, a radius ***R*** and a dimensionality
+    ***N*** (see **Fig. 4)**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/087f11175461fb67f3a8c3eb86c70e94.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 4** 3-dimensional hypersphere ***Z-space*** — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s define a few concepts related to ***Z*** that will be needed to move
+    ahead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***z-pins***: These are uniformly sampled points in ***Z***. They can be defined
+    as an ***N***-dimensional vector like this: *zₚᵢₙ = (z₀, z₁, …, zₙ)* where *z₀,
+    z₁, …* are coordinates in ***Z***.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***z-dirs***: A ***z-dir*** is a direction on ***Z*** that can be defined as
+    a unit vector based at origin ***O*** like this: *z-dir = O + (ž₀, ž₁, …, žₙ)*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***z-lines***: A ***z-line*** is a line in ***Z*** such that it runs between
+    any two points in ***Z***. We will define it as a line with a ***z-pin*** origin
+    and a ***z-dir*** including all points in it that are inside of ***Z*** like this:
+    *zₗᵢₙₑ = zₚᵢₙ + z-dir s.t.∀z ∈ zₗᵢₙₑ : z ∈ Z*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Moving into a multidimensional ***Z*** introduces an important challenge. In
+    the case of one-dimensional ***Z*** and 𝑌 spaces, it was very simple to tell whether
+    the selected ***z-pin*** projection i.e. 𝑓𝜃*(x, zₚᵢₙ)* was greater or smaller
+    than the observed data point in order to decide which direction to move it to.
+    In one dimension “greater than” in 𝑌 could simply be translated to “greater than”
+    in ***Z*** and the ***z-pin*** could simply be moved up. This because we were
+    mapping a line to another line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But with multidimensional 𝑌 and ***Z*** it is not possible to assume that the
+    spaces will have the same shape or even the same number of dimensions which means
+    that in order to decide the direction where to move a ***z-pin*** based on its
+    relation to a data point, it is necessary to map that data point from 𝑌 to ***Z***.
+    This means that in addition to train function 𝑓𝜃 to generate values in 𝑌, we’ll
+    also need to train an inverse function 𝑓𝜃⁻¹ to map data points to ***Z***. This
+    fact changes our model architecture to something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ceb7da9d5dcef27e3f5586ee548e47e1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 5** Model architecture — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The left side of the model allows us to map points in 𝑌 to ***Z***. The right
+    side of the model allows us to generate random samples in 𝑌 by sampling points
+    in ***Z***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may have noticed that this architecture is similar to that of plain autoencoders
+    and indeed it is. This has the added benefit of making the method useful for learning
+    latent representations that are bounded and evenly distributed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Method
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Having defined all the concepts we need we can proceed to discuss how pin movement
+    works in multiple dimensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mapping data points to Z
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first step is to use the inverse function 𝑓𝜃⁻¹ (or encoder going with autoencoder
+    terminology) and map all data points in the batch from 𝑌 space to ***Z***. We
+    will call the original data points *y-data* and the mapped data points *z-data*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3b754a579f9e979c5ebcdf8545e2a44b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 6** Mapping data points to a 2-D ***Z-space*** — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Selecting the z-pins
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next we must select some ***z-pins***. In order to do so, we start by selecting
+    uniformly sampled ***z-dirs***, one for every data point. The easiest way to do
+    so is by choosing random points in a hypersphere surface with the same dimensionality
+    as ***Z***. Then we use the selected ***z-dirs*** and translate them to have the
+    data points mapped in the previous step *z-data* as origins. This gives us some
+    ***z-lines*** as you can see in ***Fig. 7***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2ef2cd3fb679b035576766185fe9707.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 7** Selecting random ***z-lines*** *in a* 2-D ***Z-space***— Image by
+    author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we have our ***z-lines*** we proceed to randomly select points in these
+    lines, these will be our ***z-pins***. ***Fig. 8*** shows how this can look like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b711e7ef5c92a990ef4997613d8c8b57.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 8** Selecting random ***z-pins*** in a 2-D ***Z-space***— Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is necessary for the method to work that for any given ***z-line*** in ***Z***,
+    every mapped data point *z-data* in it has an equal probability of occurring,
+    otherwise the equations on [Calculating the movement scalars](#calculating-the-movement-scalars)
+    would not hold up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a 2-dimensional ***Z*** and for any given ***z-line*** in it, lets picture
+    it as as a line with a minimal width 𝜖 in a way that it seems like a long rectangle,
+    similar to the ***z-lines*** in ***Fig. 8***. The probability of any given 𝑧 existing
+    in it is of the area of this “thin” ***z-line*** over the area of ***Z***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb28153696cf9806dab5a4b0cbe779e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Since this “thin” ***z-line*** is rectangular, any given segment 𝑠 of minimal
+    length 𝛿 across it’s length has an equal area and therefore any given 𝑧 has an
+    equal probability of being in the segment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77b4ea01279ddaf80a6286a6ada82f5c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Also the probability of any given 𝑧​ inside this “thin” ***z-line*** of selecting
+    the ***z-dir*** of this “thin” ***z-line*** is constant given that the ***z-dirs***
+    are selected using a uniform distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9ccc900b136d25b13b06acbba1d3b74f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Taking equations (2) and (3) we get that the probability of any 𝑧 being on any
+    segment of a given ***z-line*** and selecting the same ***z-dir***, and that is
+    the same for every segment which satisfies the requirement above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5e48f3cc06d88db83495d324f4e048fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The probability is independent of the position of 𝑧 in ***z-line*** so the distribution
+    in any ***z-line*** is uniform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculating the target values
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After selecting the ***z-pins*** we can proceed to calculate the target values
+    (or ***z-targets***) to use in our backpropagation. All we have to do for this
+    is to add to every ***z-pin*** the movement constant 𝑀 in the direction where
+    the mapped data point 𝑧-𝑑𝑎𝑡𝑎 is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0190b58e863341e169c02ff8d431e0a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***Fig. 9*** Shows how the ***z-targets*** are calculated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2819cde11a256939e77fc07b132def79.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 9** Calculating the ***z-targets*** *in a* 2-D ***Z-space*** — Image
+    by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculating the movement scalars
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The way that movement scalars are calculated is similar to the way it was done
+    in the original one-dimensional method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s start by picturing a ***z-line*** along with a ***z-pin*** and some mapped
+    data points 𝑧𝑑𝑎𝑡𝑎 like we see on ***Fig .10***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/697ca5cd5b94d0f0d5f9480dca809fed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 10** Calculating the scalars — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s call ***a*** the distance from the ***z-pin*** to one end of the ***z-line***
+    and ***b*** the distance to the other end. And let’s call the number of data points
+    on the former side ***a’*** and the number of data points on latter side ***b’***.
+    Our purpose is to make quantity ***a’*** proportional to distance ***a*** and
+    ***b’*** proportional to ***b*** i.e. 𝑎:𝑏::𝑎′:𝑏′.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next we will call 𝛼 the scalar that we will use on the movement applied to the
+    ***z-pin*** for all data points on the side of length ***a***. And we will call
+    𝛽 the scalar that we will use on the movement applied to the ***z-pin*** for all
+    data points on the side of length ***b***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will also call ***T*** the total movement, which is the sum of moving the
+    ***z-pin*** a constant movement ***M*** towards the side of every data point multiplied
+    by that side’s scalar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fce7b3d44a7027e1e2931b7dd97bb295.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We want ***T*** to be 0 (i.e. stabilized) when 𝑎′/(𝑎′+𝑏′)≈𝑎/(𝑎+𝑏)∧𝑏′/(𝑎′+𝑏′)≈𝑏/(𝑎+𝑏),
+    that is when the ***z-pin*** divides the intended proportion of data points to
+    both sides. Substituting ***T*** with ***0*** on (5) gives us the equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9f8cb33871004aa8f21e05cbc98517a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Now let’s remember that not all ***z-lines*** will have the same length, since
+    they are bounded by the hypersphere defined by ***Z*** the ones towards the center
+    will be longer than the ones at the edges. Longer lines will represent larger
+    spaces in ***Z*** (see equation (1)) so their influence in the movement should
+    be proportional to their length. We want ***T*** to be linearly proportional to
+    the length of the ***z-line*** which gives us the equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0fa148f5c1a05e18cdb3c55a57c2eda1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'If we put together *(6)* and *(7)* we get that the scalars should have these
+    values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/429c0d919d626ee53fe6e76f48b57299.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Which are a similar equations to the one on the original article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may have noticed that this equations break towards the edges i.e. when either
+    ***a*** or ***b*** tends to *0*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to solve this problem a maximum scalar constant ***S*** is introduced
+    to clamp the scalars. Of course when clamping the scalars we have to be careful
+    to adjust the value for both sides, for example if ***a*** is very small (and
+    therefore 𝛼 is large) but the data point is on side ***b*** the scalar 𝛽 must
+    be adjusted as well, otherwise equation (5) will not hold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start by selecting the largest of the 2 scalars 𝑚𝑎𝑥(𝛼,𝛽). Then we calculate
+    an adjustment value by dividing ***S*** by 𝑚𝑎𝑥(𝛼,𝛽) and clamping it to 1.0 so
+    that it is always a number in the range [0, 1]. We will use the adjustment value
+    to prevent scalars from going over ***S***. Finally, if ***a*** is 0.0, then the
+    values of 𝛼 and 𝛽 are ***S*** and 0.0 respectively, and the other way around if
+    b is 0.0\. This gives us the revised equation *(8b)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69809bf37204fef652c2bbe616131352.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Below you can see how the plots for the scalars proportional to ***a*** or ***b***
+    look like. Notice how they are clamped beyond the selected ***S***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4b7ce280f37aacb65182e9591d4998ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 11** Movement scalar clamping for ***S=5.0*** — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having calculated both scalars we can choose the one to use by determining the
+    side on which the data point resides.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0a282a46fed428c55bff5a0cb6cb9cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training the model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that all the concepts involved are clear we can move on to describe the
+    training algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Pretraining and selecting the Z hyperparameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The algorithm described makes the assumption that the models 𝑓𝜃⁻¹ and 𝑓𝜃 inversely
+    match each other. This can lead to a slow start if we train these 2 models to
+    match each other at the same time as we do pin movement. So it has been found
+    beneficial to do a “pretrain” stage on which we only train 𝑓𝜃⁻¹ and 𝑓𝜃 to match
+    each other. This stage is essentially an ordinary autoencoder training. After
+    the reconstruction error has reached a reasonably low value the algorithm can
+    proceed to the main training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This pretrain stage has the added advantage that it makes it easier to define
+    ***Z*** when it completes. In the section [Redefining the *Z-space*](#redefining-the-z-space)
+    it was mentioned that ***Z*** is defined by an origin ***O*** and a radius ***R***.
+    Having pretrained the model for some time, all we do is run a batch of data points
+    through the inverse model to calculate a set *Z-data*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5420483b93263466ca02e09f6693b59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Then we take the mean of this set and use it as the origin ***O***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77a3e2ec645ba5aacbb39566fec5aeb9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can also use the mean distance in *Z-data* to ***O*** as ***R***, however
+    it has been seen that experimenting with and tuning this value may give better
+    results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/41ba99d0f2451905d4efc25c5c5dc90a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This works because after the “pretrain” stage, the model has found a region
+    capable of representing the data, so defining ***Z*** in its vicinity will likely
+    have a low reconstruction error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Pin Movement
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To start pin movement we select a batch of data *y-data = {y-data₀, y-data₁,
+    …, y-dataₙ}* from the training dataset and map it to z*-data = {z-data₀, z-data₁,
+    …, z-dataₙ}* like it is explained in [Mapping data points to Z](#mapping-data-points-to-z).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to randomly select the ***z-pins*** set *{z-pin₀, z-pin₁, …,
+    z-pinₙ}* (one for every data point in the batch) in the way described on section
+    [Selecting the Z-pins](#selecting-the-z-pins).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note that it is possible to select multiple* **z-pins** *per data point. But
+    it is not necessary and for simplicity we will use only one on the experiments.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Then we calculate the target values *z-targets = {z-target₀, z-target₁, …, z-targetₙ}*
+    and scalars s = *{s₀, s₁, …, sₙ}* as explained on sections [Calculating the target
+    values](#calculating-the-target-values) and [Calculating the movement scalars](#calculating-the-movement-scalars).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Having the ***z-targets***, we calculate the current model predictions by running
+    them through 𝑓𝜃, this gives us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4020948aed7c0eb227fe50b4c8084a7c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Now we have everything for the first component of our loss function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bdfb2b259c8dfae0893c785dbcd1e429.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice that we are using a Weighted Mean Absolute Error *(WMAE)* function instead
+    of a Weighted Mean Squared Error *(WMSE)*. This is because the latter is designed
+    to punish larger differences while we are moving all of our pins the same distance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Reconstruction Loss
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next component to our loss function is the difference between our model
+    𝑓𝜃 and our inverse model 𝑓𝜃⁻¹. This is very similar to the *Reconstruction Loss*
+    in both variational and ordinary autoencoders. It is necessary to pass the batch
+    data points to 𝑓𝜃⁻¹, take the results and pass them on to 𝑓𝜃 and then run backpropagation
+    using the results and the original data points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/edcf87003c4b92b959bca6251690f13e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 4\. Inverse Reconstruction Loss
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we define the last component of the loss function, let’s explain why
+    it is necessary. Ideally at the end of the training both 𝑓𝜃 and 𝑓𝜃⁻¹ will be bijective,
+    meaning that there will be an exactly one-to-one correspondence between the domain
+    and codomain ***Z*** and ***Y***. However during training this is not guaranteed
+    to be the case and it is possible that areas in ***Z*** will not be mapped to
+    ***Y***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b90e7c2975af97a75288d1862d5dad76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 12** Model and inverse models may not be bijective — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see in ***Fig. 12*** as a result of training with component *loss-y*,
+    𝑓𝜃 and 𝑓𝜃⁻¹ agree with each other as far as ***Y*** goes. That is *∀y ∈ Y,* 𝑓𝜃⁻¹(𝑓𝜃(𝑦))
+    ≈ *y*. However not all of ***Z*** is used and some points in ***Y*** map outside
+    of it. This is a problem because the assumption of moving ***z-pins*** to a position
+    that will map to a point in ***Y*** that both 𝑓𝜃 and 𝑓𝜃⁻¹ will agree on is broken.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Fig. 12*** shows 2 of the problems that may happen. A “fold” in the fabric
+    happens when 2 or more points in ***Z*** map to the same point in ***Y***. An
+    “out-of-bounds” happens when a point in ***Z*** maps to a point outside of ***Y***.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to solve this problem we add third component to the loss function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dea9a9bb44d6b75d7c6090d65e6b603c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What this does is to synchronize 𝑓𝜃 and 𝑓𝜃⁻¹​ with regards to ***Z*** and it
+    does so by selecting random points in ***Z*** instead of using the training set
+    data points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that for both the reconstruction loss and the inverse reconstruction
+    loss we simply use Mean Squared Error (MSE).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Loss function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we have all the components to the loss function all that’s left is
+    to define weights for each of them which we will name 𝛾-𝑝, 𝛾-*y* and 𝛾-𝑧. We can
+    put together (10), (11) and (12) to define the loss function like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7563dfc4116d138b5cdd5bb187b801b8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: All that’s left after this is to run backpropagation on the loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing the model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the original paper we used goal 1 and goal 2 testing which measured the density
+    of data points between ***z-pins*** and compared it to the densities of the test
+    dataset. However on a multi-dimensional space doing that approach is not practical
+    since the spaces between ***z-pins*** scale rapidly in number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The original paper also used [*Earth Mover’s Distance (EMD)*](https://en.wikipedia.org/wiki/Earth_mover%27s_distance)
+    as an indicator of the model’s performance. For multiple dimension *PMT* we will
+    use *EMD* to measure the model’s accuracy. We will define the EMD error by comparing
+    data points from the training dataset against data points generated by the *PMT*
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6ee897945e3f09ca4893e61980b65bc5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And in order to have an idea of what the lowest EMD error would be we will also
+    calculate a base EMD by comparing data points from the training dataset against
+    data points in the test dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6baf14ad2aee559ec18772d16672feaf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This gives us a baseline that we can compare against E-emd to measure the accuracy
+    of the models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison with Variational Autoencoders
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The most similar generative model to *PMT* is Variational Autoencoders (*VAE*).
+    It has an almost identical neural network architecture and acts both a generative
+    model and a latent representation mapper. The biggest difference between the two
+    is that the source distribution in *VAE* is unbounded (Gaussian) and the one in
+    *PMT* is bounded (uniform distribution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The experiments show however, that for both bounded and unbounded target distributions
+    *PMT* outperforms *VAE*. Furthermore, the reconstruction error in *PMT* is significantly
+    lower than on *VAE*. The reason for this may be that the components of the loss
+    function cooperate with each other on *PMT* as opposed to competing with each
+    other in *VAE*. Also because of the fact that the target distribution is uniform,
+    the spacing between data points in ***Z*** can be larger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another difference is that *PMT* takes a larger number of hyperparameters, 𝑆
+    (maximum scalar), 𝛾-𝑝 (pin movement weight), 𝛾-𝑦 (reconstruction loss weight),
+    𝛾-𝑧 (inverse reconstruction loss weight) and 𝑀 (movement constant) compared to
+    *VAE* hyperparameters which are just the *kld weight*. This may make *PMT* training
+    more difficult.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally *PMT* takes longer to train per epoch than *VAE*, this is because it
+    is necessary to do a pass to calculate the ***z-targets***, and also because the
+    loss function has an additional component (see equation (12)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experiments
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now I will try out the model in several datasets. In order to make them easier
+    to plot, the experiments presented will have no ***X*** inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the similarities with *VAE*, every experiment will be done using both
+    *PMT* and *VAE* models for comparison. In every experiment both models will have
+    identical neural network architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The source code and everything needed to reproduce the experiments below can
+    be found in [https://github.com/narroyo1/pmt](https://github.com/narroyo1/pmt).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple blobs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first dataset I’ll try is generated using [*make_blobs()*](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.make_blobs.html)
+    from the *sklearn* library. As it name suggests it generates a number of Gaussian
+    blobs and it is a good dataset to test how *PMT* performs with unbounded datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c08abf0004b1126002cbcb212c12133c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 13a** Generated data — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c4ac3c2ebd1e7dbfefe33340cc6e1f75.png)![](../Images/de4f045995b16018008a7261ac9b37ea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 13b** PMT training animation /**Fig. 13c** VAE training animation —
+    Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/632a68d1f622dafcbf04a9ff90ae6266.png)![](../Images/ec6296d1dfad186d646998a0a06b1c99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 13d** EMD plot/**Fig. 13e** Reconstruction loss plot — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 13a** shows the test data generated by the *make_blobs()* function.
+    **Fig. 13b** and **Fig. 13c** show animations of the *PMT* and *VAE* training
+    methods respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 13d** shows the plot of the *EMD* errors (𝐸-𝑒𝑚𝑑) calculated for both
+    *PMT*, *VAE* and the base value (𝐵-𝑒𝑚𝑑). As you can see from this *PMT*’s 𝐸-𝑒𝑚𝑑
+    are closer to 𝐵-𝑒𝑚𝑑 than those of *VAE* which means that its performance is better.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 13e** shows the plot of the reconstruction error for both *PMT* and
+    *VAE*. As you can see from this *PMT*’s reconstruction error is an order of magnitude
+    lower than that of of *VAE*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Square with another square
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The second dataset is quite simple. We just have an outer square with a uniform
+    distribution of data points inside it, with an inner square that is also filled
+    with a uniform distribution but with a greater density. This will help us test
+    for non-gaussian distributions with sharp details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bb4f3ed920e1990972c46ee0858c720.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 14a** Generated data — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a1be878f264605880859aba8217440fa.png)![](../Images/56a7800a3c07bfaaba7aef6d3d124da5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 14b** PMT training animation/**Fig. 14c** VAE training animation — Image
+    by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77f6326015da719f593d33c7e138cabc.png)![](../Images/8ef90a759f521bbcc862d0f8b2540a54.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 14d** EMD plot/**Fig. 14e** Reconstruction loss plot — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 14d** shows the *EMD* errors plot and you can see from this that *PMT*
+    outperforms *VAE*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 14e** shows the reconstruction error values and you can see from this
+    *PMT*’s reconstruction error is over 2 orders of magnitude lower than that of
+    *VAE*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Human behavior
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next dataset is made of human body motion sensor data acquired by performing
+    several physical activities. It was extracted from [Mobile Health Human Behavior
+    Analysis Dataset](https://www.kaggle.com/datasets/gaurav2022/mobile-health)¹.
+    This one has 3 dimensions instead of 2 like the previous datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4834f93ea998bc644806503e7241e0ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 15a** Test data — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c74d9ef38f096283e44f1335265f73af.png)![](../Images/b4b21e69eceed64faf940b9ec81f704d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 15b** PMT training animation/**Fig. 15c** VAE training animation — Image
+    by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/57f7598cc9a77276144674295864052a.png)![](../Images/9839cdb2d118c7ae47804972cdf1c958.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 15d** EMD plot/**Fig. 15e** Reconstruction loss plot — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 15d** shows the *EMD* errors plot and once again *PMT* outperforms *VAE*
+    again.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 15e** shows that *PMT*’s reconstruction error is over an order of magnitude
+    lower than that of *VAE*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MNIST
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Lastly we have the famous [MNIST Dataset](https://huggingface.co/datasets/ylecun/mnist)².
+    As you know it contains bitmaps of numbers written by humans and the task here
+    is to try to generated new data points that look like real hand drawn numbers.
+    This is an interesting dataset because it has a large number of output dimensions
+    (784) and a latent space of 4 dimensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/687c7882f1b5c102c2af06b17783767c.png)![](../Images/c819342f0f0639d2a25e8085a495a36c.png)![](../Images/cfb4cc8a2b64620e1015b78452b2c3c3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 17a** PMT original data/**Fig. 17b** PMT reconstruction/**Fig. 17c**
+    PMT generated samples — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4c31557abcf5abe663e67956a511168a.png)![](../Images/f02053feb01df2379b898c570723060d.png)![](../Images/574541dc3ffd8220ccf516c1d30951dd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 16c** VAE original data/**Fig. 16e** VAE reconstruction/**Fig. 16e**
+    VAE generated samples — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6654897ba08399ce6612558a8d5f6720.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 16g** Reconstruction loss plot — Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This dataset does not have an EMD error plot since it would be very difficult
+    to calculate (and not indicative) given the large number of output dimensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fig. 16b** plots the reconstruction errors, once again *PMT*’s is lower than
+    *VAE*’s.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion and what’s next
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Approximating stochastic functions with a single output is very useful for forecasting
+    single value distributions, like temperatures or market values. But the ability
+    to produce multiple outputs make the method apt for a large variety of use cases
+    like simulation and generative tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The multiple output method described in this article has proved that in the
+    experiment datasets, it is capable of outperforming VAEs in both probabilistic
+    likeness and reconstruction. I believe they will produce better results in a variety
+    of real world use cases too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the future I would like to continue testing *PMT* on higher dimensional datasets
+    for generative purposes, such as [Fashion MNIST](https://www.kaggle.com/datasets/zalando-research/fashionmnist)
+    and [CelebA](https://mmlab.ie.cuhk.edu.hk/projects/CelebA.html). For this purpose
+    it will also be necessary to experiment with deep networks and Convolutional Neural
+    Networks (CNN).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feel free to reach out to me with any questions or comments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1]: Mobile Health Human Behavior Analysis'
+  prefs: []
+  type: TYPE_NORMAL
+- en: https://www.kaggle.com/datasets/gaurav2022/mobile-health
+  prefs: []
+  type: TYPE_NORMAL
+- en: CC0 Public Domain [https://creativecommons.org/publicdomain/zero/1.0/](https://creativecommons.org/publicdomain/zero/1.0/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] MNIST Handwritten Database'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[## MNIST handwritten digit database, Yann LeCun, Corinna Cortes and Chris
+    Burges'
+  prefs: []
+  type: TYPE_NORMAL
+- en: of handwritten digits Yann LeCun, Courant Institute, NYU Corinna Cortes, Google
+    Labs, New York Christopher J.C. Burges…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: yann.lecun.com](http://yann.lecun.com/exdb/mnist?source=post_page-----ffefc7099a90--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: MIT [https://choosealicense.com/licenses/mit/](https://choosealicense.com/licenses/mit/)
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,309 @@
+- en: 'Training CausalLM Models Part 1: What Actually Is CausalLM?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec?source=collection_archive---------4-----------------------#2024-03-04](https://towardsdatascience.com/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec?source=collection_archive---------4-----------------------#2024-03-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The first part of a practical guide to using HuggingFace’s CausalLM class
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[![Theo
+    Lebryk](../Images/c2e0d606f4a99831fad5575f59848544.png)](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)
+    [Theo Lebryk](https://tlebryk.medium.com/?source=post_page---byline--6c3efb2490ec--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c3efb2490ec--------------------------------)
+    ·6 min read·Mar 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2a68f7d550af4571fd5c25099893c910.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Causal langauge models model each new word as a function of all previous words.
+    Source: [Pexels](https://www.pexels.com/photo/dog-eating-a-carrot-5255204/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’ve played around with recent models on [HuggingFace](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard),
+    chances are you encountered a causal language model. When you pull up the documentation
+    for a [model](https://huggingface.co/docs/transformers/main/en/model_doc/llama)
+    family, you’ll get a page with “tasks” like LlamaForCausalLM or LlamaForSequenceClassification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re like me, going from that documentation to actually finetuning a model
+    can be a bit confusing. We’re going to focus on CausalLM, starting by explaining
+    what CausalLM is in this post followed by a practical example of how to finetune
+    a CausalLM model in a subsequent post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Background: Encoders and Decoders'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Many of the best models today such as LLAMA-2, GPT-2, or Falcon are “decoder-only”
+    models. A decoder-only model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: takes a sequence of *previous* tokens (AKA a prompt)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: runs those tokens through the model (often creating embeddings from tokens and
+    running them through transformer blocks)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: outputs a single output (usually the probability of the next token).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This is contrasted with models with “encoder-only” or hybrid “encoder-decoder”
+    architectures which will input the *entire* sequence, not just *previous* tokens.
+    This difference disposes the two architectures towards different tasks. Decoder
+    models are designed for the generative task of writing new text. Encoder models
+    are designed for tasks which require looking at a full sequence such as translation
+    or sequence classification. Things get murky because you can repurpose a decoder-only
+    model to do translation or use an encoder-only model to generate new text. Sebastian
+    Raschka has a nice [guide](https://magazine.sebastianraschka.com/p/understanding-encoder-and-decoder)
+    if you want to dig more into encoders vs decoders. There’s a also a [medium article](/understanding-masked-language-models-mlm-and-causal-language-models-clm-in-nlp-194c15f56a5)
+    which goes more in-depth into the differeneces between masked langauge modeling
+    and causal langauge modeling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For our purposes, all you need to know is that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CausalLM models generally are decoder-only models
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Decoder-only models look at past tokens to predict the next token
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With decoder-only language models, we can think of the next token prediction
+    process as “causal language modeling” because the previous tokens “cause” each
+    additional token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HuggingFace CausalLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In HuggingFace world, CausalLM (LM stands for language modeling) is a class
+    of models which take a prompt and predict new tokens. In reality, we’re predicting
+    one token at a time, but the class abstracts away the tediousness of having to
+    loop through sequences one token at a time. During inference, CausalLMs will iteratively
+    predict individual tokens until some stopping condition at which point the model
+    returns the final concatenated tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During training, something similar happens where we give the model a sequence
+    of tokens we want to learn. We start by predicting the second token given the
+    first one, then the third token given the first two tokens and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thus, if you want to learn how to predict the sentence “the dog likes food,”
+    assuming each word is a token, you’re making 3 predictions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “the” → dog,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: “the dog” → likes
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: “the dog likes” → food
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: During training, you can think about each of the three snapshots of the sentence
+    as three observations in your training dataset. Manually splitting long sequences
+    into individual rows for each token in a sequence would be tedious, so HuggingFace
+    handles it for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As long as you give it a sequence of tokens, it will break out that sequence
+    into individual single token predictions behind the scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can create this ‘sequence of tokens’ by running a regular string through
+    the model’s tokenizer. The tokenizer will output a dictionary-like object with
+    *input_ids* and an *attention_mask* as keys, like with any ordinary HuggingFace
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: With CausalLM models, there’s one additional step where the model expects a
+    *labels* key. During training, we use the “previous” *input_ids* to predict the
+    “current” *labels* token. However, you do **not** want to think about labels like
+    a question answering model where the first index of *labels* corresponds with
+    the answer to the *input_ids* (i.e. that the *labels* should be concatenated to
+    the end of the *input_ids*). Rather, you want *labels* and *input_ids* to mirror
+    each other with identical shapes. In algebraic notation, to predict *labels* token
+    at index k, we use all the *input_ids* through the k-1 index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this is confusing, practically, you can usually just make *labels* an identical
+    copy of *input_ids* and call it a day. If you do want to understand what’s going
+    on, we’ll walk through an example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick worked example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s go back to “the dog likes food.” For simplicity, let’s leave the words
+    as words rather than assigning them to token numbers, but in practice these would
+    be numbers which you can map back to their true string representation using the
+    tokenizer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our input for a single element batch would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The double brackets denote that technically the shape for the arrays for each
+    key is batch_size x sequence_size. To keep things simple, we can ignore batching
+    and just treat them like one dimensional vectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Under the hood, if the model is predicting the kth token in a sequence, it
+    will do so kind of like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note this is pseudocode.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can ignore the attention mask for our purposes. For CausalLM models, we usually
+    want the attention mask to be all 1s because we want to attend to all previous
+    tokens. Also note that [:k] really means we use the 0th index through the k-1
+    index because the ending index in slicing is *exclusive*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With that in mind, we have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The loss would be taken by comparing the true value of *labels[k]* with *pred_token_k*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In reality, both get represented as 1xv vectors where v is the size of the vocabulary.
+    Each element represents the probability of that token. For the predictions (*pred_token_k*),
+    these are real probabilities the model predicts. For the true label (*labels[k]*),
+    we can artificially make it the correct shape by making a vector with 1 for the
+    actual true token and 0 for all other tokens in the vocabulary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s say we’re predicting the second word of our sample sentence, meaning k=1
+    (we’re zero indexing k). The first bullet item is the context we use to generate
+    a prediction and the second bullet item is the true label token we’re aiming to
+    predict.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'k=1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input_ids[:1] == [the]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels[1] == dog
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'k=2:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input_ids[:2] == [the, dog]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels[2] == likes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'k =3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input_ids[:3] == [the, dog, likes]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Labels[3] == food
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s say k=3 and we feed the model “[the, dog, likes]”. The model outputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In other words, the model thinks there’s a 10% chance the next token is “dog,”
+    60% chance the next token is “food” and 30% chance the next token is “the.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The true label could be represented as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In real training, we’d use a loss function like cross-entropy. To keep it as
+    intuitive as possible, let’s just use absolute difference to get an approximate
+    feel for loss. By absolute difference, I mean the absolute value of the difference
+    between the predicted probability and our “true” probability: e.g. *absolute_diff_dog
+    = |0.10–0.00| = 0.10*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even with this crude loss function, you can see that to minimize the loss we
+    want to predict a high probability for the actual label (e.g. food) and low probabilities
+    for all other tokens in the vocabulary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For instance, let’s say after training, when we ask our model to predict the
+    next token given [the, dog, likes], our outputs look like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now our loss is smaller now that we’ve learned to predict “food” with high probability
+    given those inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training would just be repeating this process of trying to align the predicted
+    probabilities with the true next token for all the tokens in your training sequences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Hopefully you’re getting an intuition about what’s happening under the hood
+    to train a CausalLM model using HuggingFace. You might have some questions like
+    “why do we need *labels* as a separate array when we could just use the kth index
+    of *input_ids* directly at each step? Is there any case when *labels* would be
+    different than *input_ids*?”
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’m going to leave you to think about those questions and stop there for now.
+    We’ll pick back up with answers and real code in the next post!
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,303 @@
+- en: Set up a local LLM on CPU with chat UI in 15 minutes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/set-up-a-local-llm-on-cpu-with-chat-ui-in-15-minutes-4cdc741408df?source=collection_archive---------1-----------------------#2024-02-06](https://towardsdatascience.com/set-up-a-local-llm-on-cpu-with-chat-ui-in-15-minutes-4cdc741408df?source=collection_archive---------1-----------------------#2024-02-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This blog post shows how to easily run an LLM locally and how to set up a ChatGPT-like
+    GUI in 4 easy steps.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--4cdc741408df--------------------------------)[![Kasper
+    Groes Albin Ludvigsen](../Images/3c31c9e54fae4fd1c8f1c441379d1f10.png)](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--4cdc741408df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4cdc741408df--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4cdc741408df--------------------------------)
+    [Kasper Groes Albin Ludvigsen](https://kaspergroesludvigsen.medium.com/?source=post_page---byline--4cdc741408df--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4cdc741408df--------------------------------)
+    ·5 min read·Feb 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4af6944f035f6558d066e724d2f69d26.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by Liudmila Shuvalova on Unsplash
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks to the global open source community, it is now easier than ever to run
+    performant large language models (LLM) on consumer laptops or CPU-based servers
+    and easily interact with them through well-designed graphical user interfaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is particularly valuable to all the organizations who are not allowed or
+    not willing to use services that requires sending data to a third party.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This tutorial shows how to set up a local LLM with a neat ChatGPT-like UI in
+    four easy steps. If you have the prerequisite software installed, it will take
+    you no more than 15 minutes of work (excluding the computer processing time used
+    in some of the steps).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This tutorial assumes you have the following installed on your machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Ollama](https://ollama.ai/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Docker
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: React
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Python and common packages including transformers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now let’s get going.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1 — Decide which Huggingface LLM to use
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first step is to decide what LLM you want to run locally. Maybe you already
+    have an idea. Otherwise, for English, the [instruct version](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)
+    of Mistral 7b seems to be the go-to choice. For Danish, I recommend Munin-NeuralBeagle
+    although its known to over-generate tokens (perhaps because it’s a merge of a
+    model that was not instruction fine tuned). For other Scandinavian languages,
+    see [ScandEval’s](https://scandeval.com/) evaluation of Scandinavian generative
+    models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’ve decided which LLM to use, copy the Huggingface “path” to the model.
+    For Mistral 7b it would be “mistralai/Mistral-7B-v0.1". You’ll need it in the
+    next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/how-to-make-a-pytorch-transformer-for-time-series-forecasting-69e073d4061e?source=post_page-----4cdc741408df--------------------------------)
+    [## How to make a PyTorch Transformer for time series forecasting'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post will show you how to transform a time series Transformer architecture
+    diagram into PyTorch code step by step.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/how-to-make-a-pytorch-transformer-for-time-series-forecasting-69e073d4061e?source=post_page-----4cdc741408df--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 2 – Quantize the LLM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next step is to quantize your chosen model unless you selected a model that
+    was already quantized. If your model’s name ends in GGUF or GPTQ it’s already
+    quantized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantization is a technique that converts the weights of a model (its learned
+    parameters) to a smaller data type than the original, eg from fp16 to int4\. This
+    makes the model take up less memory and also makes it faster to run inference
+    which is a nice feature if you’re running on CPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The script `quantize.py`in my repo [local_llm](https://github.com/KasperGroesLudvigsen/local_llm)
+    is adapated from [Maxime Labonne’s fantastic Colab notebook](https://colab.research.google.com/drive/1P646NEg33BZy4BfLDNpTz0V0lwIU3CHu?usp=sharing)
+    (see his [LLM course](https://github.com/mlabonne/llm-course) for other great
+    LLM resources). You can use his notebook or my script. The method’s been tested
+    on Mistral and Mistral-like models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To quantize, first clone my repo:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, change the `MODEL_ID` variable in the `quantize.py` file to reflect your
+    model of choice. This is where you need the Huggingface “path” that you copied
+    in the first step. So if you wanna use Mistral 7b:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, in your terminal, run the script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will take some time. While the quantization process runs, you can proceed
+    to the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The script will produce a directory that contains the model files for the model
+    you selected as well as the quantized version of the model which has the file
+    extension “.gguf”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/chatgpts-energy-use-per-query-9383b8654487?source=post_page-----4cdc741408df--------------------------------)
+    [## ChatGPT’s energy use per query'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How much electricity does ChatGPT use to answer one question?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/chatgpts-energy-use-per-query-9383b8654487?source=post_page-----4cdc741408df--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Build and run Ollama version of model'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will run the model with [Ollama](https://ollama.ai/). Ollama is a software
+    framework that neatly wraps a model into an API. Ollama also integrates easily
+    with various front ends as we’ll see in the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To build an Ollama image of the model, you need a so-called model file which
+    is a plain text file that configures the Ollama image. If you’re acquainted with
+    Dockerfiles, Ollama’s model files will look familiar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the example below, we first specify which LLM to use. We’re assuming that
+    there is a folder in your repo called `mistral7b` and that the folder contains
+    a model called `quantized.gguf`. Then we specify the model’s context window to
+    8,000 – Mistral 7b’s max context size. In the Modelfile, you can also specify
+    which prompt template to use, and you can specify stop tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Save the model file, eg as Modelfile.txt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more configuration options, see [Ollama’s GitHub.](https://github.com/ollama/ollama/blob/main/docs/modelfile.md)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that you have made the Modelfile, build an Ollama image from the Modelfile
+    by running this from your terminal. This will also take a few moments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: When the “create” process is done, start the Ollama server by running this command.
+    This will expose all your Ollama model(s) in a way that the GUI can interact with
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[](/how-to-estimate-and-reduce-the-carbon-footprint-of-machine-learning-models-49f24510880?source=post_page-----4cdc741408df--------------------------------)
+    [## How to estimate and reduce the carbon footprint of machine learning models'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two ways to easily estimate the carbon footprint of machine learning models
+    and 17 ideas for how you might reduce it
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/how-to-estimate-and-reduce-the-carbon-footprint-of-machine-learning-models-49f24510880?source=post_page-----4cdc741408df--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 4 – Set up chat UI for Ollama
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next step is to set up a GUI to interact with the LLM. Several options exist
+    for this. In this tutorial, we’ll use “Chatbot Ollama” – a very neat GUI that
+    has a ChatGPT feel to it. “Ollama WebUI” is a similar option. You can also setup
+    your own chat [GUI with Streamlit](https://docs.streamlit.io/knowledge-base/tutorials/build-conversational-apps).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By running the two commands below, you’ll first clone the Chatbot Ollama GitHub
+    repo, and then install React dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next step is to build a Docker image from the Dockerfile. If you’re on Linux,
+    you need to change the OLLAMA_HOST environment variable in the Dockerfile from
+    `hhtp://host.docker.internal:11434`to `http://localhost:11434` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, build the Docker image and run a container from it by executing these commands
+    from a terminal. You need to stand in the root of the project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The GUI is now running inside a Docker container on your local computer. In
+    the terminal, you’ll see the address at which the GUI is available (eg. “http://localhost:3000")
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visit that address in your browser, and you should now be able to chat with
+    the LLM through the Ollama Chat UI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This concludes this brief tutorial on how to easily set up chat UI that let’s
+    you interact with an LLM that’s running on your local machine. Easy, right? Only
+    four steps were required:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Select a model on Huggingface
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: (Optional) Quantize the model
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Wrap model in Ollama image
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Build and run a Docker container that wraps the GUI
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Remember, it’s all made possible because open source is awesome 👏
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GitHub repo for this article: [https://github.com/KasperGroesLudvigsen/local_llm](https://github.com/KasperGroesLudvigsen/local_llm)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s it! I hope you enjoyed the story. Let me know what you think!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get the benefits of Medium and support my writing by signing up for a Medium
+    membership [HERE](https://kaspergroesludvigsen.medium.com/membership).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Follow me for more on AI and sustainability and [subscribe](https://kaspergroesludvigsen.medium.com/subscribe)
+    to get my stories via email when I publish.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I also sometimes write about [time series forecasting](/how-to-make-a-pytorch-transformer-for-time-series-forecasting-69e073d4061e).
+  prefs: []
+  type: TYPE_NORMAL
+- en: And feel free to connect on [LinkedIn](https://www.linkedin.com/in/kaspergroesludvigsen).
+  prefs: []
+  type: TYPE_NORMAL

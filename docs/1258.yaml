@@ -1,0 +1,295 @@
+- en: Generating Map Tiles with Rust
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/generating-map-tiles-with-rust-dbdb0eb09b6b?source=collection_archive---------3-----------------------#2024-05-19](https://towardsdatascience.com/generating-map-tiles-with-rust-dbdb0eb09b6b?source=collection_archive---------3-----------------------#2024-05-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How easy is it to transition from Python to Rust?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)[![João
+    Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------)
+    [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--dbdb0eb09b6b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dbdb0eb09b6b--------------------------------)
+    ·6 min read·May 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b583922b0a97dcbb9e258d7e6538ecf4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Diego García](https://unsplash.com/@diegogarcia?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, you must display vast amounts of data on an interactive map while
+    keeping it usable and responsive. Interactive online maps are implemented in HTML,
+    and adding many visual elements to the map display generally degrades performance
+    and usability. A possible alternative is to draw all of the elements offline and
+    display them over the map as a transparent layer using tiles. Each square tile
+    neatly overlaps the map’s tiles, and the interactive map control handles far fewer
+    visual elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I addressed this issue a few years ago by writing a custom map tile generator
+    using Python and data from the [Vehicle Energy Dataset](https://github.com/gsoh/VED).
+    This project illustrated how to display massive amounts of information on an interactive
+    online map by using custom tile layers over the map. The process involves using
+    a web application that generates, caches and serves the tiles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4?source=post_page-----dbdb0eb09b6b--------------------------------)
+    [## Displaying Geographic Information Using Custom Map Tiles'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn how to create custom tiles for your interactive maps.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4?source=post_page-----dbdb0eb09b6b--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you know, Python is not fast, so there is a significant performance hit while
+    the web application generates each tile. When a tile is cached, the serving process
+    is quick and is not noticeable while interacting with the map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still, I was unhappy with the performance, so I wanted to solve the problem
+    again by dramatically improving the code execution speed. At first, I thought
+    about converting the code base to [Cython](https://cython.org/), but then my attention
+    was diverted to another candidate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enter Rust
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Rust programming language has been on my radar for quite some time. With
+    a background in C, C++ and C#, I was intrigued by the language’s promise of memory
+    safety and C-like performance. I finally decided to have a go at it, and this
+    problem looked like a perfect starting point to learn and exercise the language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After reviewing many YouTube videos and diverse written material, I started
+    using Rust to address this problem. I had three primary questions: How hard is
+    it to create a web application, access [SQLite](https://www.sqlite.org/) data,
+    and programmatically create a transparent PNG image? Fortunately, the answers
+    to these questions were more straightforward to respond to than anticipated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rocket
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To answer the web application question, I turned to [Rocket](https://rocket.rs/).
+    The [Getting Started](https://rocket.rs/guide/v0.5/getting-started/#getting-started)
+    page from Rocket’s online documentation shows how easy it is to set up a basic
+    web application. We will surely need more complexity to build our tile server,
+    but the boilerplate seems minimal and straightforward. And, as it turned out to
+    be, Rocket is very easy to use and adapt. It’s a keeper to me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: sqlx
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After a few minutes online, I quickly realized that the most popular answer
+    to accessing SQLite databases was through the [sqlx](https://docs.rs/sqlx/latest/sqlx/)
+    package. It presents a different paradigm from the one I used in Python but much
+    closer to the one I used in my former life when I developed in C#. Instead of
+    generic data structures or [Pandas](https://pandas.pydata.org/) [DataFrames](https://pandas.pydata.org/docs/user_guide/dsintro.html#dataframe),
+    you must use strongly typed data structures here. Although they are a bit more
+    laborious to work with, they will bring an extra layer of sanity to your life.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 1** below shows the first complete code sample I used to retrieve
+    the data from the level range table.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 1** — Sample code to retrieve the table of level ranges. (Image source:
+    Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PNG
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Creating, drawing, and saving PNG files using the [**image**](https://docs.rs/image/0.25.1/image/)
+    crate is easy. The code to create a transparent tile is quite simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 2** — The **image** crate simplifies the manipulation of images. The
+    code above shows how to create a solid color 256x256 map tile. (Image source:
+    Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I also used the [**colorgrad**](https://docs.rs/colorgrad/0.6.2/colorgrad/)
+    package to handle the color gradient for the tiles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before I discuss the code in detail, let’s review the principle behind drawing
+    the traffic density tiles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s Tiles All The Way Down
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Map tiles usually consist of square 256x256 bitmaps. We may address each tile
+    by combining *x* and *y* coordinates, a “zoom” level, or a [quadkey](https://learn.microsoft.com/en-us/bingmaps/articles/bing-maps-tile-system)
+    code. To each zoom level corresponds a square patchwork of tiles of different
+    dimensions. The whole Earth is depicted on a single tile at the topmost level.
+    By zooming in, the original tile is split up into four tiles. The following **Figures
+    2** and **3** illustrate the process of zooming in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/08cd217d49c1c13aa9be0d531111f7d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 3** — The whole world on a single tile at zoom level 0\. (Image source:
+    OpenStreetMap)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bce5b6812ce6acc77850baf5c6f4b5c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 4** — Zooming into the previous tile, we get four tiles with the same
+    individual dimension. (Image source: OpenStreetMap)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we keep zooming in, and after eight iterations, each resulting tile corresponds
+    to a pixel on the first tile. This observation is the insight that allows us to
+    compute and display the traffic density information on the tiles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As described in the [previous article](/displaying-geographic-information-using-custom-map-tiles-c0e3344909a4),
+    the tile information is prepared and stored in a database. Please refer to that
+    article for instructions on generating the density database from the [Vehicle
+    Energy Dataset](https://github.com/gsoh/VED).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Serving Tiles With Rust
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can now discuss the Rust server code to generate, cache, and serve tiles.
+    The present solution closely follows the previous tile server design. **Figure
+    5** below shows the main entry point that decides whether to provide a painted
+    tile or the default transparent one after parsing and accepting the query parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 5** — The main entry point. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the server replies to zoom levels ranging from one to eighteen
+    only. This limitation was baked into the data generation process for the density
+    database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The web application draws each tile using the function listed in **Figure 6**
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 6** — The function above generates the tile, if not already cached
+    on disk, and returns the tile file name. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see from the listing above, the tile painting process has three steps.
+    First, on line 12, we collect the tile’s per-pixel density information. Next,
+    we retrieve the tile’s level range, i.e., the minimum and maximum density levels
+    for the tile’s “zoom” level. Finally, on line 14, we paint the tile’s bitmap.
+    The function finalizes by saving the tile bitmap to the file cache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 7** — The function above paints a single tile on a bitmap. Note how
+    the density information is transformed into an entry into the color gradient using
+    a logarithmic-based transformation. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'After correctly configuring the database file path, you start the tile server
+    by opening a terminal window, changing to the Rust project directory, and running
+    the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, you can open the map client and configure the density tile layer URI.
+    **Figure 8** below shows the Jupyter Notebook code cell to load the interactive
+    map:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 8** — Use the code above to display the Ann Arbor map with the density
+    tiles overlayed. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that’s it! **Figure 9** below displays the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/26c9beb6a497ae643455d5109f51168f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 9** — The image above displays the base map with the overlayed traffic
+    density tiles. (Image source: OpenStreetMap and author-generated tiles)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'My first foray into Rust was not nearly as difficult as I expected. I started
+    by immersing myself in the available literature and YouTube videos before giving
+    it a go. Next, I ensured I was using a helping hand with a great IDE from [JetBrains](https://www.jetbrains.com/):
+    [RustRover](https://www.jetbrains.com/rust/). Although still in preview mode,
+    I found this IDE helpful and instructive when using Rust. Still, you will also
+    be perfectly fine if you prefer [Visual Studio Code](https://code.visualstudio.com/).
+    Just make sure you get the sanctioned plugins.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Credits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I used [Grammarly](https://app.grammarly.com/) to review the writing and accepted
+    several of its rewriting suggestions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[JetBrains’ AI](https://www.jetbrains.com/ai/) assistant wrote some of the
+    code, and I also used it to learn Rust. It has become a staple of my everyday
+    work with both Rust and Python.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Licensing Information
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Extended Vehicle Energy Dataset is licensed under Apache 2.0, like its originator,
+    the [Vehicle Energy Dataset](https://github.com/gsoh/VED).
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Vehicle Energy Dataset](https://github.com/gsoh/VED) (GitHub)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[GitHub repository](https://github.com/joaofig/tilers)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: João Paulo Figueira is a Data Scientist at [tb.lx by Daimler Truck](https://tblx.io/)
+    in Lisbon, Portugal.
+  prefs: []
+  type: TYPE_NORMAL

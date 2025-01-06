@@ -1,0 +1,208 @@
+- en: A Python Engineer’s Introduction to 3D Gaussian Splatting (Part 1)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6?source=collection_archive---------2-----------------------#2024-06-11](https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6?source=collection_archive---------2-----------------------#2024-06-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding and coding Gaussian Splatting from a Python Engineer’s perspective
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)[![Derek
+    Austin](../Images/1bcc5955f32cb798988af5713baae212.png)](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------)
+    [Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--e133b0449fc6--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e133b0449fc6--------------------------------)
+    ·7 min read·Jun 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/813c95a2e396af5470c94772b24a2b06.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [rivage](https://unsplash.com/@sigmund?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/white-and-blue-box-on-white-table-KznImGeQGWE?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In early 2023, authors from Université Côte d’Azur and Max-Planck-Institut für
+    Informatik published a paper titled “3D Gaussian Splatting for Real-Time Field
+    Rendering.”¹ The paper presented a significant advancement in real-time neural
+    rendering, surpassing the utility of previous methods like NeRF’s.² Gaussian splatting
+    not only reduced latency but also matched or exceeded the rendering quality of
+    NeRF’s, taking the world of neural rendering by storm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gaussian splatting, while effective, can be challenging to understand for those
+    unfamiliar with camera matrices and graphics rendering. Moreover, I found that
+    resources for implementing gaussian splatting in Python are scarce, as even the
+    author’s source code is written in CUDA! This tutorial aims to bridge that gap,
+    providing a Python-based introduction to gaussian splatting for engineers versed
+    in python and machine learning but less experienced with graphics rendering. The
+    accompanying code on [GitHub](https://github.com/dcaustin33/intro_to_gaussian_splatting)
+    demonstrates how to initialize and render points from a COLMAP scan into a final
+    image that resembles the forward pass in splatting applications(and some bonus
+    CUDA code for those interested). This tutorial also has a companion jupyter notebook
+    ([part_1.ipynb](https://github.com/dcaustin33/intro_to_gaussian_splatting/blob/main/part_1.ipynb)
+    in the GitHub) that has all the code needed to follow along. While we will not
+    build a full gaussian splat scene, if followed, this tutorial should equip readers
+    with the foundational knowledge to delve deeper into splatting technique.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To begin, we use COLMAP, a software that extracts points consistently seen across
+    multiple images using Structure from Motion (SfM).³ SfM essentially identifies
+    points (e.g., the top right edge of a doorway) found in more than 1 picture. By
+    matching these points across different images, we can estimate the depth of each
+    point in 3D space. This closely emulates how human stereo vision works, where
+    depth is perceived by comparing slightly different views from each eye. Thus,
+    SfM generates a set of 3D points, each with x, y, and z coordinates, from the
+    common points found in multiple images giving us the “structure” of the scene.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this tutorial we will use a prebuilt COLMAP scan that is available for [download
+    here](https://storage.googleapis.com/gresearch/refraw360/360_extra_scenes.zip)
+    (Apache 2.0 license). Specifically we will be using the Treehill folder within
+    the downloaded dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b16ab5f5a417adfd630e37b233a4855e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The image along with all the points extracted from all images fed to COLMAP.
+    See sample code below or in part_1.ipynb to understand the process. Apache 2.0
+    license.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The folder consists of three files corresponding to the camera parameters, the
+    image parameters and the actual 3D points. We will start with the 3D points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The points file consists of thousands of points in 3D along with associated
+    colors. The points are centered around what is called the world origin, essentially
+    their x, y, or z coordinates are based upon where they were observed in reference
+    to this world origin. The exact location of the world origin isn’t crucial for
+    our purposes, so we won’t focus on it as it can be any arbitrary point in space.
+    Instead, its only essential to know where you are in the world in relation to
+    this origin. That is where the image file becomes useful!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadly speaking the image file tells us where the image was taken and the orientation
+    of the camera, both in relation to the world origin. Therefore, the key parameters
+    we care about are the quaternion vector and the translation vector. The quaternion
+    vector describes the rotation of the camera in space using 4 distinct float values
+    that can be used to form a rotation matrix (3Blue1Brown has a great video explaining
+    exactly what quaternions are [here](https://www.youtube.com/watch?v=d4EgbgTm0Bg)).
+    The translation vector then tells us the camera’s position relative to the origin.
+    Together, these parameters form the extrinsic matrix, with the quaternion values
+    used to compute a 3x3 rotation matrix ([formula](https://automaticaddison.com/how-to-convert-a-quaternion-to-a-rotation-matrix/))
+    and the translation vector appended to this matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/09cc599d85fe8a84a64ec9deea9f4c11.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A typical “extrinsic” matrix. By combining a 3x3 rotation matrix and a 3x1 translation
+    vector we are able to translate coordinates from the world coordinate system to
+    our camera coordinate system. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The extrinsic matrix translates points from world space (the coordinates in
+    the points file) to camera space, making the camera the new center of the world.
+    For example, if the camera is moved 2 units up in the y direction without any
+    rotation, we would simply subtract 2 units from the y-coordinates of all points
+    in order to obtain the points in the new coordinate system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we convert coordinates from world space to camera space, we still have
+    a 3D vector, where the z coordinate represents the depth in the camera’s view.
+    This depth information is crucial for determining the order of splats, which we
+    need for rendering later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We end our COLMAP examination by explaining the camera parameters file. The
+    camera file provides parameters such as height, width, focal length (x and y),
+    and offsets (x and y). Using these parameters, we can compose the intrinsic matrix,
+    which represents the focal lengths in the x and y directions and the principal
+    point coordinates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are completely unfamiliar with camera matrices I would point you to the
+    First Principles of [Computer Vision lectures](https://fpcv.cs.columbia.edu/)
+    given by Shree Nayar. Specially the Pinhole and Prospective Projection [lecture](https://youtu.be/_EhY31MSbNM)
+    followed by the Intrinsic and Extrinsic matrix [lecture](https://www.youtube.com/watch?v=2XM2Rb2pfyQ&t=66s).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b73bd7d9026d6ff1f86e406c282d2570.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The typical intrinsic matrix. Representing the focal length in the x and y direction,
+    along with the principal point coordinates. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The intrinsic matrix is used to transform points from camera coordinates (obtained
+    using the extrinsic matrix) to a 2D image plane, ie. what you see as your “image.”
+    Points in camera coordinates alone do not indicate their appearance in an image
+    as depth must be reflected in order to assess exactly what a camera will see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To convert COLMAP points to a 2D image, we first project them to camera coordinates
+    using the extrinsic matrix, and then project them to 2D using the intrinsic matrix.
+    However, an important detail is that we use homogeneous coordinates for this process.
+    The extrinsic matrix is 4x4, while our input points are 3x1, so we stack a 1 to
+    the input points to make them 4x1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the process step-by-step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Transform the points to camera coordinates: multiply the 4x4 extrinsic matrix
+    by the 4x1 point vector.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Transform to image coordinates: multiply the 3x4 intrinsic matrix by the resulting
+    4x1 vector.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This results in a 3x1 matrix. To get the final 2D coordinates, we divide by
+    the third coordinate of this 3x1 matrix and obtain an x and y coordinate in the
+    image! You can see exactly how this should look about for image number 100 and
+    the code to replicate the results is shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: To review, we can now take any set of 3D points and project where they would
+    appear on a 2D image plane as long as we have the various location and camera
+    parameters we need! With that in hand we can move forward with understanding the
+    “gaussian” part of gaussian splatting in [part 2](https://medium.com/towards-data-science/a-python-engineers-introduction-to-3d-gaussian-splatting-part-2-7e45b270c1df).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Kerbl, Bernhard, et al. “3d gaussian splatting for real-time radiance field
+    rendering.” *ACM Transactions on Graphics* 42.4 (2023): 1–14.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Mildenhall, Ben, et al. “Nerf: Representing scenes as neural radiance fields
+    for view synthesis.” *Communications of the ACM* 65.1 (2021): 99–106.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Snavely, Noah, Steven M. Seitz, and Richard Szeliski. “Photo tourism: exploring
+    photo collections in 3D.” *ACM siggraph 2006 papers*. 2006\. 835–846.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Barron, Jonathan T., et al. “Mip-nerf 360: Unbounded anti-aliased neural radiance
+    fields.” *Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern
+    Recognition*. 2022.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

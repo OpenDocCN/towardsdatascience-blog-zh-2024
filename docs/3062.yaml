@@ -1,0 +1,354 @@
+- en: How to Tackle an Optimization Problem with Constraint Programming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-tackle-an-optimization-problem-with-constraint-programming-9ae77b4d803d?source=collection_archive---------2-----------------------#2024-12-23](https://towardsdatascience.com/how-to-tackle-an-optimization-problem-with-constraint-programming-9ae77b4d803d?source=collection_archive---------2-----------------------#2024-12-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Case study: the travelling salesman problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)[![Yan
+    Georget](../Images/4555bf99c8c71f6a3c905e828819c599.png)](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------)
+    [Yan Georget](https://medium.com/@yangeorget?source=post_page---byline--9ae77b4d803d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9ae77b4d803d--------------------------------)
+    ·8 min read·Dec 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: TLDR
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Constraint Programming is a technique of choice for solving a Constraint Satisfaction
+    Problem. In this article, we will see that it is also well suited to small to
+    medium optimization problems. Using the well-known [travelling salesman problem](https://en.wikipedia.org/wiki/Travelling_salesman_problem)
+    (TSP) as an example, we will detail all the steps leading to an efficient model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the sake of simplicity, we will consider the symmetric case of the TSP (the
+    distance between two cities is the same in each opposite direction).
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the code examples in this article use [NuCS](https://github.com/yangeorget/nucs),
+    a fast constraint solver written 100% in Python that I am currently developing
+    as a side project. NuCS is released under the [MIT license](https://github.com/yangeorget/nucs/blob/main/LICENSE.md).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The symmetric travelling salesman problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Quoting Wikipedia :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a list of cities and the distances between each pair of cities, what is
+    the shortest possible route that visits each city exactly once and returns to
+    the origin city?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/bba1920404a4386283a19f8b2e1fd05f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Source: Wikipedia](https://fr.wikipedia.org/wiki/Probl%C3%A8me_du_voyageur_de_commerce#/media/Fichier:TSP_Deutschland_3.png)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an NP-hard problem. From now on, let’s consider that there are *n* cities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most naive formulation of this problem is to decide, for each possible edge
+    between cities, whether it belongs to the optimal solution. The size of the search
+    space is ***2ⁿ⁽ⁿ⁻¹⁾*ᐟ²** which is roughly *8.8e130* for *n=30* (much greater than
+    the number of atoms in the universe).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is much better to find, for each city, its successor. The complexity becomes
+    ***n!***which is roughly *2.6e32* for *n=30* (much smaller but still very large).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following, we will benchmark our models with the following small TSP
+    instances: [GR17, GR21 and GR24](https://github.com/yangeorget/nucs/blob/main/nucs/examples/tsp/tsp_instances.py).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GR17 is a *17* nodes symmetrical TSP, its costs are defined by *17 x 17* symmetrical
+    matrix of successor costs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let''s have a look at the first row:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*[0, 633, 257, 91, 412, 150, 80, 134, 259, 505, 353, 324, 70, 211, 268, 246,
+    121]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are the costs for the possible successors of node *0* in the circuit.
+    If we except the first value *0* (we don't want the successor of node *0* to be
+    node *0*) then the minimal value is *70* (when node *12* is the successor of node
+    0) and the maximal is *633* (when node *1* is the successor of node *0*). This
+    means that the cost associated to the successor of node *0* in the circuit ranges
+    between *70* and *633*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modeling the TSP
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We are going to model our problem by reusing the [**CircuitProblem**](https://github.com/yangeorget/nucs/blob/main/nucs/problems/circuit_problem.py)
+    provided off-the-shelf in NuCS. But let's first understand what happens behind
+    the scene. The **CircuitProblem** is itself a subclass of the [**Permutation**](https://github.com/yangeorget/nucs/blob/main/nucs/problems/permutation_problem.py)
+    problem, another off-the-shelf model offered by NuCS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The permutation problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The permutation problem defines two redundant models: the successors and predecessors
+    models.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The successors model (the first n variables) defines, for each node, its successor
+    in the circuit. The successors have to be different. The predecessors model (the
+    last n variables) defines, for each node, its predecessor in the circuit. The
+    predecessors have to be different.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Both models are connected with the rules (see the *ALG_PERMUTATION_AUX* constraints):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if *succ[i] = j* then *pred[j] = i*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if *pred[j] = i* then *succ[i] = j*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if *pred[j] ≠ i* then *succ[i] ≠ j*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if *succ[i] ≠ j* then *pred[j] ≠ i*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The circuit problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The circuit problem refines the domains of the successors and predecessors and
+    adds additional constraints for forbidding sub-cycles (we won't go into them here
+    for the sake of brevity).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The TSP model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With the help of the circuit problem, modelling the TSP is an easy task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s consider a node *i*, as seen before *costs[i]* is the list of possible
+    costs for the successors of *i*. If j is the successor of *i* then the associated
+    cost is *costs[i]ⱼ*. This is implemented by the following line where *succ_costs*
+    if the starting index of the successors costs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Symmetrically, for the predecessors costs we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we can define the total cost by summing the intermediate costs and
+    we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that it is not necessary to have both successors and predecessors models
+    (one would suffice) but it is more efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Branching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let's use the default branching strategy of the **BacktrackSolver**, our decision
+    variables will be the successors and predecessors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The optimal solution is found in **248s** on a MacBook Pro M2 running Python
+    3.12, Numpy 2.0.1, Numba 0.60.0 and NuCS 4.2.0\. The detailed statistics provided
+    by NuCS are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: In particular, there are 8 070 393 backtracks. Let's try to improve on this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NuCS offers a heuristic based on regret (difference between best and second
+    best costs) for selecting the variable. We will then choose the value that minimizes
+    the cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With these new heuristics, the optimal solution is found in **38s** and the
+    statistics are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In particular, there are 1 647 124 backtracks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can keep improving by designing a [custom heuristic](https://github.com/yangeorget/nucs/blob/main/nucs/examples/tsp/tsp_var_heuristic.py)
+    which combines max regret and smallest domain for variable selection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The optimal solution is now found in **11s** and the statistics are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: In particular, there are 403 023 backtracks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How does minimization work BTW?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Minimization (and more generally optimization) relies on a [branch-and-bound](https://en.wikipedia.org/wiki/Branch_and_bound)
+    algorithm. The backtracking mechanism allows to explore the search space by making
+    choices (**branching**). Parts of the search space are pruned by **bounding**
+    the objective variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When minimizing a variable *t*, one can add the additional constraint t < s
+    whenever an intermediate solution s is found.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'NuCS offer two optimization modes corresponding to two ways to leverage *t
+    < s*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the **RESET** mode restarts the search from scratch and updates the bounds of
+    the target variable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the **PRUNE** mode modifies the choice points to take into account the new bounds
+    of the target variable
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let''s now try the **PRUNE** mode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The optimal solution is found in **5.4s** and the statistics are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: In particular, there are only 156 627 backtracks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The table below summarizes our experiments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/969261fc6190fbaebdcbfb1b1bcda6a6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: TSP experiments with NuCS
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find all the corresponding code [here](https://github.com/yangeorget/nucs/tree/main/nucs/examples/tsp).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are of course many other tracks that we could explore to improve these
+    results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: design a [redundant constraint](https://github.com/yangeorget/nucs/blob/main/nucs/examples/tsp/total_cost_propagator.py)
+    for the total cost
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: improve the branching by exploring new heuristics
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: use a different consistency algorithm (NuCS comes with *shaving*)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: compute lower and upper bounds using other techniques
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The travelling salesman problem has been the subject of extensive study and
+    an abundant literature. In this article, we hope to have convinced the reader
+    that it is possible to find optimal solutions to medium-sized problems in a very
+    short time, without having much knowledge of the travelling salesman problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some useful links to go further with NuCS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the source code: [https://github.com/yangeorget/nucs](https://github.com/yangeorget/nucs)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the documentation: [https://nucs.readthedocs.io/en/latest/index.html](https://nucs.readthedocs.io/en/latest/index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the Pip package: [https://pypi.org/project/NUCS/](https://pypi.org/project/NUCS/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you enjoyed this article about NuCS, please clap **50** times !
+  prefs: []
+  type: TYPE_NORMAL

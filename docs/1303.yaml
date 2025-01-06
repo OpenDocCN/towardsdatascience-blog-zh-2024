@@ -1,0 +1,629 @@
+- en: Supply Chain Process Scheduling with Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/supply-chain-process-scheduling-with-python-6811cd9e650a?source=collection_archive---------6-----------------------#2024-05-24](https://towardsdatascience.com/supply-chain-process-scheduling-with-python-6811cd9e650a?source=collection_archive---------6-----------------------#2024-05-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Use linear programming to increase the production capacity of value-added services
+    in a luxury product warehouse.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)[![Samir
+    Saci](../Images/722d1f56a3308f6527d82b5ab97064ec.png)](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------)
+    [Samir Saci](https://s-saci95.medium.com/?source=post_page---byline--6811cd9e650a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6811cd9e650a--------------------------------)
+    ·8 min read·May 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7f0b7af4b75efdd3e24c74f4db80f4f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimize Warehouse Process Scheduling with Python — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In my experience, the major challenges faced in distribution centres for luxury
+    brands were related to inbound logistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After receiving, items must undergo multiple **value-added services** to complete
+    the **inbound process** and be returned to stock.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a39ff6f1b0841c6090fe0e695629677b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of Value-Added Services Required — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, a bag imported from France to China requires specific labelling
+    in Mandarin, a set of quality checks, and an anti-theft tag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These processes can **create a bottleneck** in the inbound process, which would
+    delay distribution and cause store stock-outs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a Data Scientist, how can you use linear programming to reduce bottlenecks
+    and maximize the productivity?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In this article, we will use the **job-shop problem** to optimize the scheduling
+    of these processes and maximize the overall inbound productivity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will present an optimal process scheduling solution using Google OR tools
+    to increase **inbound capacity by up to 48%**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Value-Added Services for Luxury Products
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most of the reengineering projects I have conducted were for retail, FMCG, or
+    automotive operations to reduce costs by **minimizing the use of workforce and
+    equipment**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c552c0d4a9de5f85eda6562d4ee7a29f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Examples of reengineering projects for cost reduction [Find more: [Link](https://medium.com/@s-saci95/welcome-to-my-profile-5011f02dfbf3)]
+    — (Image by Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For luxury brands, the priority was different, considering the value of goods
+    and the demand variability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Stores teams: “The collection SS2024 needs to be delivered at the stores before
+    the first week of June.”'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Logistics teams are pressured to ensure that products are received, prepared
+    and shipped on time to meet stores' demand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To illustrate this, I will use the real example of a French luxury brand that
+    operates a distribution centre in Shanghai that delivers to **35 stores in China**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b627f6512114d5e654d6c664743e71e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Distribution Center of a Luxury Brand — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This distribution centre receives items *(Garments, Bags and Accessories)* imported
+    from France for the local market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/51ca132c6ff8e87a7b107db1580b535b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Products Flows in the Warehouse — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After reception and value-added services, items can go through two different
+    flows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cross-docking flow**: items are shipped the same day to the stores'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*⌛ KPI: the lead time between reception and shipping*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Stock flow**: items are put away to stock (for several days or weeks) before
+    being ordered, picked and shipped to the stores'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*⌛ KPI: the lead time between reception and putaway*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: These two indicators have the common problem of depending on the warehouse's
+    **Value-Added Services (VAS)** capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are these Value-Added Services?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Operation 1 — Anti-theft tag:** operators put aself-alarm tag to protect
+    your goods against theft in the store'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/9f2994e8c9b3cf9b82323690950b4c6f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Anti-theft tag - (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Operation 2 — Labelling:** operators print labels in the local language and
+    perform label sewing'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/ba3354f86de77f3fbb6647811824b5b4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of label — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Operation 3 — Kitting & Repackaging:** operators put items in sales packaging
+    and add Gift With Purchase (GWP), individual notes and Certificate of Authenticity'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/9e71b1ee6689ef8992658450c836c34b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of packing with Gift with purchase and certificate — (CAD Model by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After completing these three steps, the goods can be stored in the stock area
+    or shipped to the stores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What could go wrong?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If the capacity of the overall process (items/day) is too low, this can quickly
+    become a bottleneck if you face peaks of inbound volumes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Problem Statement: Warehouse VAS Scheduling'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Inbound Operations Optimization for Luxury Products
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You are the data science manager in the logistics department of this iconic
+    luxury brand focusing on Fashion, Fragrance and Watches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The inbound manager of this distribution centre requested your support in reducing
+    the bottlenecks caused by inefficiencies in the VAS scheduling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Her team receives **daily several thousands of prêt-à-porter** **sets** (Ready-to-wear),
+    including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1 Female dress** that requires **Labeling** and **Repacking**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**A Handbag** that requires **Labeling**, **Anti-theft tags** and **Repacking**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**1 Leather Belt** that requires Anti-theft tags, **Labeling** and **Repacking**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As they are sold together, these items need to be ready at the same time after
+    going through the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The receiving team unloads pallets from the truck and puts them in the **staging
+    area.**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/8063071cfbe607372ae092572885ed1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Unloading and transfer of the pallet to the staging area — (CAD Model by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Machine 1 — Anti-theft tag:** an operator puts an anti-theft tag on each
+    bag and belt.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/71322424dc103ed766359fdc550b522c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 2 workstations where operators put an anti-theft tag on each Handbag and Belt
+    — (CAD Model by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Machine 2—Labelling:** After printing in a dedicated area, labels are sewn
+    on belts, handbags, and dresses.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/08bb490dbf68609b2a4a24e98515f186.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 4 workstations where operators perform label sewing — (CAD Model by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Machine 3 — Kitting & Repackaging:** Operators add a certificate of authenticity
+    and perform fine packing for each item.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/671540aa157ac9d195fd6a216536b758.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 4 workstations where operators perform re-packaging — (CAD Model by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After these steps, goods are transferred to a final staging area to wait for
+    shipping (Flow 1) or put away in the stock area (Flow 2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Objective:** Reach maximum productivity of sets assembled per hour (sets/hour).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Problem Statement: The Job-Shop Problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The **Job Shop Scheduling Problem (JSSP)** is an NP-hard problem defined by
+    a set of jobs that machines must execute in a specific order for each job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our example, we have one job per item in the set, and they can (have) to
+    be performed simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae4bb341aa8cabee4c28f1e1d1090852.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example with 3 jobs using 3 machines — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The table above defines the execution time (min) and machine processing order
+    for each job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, **Job 2 (Handbag)** starts with placing **Anti-theft Tags** using
+    Machine 1 (6 min), followed by Label Sewing **using Machine 2** *(4 min)*, and
+    finally ends with **Kitting and Packing using Machine 3** *(3 min)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have constraints on how to use machines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The machines can only execute one job at a time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once started, a machine cannot be interrupted until the assigned job is completed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The objective is to** minimize the makespan, i.e. the total time to complete
+    all jobs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the baseline?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**The Naive Solution: 1 job cycle at a time**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/8ba8fa92122764e17ff1bc487dd12b87.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: First Naive Approach — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We assume that the VAS team leader organizes the jobs in sequence and avoids
+    performing any job in parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Makespan: **30 min**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Productivity: **2 sets/hour**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Comments**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This simple approach is the worst in terms of productivity. Because jobs are
+    processed in sequence, machines often stay idle (unused).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Question:** What would be the result if we performed jobs in parallel?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Optimal Solution**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This example fits with the Job Shop Scheduling Problem using Google OR-Tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: OR-Tools is an open-source collection [](https://developers.google.com/optimization)
+    of Google with tools for combinatorial optimization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The objective is to find the best solution out of many possible solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have been using it for several case studies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Samir Saci](https://medium.com/u/bb0f26d52754?source=post_page---user_mention--6811cd9e650a--------------------------------),
+    Design Pathfinding Algorithm using Google AI to Improve Warehouse Productivity'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](/optimizing-warehouse-operations-with-python-part-3-google-ai-for-sprp-308c258cb66f?source=post_page-----6811cd9e650a--------------------------------)
+    [## Improve Warehouse Productivity using Pathfinding Algorithm with Python'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implement Pathfinding Algorithm based on Travelling Salesman Problem Designed
+    with Google AI Linear Optimization…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/optimizing-warehouse-operations-with-python-part-3-google-ai-for-sprp-308c258cb66f?source=post_page-----6811cd9e650a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Samir Saci](https://medium.com/u/bb0f26d52754?source=post_page---user_mention--6811cd9e650a--------------------------------),
+    Optimize Workforce Planning using Linear Programming with Python'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](/optimize-workforce-planning-using-linear-programming-with-python-47a0b5f89a6f?source=post_page-----6811cd9e650a--------------------------------)
+    [## Optimize Workforce Planning using Linear Programming with Python'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the minimum number of temporary workers you need to hire to absorb your
+    weekly workload while ensuring…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/optimize-workforce-planning-using-linear-programming-with-python-47a0b5f89a6f?source=post_page-----6811cd9e650a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us use this library to find the optimal sequencing to reduce the **makespan**
+    for this specific set of processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization of Process Scheduling using Linear Programming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Results: Optimized vs. Naive Solutions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/f310bb830990be43e6571d26031f2c27.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: First Naive Approach — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f6c283e52e2439baae15cf627ff567d0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimized Solution with Google OR-Tools — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The two graphs above represent the initial solution (Naive Solution: 1 job
+    at a time) and the optimized solution (Parallel Tasking).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Total Makespan:** 16 min **(-47%)**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Productivity:** 3.75 sets/hour **(+85%)**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Idle time per cycle:** 18 min **(-71.4%)**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The results are satisfying.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to get these results?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Build the optimization model with Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Initialize your linear programming model**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the list jobs_data, you define each job's operations, including the machine
+    associated with it and the timing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Initialize variables and create sequences**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Add Constraints and Set up the Solver**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solver Optimal Solution**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Output**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Based on this output, we can draw the updated schedule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eaf95c8720ade176135e2013f395560e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimized Solution with Google OR-Tools — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considering the constraints, this solution minimizes machine idle time and provides
+    the highest productivity (sets/hour).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We increased productivity by +48% by implementing a smart scheduling solution
+    that maximises the resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This solution was based on a simple scenario using a single assembly line (1
+    Machine per Type).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we have higher productivity by changing the conditions?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/9fe74e48d4a9ff2ef8460df71d5792fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimized Solution with idle sequences (yellow) — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the chart above, I have highlighted the potential additional jobs we could
+    add during the idle time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Machine 1: 1 sequence** of 4 min, which equals the time for Job 3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Machine 2: 1 sequence** of 4 min, which equals the time for Job 1 & Job 2'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Machine 3: 2 sequences** of 4 min, the time for Jobs 1,2 and 3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Question:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What would be the average productivity if we start Jobs of **Cycle n+1** during
+    these idle sequences of **Cycle n**?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go Beyond
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What would impact the overall productivity if we had parallel workstations for
+    label sewing?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![](../Images/5f111c5f5652ce083db7b1882aebe17e.png)](https://towardsdatascience.com/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Process definition for the Queueing Theory — (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This question can be answered by using the queuing theory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5fb18c9430418a6062fc73042b3b703d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Queueing theory used to design a packing station — (Image by Samir Saci)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn more about it in this article,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3?source=post_page-----6811cd9e650a--------------------------------)
+    [## Supply Chain Process Design using the Queueing Theory'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apply several principles of the Queueing Theory with Python to design a parcel
+    packing process for an e-commerce…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/supply-chain-process-design-using-the-queueing-theory-2ad75e58d1f3?source=post_page-----6811cd9e650a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: About Me
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s connect on [Linkedin](https://www.linkedin.com/in/samir-saci/) and [Twitter](https://twitter.com/Samir_Saci_),
+    I am a Supply Chain Engineer using data analytics to improve logistics operations
+    and reduce costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need consulting or advice for your supply chain transformation, please
+    contact me via [Logigreen Consulting](https://www.logi-green.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are interested in Data Analytics and Supply Chain, have a look at my
+    website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://samirsaci.com/?source=post_page-----6811cd9e650a--------------------------------)
+    [## Samir Saci | Data Science & Productivity'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A technical blog focusing on Data Science, Personal Productivity, Automation,
+    Operations Research and Sustainable…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: samirsaci.com](https://samirsaci.com/?source=post_page-----6811cd9e650a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '💌 New articles straight in your inbox for free: [Newsletter](https://www.samirsaci.com/#/portal/signup)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '📘 Your complete guide for Supply Chain Analytics: [Analytics Cheat Sheet](https://bit.ly/supply-chain-cheat)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Google AI, Google OR-Tools Library, [Link](https://developers.google.com/optimization)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

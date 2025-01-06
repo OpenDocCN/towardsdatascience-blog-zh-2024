@@ -1,0 +1,894 @@
+- en: Exploring Music Transcription with Multi-Modal Language Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17](https://towardsdatascience.com/exploring-music-transcription-with-multi-modal-language-models-af352105db56?source=collection_archive---------1-----------------------#2024-11-17)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using Qwen2-Audio to transcribe music into sheet music
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[![Jon
+    Flynn](../Images/492cef280f4ea0b002e5d00ad2e083a5.png)](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)
+    [Jon Flynn](https://medium.com/@jon.flynn2?source=post_page---byline--af352105db56--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af352105db56--------------------------------)
+    ·17 min read·Nov 17, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c1e9d05246384c1d3a88590ce3d7033.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automatic music transcription is the process of converting audio files like
+    MP3 and WAV into sheet music, guitar tablature, and any format a musician may
+    want to learn a song on their instrument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll go over the best current tools for doing this, which happen to be deep
+    learning-based, and a novel approach for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Current state of the art
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The current state-of-the-art for this task comes from [Magenta](https://magenta.tensorflow.org/),
+    an open-source research project developed by the now defunct (as of April 2023)
+    Google Brain Team.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'They released a paper [Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)
+    in 2021 which used a T5-inspired transformer model (similar to [“t5-small”](https://huggingface.co/google-t5/t5-small))
+    with 54 million parameters and the [Maestro dataset](https://magenta.tensorflow.org/datasets/maestro),
+    achieving great results. The problem is approached as a sequence-to-sequence task
+    using an encoder-decoder Transformer architecture. The encoder processes mel spectrogram
+    frames as input and produces embeddings, while the decoder uses these embeddings
+    via cross-attention to autoregressively generate a sequence of MIDI-like tokens.
+    Their vocabulary consisted of four types of tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note tokens (128 values for MIDI pitches)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Velocity tokens (128 values including zero for note-off)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Time tokens (6,000 values in 10ms bins for absolute timing)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: EOS token (to mark sequence end)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'See the image below for a visualisation of the architecture and an example
+    sequence of their custom MIDI tokens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/67b417bfc9720edd402c1c002ca058f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1\. from [Sequence-to-Sequence Piano Transcription with Transformers](https://arxiv.org/abs/2107.09142)
+    paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our model is a generic encoder-decoder Transformer architecture where each input
+    position contains a single spectrogram frame and each output position contains
+    an event from our MIDI-like vocabulary. Outputs tokens are autoregressively sampled
+    from the decoder, at each step taking the token with maximum probability.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In 2022, they released a paper, [MT3: Multi-Task Multitrack Music Transcription](https://arxiv.org/abs/2111.03017).
+    This experiment used the same approach as the last one but added additional instrument
+    tokens to represent the different instruments. Again, they used a similar T5 model
+    and achieved great performance against many of the datasets trained on, notably
+    [Slakh](http://www.slakh.com/), Maestro and [MusicNet](https://www.kaggle.com/datasets/imsparsh/musicnet-dataset).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[MR-MT3](https://arxiv.org/abs/2403.10024) was released the following year
+    as a slight improvement to MT3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why use language models and not continue with these SOTA models?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Compute/GPU resources**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Huge resources were needed to train this from scratch, despite being much smaller
+    in size compared to even the smallest language models. The 2021 paper noted:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “We trained all models on 32 TPUv3 cores, resulting in a per-core batch size
+    of 8\. Based on validation set results, overfitting did not seem to be a problem,
+    so we allowed training to progress for 400K steps, which took about 2.5 days for
+    our baseline models.”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The MT3 paper doesn’t provide as specific details on training, stating they
+    train for 1 million steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: These models have some inherent limitations in their output flexibility. While
+    language models typically have large vocabularies (often 30,000+ tokens) that
+    are extensively pre-trained on diverse natural language data, MT3 and similar
+    music transcription models use a much smaller, specialised token vocabulary (only
+    a few thousand tokens) focused solely on musical events. This specialisation means
+    that adding new tokens, such as for new instruments or playing techniques like
+    palm muting on guitars or pizzicato on violins, is likely not easy — it requires
+    significant retraining to integrate these new tokens effectively with the existing
+    vocabulary, and often requires substantial training data demonstrating these techniques.
+    This differs from large language models which can often describe such musical
+    nuances in natural language without modification, as they’ve encountered these
+    concepts during their broad pre-training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transfer learning and zero-shot
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can leverage transfer learning from large open-source pre-trained audio and
+    language models. Examples of music generation models include [OpenAI’s Jukebox](https://openai.com/index/jukebox/)
+    and [Meta’s MusicGen](https://audiocraft.metademolab.com/musicgen.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modern multi-modal model architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[GPT-4o](https://openai.com/index/hello-gpt-4o/) is designed to handle text,
+    audio and images “natively”. Although OpenAI has not released the technical details
+    on this, it’s assumed that some weights in the network will process all modalities.
+    It’s possible that the model uses a decoder-only architecture like language only
+    GPT models without the need for encoder components to convert different modalities
+    to a dense representation first. This design allows the model to seamlessly process
+    and interpret inputs like text and images together, potentially offering performance
+    benefits both computationally and in terms of model understanding.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Many multi-modal models take a simpler approach reminiscent of the encoder-decoder
+    architecture: they combine two pre-trained models — an encoder for the specific
+    input modality (like [ViT](https://huggingface.co/docs/transformers/main/en/model_doc/vit)
+    for vision or an audio encoder for sound) and a Large Language Model (such as
+    LLaMA, Gemma, or Qwen). These models are connected through projection layers that
+    align their representations in a shared latent space, often using just a single
+    linear layer. These projection layers learn to convert the encoder’s output into
+    a format that matches the LLM’s expected input dimensions and characteristics.
+    The projection creates new embeddings/tokens from the input modality that can
+    then be injected into the LLM’s input sequence. [LLaVA](https://llava-vl.github.io/)
+    is a prime example of this architecture for vision-language tasks, while [Spotify’s
+    Llark](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/)
+    and [Qwen-Audio](https://github.com/QwenLM/Qwen2-Audio) apply the same principle
+    using audio encoders instead of vision encoders.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s some pseudocode on how the models are stitched together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Spotify Llark and Qwen2-Audio**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Overview of architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Llark uses [OpenAI’s Jukebox](https://research.atspotify.com/2023/10/llark-a-multimodal-foundation-model-for-music/)
+    and Qwen2-Audio uses [OpenAI’s Whisper](https://openai.com/index/whisper/) for
+    the audio towers. Jukebox is a music generation model but it can also take in
+    audio clips as input and outputs a continuation of the audio clip. Whisper is
+    used for transcribing voice to text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given their purpose, the choice of audio module is clear: Llark specialises
+    in music analysis, while Qwen2Audio primarily focuses on responding to voice instructions
+    with some basic audio and music analysis capabilities.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Determining the optimal source for extracting embeddings from large pre-trained
+    models involves research and experimentation. Additionally, deciding whether to
+    fine-tune the entire module or freeze parts of it is a crucial design choice.
+    For instance, LlaVa’s training strategy involves freezing the vision tower and
+    focusing on fine-tuning the projection layer and language model. We’ll go over
+    this aspect of each model below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Llark: why Jukebox? Are these embeddings the best as of September 2024?'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Determining the optimal location to extract embeddings from large models typically
+    requires extensive probing. This involves testing various activations or extracted
+    layers of the model on different classification tasks through a process of trial
+    and error. For music generation models, this could include tasks like genre recognition,
+    instrument detection, emotion detection, as well as analysis of harmonic structures
+    and temporal patterns. Many commercial embedding models (lik[e OpenAI’s embedding
+    models](https://openai.com/index/new-embedding-models-and-api-updates/)) are trained
+    specifically for embedding generation with specialised architectures and training
+    objectives, rather than being fine-tuned versions of existing language models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The two largest publicly available music generation and music continuation
+    (i.e.: able to take in audio as input) models are Jukebox and MusicGen. MusicGen
+    is newer and faster, and therefore seemed like it would be the obvious choice
+    to me. However, according to [this paper on probing MusicGen](https://www.merl.com/publications/docs/TR2024-032.pdf),
+    embeddings extracted from Jukebox appear to outperform MusicGen on average in
+    classification tasks. The findings from this paper led to the authors of Llark
+    using the following approach for extracting embeddings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Embeddings are derived from the output of the 36th layer of the Jukebox encoder
+    following the approach described in [Castellon et al. (2021)](https://arxiv.org/abs/2107.05677)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Original Jukebox encoding:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '* 4800-dimensional vectors at 345Hz'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* For a 25s clip: over 4.14 * 10⁷ floating-point values'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'The authors use a downsampling approach: Mean-pooling within 100ms frames,
+    resulting in:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '* Downsampled frequency: 10Hz'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* Embedding size: 1.2 × 10⁶ for a 25s audio clip. That means a 2D array with
+    shape [240, 4800].'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '* Retains temporal information (unlike Castellon et al. who average over the
+    time dimension)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: (The downsampled embedding size is approximately 6x larger than CLIP ViT-L14
+    models used in many multimodal vision models)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Qwen2Audio: Whisper'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The embedding extraction for Qwen2Audio isn’t mentioned in detail in the paper.
+    Whisper is an encoder-decoder architecture where the encoder generates deeply
+    learned representations of the audio and the decoder decodes the representations
+    to text (the transcription). In Qwen2Audio, it appears they extract embeddings
+    from the final layer of Whisper’s encoder, although they don’t mention whether
+    they freeze it during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pre-trained weights, training data and datasets**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Unfortunately Spotify has not provided any datasets or their trained model
+    weights to the public, noting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“With respect to inputs: the inputs to our model are public, open-source, Creative
+    Commons-licensed audio and associated annotations. However, each individual audio
+    file can have its own, potentially more restrictive license. Many of the audio
+    files include “no derivatives” licenses. We encourage users of the datasets to
+    familiarize themselves with the restrictions of these licenses; in order to honor
+    such licenses, we do not release any derivatives from the training data in this
+    paper (including query- response pairs or trained model weights).”'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'They used the following datasets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MusicCaps (Agostinelli et al., 2023)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: YouTube8M-MusicTextClips (McKee et al., 2023)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MusicNet (Thickstun et al., 2017)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: FMA (Defferrard et al., 2017)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MTG-Jamendo (Bogdanov et al., 2019)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: MagnaTagATune (Law et al., 2009)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Llark details it’s training data generation process in the following extract:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“We use variants of ChatGPT to extract the instruction- tuning data for all
+    experiments. However, the exact language model used varies by dataset. We select
+    the OpenAI model as follows: We use GPT-4 for all reasoning tasks. We found that
+    GPT-4 was much more adept at following the complex instructions in the Reasoning
+    task family. For datasets with more than 25k samples, we limit Reasoning data
+    to a random subsample of 25k tracks.”'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This results in Q&A data like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aeb50a9a892d9ed3b78415702057fc99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Example text inputs and outputs from LLark, for the provided audio.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The datasets used for training Qwen2Audio are not shared either, but the trained
+    model is widely available and also is implemented in the `transformers` library:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Qwen2-Audio official github repo](https://github.com/QwenLM/Qwen2-Audio)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Qwen2-Audio transformers docs](https://huggingface.co/docs/transformers/main/en/model_doc/qwen2_audio)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For this project, fine-tuning off a pre-trained Llark model would have been
+    optimal, given it’s reportedly good performance against the evaluation benchmarks
+    Spotify stated in the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, given they didn’t release the weights for it, it’s unfeasible to start
+    training a model like this from scratch without a fair bit of expertise and money.
+    Spotify trained it on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our model is trained on 4 80GB NVIDIA A100 GPUs. Training takes approximately
+    54 hours.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This would cost around $700 using a provider like LambdaLabs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because of the above, I went with Qwen. However, Qwen2-Audio doesn’t perform
+    that well across basic music tasks like tempo and instrument detection. I detail
+    this below in the evaluation section. This means that the model is probably not
+    large enough or pre-trained enough to achieve this task, but my hope is I could
+    at least set a starting point and framework for fine-tuning on this task in the
+    future. As Alibaba state in their Qwen2-Audio [blog post](https://qwenlm.github.io/blog/qwen2-audio/):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also plan to build larger Qwen2-Audio models to explore the scaling laws
+    of audio language models.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For my own learning though, I did have a go at re-creating the model using `torch`
+    and pre-trained models with the `transformers` library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I also created datasets for Q&A data and embeddings. I generated short form
+    Q&A data for the URMP dataset, e.g.: “What is the tempo of this track”, “What
+    instruments are playing in this audio”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Here’s a notebook](https://colab.research.google.com/drive/1jdR5w-XlJQFog47ZJ36ckEVMW0F5qIpl)
+    for running Jukebox in a Colab environment to take advantage of the cheap T4 GPU’s.
+    I uploaded both Q&A and embeddings datasets to HuggingFace [here](https://huggingface.co/jonflynn).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Here’s a notebook](https://colab.research.google.com/drive/1_V5B9ZrwrKtom-N4r-Om3mqlXKPacUBh#scrollTo=72Gv5raTIPqi)
+    with Llark replicated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training data for music transcription
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Transcription format
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I chose [ABC music notation](https://trillian.mit.edu/~jc/music/doc/ABC.html)
+    as the output format that the language model is expected to transcribe the music
+    in. Here’s an example of it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this notation we have the time signature and tempo defined at the top denoted
+    by ‘M’ and ‘Q’. The ‘L’ indicates the default note length of the notation, in
+    this case a sixteenth note, which is the norm. We then define each instrument
+    and the default octave they should adhere to when writing the notes for each of
+    them. Here’s a summary of the key syntactical points for writing notes in ABC
+    music notation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notes are represented by letters A-G, with lowercase letters indicating higher
+    octaves
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sharps are denoted by ^ before the note, flats by _
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Natural signs are represented by =
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note length is indicated by numbers after the note (C2 is twice as long as C)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dotted notes use a . after the note (C. is a dotted quarter note)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rests are represented by z, with numbers for duration (z2 is a half rest)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chords are enclosed in square brackets [CEG]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ties are shown with a hyphen -
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bar lines are represented by |
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Broken rhythms use > or < between notes (C>D means dotted-C eighth note followed
+    by D sixteenth note)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why ABC?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The reasons for choosing this notation are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s a minimalist format for writing music
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It’s widely used and popular; language models already have good comprehension
+    of ABC notation due to extensive pre-training on it.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It’s flexible and can easily be extended to include tempo changes, time signature
+    changes, additional playing styles like mentioned above, etc…
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: I converted the MIDI files provided by the datasets to ABC notation using [this
+    library](https://github.com/sshlien/abcmidi). A notebook for creating the datasets
+    is [here](https://colab.research.google.com/drive/1CdQ_PUjhCvCR2VjGt3ya1hNowPrr0Xun).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To evaluate both the original model and each stage of fine-tuning I performed
+    thereafter, I randomly selected 30 samples of varying complexity from the URMP
+    dataset and ran the model three times on each sample, manually examining all responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Through manual testing, I found the optimal decoding parameters to be a temperature
+    of 0.7 and a top_p of 1.2\. The maximum number of tokens to return was capped
+    at 2048\. Adjusting the max seemed to have little difference on performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The original model performed poorly on this evaluation set. While it occasionally
+    predicted the tempo and instruments correctly, it mostly failed to do so. A text
+    file with the evaluation results is available [here](https://drive.google.com/file/d/1-0XgJDOhnj1kbffeHcQutgZ1td59WQjI/view?usp=drive_link).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given this starting point, it’s unlikely that we’ll see strong results from
+    this experiment without a robust pre-trained model. However, the goal is to develop
+    strategies that can be applied in the future as more advanced pre-trained models
+    become available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fine-tuning strategies
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I first attempted fine-tuning with basic cross-entropy loss. Supervised fine-tuning
+    with cross-entropy loss is a quick way to start teaching the model but a basic
+    loss function like this has limitations as we will see below. The intuition behind
+    this stage of training is that it would nudge the model in the right direction
+    and it would pick up any patterns or any customised ABC notation the dataset may
+    have which the model may not have seen before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross-entropy loss with teacher forcing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, we trained it in a typical supervised fine-tuning manner for language
+    models. I used the `SFTtrainer` from the `trl` library for this, which uses cross-entropy
+    loss with teacher forcing defined step by step below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model predicts the next token in the sequence.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The loss is calculated based on the difference between the predicted probabilities
+    (logits) and the actual next token.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For the next prediction, the model is given the actual correct token (ground
+    truth), rather than its own prediction. This is known as teacher forcing, it helps
+    stabilise training and significantly speed it up, especially in the early stages.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The results from this training phase were poor. It degraded the performance
+    of the original model. The model, which previously handled tempo and instrument
+    recognition well, now mostly got these wrong. It also began producing garbled
+    text output with endless repetition. This occurred even when setting a low learning
+    rate, applying gradient clipping, and using low LoRA ranks to mitigate large changes
+    to the model. Overall, it seemed the model was very sensitive to the training
+    applied.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, while this training phase may offer some improvements, it won’t lead
+    to optimal performance due to the limitations of our basic loss function. This
+    function struggles to fully capture the model’s performance nuances. For example,
+    when using teacher forcing, instrument predictions can yield deceptively low loss
+    across certain token sections. If an instrument name begins with “V”, the model
+    might confidently predict “Violin” or “Viola” based on our dataset, regardless
+    of accuracy. Additionally, the loss function may not accurately reflect near-misses,
+    such as predicting a tempo of 195 instead of 200 — a small difference that’s reasonably
+    accurate but potentially penalised heavily dependent on the distribution of probabilities
+    amongst logits. It’s possible that neighbouring numbers also have high probabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RLHF with PPO
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Because of these limitations, we can create our own custom loss function that
+    can more accurately score the response from the model. That is, given a predicted
+    sequence from the model, the loss function could give it a score between 0 and
+    1 on how good it is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, integrating this custom loss function into supervised fine-tuning
+    presents a significant challenge. The issue stems from the non-linearity introduced
+    by the custom loss function, which prevents the direct calculation of gradients.
+    Let’s break this down:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In traditional SFT with cross-entropy loss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model outputs logits (raw scores) for each token in its vocabulary
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These logits directly represent the model’s prediction probabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The loss function compares these probabilities to the ground truth
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Gradients can be computed directly through this comparison
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The chain rule of calculus allows us to propagate these gradients back through
+    the model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With our custom loss function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model must first generate complete text output
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This generation process involves sampling from probability distributions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our loss function then analyses this text output (checking tempo, notes, etc.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This creates a non-differentiable step between the model’s logits and our loss
+    calculation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The sampling and text analysis steps break the gradient chain needed for backpropagation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To overcome this, reinforcement learning techniques like Proximal Policy Optimisation
+    (PPO) can be employed. PPO is specifically designed to handle non-differentiable
+    loss functions and can optimise the model by considering the entire policy (the
+    model’s output distribution), rather than relying on gradient information from
+    logits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note, there’s a* [*lot of great articles*](https://medium.com/search?q=PPO+explained)
+    *on here explaining PPO!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The key insight of PPO is that instead of trying to directly backpropagate
+    through the non-differentiable steps, it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Treats the model’s outputs as actions in a reinforcement learning framework
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Uses the custom loss function as a reward signal
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Updates the model’s policy (its probability distributions over tokens) to maximise
+    expected reward
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Does this while ensuring the updated policy doesn’t deviate too far from the
+    current one
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This approach allows us to effectively train the model with the custom loss
+    function, ensuring performance improvements without disrupting the core training
+    dynamics. The PPO algorithm’s conservative update strategy helps maintain stability
+    during training, which is particularly important when working with large language
+    models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, this scoring function would be implemented as a separate LLM in the
+    form of a “reward model” commonly used when fine-tuning models via RLHF, which
+    was a breakthrough first introduced when ChatGPT came out. Due to the nature of
+    this task, we can manually write code to score the responses, which uses fewer
+    resources and is quicker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For time signature and tempo recognition this is easy to calculate. We extract
+    all predicted items with regex, for example extracting the metre:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The model should learn the syntax and structure we want it to output in the
+    SFT stage. If it outputs something that will cause our regex to not find anything
+    or error, we can just skip that sample, assuming it’s a small minority of the
+    dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We extract the predicted tempo and write a function that is more forgiving
+    for small errors but penalises larger errors more heavily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For small differences (≤10 BPM), it uses linear scaling.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For larger differences, it switches to exponential scaling.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The final loss is capped between 0 and 1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s break down the key components of this custom loss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code for the custom loss is [here](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-#scrollTo=mOs_gWcjrBgv)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1\. Metre Loss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The metre loss focuses on the time signature of the piece. It compares the predicted
+    metre with the ground truth, considering both the numerator and denominator separately,
+    as well as their ratio. This approach allows for a nuanced evaluation that can
+    handle various time signatures accurately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The metre loss uses a combination of linear and exponential scaling to penalise
+    differences. Small discrepancies result in a linear increase in loss, while larger
+    differences lead to an exponential increase, capped at a maximum value of 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2\. Tempo Loss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tempo loss evaluates the accuracy of the predicted beats per minute (BPM). Similar
+    to the metre loss, it uses a combination of linear and exponential scaling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For small tempo differences (≤10 BPM), the function applies linear scaling.
+    Larger differences trigger exponential scaling, ensuring that significant tempo
+    mismatches are penalised more heavily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3\. Pitch Loss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pitch loss is perhaps the most crucial component, as it assesses the accuracy
+    of the transcribed notes. This function uses the Levenshtein distance to compare
+    the sequence of notes in each voice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pitch loss calculation accounts for multiple voices, matching each predicted
+    voice to the closest ground truth voice. This approach allows for flexibility
+    in voice ordering while still maintaining accuracy in the overall pitch content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4\. Instrument Loss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The instrument loss evaluates the accuracy of instrument selection for each
+    voice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This function considers exact matches, instruments from the same family, and
+    uses string similarity for more nuanced comparisons. It provides a comprehensive
+    assessment of how well the model identifies and assigns instruments to each voice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**5\. Combining the Losses**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The final loss is a weighted combination of these individual components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This weighting scheme prioritises pitch accuracy while still considering other
+    important aspects of music transcription.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training and hyperparameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'PPO training generally requires a lot more memory than SFT for a few reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple policy evaluations — PPO needs to maintain both the current policy
+    (model weights) and an “old” policy to compute the probability ratio between them.
+    This effectively doubles the model parameters in memory.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Experience buffer — PPO stores a buffer of experiences (states, actions, rewards,
+    etc.) to perform updates in mini-batches. This buffer can be quite large and takes
+    significant memory.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Advantage estimation — Computing advantages requires keeping track of value
+    estimates and returns across trajectories, adding another layer of memory overhead.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Additional optimisation objectives — PPO tracks multiple loss components (policy
+    loss, value loss, entropy bonus) and their gradients, whereas SFT has a single
+    loss.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Because of the above, we’re more limited than SFT in the size of the models
+    we can train and how much it costs. Whereas the above training I could do on an
+    A100 40GB in Colab, for the PPO training I needed more memory. I trained on an
+    H100 80GB, which could train a LoRA with a rank of 128 and a batch size of 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My hyperparameter sweep was narrow, I went with what seemed most intuitive using
+    batch sizes ranging from 1 to 16 and learning rates from 2e-5 to 2e-4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model made no improvements to the task. The text file with the results is
+    [here](http://asdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I tracked various training metrics using Weights & Biases (WandB). Key metrics
+    included the policy loss, value loss, total loss, KL divergence, and the reward
+    model’s score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For all hyperparameter runs, the logs no improvement in the rewards and loss
+    calculated over time. The KL divergence remained within the pre-defined threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/891e605d5da483ab80fff11d72e18d8b.png)![](../Images/de9c931b5e76c6c8b11bbaa5f855d234.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'While this initial experiment didn’t achieve the desired performance in music
+    transcription, we’ve provided some groundwork for future developments in the space.
+    The challenges encountered have provided valuable insights into both the technical
+    requirements and potential approaches for tackling this complex task. Future work
+    could explore several promising directions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experimenting with larger pre-trained models as they become available
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Expanding the training dataset with more diverse musical examples
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Further refinement of the reward functions to capture more nuanced musical relationships
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring hybrid approaches that combine traditional music processing techniques
+    with language model capabilities
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Here’s my notebook](https://colab.research.google.com/drive/1lpPfn9EFE2rBsasIJNv8Cy9qTvtfXzq-)
+    for running these experiments with Qwen2-Audio! and here’s a link to [my github](https://github.com/jonflynng)
+    with all notebooks.'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,414 @@
+- en: How to build your own AI assistant for bookmark searching?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-build-your-own-ai-assistant-for-bookmark-searching-7e3dcc17e3fc?source=collection_archive---------11-----------------------#2024-04-09](https://towardsdatascience.com/how-to-build-your-own-ai-assistant-for-bookmark-searching-7e3dcc17e3fc?source=collection_archive---------11-----------------------#2024-04-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step guide for an automated GPT-based bookmark searching pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@swsychen?source=post_page---byline--7e3dcc17e3fc--------------------------------)[![Jiaqi
+    Chen](../Images/c2ed8f7ef6f52e96081dab5fa88aa883.png)](https://medium.com/@swsychen?source=post_page---byline--7e3dcc17e3fc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e3dcc17e3fc--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e3dcc17e3fc--------------------------------)
+    [Jiaqi Chen](https://medium.com/@swsychen?source=post_page---byline--7e3dcc17e3fc--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e3dcc17e3fc--------------------------------)
+    ·9 min read·Apr 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fa51dbd9b13fac628bfb7ab78a40b999.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have you encountered moments when searching for a specific bookmark in your
+    Chrome browser only to find that you’re overwhelmed by their sheer number? It
+    becomes quite tedious and draining to sift through your extensive collection of
+    bookmarks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8bba0292c8e8539ffd68eae911cfc8a6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Bookmark ocean. — Snapshot from author’s Google Chrome bookmark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Actually, we can simply leave it to ChatGPT which is currently the most popular
+    AI model that can basically answer everything we ask. Imagine, if it can gain
+    access to the bookmarks we have, then bingo! Problem solved! We can then ask it
+    to give us the specific link we want from the entire bookmark storage, like the
+    following GIF:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/93760a5cdc9e192d916a66a097ceac30.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Showcasing the usage of the AI assistant. — GIF from screen recording.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To achieve this, I built a real-time pipeline to update the Chrome bookmarks
+    into a vector database that ChatGPT will use as the context for our questions.
+    I will explain in this article step by step how to build such a pipeline and you
+    will eventually have your own one too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Features
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we begin, let’s count the advantages of it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike traditional search engines (like the one in Chrome bookmark manager),
+    AI models can have a good semantic understanding of each title. If you forget
+    the exact keyword when searching bookmarks, you can simply draw a rough outline
+    and ChatGPT can get it! It can even understand titles in a different language.
+    Truly remarkable.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/4aaecd3196df8144fa60fc47788bfe60.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What ChatGPT can do. — Snapshot from the AI assistant interface
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/91b1fe29a7c7382ee111bf263df0b22f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: When the Chrome bookmark search engine fails. — Snapshot from author’s Google
+    Chrome bookmark manager
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Everything is automatically up-to-date. Each newly added bookmark will be
+    automatically reflected in the AI knowledge database simply within a few minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pipeline Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/72b7336d53b94b2b896d47f6f91348c4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: All the components in the pipeline. — Image by Author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here you can see the role of each component in our pipeline. The Chrome bookmarks
+    are extracted into rows of a Google Sheet using our customized Chrome plugin.
+    The Estuary Flow gets (or captures) all the sheet data which will then be vectorized
+    (or materialized) by an embedding model using OpenAI API. All the embeddings (each
+    vector corresponds to each row of the sheet — i.e. each single bookmark) will
+    be retrieved and stored in the Pinecone vector database. After that, the user
+    can give prompts to the built app using Streamlit and LangChain (e.g. “Are there
+    links for dinov2?”). It will first retrieve some similar embeddings from Pinecone
+    (getting a context/several potential bookmark options) and combine them with the
+    user’s question as input to ChatGPT. Then ChatGPT will consider every possible
+    bookmark and give a final answer to you. This process is also called RAG: Retrieval
+    Augmented Generation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following parts, we will see how to build such a pipeline step by step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chrome Plugin for bookmark retrieval
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Code: [https://github.com/swsychen/Boomark2Sheet_Chromeplugin](https://github.com/swsychen/Boomark2Sheet_Chromeplugin)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To transport bookmarks into a Google Sheet for further processing, we need to
+    build a customized Chrome plugin (or extension) first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5af65140f3085e012598b1b553994783.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Code structure overview for a Chrome plugin. — Snapshot from author’s vscode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The most important file for a Chrome extension is the *manifest.json*, which
+    defines the high-level structure and behavior of the plugin. Here we add the necessary
+    *permissions* to use the bookmark API from Google Chrome and track the changes
+    in the bookmarks. We also have a field for *oauth2* authentication because we
+    will use the Google Sheet API. You will need to put your own *client_id* in this
+    field. You can mainly follow the **Set up your environment** sectionin this [link](https://developers.google.com/sheets/api/quickstart/js)
+    to get the *client_id* and a Google Sheet API key (we will use it later). Something
+    you should notice is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In **OAuth consent screen**, you need to add yourself (Gmail address) as the
+    test user. Otherwise, you will not be allowed to use the APIs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In **Create OAuth client ID**, the application type you should choose is *Chrome
+    extension* (not the Web application as in the quickstart link). The *Item ID*
+    needed to be specified is the plugin ID (we will have it when we load our plugin
+    and you can find it in the extension manager).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/47ee7d50d430edb20cdc70fde8b3ce99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The blurred part is the Item ID. — Snapshot from author’s Google Chrome extension
+    manager.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The core functional file is *background.js*, which can do all the syncs in
+    the background. I’ve prepared the code for you in the GitHub link, the only thing
+    you need to change is the *spreadsheetId* at the start of the javascript file.
+    This id you can identify it in the sharing link of your created Google Sheet (after
+    d/ and before /edit, and yes you need to manually create a Google Sheet first!):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://docs.google.com/spreadsheets/d/{**spreadsheetId}**/edit#gid=](https://docs.google.com/spreadsheets/d/spreadsheetId/edit#gid=)0'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main logic of the code is to listen to any change in your bookmarks and
+    refresh (clear + write) your Sheet file with all the bookmarks you have when the
+    plugin is triggered (e.g. when you add a new bookmark). It writes the id, title,
+    and URL of each bookmark into a separate row in your specified Google Sheet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8372d2161ec199c9907d2f69d57b0ec7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What it looks like in your Google Sheet. — Snapshot from author’s Google Sheet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last file *popup.html* is basically not that useful as it only defines the
+    content it shows in the popup window when you click the plugin button in your
+    Chrome browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After you make sure all the files are in a single folder, now you are ready
+    to upload your plugin:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the **Extensions>Manage Extensions** of your Chrome browser, and turn
+    on the **Developer mode** on the top right of the page.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click the **Load unpacked** and choose the code folder. Then your plugin will
+    be uploaded and running. Click the hyperlink *service worker* to see the printed
+    log info from the code.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Once uploaded, the plugin will stay operational as long as the Chrome browser
+    is open. And it’ll also automatically start running when you re-open the browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Estuary Flow and Pinecone
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Estuary Flow is basically a connector that syncs the database with the data
+    source you provided. In our case, when Estuary Flow syncs data from a Google Sheet
+    into a vector database — Pinecone, it will also call an embedding model to transform
+    the data into embedding vectors which will then be stored in the Pinecone database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For setting up Estuary Flow and Pinecone, there is already a quite comprehensive
+    video tutorial on YouTube: [https://youtu.be/qyUmVW88L_A?si=xZ-atgJortObxDi-](https://youtu.be/qyUmVW88L_A?si=xZ-atgJortObxDi-)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But please pay attention! Because the Estuary Flow and Pinecone are in fast
+    development. Some points in the video have changed by now, which may cause confusion.
+    Here I list some updates to the video so that you can replicate everything easily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.**(Estuary Flow>create Capture)** In row batch size, you may set some larger
+    numbers according to the total row numbers in your Google Sheet for bookmarks.
+    (e.g. set it to 600 if you’ve already got 400+ rows of bookmarks)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. **(Estuary Flow>create Capture)** When setting **Target Collections**, delete
+    the cursor field “row_id” and add a new one “ID” like the following screenshot.
+    You can keep the namespace empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c2c5c18089c72a0f3abf3e4c2a0d6e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Change Cursor Field. — Snapshot from the [Sources](https://dashboard.estuary.dev/captures)
+    on Estuary Flow (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3\. **(Estuary Flow>create Capture)** Then switch to the **COLLECTION** subtab,
+    press **EDIT** to change the Key from /row_id to /ID. And you should also change
+    the “required” field of the schema code to “ID” like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/613a64c56a48bbc4e7aef58be94d7ed3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Change Key and Schema. — Snapshot from the [Sources](https://dashboard.estuary.dev/captures)
+    on Estuary Flow (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: After “SAVE AND PUBLISH”, you can see that **Collections>{your collection name}>Overview>Data
+    Preview** will show the correct ID of each bookmark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. **(Estuary Flow>create Capture)** In the last step, you can see an **Advanced
+    Specification Editor (**in the bottom of the page). Here you can add a field “interval”:
+    10m to decrease the refresh rate to per 10 minutes (default setting is per 5 minutes
+    if not specified). Each refresh will call the OpenAI embedding model to redo all
+    the embedding which will cost some money. Decreasing the rate is to save half
+    of the money. You can ignore the “backfill” field.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28d40518a945a1f33da7e255ec17d38f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Specify the interval. — Snapshot from the [Sources](https://dashboard.estuary.dev/captures)
+    on Estuary Flow (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 5\. **(Estuary Flow>create Materialization)** The Pinecone environment is typically
+    “gcp-starter” for a free-tier Pinecone index or like “us-east-1-aws” for standard-plan
+    users (I don’t use serverless mode in Pinecone because the Estuary Flow has not
+    yet provided a connector for the Pinecone serverless mode). The Pinecone index
+    is the index name when you create the index in Pinecone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. **(Estuary Flow>create Materialization)** Here are some tricky parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, you should select the source capture using the blue button “SOURCE FROM
+    CAPTURE” and then leave the Pinecone namespace in “CONFIG” **EMPTY** (the free
+    tier of Pinecone must have an empty namespace).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second, after pressing “NEXT”, in the emerged **Advanced Specification Editor**
+    of the materialization, you must make sure that the “bindings” field is NOT EMPTY.
+    Fill in the content as in the following screenshot if it is empty or the field
+    does not exist, otherwise, it won’t send anything to Pinecone. Also, you need
+    to change the “source” field using your own Collection path (same as the “target”
+    in the previous screenshot). If some errors pop up after you press “NEXT” and
+    before you can see the editor, press “NEXT” again, and you will see the **Advanced
+    Specification Editor**. Then you can specify the “bindings” and press “SAVE AND
+    PUBLISH”. Everything should be ok after this step. The errors occur because we
+    didn’t specify the “bindings” before.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If there is another error message coming up after you have published everything
+    and just returned to the Destination page telling you that you have not added
+    a collection, simply ignore it as long as you see the usage is not zero in the
+    OVERVIEW histogram (see the following screenshots). The histogram basically means
+    how much data it has sent to Pinecone.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/2d10fb5774747c57bb9acf84fa704f72.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Make sure the “bindings” field is filled in like this. — Snapshot from the [Destinations](https://dashboard.estuary.dev/materializations)
+    on Estuary Flow (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/fb9052853ee79c9353c16a636eb6d27b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Don’t panic about the error, press “NEXT” again. — Snapshot from the [Destinations](https://dashboard.estuary.dev/materializations)
+    on Estuary Flow (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7152326e44aec06f9b8ce43eb9ed77a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Make sure the usage in OVERVIEW is not empty. — Snapshot from the [Destinations](https://dashboard.estuary.dev/materializations)
+    on Estuary Flow (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. **(Pinecone>create index)** Pinecone has come up with serverless index mode
+    (free but not supported by Estuary Flow yet) but I don’t use it in this project.
+    Here we still use the pod-based option (not free anymore since last checked on
+    April 14, 2024) which is well enough for our bookmark embedding storage. When
+    creating an index, all you need is to set the index name and dimensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. (**Pinecone>Indexes>{Your index}**) After you finish the creation of the
+    Pinecone index and make sure the index name and environment are filled in correctly
+    in the materialization of Estuary Flow, you are set. In the Pincone console, go
+    to **Indexes>{Your index}** and you should see the vector count showing the total
+    number of your bookmarks. It may take a few minutes until the Pinecone receives
+    information from Estuary Flow and shows the correct vector count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b21c7612899595cb92a6eb5730e40388.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Here I have 402 bookmarks, so the vector count shows 402\. — Snapshot from [Pinecone](https://app.pinecone.io/organizations)
+    (April 2024)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building your own App with Streamlit and Langchain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Code: [https://github.com/swsychen/BookmarkAI_App](https://github.com/swsychen/BookmarkAI_App)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are almost there! The last step is to build a beautiful interface just like
+    the original ChatGPT. Here we use a very convenient framework called Streamlit,
+    with which we can build an app in only a few lines of code. Langchain is also
+    a user-friendly framework for using any large language model with minimum code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ve also prepared the code for this App for you. Follow the installation and
+    usage guide in the GitHub link and enjoy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main logic of the code is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: get user prompt → create a retriever chain with ChatGPT and Pinecone → input
+    the prompt to the chain and get a response → stream the result to the UI
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ba3ea98dfef6f6b6c6e309e7a90e10a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The core part of the code. — Snapshot from author’s vscode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please notice, that because the Langchain is in development, the code may be
+    deprecated if you use a newer version other than the stated one in requirements.txt.
+    If you want to dig deeper into Langchain and use another LLM for this bookmark
+    searching, feel free to look into the [official documents](https://python.langchain.com/docs/get_started/introduction/)
+    of Langchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Outro
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is the first tutorial post I’ve ever written. If there is anything unclear
+    that needs to be improved or clarified, feel free to leave messages.
+  prefs: []
+  type: TYPE_NORMAL

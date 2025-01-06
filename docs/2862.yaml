@@ -1,0 +1,508 @@
+- en: Optimizing Transformer Models for Variable-Length Input Sequences
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/optimizing-transformer-models-for-variable-length-input-sequences-19fb88fddf71?source=collection_archive---------3-----------------------#2024-11-26](https://towardsdatascience.com/optimizing-transformer-models-for-variable-length-input-sequences-19fb88fddf71?source=collection_archive---------3-----------------------#2024-11-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How PyTorch NestedTensors, FlashAttention2, and xFormers can Boost Performance
+    and Reduce AI Costs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--19fb88fddf71--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--19fb88fddf71--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--19fb88fddf71--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--19fb88fddf71--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--19fb88fddf71--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--19fb88fddf71--------------------------------)
+    ·14 min read·Nov 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a9af14b8f889cbba8fa1fe74fb680aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Tanja Zöllner](https://unsplash.com/@tanjazoellner?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As generative AI (genAI) models grow in both popularity and scale, so do the
+    computational demands and costs associated with their training and deployment.
+    Optimizing these models is crucial for enhancing their runtime performance and
+    reducing their operational expenses. At the heart of modern genAI systems is the
+    Transformer architecture and its attention mechanism, which is notably compute-intensive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a [previous post](/increasing-transformer-model-efficiency-through-attention-layer-optimization-fefa6f87b1d6),
+    we demonstrated how using optimized attention kernels can significantly accelerate
+    the performance of Transformer models. In this post, we continue our exploration
+    by addressing the challenge of variable-length input sequences — an inherent property
+    of real-world data, including documents, code, time-series, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Challenge of Batching Variable-Length Input
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In a typical deep learning workload, individual samples are grouped into batches
+    before being copied to the GPU and fed to the AI model. Batching improves computational
+    efficiency and often aids model convergence during training. Usually, batching
+    involves [stacking](https://pytorch.org/docs/stable/generated/torch.stack.html)
+    all of the sample tensors along a new dimension — the *batch* dimension. However,
+    [torch.stack](https://pytorch.org/docs/stable/generated/torch.stack.html) requires
+    all tensors to have the same shape, which is not the case with variable-length
+    sequences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Padding and its Inefficiencies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The traditional way to address this challenge is to pad the input sequences
+    to a fixed length and then perform [stacking](https://pytorch.org/docs/stable/generated/torch.stack.html).
+    This solution requires appropriate masking within the model so that the output
+    is not affected by the irrelevant tensor elements. In the case of attention layers,
+    a padding mask indicates which tokens are padding and should not be attended to
+    (e.g., see [PyTorch MultiheadAttention](https://github.com/pytorch/pytorch/blob/v2.5.1/torch/nn/modules/activation.py#L1139)).
+    However, padding can waste considerable GPU resources, increasing costs and slowing
+    development. This is especially true for large-scale AI models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don’t Pad, Concatenate
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One way to avoid padding is to [concatenate](https://pytorch.org/docs/stable/generated/torch.cat.html#torch.cat)
+    sequences along an existing dimension instead of [stacking](https://pytorch.org/docs/stable/generated/torch.stack.html)
+    them along a new dimension. Contrary to [torch.stack](https://pytorch.org/docs/stable/generated/torch.stack.html),
+    [torch.cat](https://pytorch.org/docs/stable/generated/torch.cat.html#torch.cat)
+    allows inputs of different shapes. The output of concatenation is a single sequence
+    whose length equals the sum of the lengths of the individual sequences. For this
+    solution to work, our single sequence would need to be supplemented by an attention
+    mask that would ensure that each token attends only to other tokens in the same
+    original sequence, in a process sometimes referred to as [document masking](https://pytorch.org/blog/flexattention/#document-maskingjagged-sequences).
+    Denoting the sum of the lengths of all of the individual sequences by *N* and
+    adopting [”big O” notation](https://en.wikipedia.org/wiki/Big_O_notation), the
+    size of this mask would need to be *O(N²)*, as would the compute complexity of
+    a naive attention layer (which applies the mask only after calculating the attention
+    scores), making this solution highly inefficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attention Layer Optimization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The solution to this problem comes in the form of specialized attention layers.
+    Contrary to the standard attention layer that performs the full set of *O(N²)
+    attention scores* only to mask out the irrelevant ones, these optimized attention
+    kernels are designed to calculate only the *scores* that matter. In this post
+    we will explore several solutions, each with their own distinct characteristics.
+    These include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PyTorch''s SDPA (Scaled Dot Product Attention) with NestedTensors](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html#nestedtensor-and-dense-tensor-support),'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[FlashAttention2](https://github.com/Dao-AILab/flash-attention), and'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[xFormers'' memory-efficient attention](https://facebookresearch.github.io/xformers/components/ops.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Integration into Existing HuggingFace Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For teams working with pre-trained models, transitioning to these optimizations
+    might seem challenging. We will demonstrate how [HuggingFace’s](https://huggingface.co/)
+    APIs simplify this process, enabling developers to integrate these techniques
+    with minimal code changes and effort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Disclaimers**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Please do not interpret our use of any platforms, libraries, or optimization
+    techniques as an endorsement for their use. The best options for you will depend
+    greatly on the specifics of your own use-case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some of the APIs discussed here are in prototype or beta stages and may change
+    in the future.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The code examples provided are for demonstrative purposes only. We make no claims
+    regarding their accuracy, optimality, or robustness.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Special thanks to [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/)
+    and [Peleg Nahaliel](https://www.linkedin.com/in/peleg-nahaliel-b304a61a5/?originalSubdomain=il)
+    for their contributions to this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy LLM Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To facilitate our discussion we will define a simple generative model (partially
+    inspired by the [GPT](https://en.wikipedia.org/wiki/GPT) model defined [here](https://github.com/karpathy/nanoGPT/tree/master)).
+    For a more comprehensive guide on building language models, please see one of
+    the many excellent tutorials available online (e.g., [here](https://www.youtube.com/watch?v=kCc8FmEb1nY)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transformer Block
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We begin by constructing a basic Transformer block, specifically designed to
+    facilitate experimentation with different attention mechanisms and optimizations.
+    While our block performs the same computation as standard Transformer blocks,
+    we make slight modifications to the usual choice of operators in order to support
+    the possibility of PyTorch [NestedTensor](https://pytorch.org/docs/stable/nested.html#supported-operations)
+    inputs (as described [here](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html#causal-self-attention)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Transformer Decoder Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Building on our programmable Transformer block, we construct a typical Transformer
+    decoder model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Variable Length Sequence Input
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we create a dataset containing sequences of variable lengths, where each
+    sequence is made up of randomly generated tokens. For simplicity, we (arbitrarily)
+    select a fixed distribution for the sequence lengths. In real-world scenarios,
+    the distribution of sequence lengths typically reflects the nature of the data,
+    such as the length of documents or audio segments. Note, that the distribution
+    of lengths directly affects the computational inefficiencies caused by padding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Training/Evaluation Loop
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Lastly, we implement a *main* function that performs training/evaluation on
+    input sequences of varying length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: PyTorch SDPA with Padding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For our baseline experiments, we configure our Transformer block to utilize
+    PyTorch’s [SDPA](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html)
+    mechanism. In our experiments, we run both training and evaluation, both with
+    and without [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html).
+    These were run on an [NVIDIA H100](https://www.nvidia.com/en-eu/data-center/h100/)
+    with [CUDA 12.4](https://developer.nvidia.com/cuda-toolkit) and [PyTorch](https://pytorch.org/)
+    2.5.1
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Performance Results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Evaluation**: 132 milliseconds (ms) without torch.compile, 130 ms with torch.compile'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Training**: 342 ms without torch.compile, 299 ms with torch.compile'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optimizing for Variable Length Input
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will explore several optimization techniques for handling
+    variable-length input sequences in Transformer models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Padding Optimization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our first optimization relates not to the attention kernel but to our padding
+    mechanism. Rather than padding the sequences in each batch to a constant length,
+    we pad to the length of the longest sequence in the batch. The following block
+    of code consists of our revised collation function and updated experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Padding to the longest sequence in each batch results in a slight performance
+    acceleration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Evaluation**: 129 ms without torch.compile, 116 ms with torch.compile'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Training**: 337 ms without torch.compile, 294 ms with torch.compile'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SDPA with PyTorch NestedTensors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we take advantage of the built-in support for [PyTorch NestedTensors](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html#nestedtensor-and-dense-tensor-support)
+    in SDPA in evaluation mode. Currently a prototype feature, [PyTorch NestedTensors](https://pytorch.org/tutorials/prototype/nestedtensor.html)
+    allows for grouping together tensors of varying length. These are sometimes referred
+    to as *jagged* or *ragged* tensors. In the code block below, we define a collation
+    function for grouping our sequences into NestedTensors. We also define an *indices*
+    entry so that we can properly calculate the [positional embeddings](https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: PyTorch NestedTensors are supported by a [limited number of PyTorch ops](https://pytorch.org/tutorials/prototype/nestedtensor.html#nested-tensor-operations).
+    Working around these limitations can require some creativity. For example, addition
+    between NestedTensors is only supported when they share precisely the same “jagged”
+    shape. In the code below we use a workaround to ensure that the *indices* entry
+    shares the same shape as the model inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Although, with torch.compile, the NestedTensor optimization results in a step
+    time of 131 ms, similar to our baseline result, in compiled mode the step time
+    drops to 42 ms for an impressive ~3x improvement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FlashAttention2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In our [previous post](/increasing-transformer-model-efficiency-through-attention-layer-optimization-fefa6f87b1d6)
+    we demonstrated the use of [FlashAttention](https://github.com/Dao-AILab/flash-attention)
+    and its impact on the performance of a transformer model. In this post we demonstrate
+    the use of [flash_attn_varlen_func](https://github.com/Dao-AILab/flash-attention/blob/v2.7.0/hopper/flash_attn_interface.py#L429)
+    from [flash-attn (2.7.0)](https://pypi.org/project/flash-attn/), an API designed
+    for use with variable-sized inputs. To use this function, we concatenate all of
+    the sequences in the batch into a single sequence. We also create a *cu_seqlens*
+    tensor that points to the indices within the concatenated tensor where each of
+    the individual sequences start. The code block below includes our collation function
+    followed by evaluation and training experiments. Note, that [flash_attn_varlen_func](https://github.com/Dao-AILab/flash-attention/blob/v2.7.0/hopper/flash_attn_interface.py#L429)
+    does not support torch.compile (at the time of this writing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The impact of this optimization is dramatic, 51 ms for evaluation and 160 ms
+    for training, amounting to 2.6x and 2.1x performance boosts compared to our baseline
+    experiment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: XFormers Memory Efficient Attention
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In our previous post we demonstrated the use of the [memory_efficient_attention](https://facebookresearch.github.io/xformers/components/ops.html#xformers.ops.memory_efficient_attention)
+    operator from [xFormers (0.0.28)](https://pypi.org/project/xformers/). Here we
+    demonstrate the use of [BlockDiagonalMask](https://facebookresearch.github.io/xformers/_modules/xformers/ops/fmha/attn_bias.html#BlockDiagonalMask),
+    which is specifically designed for input sequences of arbitrary length. The required
+    collation function appears in the code block below followed by the evaluation
+    and training experiments. Note, that torch.compile failed in training mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant step time were 50 ms and 159 ms for evaluation and training without
+    torch.compile. Evaluation with torch.compile resulted in a step time of 42 ms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The table below summarizes the results of our optimization methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2797be369d1201a6cbfde979b8581934.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Step time results for different optimization methods (lower is better) — by
+    Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best performer for our toy model is [xFormer’s memory_efficient_attention](https://facebookresearch.github.io/xformers/components/ops.html#xformers.ops.memory_efficient_attention)
+    which delivered a ~3x performance for evaluation and ~2x performance for training.
+    We caution against deriving any conclusions from these results as the performance
+    impact of different attention functions can vary significantly depending on the
+    specific model and use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing a HuggingFace Model for Variable-Length Input
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The tools and techniques described above are easy to implement when creating
+    a model from scratch. However, these days it is not uncommon for ML developers
+    to adopt existing (pretrained) models and finetune them for their use case. While
+    the optimizations we have described can be integrated without changing the set
+    of model weights and without altering the model behavior, it is not entirely clear
+    what the best way to do this is. In an ideal world, our ML framework would allow
+    us to program the use of an attention mechanism that is optimized for variable-length
+    inputs. In this section, we demonstrate how to optimize HuggingFace models for
+    variable-length inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Toy HuggingFace Model - GPT2LMHeadModel
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To facilitate the discussion, we create a toy example in which we train a HuggingFace
+    [GPT2LMHead](https://huggingface.co/docs/transformers/v4.46.3/en/model_doc/gpt2#transformers.GPT2LMHeadModel)
+    model on variable-length sequences. This requires adapting our random dataset
+    and data-padding collation function according to HuggingFace's input specifications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Training Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our training function instantiates a [GPT2LMHeadModel](https://huggingface.co/docs/transformers/v4.46.3/en/model_doc/gpt2#transformers.GPT2LMHeadModel)
+    based on the requested [GPT2Config](https://huggingface.co/docs/transformers/v4.46.3/en/model_doc/gpt2#transformers.GPT2Config)
+    and proceeds to train it on our variable-length sequences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: SDPA with Padding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the callback below we call our training function with the default sequence-padding
+    collator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant step times are 815 ms without torch.compile and 440 ms with torch.compile.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FlashAttention2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We now take advantage of HuggingFace’s [built-in support for FlashAttention2](https://huggingface.co/docs/transformers/v4.46.3/en/model_doc/gpt2#using-flash-attention-2),
+    by setting the *attn_implementation* parameter to “flash_attention_2”. Behind
+    the scenes, HuggingFace will [*unpad*](https://github.com/huggingface/transformers/blob/v4.46.3/src/transformers/modeling_flash_attention_utils.py#L246)
+    the padded data input and then pass them to the optimized [flash_attn_varlen_func](https://github.com/Dao-AILab/flash-attention/blob/v2.7.0/hopper/flash_attn_interface.py#L429)
+    function we saw above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant time step is 620 ms, amounting to a 30% boost (in uncompiled mode)
+    with just a simple flick of a switch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FlashAttention2 with Unpadded Input
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Of course, padding the sequences in the collation function only to have them
+    unpadded, hardly seems sensible. In a recent [update to HuggingFace](https://huggingface.co/blog/packing-with-FA2),
+    support was added for passing in concatenated (unpadded) sequences to a select
+    number of models. Unfortunately, (as of the time of this writing) our GPT2 model
+    did not make the cut. However, adding support requires just five small line additions
+    to [modeling_gpt2.py](https://github.com/huggingface/transformers/blob/v4.46.3/src/transformers/models/gpt2/modeling_gpt2.py)
+    in order to propagate the sequence [*position_ids*](https://github.com/huggingface/transformers/blob/v4.46.3/src/transformers/models/gpt2/modeling_gpt2.py#L985)to
+    the [flash-attention kernel](https://github.com/huggingface/transformers/blob/v4.46.3/src/transformers/models/gpt2/modeling_gpt2.py#L436).
+    The full *patch* appears in the block below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define a collate function that concatenates our sequences and train our hugging
+    face model on unpadded sequences. (Also see the built-in [DataCollatorWithFlattening](https://huggingface.co/docs/transformers/main/en/main_classes/data_collator#transformers.DataCollatorWithFlattening)
+    utility.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resulting step time is 323 ms, 90% faster than running flash-attention on
+    the padded input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The results of our HuggingFace experiments are summarized below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a52cc54ef95a4e7ba82fb1f706350d64.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Step time results for different optimization methods (lower is better) — by
+    Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: With little effort, we were able to boost our runtime performance by 2.5x when
+    compared to the uncompiled baseline experiment, and by 36% when compared to the
+    compiled version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we demonstrated how the HuggingFace APIs allow us to leverage
+    the optimized kernels in FlashAttention2, significantly boosting the training
+    performance of existing models on sequences of varying length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As AI models continue to grow in both popularity and complexity, optimizing
+    their performance has become essential for reducing runtime and costs. This is
+    especially true for compute-intensive components like attention layers. In this
+    post, we have continued our exploration of attention layer optimization, and demonstrated
+    new tools and techniques for enhancing Transformer model performance. For more
+    insights on AI model optimization, be sure to check out the [first post](/increasing-transformer-model-efficiency-through-attention-layer-optimization-fefa6f87b1d6)
+    in this series as well as our [many other posts](https://chaimrand.medium.com/)
+    on this topic.
+  prefs: []
+  type: TYPE_NORMAL

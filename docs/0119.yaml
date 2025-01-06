@@ -1,0 +1,308 @@
+- en: Efficient Feature Selection via Genetic Algorithms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274?source=collection_archive---------5-----------------------#2024-01-12](https://towardsdatascience.com/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274?source=collection_archive---------5-----------------------#2024-01-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using evolutionary algorithms for fast feature selection with large datasets
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[![Florin
+    Andrei](../Images/372ac3e80dbc03cbd20295ec1df5fa6f.png)](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)
+    [Florin Andrei](https://florin-andrei.medium.com/?source=post_page---byline--d6d3c9aff274--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d6d3c9aff274--------------------------------)
+    ·8 min read·Jan 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This is the final part of a two-part series about feature selection. Read*
+    [*part 1 here*](/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Brief recap: when fitting a model to a dataset, you may want to select a subset
+    of the features (as opposed to using all features), for various reasons. But even
+    if you have a clear objective function to search for the best combination of features,
+    the search may take a long time if the number of features N is very large. Finding
+    the best combination is not always easy. Brute-force search generally does not
+    work beyond several dozens of features. Heuristic algorithms are needed to perform
+    a more efficient search.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have N features, what you’re looking for is an N-length vector `[1, 1,
+    0, 0, 0, 1, ...]` with values from `{0, 1}` . Each vector component corresponds
+    to a feature. 0 means the feature is rejected, 1 means the feature is selected.
+    You need to find the vector that minimizes the cost / objective function you’re
+    using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the previous article, we’ve looked at a classic algorithm, SFS (sequential
+    feature search), and compared it with an efficient evolutionary algorithm called
+    CMA-ES. We’ve started with the House Prices dataset on Kaggle which, after some
+    processing, yielded 213 features with 1453 observations each. The model we’ve
+    tried to fit was `statsmodels.api.OLS()` and the objective function was the model’s
+    BIC — Bayesian Information Criterion, a measure of information loss. Lower BIC
+    means a better fit, so we’re trying to minimize the objective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this article, we will look at another evolutionary technique: genetic algorithms.
+    The context (dataset, model, objective) remains the same.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GA — Genetic Algorithms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Genetic algorithms are inspired by biological evolution and natural selection.
+    In nature, living beings are (loosely speaking) selected for the genes (traits)
+    that facilitate survival and reproductive success, in the context of the environment
+    where they live.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now think of feature selection. You have N features. You’re trying to find N-length
+    binary vectors `[1, 0, 0, 1, 1, 1, ...]` that select the features (0 = feature
+    rejected, 1= feature included) so as to minimize a cost / objective function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each such vector can be thought of as an “individual”. Each vector component
+    (value 0 or value 1) becomes a “gene”. By judiciously applying evolution and selection,
+    it might be possible to evolve a population of individuals in such a way as to
+    get near the best value for the objective function we’re interested in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s GA in a nutshell. Start by generating a population of individuals (vectors),
+    each vector of length N. The vector component values (genes) are randomly chosen
+    from {0, 1}. In the diagram below, N=12, and the population size is 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ddd592aacc4b7a015475db6501f619ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GA population
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the population is created, evaluate each individual via the objective
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now perform selection: keep the individuals with the best objective values,
+    and discard those with the worst values. There are many possible strategies here,
+    from naive ranking (which, counterintuitively, doesn’t work very well), to stochastic
+    tournament selection, which is very efficient in the long run. If you remember
+    the explore-exploit dilemma, with GA, it’s very easy to fall into naive exploit
+    traps that slow exploration down. GA is all about exploration. [Here’s a short
+    list of selection techniques](https://www.tutorialspoint.com/genetic_algorithms/genetic_algorithms_parent_selection.htm),
+    and check the links at the end for more info.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the best individuals have been selected, and the less fit ones have been
+    discarded, it’s time to introduce variation in the gene pool via two techniques:
+    crossover and mutation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Crossover works exactly like in nature, when two living creatures are mating
+    and producing offspring: genetic material from both parents is “mixed” in the
+    descendants, with some degree of randomness.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b218ad06454d32e0129d3dd0a38a808f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GA crossover
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mutation, again, is pretty much what happens in nature when random mutations
+    occur in the genetic material, and new values are introduced in the gene pool,
+    increasing its diversity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b3f6f5fc4776706f509b8ab8969d8ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GA mutation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After all that, the algorithm loops back: individuals are again evaluated via
+    the objective function, selection occurs, then crossover, mutation, etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Various stopping criteria can be used: the loop may break if the objective
+    function stops improving for some number of generations. Or you may set a hard
+    stop for the total number of generations evaluated. Or do something time-based,
+    or watch for an external signal, etc. Regardless, the individuals with the best
+    objective values should be considered to be the solutions to the problem.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A few words about elitism: with stochastic selection techniques such as tournament,
+    the best, absolute top individuals in a generation may actually be discarded by
+    pure chance — it’s unlikely, but it does happen. Elitism bypasses this, and simply
+    decrees that the best must survive, no matter what. Elitism is an exploit technique.
+    It may cause the algorithm to fall into local extremes, missing the global solution.
+    Again, GA is all about exploration. My rather limited experience with GA seems
+    to confirm the idea that an exploit bias is not beneficial for GA. But your mileage
+    may vary; if you like to experiment with algorithm variants, GA gives you many
+    opportunities to do so.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GA has several hyperparameters you can tune:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: population size (number of individuals)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: mutation probabilities (per individual, per gene)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: crossover probability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: selection strategies, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running trials by hand with various hyperparameter values is one way to figure
+    out the best code. Or you could encapsulate GA in Optuna and let Optuna find the
+    best hyperparameters — but this is computationally expensive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: GA for feature selection, in code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here’s a simple GA code that can be used for feature selection. It uses [the
+    deap library](https://github.com/DEAP/deap), which is very powerful, but the learning
+    curve may be steep. This simple version, however, should be clear enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code creates the objects that define an individual and the whole population,
+    along with the strategies used for evaluation (objective function), crossover
+    / mating, mutation, and selection. It starts with a population of 300 individuals,
+    and then calls `eaSimple()` (a canned sequence of crossover, mutation, selection)
+    which runs for only 10 generations, for simplicity. Hall of fame with a size of
+    1 is defined, where the absolute best individual is preserved against being accidentally
+    mutated / skipped during selection, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hall of fame is not elitism. Hall of fame copies the best individual from the
+    population, and only keeps an inactive copy in a tin can. Elitism preserves the
+    best individual in the active population from one generation to the next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This simple code is easy to understand, but inefficient. Check the notebook
+    in [the repository](https://github.com/FlorinAndrei/fast_feature_selection) for
+    a more complex version of the GA code, which I am not going to quote here. However,
+    running the more complex, optimized code from the notebook for 1000 generations
+    produces these results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, the baseline BIC before any feature selection is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here’s the entire history of the full, optimized GA code from the notebook,
+    running for 1000 generations, trying to find the best features. From left to right,
+    the heatmap indicates the popularity of each feature within the population across
+    generations (brighter shade = more popular). You can see how some features are
+    always popular, others are rejected quickly, while yet others may become more
+    popular or less popular as time goes by.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/618e229be67fc6a6d949c05e038e3ff2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GA optimization history
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison between methods
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We’ve tried three different techniques: SFS, CMA-ES, and GA. How do they compare
+    in terms of the best objective found, and the time it took to find it?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These tests were performed on an AMD Ryzen 7 5800X3D (8/16 cores) machine, running
+    Ubuntu 22.04, and Python 3.11.7\. SFS and GA are running the objective function
+    via a multiprocessing pool with 16 workers. CMA-ES is single-process — running
+    it multi-process did not seem to provide significant improvements, but I’m sure
+    that could change if more work is dedicated to making the algorithm parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are the run times. For SFS it’s the total run time. For CMA-ES and GA
+    it’s the time to the best solution. Less is better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The number of times the objective function was invoked — less is better:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The best values found for the objective function, compared to the baseline
+    — less is better:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: GA was able to beat SFS at the objective function, running the objective function
+    on as many CPU cores as were available, but it’s by far the slowest. It invoked
+    the objective function more than an order of magnitude more times than the other
+    methods. Further hyperparameter optimizations may improve the outcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SFS is quick (running on all CPU cores), but its performance is modest. It’s
+    also the simplest algorithm by far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you just want a quick estimate of the best feature set, using a simple algorithm,
+    SFS is not too bad.
+  prefs: []
+  type: TYPE_NORMAL
+- en: OTOH, if you want the optimal objective value, CMA-ES seems to be the best.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This is the final part of a two-part series about feature selection. Read*
+    [*part 1 here*](/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notes and links
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All images were created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Repository with all code: [https://github.com/FlorinAndrei/fast_feature_selection](https://github.com/FlorinAndrei/fast_feature_selection)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The House Prices dataset (MIT license): [https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The deap library: [https://github.com/DEAP/deap](https://github.com/DEAP/deap)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A free tutorial for genetic algorithms: [https://www.tutorialspoint.com/genetic_algorithms/index.htm](https://www.tutorialspoint.com/genetic_algorithms/index.htm)'
+  prefs: []
+  type: TYPE_NORMAL

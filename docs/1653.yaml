@@ -1,0 +1,331 @@
+- en: 'From MOCO v1 to v3: Towards Building a Dynamic Dictionary for Self-Supervised
+    Learning — Part 1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/from-moco-v1-to-v3-towards-building-a-dynamic-dictionary-for-self-supervised-learning-part-1-745dc3b4e861?source=collection_archive---------9-----------------------#2024-07-04](https://towardsdatascience.com/from-moco-v1-to-v3-towards-building-a-dynamic-dictionary-for-self-supervised-learning-part-1-745dc3b4e861?source=collection_archive---------9-----------------------#2024-07-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A gentle recap on the momentum contrast learning framework
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--745dc3b4e861--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--745dc3b4e861--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--745dc3b4e861--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--745dc3b4e861--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--745dc3b4e861--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--745dc3b4e861--------------------------------)
+    ·7 min read·Jul 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Have we reached the era of self-supervised learning?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data is flowing in every day. People are working 24/7\. Jobs are distributed
+    to every corner of the world. But still, so much data is left unannotated, waiting
+    for the possible use by a new model, a new training, or a new upgrade.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or, it will never happen. It will never happen when the world is running in
+    a supervised fashion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rise of self-supervised learning in recent years has unveiled a new direction.
+    Instead of creating annotations for all tasks, self-supervised learning breaks
+    tasks into pretext/pre-training (see my previous post on pre-training [here](https://medium.com/towards-data-science/from-masked-image-modeling-to-autoregressive-image-modeling-d9a3cadf72a1))
+    tasks and downstream tasks. The pretext tasks focus on extracting representative
+    features from the whole dataset without the guidance of any ground truth annotations.
+    Still, this task requires labels generated automatically from the dataset, usually
+    by extensive data augmentation. Hence, we use the terminologies **unsupervised
+    learning** (dataset is unannotated) and **self-supervised learning** (tasks are
+    supervised by self-generated labels) interchangeably in this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Contrastive learning is a major category of self-supervised learning**. It
+    uses unlabelled datasets and contrastive information-encoded losses (e.g., contrastive
+    loss, InfoNCE loss, triplet loss, etc.) to train the deep learning network. Major
+    contrastive learning includes SimCLR, SimSiam, and the MOCO series.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'MOCO — the word is an abbreviation for “momentum contrast.” The core idea was
+    written in the first MOCO paper, suggesting the understanding of a computer vision
+    self-supervised learning problem, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“[quote from* [*original paper*](https://arxiv.org/pdf/1911.05722)*] Computer
+    vision, in contrast, further concerns dictionary building, as the raw signal is
+    in a continuous, high-dimensional space and is not structured for human communication…
+    Though driven by various motivations, these (note: recent visual representation
+    learning) methods can be thought of as building dynamic dictionaries…* ***Unsupervised
+    learning trains encoders to perform dictionary look-up: an encoded ‘query’ should
+    be similar to its matching key and dissimilar to others****. Learning is formulated
+    as minimizing a contrastive loss.”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this article, we’ll do a gentle review of MOCO v1 to v3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: v1 — the paper “[Momentum contrast for unsupervised visual representation learning](http://openaccess.thecvf.com/content_CVPR_2020/html/He_Momentum_Contrast_for_Unsupervised_Visual_Representation_Learning_CVPR_2020_paper.html)”
+    was published in CVPR 2020\. The paper proposes a momentum update to key ResNet
+    encoders using sample queues with InfoNCE loss.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'v2 — the paper “ Improved baselines with momentum contrastive learning” came
+    out immediately after, implementing two SimCLR architecture improvements: a) replacing
+    the FC layer with a 2-layer MLP and b) extending the original data augmentation
+    by including blur.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: v3 — the paper “An empirical study of training self-supervised vision transformers”
+    was published in ICCV 2021\. The framework extends the key-query pair to two key-query
+    pairs, which were used to form a SimSiam-style symmetric contrastive loss. The
+    backbone also got extended from ResNet-only to both ResNet and ViT.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/dda2a08a360af0f07bd3728dd432aa2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/760197](https://pxhere.com/en/photo/760197)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**MOCO V1**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The framework starts at a core self-supervised learning concept: **query and
+    keys**. Here, query refers to the representation vector of the query image or
+    patches (x^query), while keys refer to the representation vectors of the sample
+    image/patch dictionaries ({x_0^key, x_1^key, …}). The query vector q is generated
+    by a trainable “main” encoder with regular gradient backpropagation. The key vectors,
+    stored in a dictionary queue, are generated by a trainable encoder, which doesn’t
+    do gradient backpropagation directly but **only updates the weights in a momentum
+    fashion using the main encoder’s weights**. See the update style below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/88f5658f2edadbd8df803bc6d4bc3be0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/1911.05722](https://arxiv.org/pdf/1911.05722)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Instance discrimination task and InfoNCE loss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A specific task is needed since the dataset does not have labels at the pretext/pre-training
+    stage. The paper adopted the instance discrimination task proposed in [this CVPR
+    2018 paper](https://arxiv.org/abs/1805.01978). Unlike the original design, where
+    the similarity between feature vectors in the memory bank was calculated using
+    a non-parametric classifier, the MOCO paper used the positive +<query, key> pair
+    and negative -<query, key> pair to supervise the learning process. A pair is considered
+    positive when the query and key image are augmented from the same image. Otherwise,
+    it is negative. The training loss is the [InfoNCE loss](https://arxiv.org/pdf/1807.03748),
+    which can be considered as the negative logarithm of the softmax of the query/key
+    pairs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a804eee3aace41b596106edfe1ef9ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Equation source: [https://arxiv.org/pdf/1911.05722](https://arxiv.org/pdf/1911.05722)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Momentum update**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The authors claim that copying the main query encoder to the key encoder would
+    likely cause poor results because a rapidly changing encoder will reduce the key
+    representation dictionary’s consistency. Instead, only the main query encoder
+    is trained at each step, but the weights of the key encoder are updated using
+    a momentum weight m:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0b9fd60b95b8d1c3aa764b82ab6ffd3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Equation source: [https://arxiv.org/pdf/1911.05722](https://arxiv.org/pdf/1911.05722)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The momentum weight is kept large during the training, e.g., 0.999 rather than
+    0.9, which validates the authors’ guess that the key encoder’s consistency and
+    stability affect the contrastive learning performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pseudocode**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The less-than-20-lines pseudo code is a quick outline of the whole training
+    process. Consistent with the InfoLoss shown above, it is worth noting that the
+    positive logit is a single scale per sample, and the negative logit is a K-element
+    vector per sample corresponding to the K keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc25876e6c6a6be41a2118cf31b3f12b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Pseudocode from: [https://arxiv.org/pdf/1911.05722](https://arxiv.org/pdf/1911.05722)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**MOCO V2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Released immediately after MOCO, the 2-page v2 paper proposed minor changes
+    to version 1 by adopting two successful architecture changes from SimCLR:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: replacing the fully connected layer of the ResNet encoder with a 2-layer MLP
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: extending the original augmentation set with blur augmentation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Interestingly, even with one simple architecture tweak, the performance boost
+    seems significant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d842ba1e192a83219ecafec8975afdf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/2003.04297](https://arxiv.org/pdf/2003.04297)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**MOCO V3**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Version 3 proposed major improvements by adopting a symmetric contrastive loss,
+    extra projection head, and ViT encoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Symmetric contrastive loss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inspired by the SimSiam work, which takes two randomly augmented views and switches
+    them in the negative cosine similarity computation to obtain a symmetric loss,
+    MOCO v3 augments the sample twice. It feeds them separately to the query and key
+    encoders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1e16f89f803634cee1f310530d1272d9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/1911.05722](https://arxiv.org/pdf/1911.05722)
+    and [https://arxiv.org/abs/2104.02057](https://arxiv.org/abs/2104.02057)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The symmetric contrastive loss is based on the simple assumption — all positive
+    pairs are in the diagonal of the N*N query-key matrix since they are the augmentations
+    of the same image; all negative pairs are on other locations of the N*N query-key
+    matrix as they are augmentations (might be the same augmentation) from different
+    samples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7553907cd14dce1395aed58eb832258.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/abs/2104.02057](https://arxiv.org/abs/2104.02057)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this sense, the dynamic key dictionary is much simpler as it’s calculated
+    on the fly within the minibatch and doesn’t need to keep a memory queue. This
+    can be validated by the stability analysis over batch sizes below (note the authors
+    explained that the 6144-batch performance decreased because of the [partial failure
+    phenomenon during training time](https://arxiv.org/pdf/2104.02057)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3ef8e39e874c7e70617019ce85f83725.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/2104.02057](https://arxiv.org/pdf/2104.02057)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ViT encoder**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The performance boost by the ViT encoder is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/218a3243c511c15382c311f2927ab0d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/2104.02057](https://arxiv.org/pdf/2104.02057)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Comparisons and summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The MOCO v3 paper gives a performance comparison among v1-v3 using ResNet50
+    (R50) encoder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2303db653ef6c32e0a45f98b02e24994.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/2104.02057](https://arxiv.org/pdf/2104.02057)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In summary, MOCO v1-v3 gave a clear transformation of the following elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Encoder**: ResNet → ResNet + MLP layers → ResNet/ViT + MLP layers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Key dictionary**: global key vector queues → minibatch keys based on augmentation'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Contrastive loss**: asymmetric contrastive loss → symmetric contrastive loss'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But there is more. In the next article, I will dive deep into the [MOCO v3 code](https://github.com/facebookresearch/moco-v3/tree/main)
+    to implement data augmentation and the momentum update. Stay tuned!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Wu et al., Unsupervised feature learning via non-parametric instance discrimination.
+    CVPR 2018\. github: [https://github.com/zhirongw/lemniscate.pytorch](https://github.com/zhirongw/lemniscate.pytorch)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Oord et al., Representation learning with contrastive predictive coding. arXiv
+    preprint 2018.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Chen et al., A simple framework for contrastive learning of visual representations.
+    PMLR 2020\. github: [https://github.com/sthalles/SimCLR](https://github.com/sthalles/SimCLR)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: He et al., Momentum contrast for unsupervised visual representation learning.
+    CVPR 2020.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chen et al., Improved baselines with momentum contrastive learning. arXiv preprint
+    2020.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Chen et al., Exploring simple siamese representation learning. CVPR 2021\.
+    github: [https://github.com/facebookresearch/simsiam](https://github.com/facebookresearch/simsiam)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Chen et al., An Empirical Study of Training Self-Supervised Vision Transformers.
+    ICCV 2021\. github: [https://github.com/facebookresearch/moco-v3](https://github.com/facebookresearch/moco-v3)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

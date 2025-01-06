@@ -1,0 +1,667 @@
+- en: Additive Decision Trees
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/additive-decision-trees-85f2feda2223?source=collection_archive---------4-----------------------#2024-05-24](https://towardsdatascience.com/additive-decision-trees-85f2feda2223?source=collection_archive---------4-----------------------#2024-05-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An interpretable classification and regression model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@wkennedy934?source=post_page---byline--85f2feda2223--------------------------------)[![W
+    Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--85f2feda2223--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--85f2feda2223--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--85f2feda2223--------------------------------)
+    [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--85f2feda2223--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--85f2feda2223--------------------------------)
+    ·20 min read·May 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is part of a series related to interpretable predictive models,
+    in this case covering a model type called Additive Decision Trees. The previous
+    described [ikNN](/interpretable-knn-iknn-33d38402b8fc), an interpretable variation
+    of kNN models, based on ensembles of 2d kNNs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees are a variation of standard decision trees, constructed
+    in similar manner, but in a way that can often allow them to be more accurate,
+    more interpretable, or both. They include some nodes that are somewhat more complex
+    than standard decision tree nodes (though usually just slightly), but can be constructed
+    with, often, far fewer nodes, allowing for more comprehensible trees overall.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main project is: [https://github.com/Brett-Kennedy/AdditiveDecisionTree](https://github.com/Brett-Kennedy/AdditiveDecisionTree).
+    Both AdditiveDecitionTreeClassifier and AdditiveDecisionTreeRegressor classes
+    are provided.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees were motivated by the lack of options for interpretable
+    classification and regression models available. Interpretable models are desirable
+    in a number of scenarios, including high-stakes environments, audited environments
+    (where we must understand well how the models behave), cases where we must ensure
+    the models are not biased against protected classes (for example, discriminating
+    based on race or gender), among other places.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As covered in the article on [ikNN](/interpretable-knn-iknn-33d38402b8fc), there
+    are some options available for interpretable classifiers and regression models
+    (such as standard decision trees, rule lists, rule sets, linear/logistic regression
+    and a small number of others), but far fewer than one may wish.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Standard Decision Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the most commonly-used interpretable models is the decision tree. It
+    often works well, but not in all cases. They may not always achieve a sufficient
+    level of accuracy, and where they do, they may not always be reasonably considered
+    interpretable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decision trees can often achieve high accuracy only when grown to large sizes,
+    which eliminates any interpretability. A decision tree with five or six leaf nodes
+    will be quite interpretable; a decision tree with a hundred leaf nodes is close
+    to a black-box. Though arguably more interpretable than a neural network or boosted
+    model, it becomes very difficult to fully make sense of the predictions of decision
+    trees with very large numbers of leaf nodes, especially as each may be associated
+    with quite long decision paths. This is the primary issue Additive Decision Trees
+    were designed to address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Tree also addresses some other well-known limitations of decision
+    trees, in particular their limited stability (small differences in the training
+    data can result in quite different trees), their necessity to split based on fewer
+    and fewer samples lower in the trees, repeated sub-trees, and their tendency to
+    overfit if not restricted or pruned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To consider closer the issue where splits are based on fewer and few samples
+    lower in the trees: this is due to the nature of the splitting process used by
+    decision trees; the dataspace is divided into separate regions at each split.
+    The root node covers every record in the training data and each child node covers
+    a portion of this. Each of their child nodes a portion of that and so on. Given
+    this, splits lower in the tree become progressively less reliable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These limitations are typically addressed by ensembling decision trees, either
+    through bagging (as with Random Forests) or boosting (as with CatBoost, XGBoost,
+    and LGBM). Ensembling results in uninterpretable, though generally more accurate,
+    models. Other techniques to make decision trees more stable and accurate include
+    constructing oblivious trees (this is done, for example, within CatBoost) and
+    oblique decision trees (trees where the splits may be at oblique angles through
+    the dataspace, as opposed to the axis-parallel splits that are normally used with
+    decision trees).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As decision trees are likely the most, or among the most, commonly used models
+    where interpretability is required, our comparisons, both in terms of accuracy
+    and interpretability, are made with respect to standard decision trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to Additive Decision Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Additive Decision Trees will not always perform preferably to decision trees,
+    but will quite often, and are usually worth testing where an interpretable model
+    is useful. In some cases, they may provide higher accuracy, in some cased improved
+    interpretability, and in many cases, both. Testing to date suggests this is more
+    true for classification than regression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees are not intended to be competitive with approaches such
+    as boosting or neural networks in terms of accuracy, but are simply a tool to
+    generate interpretable models. Their appeal is that they can often produce models
+    comparable in accuracy to deeper standard decision trees, while having a lower
+    overall complexity compared to these, very often considerably lower.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intuition Behind Additive Decision Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The intuition behind Additive Decision Trees is that often the true function,
+    *f(x)*, mapping the input x to the target y, is based on logical conditions (with
+    IF-ELSE logic, or can be approximated with IF-ELSE logic); and in other cases
+    it is simply a probabilistic function where each input feature may be considered
+    somewhat independently (as with the Naive Bayes assumption).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The true f(x) can have different types of feature interactions: cases where
+    the value of one feature affects how other features relate to the target. And
+    these may be stronger or weaker in different datasets.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, the true f(x) may include something to the effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**True f(x) Example 1**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is an example of the first case, where the true f(x) is composed of logical
+    conditions and may be accurately (and in a simple manner) represented as a series
+    of rules, such as in a Decision Tree (as below), Rule List, or Rule Set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, a simple tree can be created to represent the rules related to features
+    A and B.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the rule related to C*D will generate a very large sub-tree, as the tree
+    may only split based on either C or D at each step. For example, for values of
+    C over 1.0, values of D over 44 will result in class Y. For values of C over 1.1,
+    values of D over 40 will result in class Y. For values of C over 1.11, values
+    over 39.64 will results in class Y. This must be calculated for all combinations
+    of C and D to as fine a level of granularity as is possible given the size of
+    the training data. The sub-tree may be accurate, but will be large, and will be
+    close to incomprehensible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the other hand, the true f(x) may be a set of patterns related to probabilities,
+    more of the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**True f(x) Example 2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the classes are predicted entirely based on probabilities related to each
+    feature, with no feature interactions. In this form of function, for each instance,
+    the feature values each contribute some probability to the target value and these
+    probabilities are summed to determine the overall probability distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here, there is no simple tree that could be created. There are three target
+    classes (X, Y, and Z). If f(x) were simpler, containing only a rule related to
+    feature A:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We could create a small tree based on the split points in A where each of the
+    three classes become most likely. This may require only a small number of nodes:
+    the tree would likely first split A at roughly its midpoint, then each child node
+    would split A in roughly half again and so on, until we have a tree where the
+    nodes each indicate either X, Y, or Z as the most likely class.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, given there are three such rules, it’s not clear which would be represented
+    by splits first. If we, for example, split for feature B first, we need to handle
+    the logic related to features A and C in each subtree (repeating the logic related
+    to these multiple times in the trees). If we split first based on feature B, then
+    feature A, then feature C, then when we determine the split points for feature
+    C, we may have few enough records covered by the nodes that the split points are
+    selected at sub-optimal points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example 2 could likely (with enough training data) be represented by a decision
+    tree with reasonably high accuracy, but the tree would be quite large, and the
+    splits would not likely be intelligible. Lower and lower in the tree, the split
+    points become less and less comprehensible, as they’re simply the split points
+    in one of the three relevant features that best split the data given the progressively
+    less training data in each lower node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Example 3, we have a similar f(x), but with some feature interactions in
+    the form of conditions and multiplication:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**True f(x) Example 3**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a combination of the ideas in Example 1 and Example 2\. Here we have
+    both conditions (based on the value of feature B) and cases where the feature
+    are independently related to the probability of each target class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While there are other means to taxonify functions, this system is useful, and
+    many true functions may be viewed as some combination of these, somewhere between
+    Example 1 and Example 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Standard decision trees do not explicitly assume the true function is similar
+    to Example 1 and can accurately (often through the use of very large trees) capture
+    non-conditional relationships such as those based on probabilities (cases more
+    like Examples 2 or 3). They do, however, model the functions as conditions, which
+    can limit their expressive power and lower their interpretability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees remove the assumption in standard decision trees that
+    f(x) may be best modeled as a set of conditions, but does support conditions where
+    the data suggests they exist. The central idea is that the true f(x) may be based
+    on logical conditions, probabilities (additive, independent rules), or some combination
+    of these.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, standard decision trees may perform very well (in terms of interpretability)
+    where the true f(x) is similar to Example 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where the true f(x) is similar to Example 2, we may be better to use a linear
+    or logistic regression, Naive Bayes models, or GAM (Generalized Additive Model),
+    or other models that simply predict based on a weighted sum of each independent
+    feature. However, these models can struggle with functions similar to Example
+    1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees can adapt to both cases, though may perform best where
+    the true f(x) is somewhere between, as with Example 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructing Additive Decision Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We describe here how Additive Decision Trees are constructed. The process is
+    simpler to present for classification problems, and so the examples relate to
+    this, but the ideas apply equally to regression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The approach taken by Additive Decision Trees is to use two types of split.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, where appropriate, it may split the dataspace in the same way as standard
+    decision trees. As with standard decision trees, most nodes in an Additive Decision
+    Tree represent a region of the full space, with the root representing the full
+    space. Each node splits this region in two, based on a split point in one feature.
+    This results in two child nodes, each covering a portion of the space covered
+    by the parent node. For example, in Example 1, we may have a node (the root node)
+    that splits the data based on Feature A at 10\. The rows where A is less than
+    or equal to 10 would go to one child node and the rows where A is greater than
+    10 would go to the other child node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Second, in Additive Decision Trees, the splits may be based on an aggregate
+    decision based on numerous potential splits (each are standard splits for a single
+    feature and split point). That is, in some cases, we do not rely on a single split,
+    but assume there could be numerous features that are valid to split at a given
+    node, and take the average of splitting in each of these ways. When splitting
+    in this way, there are no other nodes below, so these become leaf nodes, known
+    as *Additive Nodes*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructing Additive Decision Trees is done such that the first type of splits
+    (standard decision tree nodes, based on a single feature) appear higher in the
+    tree, where there are larger numbers of samples to base the splits on and they
+    may be found in a more reliable manner. In these cases, it’s more reasonable to
+    rely on a single split on a single feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second type (additive nodes, based on aggregations of many splits) appear
+    lower in the tree, where there are less samples to rely on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An example, creating a tree to represent Example 3, may produce an Additive
+    Decision Tree such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, we have a normal node at the root, which is split on feature
+    B at 100\. Beneath that we have two additive nodes (which are always leaf nodes).
+    During training, we may determine that splitting this node based on features A,
+    B, C, and D are all productive; while picking one may appear to work slightly
+    better than the others, it is somewhat arbitrary which is selected. When training
+    standard decision trees, it’s very often a factor of minor variations in the training
+    data which is selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To compare this to a standard decision tree: a decision tree would pick one
+    of the four possible splits in the first node and also one of the four possible
+    splits in the second node. In the first node, if it selected, say, Feature A (split
+    at 50), then this would split this node into two child nodes, which can then be
+    further split into more child nodes and so on. This can work well, but the splits
+    would be determined based on fewer and fewer rows. And it may not be necessary
+    to split the data into finer spaces: the true f(x) may not have conditional logic.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, the Additive Decision tree examined the four possible splits and
+    decided to take all four. The predictions for these nodes would be based on *adding*
+    the predictions of each.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One major advantage of this is: each of the four splits is based on the full
+    data available in this node; each are as accurate as is possible given the training
+    data in this node. We also avoid a potentially very large sub-tree underneath
+    this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reaching these nodes during prediction, we would add the predictions together.
+    For example if a record has values for A, B, C, and D of : [60, 120, 80, 120],
+    then when it hits the first node, we compare the value of B (120) to the split
+    point 100\. B is over 100, so we go to the first node. Now, instead of another
+    split, there are four splits. We split based on the values in A, in B, in C, *and*
+    in D. That is, we calculate the prediction based on all four splits. In each case,
+    we get a set of probabilities for class X, Y, and Z. We add these together to
+    get the final probabilities of each class.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first split is based on A at split point 50\. The row has value 60, so there
+    are a set of probabilities for each target class (X, Y, and Z) associated with
+    this split. The second split is based on B at split point 150\. B has value 120,
+    so there are another set of probabilities for each target class associated with
+    this split. Similar for the other two splits inside this additive node. We find
+    the predictions for each of these four splits and add them for the final prediction
+    for this record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This provides, then, a simple form of ensembling *within* a decision tree.
+    We receive the normal benefits of ensembling: more accurate and stable predictions,
+    while actually increasing interpretability.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This may appear to create a more complex tree, and in a sense it does: the
+    additive nodes are more complex than standard nodes. But, the additive nodes tend
+    to aggregate relatively few splits (usually about two to five). And, they also
+    remove the need for a very large number of nodes below them. The net reduction
+    in complexity is often quite significant.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpretability with Standard Decision Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In standard decision trees, global explanations (explanations of the model
+    itself) are presented as the tree: we simply render in some way (such as scikit-learn’s
+    plot_tree() or export_text() methods). This allows us to understand the predictions
+    that will be produced for any unseen data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Local explanations (explanations of the prediction for a single instance) are
+    presented as the decision path: the path from the root to the leaf node where
+    the instance ends, with each split point on the path leading to this final decision.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The decision paths can be difficult to interpret. The decision paths can be
+    very long, can include nodes that are not relevant to the current prediction,
+    and that are somewhat arbitrary (where one split was selected by the decision
+    tree during training, there may be multiple others that are equally valid).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpretability of Additive Decision Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Additive decision trees are interpreted in the mostly same way as standard decision
+    trees. The one difference is additive nodes, where there are multiple splits as
+    opposed to one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The maximum number of splits aggregated together is configurable, but 4 or 5
+    is typically sufficient. In most cases, as well, all splits agree, and only one
+    needs to be presented to the user. And in fact, even where the splits disagree,
+    the majority prediction may be presented as a single split. Therefore, the explanations
+    are usually similar as those for standard decision trees, but with shorter decision
+    paths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This, then, produces a model where there are a small number of standard (single)
+    splits, ideally representing the true conditions, if any, in the model, followed
+    by *additive nodes*, which are leaf nodes that average the predictions of multiple
+    splits, providing more robust predictions. This reduces the need to split the
+    data into progressively smaller subsets, each with less statistical significance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pruning Algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Additive decision trees first construct standard decision trees. They then
+    run a pruning algorithm to try to reduce the number of nodes: by combining many
+    standard nodes into a single node (an Additive Node) that aggregates predictions.
+    The ideas is: where there are many nodes in a tree, or a sub-tree within a tree,
+    this may be due the the tree attempting to narrow in on a prediction, while balancing
+    the influence of many features.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The algorithm behaves similarly to most pruning algorithms, starting at the
+    bottom, at the leaves, and working towards the root node. At each node, a decision
+    is made to either leave the node as is, or convert it to an additive node; that
+    is, a node combining multiple data splits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At each node, the accuracy of the tree is evaluated on the training data given
+    the current split, then again treating this node as an additive node. If the accuracy
+    is higher with this node set as an additive node, it is set as such, and all nodes
+    below it removed. This node itself may be later removed, if a node above it is
+    converted to an additive node. Testing indicates a very significant proportion
+    of sub-trees benefit from being aggregated in this way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation Tests
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To evaluate the effectiveness of the tool we considered both accuracy (macro
+    f1-score for classification; and normalized root mean squared error (NRMSE) for
+    regression) and interpretability, measured by the size of the tree. Details regarding
+    the complexity metric are included below. Further details about the evaluation
+    tests are provided on the github page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To evaluate, we compared to standard decision trees, comparing where both models
+    used default hyperparameters, and again where both models used a grid search to
+    estimate the best parameters. 100 datasets selected randomly from OpenML were
+    used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This used a tool called [DatasetsEvaluator](https://github.com/Brett-Kennedy/DatasetsEvaluator),
+    though the experiments can be reproduced easily enough without this. DatasetsEvaluator
+    is simply a convenient tool to simplify such testing and to remove any bias selecting
+    the test datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results for classification on 100 datasets**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/076d655748ed85bc226e81167840c658.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Here ‘DT’ refers to scikit-learn decision trees and ‘ADT’ refers to Additive
+    Decision Trees. The Train-Test Gap was found subtracting the F1 macro score on
+    test set from that on the train set, and is used to estimate overfitting. ADT
+    models suffered considerably less from over-fitting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees did very similar to standard decision trees with respect
+    to accuracy. There are many cases where standard Decision Trees do better, where
+    Additive Decision Trees do better, and where they do about the same. The time
+    required for ADT is longer than for DT, but still very small, averaging about
+    4 seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The major difference is in the complexity of the generated trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following plots compare the accuracy (top pane) and complexity (bottom pane),
+    over the 100 datasets, ordered from lowest to highest accuracy with a standard
+    decision tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b44e1d36bb0a5a88db27348ba8ca9487.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The top plot tracks the 100 datasets on the x-axis, with F1 score (macro) on
+    y-axis. Higher is better. We can see, towards the right, where both models are
+    quite accurate. To the left, we see several cases where DT fairs poorly, but ADT
+    much better in terms of accuracy. We can also see, there are several cases where,
+    in terms of accuracy, it is clearly preferable to use standard decision trees
+    and several cases where it is clearly preferable to use Additive Decision Trees.
+    In most cases, it may be best to try both (as well as other model types).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second plot tracks the same 100 datasets on the x-axis, and model complexity
+    on the y-axis. Lower is better. In this case, ADT is consistently more interpretable
+    than DT, at least using the current complexity metric used here. In all 100 cases,
+    the trees produced are simpler, and frequently much simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Additive Decision Trees follow the standard sklearn fit-predict API framework.
+    We typically, as in this example, create an instance, call fit() and call predict().
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The github page also provides example notebooks covering basic usage and evaluation
+    of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additive Decision Trees provide two additional APIs to make interpretability
+    greater: output_tree() and get_explanations(). output_tree() provides a view of
+    a decision tree similar to in scikit-learn using export_text(), though provides
+    somewhat more information.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: get_explanations provides the local explanations (in the form of the decision
+    paths) for a specified set of rows. Here we get the explanations for the first
+    five rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The explanation for the first row is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: From the first line we see there are two classes (0 and 1) and there are 159
+    instances of class 0 in the training data and 267 of class 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The root node is always node 0\. This row is taken through nodes 0, 2, and 6,
+    based on its values for ‘mean concave points’ and ‘worst area’. Information about
+    these nodes can be found calling output_tree(). In this case, all nodes on the
+    path are standard decision tree nodes (none are additive nodes).
+  prefs: []
+  type: TYPE_NORMAL
+- en: At each stage, we see the counts for both classes. After the first split, we
+    are in a region where class 0 is most likely (146 to 20). After another split,
+    class 0 is even more likely (133 to 3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next example shows an example of a prediction for a row that goes through
+    an additive node (node 3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The last node is an additive node, based on two splits. In both splits, the
+    prediction is strongly for class 1 (1 to 209 and 4 to 243). Accordingly, the final
+    prediction is class 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpretability Metric
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The evaluation above is based on the global complexity of the models, which
+    is the overall size of the trees, combined with the complexity of each node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s also valid to look at the average local complexity (complexity of each
+    decision path: the length of the paths combined with the complexity of the nodes
+    on the decision paths). Using the average local complexity is also a valid metric,
+    and ADT does well in this regard as well. But, for simplicity, we look here the
+    global complexity of the models.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For standard decision trees, the evaluation simply uses the number of nodes
+    (a common metric for decision tree complexity, though others are commonly used,
+    for example number of leaf nodes). For additive trees, we do this as well, but
+    for each additive node, count it as many times as there are splits aggregated
+    together at this node.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We, therefore, measure the total number of comparisons of feature values to
+    thresholds (the number of splits) regardless if these are in multiple nodes or
+    a single node. Future work will consider additional metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in a standard node we may have a split such as Feature C > 0.01\.
+    That counts as one. In an additive node, we may have multiple splits, such as
+    Feature C > 0.01, Feature E > 3.22, Feature G > 990\. That counts as three. This
+    appears to be a sensible metric, though it is notoriously difficult and subjective
+    to try to quantify the cognitive load of different forms of model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additive Decision Trees for XAI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As well as being used as interpretable model, Additive Decision Trees may also
+    be considered a useful XAI (Explainable AI) tool — Additive Decision Trees may
+    be used as proxy models, and so provide explanations of black-box models. This
+    is a common technique in XAI, where an interpretable model is trained to predict
+    the output of a black-box model. Doing this the proxy models can provide comprehensible,
+    though only approximate, explanations of the predictions produced by black-box
+    models. Typically, the same models that are appropriate to use as interpretable
+    models may also be used as proxy models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if an XGBoost model is trained to predict a certain target (eg
+    stock prices, weather forecasts, customer churn, etc.), the model may be accurate,
+    but we may not know *why* the model is making the predictions it is. We can then
+    train an interpretable model (including standard decision tree, Additive Decision
+    Tree, ikNN, GAM, and so on) to predict (in an interpretable way) the predictions
+    of the XGBoost. This won’t work perfectly, but where the proxy model is able to
+    predict the behavior of the XGBoost model reasonably accurately, it provides explanations
+    that are usually approximately correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The source code is provided in a single .py file, [AdditiveDecisionTree.py](https://github.com/Brett-Kennedy/AdditiveDecisionTree/blob/main/AdditiveDecisionTree/AdditiveDecisionTree.py),
+    which may be included in any project. It uses no non-standard libraries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Though the final trees may be somewhat more complex than an standard decision
+    tree of equal depth, Additive Decision Trees are more accurate than standard decision
+    trees of equal depth, and simpler than standard decision trees of equal accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As with all interpretable models, Additive Decision Trees are not intended to
+    be competitive in terms of accuracy with state of the art models for tabular data
+    such as boosted models. Additive Decision Trees are, though, competitive with
+    most other interpretable models, both in terms of accuracy and interpretability.
+    While no one tool will be best, where interpretability is important, is is usually
+    worth trying several tools, including Additive Decision Trees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images are by author.
+  prefs: []
+  type: TYPE_NORMAL

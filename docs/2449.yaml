@@ -1,0 +1,1062 @@
+- en: Nine Rules for Running Rust in the Browser
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-in-the-browser-8228353649d1?source=collection_archive---------1-----------------------#2024-10-08](https://towardsdatascience.com/nine-rules-for-running-rust-in-the-browser-8228353649d1?source=collection_archive---------1-----------------------#2024-10-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Practical lessons from porting range-set-blaze to WASM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@carlmkadie?source=post_page---byline--8228353649d1--------------------------------)[![Carl
+    M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--8228353649d1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8228353649d1--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8228353649d1--------------------------------)
+    [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--8228353649d1--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8228353649d1--------------------------------)
+    ·21 min read·Oct 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f6718aabbf0325b092e3b4437e3f96c6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Rust Running on the Browser — Source: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/).
+    All other figures from the author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you want your Rust code to run everywhere — from large servers to web pages,
+    robots, and even watches? In this second of three articles [[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
+    [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1),
+    [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)],
+    I’ll show you how to use WebAssembly (WASM) to run your Rust code directly in
+    the user’s browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this technique, you can provide CPU-intensive, dynamic web pages from a
+    — perhaps free — static web server. As a bonus, a user’s data never leaves their
+    machine, avoiding privacy issues. For example, I offer a tool to search race results
+    for friends, running club members, and teammates. To see the tool, go to [its
+    web page](https://carlkcarlk.github.io/race-results/matcher/), and click “match”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/138b2fdb5c996a8d2a16b26e4e50c943.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Aside: To learn more about matching names, see [Use Bayes’ Theorem to Find
+    Distinctive Names in a List](https://medium.com/towards-data-science/use-bayes-theorem-to-find-distinctive-names-in-a-list-5acd8fe03c2b)
+    in *Towards Data Science.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Running Rust in the browser presents challenges. Your code doesn’t have access
+    to a full operating system like Linux, Windows, or macOS. You have no direct access
+    to files or networks. You have only limited access to time and random numbers.
+    We’ll explore workarounds and solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Porting code to WASM in the browser requires several steps and choices, and
+    navigating these can be time-consuming. Missing a step can lead to failure. We’ll
+    reduce this complication by offering nine rules, which we’ll explore in detail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Confirm that your existing app works with WASM WASI and create a simple JavaScript
+    web page.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Install the `wasm32-unknown-unknown` target, `wasm-pack`, `wasm-bindgen-cli`,
+    and Chrome for Testing & Chromedriver.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Make your project `cdylib` (and `rlib`), add `wasm-bindgen` dependencies, and
+    test.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Learn what types `wasm-bindgen` supports.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Change functions to use supported types. Change files to generic `BufRead`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Adapt tests, skipping those that don’t apply.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Change to JavaScript-friendly dependencies, if necessary. Run tests.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Connect your web page to your functions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add `wasm-pack` to your CI (continuous integration) tests.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Aside: These articles are based on a three-hour workshop that I presented at
+    [RustConf24](https://rustconf.com/programs/#755) in Montreal. Thanks to the participants
+    of that workshop. A special thanks, also, to the volunteers from the Seattle Rust
+    Meetup who helped test this material. These articles replace [an article I wrote
+    last year](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)
+    with updated information.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As with [the first article in this series](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
+    before we look at the rules one by one, let’s define our terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Native:** Your home OS (Linux, Windows, macOS)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Standard library (std)**: Provides Rust’s core functionality — `Vec`, `String`,
+    file input/output, networking, time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**WASM**: WebAssembly (WASM) is a binary instruction format that runs in most
+    browsers (and beyond).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**WASI**: WebAssembly System Interface (WASI) allows outside-the-browser WASM
+    to access file I/O, networking (not yet), and time handling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**no_std**: Instructs a Rust program not to use the full standard library,
+    making it suitable for small, embedded devices or highly resource-constrained
+    environments.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**alloc**: Provides heap memory allocation capabilities (`Vec`, `String`, etc.)
+    in `no_std` environments, essential for dynamically managing memory.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Based on my experience with `[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`,
+    a data structure project, here are the decisions I recommend, described one at
+    a time. To avoid wishy-washiness, I’ll express them as rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 1: Confirm that your existing app works with WASM WASI and create a simple
+    JavaScript web page.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Getting your Rust code to run in the browser will be easier if you meet two
+    prerequisites:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get your Rust code running in WASM WASI.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get some JavaScript to run in the browser.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the first prerequisite, see [Nine Rules for Running Rust on WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
+    in *Towards Data Science*. That article — the first article in this series — details
+    how to move your code from your native operating system to WASM WASI. With that
+    move, you will be halfway to running on WASM in the Browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c13b6ccb5fcff21890cb7aa324a1c097.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Environments in which we wish to run our code as a Venn diagram of progressively
+    tighter constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Confirm your code runs on WASM WASI via your tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the second prerequisite, show that you can create some JavaScript code
+    and run it in a browser. I suggest adding this `index.html` file to the top level
+    of your project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, serve this page to your browser. You can serve web pages via an editor
+    extension. I use [Live Preview](https://marketplace.visualstudio.com/items?itemName=ms-vscode.live-server)
+    for VS Code. Alternatively, you can install and use a standalone web server, such
+    as [Simple Html Server](https://github.com/TheWaWaR/simple-http-server):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should now see a web page on which you can select a file. The JavaScript
+    on the page counts the lines in the file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2e27c53e09c60f8cc65a412a17741755.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let’s go over the key parts of the JavaScript because later we will change it
+    to call Rust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: Must you learn JavaScript to use Rust in the browser? Yes and no. Yes,
+    you’ll need to create at least some simple JavaScript code. No, you may not need
+    to “learn”JavaScript. I’ve found ChatGPT good enough to generate the simple JavaScript
+    that I need.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'See what file the user chose. If none, just return:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Create a new `FileReader` object, do some setup, and then read the file as
+    text:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the setup. It says: wait until the file is fully read, read its contents
+    as a string, split the string into lines, and display the number of lines.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the prerequisites fulfilled, we turn next to installing the needed WASM-in-the-Browser
+    tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 2: Install the `wasm32-unknown-unknown` target, wasm-pack, `wasm-bindgen-cli`,
+    and Chrome for Testing & Chromedriver.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We start with something easy, installing these three tools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first line installs a new target, `wasm32-unknown-unknown`. This target
+    compiles Rust to WebAssembly without any assumptions about the environment the
+    code will run in. The lack of assumptions makes it suitable to run in browsers.
+    (For more on targets, see the [previous article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)’s
+    Rule #2.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next two lines install `wasm-pack` and `wasm-bindgen-cli`, command-line
+    utilities. The first builds, packages, and publishes into a form suitable for
+    use by a web page. The second makes testing easier. We use `--force` to ensure
+    the utilities are up-to-date and mutually compatible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we get to the annoying part, installing Chrome for Testing & Chromedriver.
+    Chrome for Testing is an automatable version of the Chrome browser. Chromedriver
+    is a separate program that can take your Rust tests cases and run them inside
+    Chrome for Testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is installing them annoying? First, the process is somewhat complex. Second,
+    the version of Chrome for Testing must match the version of Chromedriver. Third,
+    installing Chrome for Testing will conflict with your current installation of
+    regular Chrome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With that background, here are my suggestions. Start by installing the two programs
+    into a dedicated subfolder of your home directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Linux and WSL (Windows Subsystem for Linux):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Windows (PowerShell):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: I’m sorry but I haven’t tested any Mac instructions. Please see [the
+    Chrome for Testing web page](https://googlechromelabs.github.io/chrome-for-testing/)
+    and then try to adapt the Linux method. If you let me know what works, I’ll update
+    this section.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This installs version 129.0.6668.70, the stable version as of 9/30/2024\. If
+    you wish, check the [Chrome for Testing Availability](https://googlechromelabs.github.io/chrome-for-testing/)
+    page for newer stable versions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we need to add these programs to our `PATH`. We can add them temporarily,
+    meaning only for the current terminal session:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Linux and WSL (just for this session):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Windows (just for this session):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Alternatively, we can add them to our `PATH` permanently for all future terminal
+    sessions. Understand that this may interfere with access to your regular version
+    of Chrome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Linux and WSL (then restart your terminal):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Windows (PowerShell, then restart your terminal):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once installed, you can verify the installation with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: Can you skip installing and using Chrome for Testing and Chromedriver?
+    Yes and no. If you skip them, you’ll still be able to create WASM from your Rust.
+    Moreover, you’ll be able to call that WASM from JavaScript in a web page.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: However, your project — like all good code — should already contain tests. If
+    you skip Chrome for Testing, you will not be able to run WASM-in-the-Browser test
+    cases. Moreover, WASM in the Browser violates Rust’s “If it compiles, it works”
+    principle. Specifically, if you use an unsupported feature, like file access,
+    compiling to WASM won’t catch the error. Only test cases can catch such errors.
+    This makes running test cases critically important.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Now that we have the tools to run tests in the browser, let’s try (and almost
+    certainly fail) to run those tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 3: Make your project `cdylib` (and `rlib`), add `wasm-bindgen` dependencies,
+    and test.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `wasm-bindgen` package is a set of automatically generated bindings between
+    Rust and JavaScript. It lets JavaScript call Rust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To prepare your code for WASM in the Browser, you’ll make your project a library
+    project. Additionally, you’ll add and use `wasm-bindgen` dependencies. Follow
+    these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your project is executable, change it to a library project by renaming `src/main.rs`
+    to `src/lib.rs`. Also, comment out your `main` function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Make your project create both a static library (the default) and a dynamic
+    library (needed by WASM). Specifically, edit `Cargo.toml` to include:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Add `wasm-bindgen` dependencies:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Create or update `.cargo/config.toml` (not to be confused with `Cargo.toml`)
+    to include:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, what functions do you wish to be visible to JavaScript? Mark those functions
+    with `#[wasm_bindgen]` and make them `pub` (public). At the top of the functions’
+    files, add `use wasm_bindgen::prelude::*;`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: For now, your functions may fail to compile. We’ll address this issue
+    in subsequent rules.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'What about tests? Everywhere you have a `#[test]` add a `#[wasm_bindgen_test]`.
+    Where needed for tests, add this `use` statement and a configuration statement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you like, you can try the preceding steps on a small, sample project. Install
+    the sample project from GitHub:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here we see all these changes on the small, sample project’s `lib.rs`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With these changes made, we’re ready to test (and likely fail):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: On this sample, the compiler complains that WASM in the Browser doesn’t like
+    to return tuple types, here, `(u32, u32)`. It also complains that it doesn’t like
+    to return a `Result` with `io::Error`. To fix these problems, we’ll need to understand
+    which types WASM in the Browser supports. That’s the topic of Rule 4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What will happen after we fix the type problems and can run the test? The test
+    will still fail, but now with a runtime error. WASM in the Browser doesn’t support
+    reading from files. The sample test, however, tries to read from a file. In Rule
+    5, we’ll discuss workarounds for both type limitations and file-access restrictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 4: Learn what types `wasm-bindgen` supports.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Rust functions that JavaScript can see must have input and output types that
+    `wasm-bindgen` supports. Use of unsupported types causes compiler errors. For
+    example, passing in a `u32` is fine. Passing in a tuple of `(u32, 32)` is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More generally, we can sort Rust types into three categories: “Yep!”, “Nope!”,
+    and “Avoid”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yep!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the category for Rust types that JavaScript (via `wasm-bindgen`) understands
+    well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ll start with **Rust’s simple copy types**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/40a0ca49852a34ff8b965969aac0a284.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Two items surprised me here. First, 64-bit integers require extra work on the
+    JavaScript side. Specifically, they require the use of JavaScript’s `[BigInt](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/BigInt)`
+    class. Second, JavaScript does not support 128-bit integers. The 128-bit integers
+    are “Nopes”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Turning now to **String-related and vector-related types**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fe4f7bd53d64b057ccfc9b2d471ca821.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: These super useful types use heap-allocated memory. Because Rust and JavaScript
+    manage memory differently, each language makes its own copy of the data. I thought
+    I might avoid this allocation by passing a `&mut [u8]` (mutable slice of bytes)
+    from JavaScript to Rust. That didn’t work. [Instead of zero copies or one, it
+    copied twice](https://stackoverflow.com/questions/78634475/does-wasm-bindgen-copy-mut-u8-zero-times-or-twice/78634853#78634853').
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: For `String` and `&str`, `wasm-bindgen` also converts between JavaScript’s
+    UTF-16 Unicode encoding and Rust’s UTF-8 Unicode encoding.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Next, in Rust we love our **Option and Result types**. I’m happy to report that
+    they are “Yeps”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e2d7c5632da35f7e6ed59d259c8d2f13.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A Rust `Some(3)` becomes a JavaScript `3`, and a Rust `None` becomes a JavaScript
+    `null`. In other words, `wasm-bindgen` converts Rust's type-safe null handling
+    to JavaScript's old-fashioned approach. In both cases, `null`/`None` is handled
+    idiomatically within each language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust `Result` behaves similarly to `Option`. A Rust `Ok(3)` becomes a JavaScript
+    `3`, and a Rust `Err("Some error message")` becomes a JavaScript exception that
+    can be caught with `try`/`catch`. Note that the value inside the Rust `Err` is
+    restricted to types that implement the `Into<JsValue>` trait. Using `String` generally
+    works well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, let’s look at **struct, enum, and JSValue**, our last set of “Yeps”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1d7ee973c89183ee633c3f549b171f2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Excitingly, JavaScript can construct and call methods on your Rust structs.
+    To enable this, you need to mark the struct and any JavaScript-accessible methods
+    with `#[wasm_bindgen]`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, suppose you want to avoid passing a giant string from JavaScript
+    to Rust. You could define a Rust struct that processes a series of strings incrementally.
+    JavaScript could construct the struct, feed it chunks from a file, and then ask
+    for the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JavaScript’s handling of Rust enums is less exciting. It can only handle enums
+    without associated data (C-like enums) and treats their values as integers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the middle of the excitement spectrum, you can pass opaque JavaScript values
+    to Rust as `JsValue`. Rust can then dynamically inspect the value to determine
+    its subtype or—if applicable—call its methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That ends the “Yeps”. Time to look at the “Nopes”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nope!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the category for Rust types that JavaScript (via `wasm-bindgen`) doesn’t
+    handle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2bdc9fc79862c1d8d09fffe0877940e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Not being able to pass, for example, `&u8` by reference is fine because you
+    can just use `u8`, which is likely more efficient anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not being able to return a string slice (`&str`) or a regular slice (`&[u8]`)
+    is somewhat annoying. To avoid lifetime issues, you must instead return an owned
+    type like `String` or `Vec<u8>`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can’t accept a mutable `String` reference (`&mut String`). However, you
+    can accept a `String` by value, mutate it, and then return the modified `String`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we workaround the “Nopes”? In place of fixed-length arrays, tuples, and
+    128-bit integers, use vectors (`Vec<T>`) or structs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust has sets and maps. JavaScript has sets and maps. The `wasm-bindgen` library,
+    however, will not automatically convert between them. So, how can you pass, for
+    example, a `HashSet` from Rust to JavaScript? Wrap it in your own Rust struct
+    and define needed methods. Then, mark the struct and those methods with `#[wasm-bindgen]`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And now our third category.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Avoid
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the category for Rust types that JavaScript (via `wasm-bindgen`) allows
+    but that you shouldn’t use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f588e4f19fc187adcd88b822342e1283.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Avoid using `usize` and `isize` because most people will assume they are 64-bit
+    integers, but in WebAssembly (WASM), they are 32-bit integers. Instead, use `u32`,
+    `i32`, `u64`, or `i64`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Rust, `char` is a special `u32` that can contain only valid Unicode scalar
+    values. JavaScript, in contrast, treats a `char` as a string. It checks for Unicode
+    validity but does not enforce that the string has a length of one. If you need
+    to pass a `char` from JavaScript into Rust, it's better to use the `String` type
+    and then check the length on the Rust side.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 5: Change functions to use supported types. Change files to generic `BufRead`.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'With our knowledge of `wasm-bindgen` supported types, we can fixup the functions
+    we wish to make available to JavaScript. We left Rule 3’s example with a function
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We, now, change the function by removing `#[wasm_bindgen] pub`. We also change
+    the function to read from a generic reader rather than a file name. Using `BufRead`
+    allows for more flexibility, enabling the function to accept different types of
+    input streams, such as in-memory data or files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'JavaScript can’t see this function, so we create a wrapper function that calls
+    it. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: This wrapper function takes as input a byte slice (`&[u8]`), something JavaScript
+    can pass. The function turns the byte slice into a reader and calls the inner
+    `good_turing`. The inner function returns a `Result<(u32, u32), io::Error>`. The
+    wrapper function translates this result into `Result<Vec<u32>, String>`, a type
+    that JavaScript will accept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, I’m only willing to make minor changes to functions that will run
+    both natively and in WASM in the Browser. For example, here I’m willing to change
+    the function to work on a generic reader rather than a file name. When JavaScript
+    compatibility requires major, non-idiomatic changes, I create a wrapper function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the example, after making these changes, the main code now compiles. The
+    original test, however, does not yet compile. Fixing tests is the topic of Rule
+    6.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 6: Adapt tests, skipping those that don’t apply.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Rule 3 advocated marking every regular test (`#[test]`) to also be a WASM-in-the-Browser
+    test (`#[wasm_bindgen_test]`). However, not all tests from native Rust can be
+    run in a WebAssembly environment, due to WASM’s limitations in accessing system
+    resources like files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our example, Rule 3 gives us test code that does not compile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This test code fails because our updated `good_turing` function expects a generic
+    reader rather than a file name. We can fix the test by creating a reader from
+    the sample file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a fine native test. Unfortunately, we can’t run it as a WASM-in-the-Browser
+    test because it uses a file reader — something WASM doesn’t support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The solution is to create an additional test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: At compile time, this test uses the macro `include_bytes!` to turn a file into
+    a WASM-compatible byte slice. The `good_turing_byte_slice` function turns the
+    byte slice into a reader and calls `good_turing`. (The `include_bytes` macro is
+    [part of the Rust standard library](https://doc.rust-lang.org/std/macro.include_bytes.html)
+    and, therefore, available to tests.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the additional test is both a regular test and a WASM-in-the-Browser
+    test. As much as possible, we want our tests to be both.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In my `range-set-blaze` project, I was able to mark almost all tests as both
+    regular and WASM in the Browser. One exception: a test used a Criterion benchmarking
+    function. Criterion doesn’t run in WASM in the Browser, so I marked that test
+    regular only (`#[test]`).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With both our main code (Rule 5) and our test code (Rule 6) fixed, can we actually
+    run our tests? Not necessarily, we may need to find JavaScript friendly dependences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: If you are on Windows and run WASM-in-the-Browser tests, you may see
+    “`ERROR tiny_http] Error accepting new client: A blocking operation was interrupted
+    by a call to WSACancelBlockingCall. (os error 10004)`” This is not related to
+    your tests. You may ignore it.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Rule 7: Change to JavaScript-friendly dependencies, if necessary. Run tests.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Dependencies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The sample project will now compile. With my `range-set-blaze` project, however,
+    fixing my code and tests was not enough. I also needed to fix several dependencies.
+    Specifically, I needed to add this to my `Cargo.toml`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: These two dependences enable random numbers and provide an alternative time
+    library. By default, WASM in the Browser has no access to random numbers or time.
+    Both the dependences wrap JavaScript functions making them accessible to and idiomatic
+    for Rust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Aside: For more information on using* `*cfg*` *expressions in* `*Cargo.toml*`*,
+    see my article:* [*Nine Rust Cargo.toml Wats and Wat Nots*](https://medium.com/towards-data-science/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648)*:
+    Master Cargo.toml formatting rules and avoid frustration |* Towards Data Science
+    (medium.com)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look for other such JavaScript-wrapping libraries in [WebAssembly — Categories
+    — crates.io](https://crates.io/categories/wasm). Popular crates that I haven’t
+    tried but look interesting include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[reqwest](https://crates.io/crates/reqwest)— `features=["wasm"]`— HTTP network
+    access'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[plotters](https://crates.io/crates/plotters) — Plotting — includes a [demo](https://github.com/plotters-rs/plotters-wasm-demo)
+    that controls the HTML canvas object from Rust'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[gloo](https://crates.io/crates/gloo) — Toolkit of JavaScript wrappers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also see Rule 7 in [the previous article](/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
+    — about WASM WASI — for more about fixing dependency issues. In the [next article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)
+    in this series — about `no_std` and embedded — we’ll go deeper into more strategies
+    for fixing dependencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run Tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'With our dependencies fixed, we can finally run our tests, both regular and
+    WASM in the Browser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Recall that behind the scenes, our call to `cargo test --target wasm32-unknown-unknown:`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looks in `.cargo/config.toml` and sees `wasm-bindgen-test-runner` (Rule 3).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Calls `wasm-bindgen-test-runner`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Uses Chromedriver to run our tests in Chrome for Testing. (Rule 2, be sure Chrome
+    for Testing and Chromedriver are on your path).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With our tests working, we’re now ready to call our Rust code from a web page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 8: Connect your web page to your functions.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To call your Rust functions from a web page you must first package your Rust
+    library for the web. We installed `wasm-pack` in Rule 2\. Now, we run it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: This compiles your project and creates a `pkg` output directory that JavaScript
+    understands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Rule 1, we created an `index.html` file that didn’t call Rust. Let’s change
+    it now so that it does call Rust. Here is an example of such an `index.html` followed
+    by a description of the changes of interest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s go through the changes of interest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The line below imports two functions into JavaScript from the module file `pkg/good_turing.js`,
+    which we created using `wasm-pack`. The default function, `init`, initializes
+    our Rust-generated WebAssembly (WASM) module. The second function, `good_turing_byte_slice`,
+    is explicitly imported by including its name in curly brackets.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create a new `FileReader` object, do some setup, and then read the file as an
+    array of bytes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is how we setup code that will run after the file is fully read:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: This line ensures the WASM module is initialized. The first time it’s called,
+    the module is initialized. On subsequent calls, it does nothing because the module
+    is already ready.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Extract the byte array from the read file.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: Call the Rust-generated WASM function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: Here `good_turing_byte_slice` is a regular (synchronous) function. If
+    you want, however, you can mark it `async` on the Rust side and then call it with
+    `await` on the JavaScript side. If your Rust processing is slow, this can keep
+    your web page more lively.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Display the result.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: If there is an error, display the error message.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: The [final code](https://github.com/CarlKCarlK/rustconf24-good-turing) of the
+    sample project is on GitHub, including a [README.md](https://github.com/CarlKCarlK/rustconf24-good-turing/blob/main/README.md)
+    that explains what it is doing. Click [this link](https://carlkcarlk.github.io/rustconf24-good-turing/)
+    for a live demo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`range-set-blaze`'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I ported `range-set-blaze` to WASM at a user’s request so that they could use
+    it inside their own project. The `[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`
+    project is typically used as a library in other projects. In other words, you
+    normally wouldn’t expect `range-set-blaze` to be the centerpiece of a web page.
+    Nevertheless, I did make a small demo page. You can [browse it](https://carlkcarlk.github.io/range-set-blaze/wasm-demo)
+    or [inspect its index.html](https://github.com/CarlKCarlK/range-set-blaze/blob/gh-pages/docs/wasm-demo/index.html).
+    The page shows how `range-set-blaze` can turn a list of integers into a sorted
+    list of disjoint ranges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: **Host Your WASM-in-the-Browser Project on GitHub for Free**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 1\. In your project, create a `docs` folder.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 2\. Do `wasm-pack build --target web`.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 3\. Copy (don’t just move) `index.html` and `pkg` into `docs`.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 4\. Delete the `.gitignore` file in `docs/pkg`.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 5\. Check the project into GitHub.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 6\. Go to the project on GitHub. Then go to “Settings”, “Pages”.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 7\. Set the branch (in my case `main`) and the folder to `docs`. Save.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 8\. The URL will be based on your account and project names, for example, [https://carlkcarlk.github.io/rustconf24-good-turing/](https://carlkcarlk.github.io/rustconf24-good-turing/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 9\. To update, repeat steps 2 through 5 (inclusive).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Rule 9: Add `wasm-pack` to your CI (continuous integration) tests.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Your project is now compiling to WASM in the Browser, passing tests, and showcased
+    on a web page. Are you done? Not quite. Because, as I said in the first article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If it’s not in CI, it doesn’t exist.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Recall that continuous integration (CI) is a system that can automatically
+    run your tests every time you update your code, ensuring that your code continues
+    to work as expected. In my case, GitHub hosts my project. Here’s the configuration
+    I added to `.github/workflows/ci.yml` to test my project on WASM in the browser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: By integrating WASM in the Browser into CI, I can confidently add new code to
+    my project. CI will automatically test that all my code continues to support WASM
+    in the browser in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, there you have it — nine rules for porting your Rust code to WASM in the
+    Browser. Here is what surprised me:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Bad:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s hard to set up testing for WASM in the Browser. Specifically, Chrome for
+    Testing and Chromedriver are hard to install and manage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: WASM in the Browser violates Rust’s saying “If it compiles, it works”. If you
+    use an unsupported feature — for example, direct file access — the compiler won’t
+    catch the error. Instead, you will fail at runtime.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Passing strings and byte vectors creates two copies of your data, one on the
+    JavaScript side and one on the Rust side.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The Good:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WASM in the Browser is useful and fun.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You can mark your regular tests to also run in WASM in the Browser. Just mark
+    your tests with both attributes:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can run on WASM in the Browser without needing to port to `no_std`. Nevertheless,
+    WASM in the Browser is useful as a steppingstone toward running on embedded/`no_std`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stay tuned! In the [next article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e),
+    we’ll see how to port your Rust code to run in an embedded environment via `no_std`.
+    This allows your code to run in small devices which I find very cool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interested in future articles? Please [follow me on Medium](https://medium.com/@carlmkadie).
+    I write about Rust and Python, scientific programming, machine learning, and statistics.
+    I tend to write about one article per month.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL

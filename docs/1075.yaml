@@ -1,0 +1,413 @@
+- en: Transform Data with Hyperbolic Sine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/transform-data-with-hyperbolic-sine-e39e9275b6ba?source=collection_archive---------3-----------------------#2024-04-29](https://towardsdatascience.com/transform-data-with-hyperbolic-sine-e39e9275b6ba?source=collection_archive---------3-----------------------#2024-04-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Why handling negative values should be a cinch*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@david.kyle_13073?source=post_page---byline--e39e9275b6ba--------------------------------)[![David
+    Kyle](../Images/536175491ed7f89d03a4e528a986bf8a.png)](https://medium.com/@david.kyle_13073?source=post_page---byline--e39e9275b6ba--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e39e9275b6ba--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e39e9275b6ba--------------------------------)
+    [David Kyle](https://medium.com/@david.kyle_13073?source=post_page---byline--e39e9275b6ba--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e39e9275b6ba--------------------------------)
+    ·8 min read·Apr 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9953f39cfbd1e188cffa967e1745689.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Osman Rana](https://unsplash.com/@osmanrana?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many models are sensitive to outliers, such as [linear regression](https://medium.com/swlh/how-outliers-can-pose-a-problem-in-linear-regression-1431c50a8e0),
+    [k-nearest neighbor](/k-nearest-neighbors-knn-algorithm-23832490e3f4), and [ARIMA](/limitations-of-arima-dealing-with-outliers-30cc0c6ddf33).
+    Machine learning algorithms suffer from over-fitting and may not generalize well
+    in the presence of outliers.¹ However, the right transformation can shrink these
+    extreme values and improve your model’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Transformations for data with negative values include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Shifted Log**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Shifted Box-Cox**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Inverse Hyperbolic Sine**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Sinh-arcsinh**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Log and Box-Cox are effective tools when working with positive data, but inverse
+    hyperbolic sine (arcsinh) is much more effective on negative values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sinh-arcsinh is even more powerful. It has two parameters that can adjust the
+    *skew* and *kurtosis* of your data to make it close to normal. These parameters
+    can be derived using gradient descent. See an implementation in python at the
+    end of this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Shifted Log
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The log transformation can be adapted to handle negative values with a shifting
+    term *α*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/99c6c190ddd6505638f2678eb47efe0b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Throughout the article, I use log to mean natural log.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visually, this is moving the log’s vertical asymptote from 0 to *α.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b23b4614a839d9a61ce842cc05f28bee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of shifted log transformation with offset of *-5, made with* [*Desmos*](https://www.desmos.com/calculator)
+    *available under* [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+    Equation text added to image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forecasting Stock Prices
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Imagine you are a building a model to predict the stock market. Hosenzade and
+    Haratizadeh tackle this problem with a convolutional neural network using a large
+    set of feature variables that I have pulled from [UCI Irvine Machine Learning
+    Repository](https://archive.ics.uci.edu/)². Below is distribution of the change
+    of volume feature — an important technical indicator for stock market forecasts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb8996afed994306181c18ac2606825b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: made with Matplotlib
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [quantile-quantile (QQ) plot](/significance-of-q-q-plots-6f0c6e31c626) reveals
+    heavy right and left tails. The goal of our transformation will be to bring the
+    tails closer to normal (the red line) so that it has no outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a shift value of -250, I get this log distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9762e83d81f0bcc42223528b8d72e848.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The right tail looks a little better, but the left tail still shows deviation
+    from the red line. Log works by applying a concave function to the data which
+    skews the data left by compressing the high values and stretching out the low
+    values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The log transformation only makes the right tail lighter.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: While this works well for positively skewed data, it is less effective for data
+    with negative outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c022841ba714b40e16e78b07f5e0bfae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*made with* [*Desmos*](https://www.desmos.com/calculator) *available under*
+    [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Text and arrows
+    added to image.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the stock data, skewness is not the issue. The extreme values are on both
+    left and right sides. The *kurtosis* is high, meaning that both tails are heavy.
+    A simple concave function is not equipped for this situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd5ccbccc9db1cd0fcfc02d79bddc6b8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Shifted Box-Cox
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Box-Cox is a generalized version of log, which can also be shifted to include
+    negative values, written as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35718e7af8786adef4b75da40dd17dd0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The *λ* parameter controls the concavity of the transformation allowing it to
+    take on a variety of forms. Box-cox is quadratic when *λ* = 2\. It’s linear when
+    *λ* = 1, and log as *λ* approaches 0\. This can be verified by using L’Hôpital’s
+    rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cbf359a4587fca43a715f1fa106fbdc.png)![](../Images/672b9b7574cb3fc0e11b5d3c5d1cfd53.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of shifted box-cox transformation with shift *-5 and five different values
+    for λ, made with* [*Desmos*](https://www.desmos.com/calculator) *available under*
+    [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Text added to
+    image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To apply this transformation on our stock price data, I use a shift value -250
+    and determine *λ* with scipy's `boxcox` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The resulting transformed data looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4b2fcd3045616c56e3f19c0db0aa3ac8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Despite the flexibility of this transformation, it fails to reduce the tails
+    on the stock price data. Low values of *λ* skew the data left, shrinking the right
+    tail. High values of *λ* skew the data right, shrinking the left tail, but there
+    isn’t any value that can shrink both simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inverse Hyperbolic Sine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The hyperbolic sine function (sinh) is defined as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/65ef55f997fba3e9932083583db2a288.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and its inverse is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6be839af43c14014259a6e3e424fee59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this case, the inverse is a more helpful function because it’s approximately
+    log for large *x* (positive or negative) and linear for small values of *x*. In
+    effect, this shrinks extremes while keeping the central values, more or less,
+    the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Arcsinh reduces both positive and negative tails.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For positive values, arcsinh is concave, and for negative values, it’s convex.
+    This change in curvature is the secret sauce that allows it to handle positive
+    and negative extreme values simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/15d87992438fa114983ffb31af99b23c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: plot of inverse hyperbolic sine (arcsinh) compared to a log function, *made
+    with* [*Desmos*](https://www.desmos.com/calculator) *available under* [CC BY-SA
+    4.0](https://creativecommons.org/licenses/by-sa/4.0/). Text, arrows, and box shape
+    added to image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using this transformation on the stock data results in near normal tails. The
+    new data has no outliers!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa54a96575ef16c793face51f9fe5557.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Scale Matters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Consider how your data is scaled before it’s passed into arcsinh.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For log, your choice of units is irrelevant. Dollars or cents, grams or kilograms,
+    miles or feet —it’s all the same to the log function. The scale of your inputs
+    only shifts the transformed values by a constant value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d27470fec2088c8429ee388b40f0239.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The same is not true for arcsinh. Values between -1 and 1 are left almost unchanged
+    while large numbers are log-dominated. You may need to play around with different
+    scales and offsets before feeding your data into arcsinh to get a result you are
+    satisfied with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the end of the article, I implement a gradient descent algorithm in python
+    to estimate these transformation parameters more precisely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/237220229b36a2e0b15700f261721f04.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sinh-arcsinh
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Proposed by Jones and Pewsey³, the sinh-arcsinh transformation is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c9d90b8fa9c77d4eec462f153ed2e90e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Jones and Pewsey do not include the constant 1/*δ term at the front. However,
+    I include it here because it makes it easier to show arcsinh as a limiting case.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parameter *ε* adjusts the skew of the data and *δ* adjusts the kurtosis³, allowing
+    the transformation to take on many forms. For example, the identity transformation
+    *f(x) = x* is a special case of sinh-arcsinh when *ε* = 0 and *δ* = 1\. Arcsinh
+    is a limiting case for *ε* = 0 and *δ* approaching zero, as can be seen using
+    L’Hôpital’s rule again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8affeb48e27667cbb459a63d1d4d4e7a.png)![](../Images/07826aa87a3306c2ec7bdc9a39ed1f45.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: plots of sinh-arcsinh for different values of *ε* and *δ.* On the left, *ε*
+    is fixed at zero, and on the right, *δ is fixed at 0.5, made with* [*Desmos*](https://www.desmos.com/calculator)
+    *available under* [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+    Text added to image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scale Still Matters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Just like with arcsinh, there are meaningful differences in the results of the
+    sinh-arcsinh transformation based on how your input data is shifted or scaled,
+    meaning there are not two, but four parameters that can be chosen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b19c8b2798b2c1c7a1525d3ce501935.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Parameter Estimation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ve seen how data transformations can make the tails of your data more Gaussian.
+    Now, let’s take it to the next level by picking the parameters that maximize the
+    normal log likelihood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let *T(x)* be my transformation, and let *N(x | μ, σ)* be the probability density
+    function for a normal distribution with mean *μ* and standard deviation *σ*. Assuming
+    independence, the likelihood of the entire dataset *X* is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/342cd4d56e6394c8a91767cc4430d2e5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where I’ve made use of the Jacobian of the transformation. The log likelihood
+    is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aaee0bef4e435c9d8366a31fc8c08826.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where I can drop the absolute value signs because the derivative of the transformation
+    is always positive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gradient Descent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I estimate my parameters with gradient descent, setting the loss function to
+    the negative mean log likelihood. Tensorflow’s `GradientTape` automatically calculates
+    the partial derivatives with respect to the four parameters of sinh-arcsinh as
+    well as *μ* and *σ* from the normal probability density function. Parameters β,
+    *δ*, and *σ* are represented in log form to ensure they stay positive. You may
+    want to try a few initializations of the variables in case the algorithm gets
+    stuck at a local minimum. I also recommend normalizing your inputs to mean zero
+    and standard deviation one before running the script for the best performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This optimized approach resulted in a distribution very close to Gaussian —
+    not only the tails, but the mid-section too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d06fde39c2703077445fa6b463fb2370.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Log and Box-Cox are powerful transformations when working with positive data,
+    but merely shifting these transformations to include negative values has severe
+    limitations. The arcsinh transformation is much better at handling extreme positive
+    and negative values simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are willing to increase the complexity, the sinh-arcsinh transformation
+    is a more powerful function that generalizes arcsinh. When normality is very important,
+    its parameters can also be derived using gradient descent to match a Gaussian
+    distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arcsinh doesn’t get much attention, but it’s an essential transformation that
+    should be a part of every data engineer’s tool kit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’ve found these transformation techniques useful or have any questions
+    about applying them to your own datasets, please share your thoughts and experiences
+    in the comments below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Note from Towards Data Science’s editors:*** *While we allow independent
+    authors to publish articles in accordance with our* [*rules and guidelines*](/questions-96667b06af5)*,
+    we do not endorse each author’s contribution. You should not rely on an author’s
+    works without seeking professional advice. See our* [*Reader Terms*](/readers-terms-b5d780a700a4)
+    *for details.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Jabbar, H. K., & Khan, R. Z. (2014). [Methods to avoid over-fitting and
+    under-fitting in supervised machine learning (Comparative study)](https://www.researchgate.net/publication/295198699_METHODS_TO_AVOID_OVER-FITTING_AND_UNDER-FITTING_IN_SUPERVISED_MACHINE_LEARNING_COMPARATIVE_STUDY).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [CNNpred: CNN-based stock market prediction using a diverse set of variables](https://doi.org/10.48550/arXiv.1810.08923).
+    (2019). [UCI Machine Learning Repository](https://doi.org/10.24432/C55P70).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Jones, M & Pewsey, Arthur. (2009). [Sinh-arcsinh distributions: a broad
+    family giving rise to powerful tests of normality and symmetry](https://www.researchgate.net/publication/295198699_METHODS_TO_AVOID_OVER-FITTING_AND_UNDER-FITTING_IN_SUPERVISED_MACHINE_LEARNING_COMPARATIVE_STUDY).
+    Biometrika.'
+  prefs: []
+  type: TYPE_NORMAL

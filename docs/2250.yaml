@@ -1,0 +1,398 @@
+- en: Creating Task-Oriented Dialog systems with LangGraph and LangChain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/creating-task-oriented-dialog-systems-with-langgraph-and-langchain-fada6c9c4983?source=collection_archive---------2-----------------------#2024-09-14](https://towardsdatascience.com/creating-task-oriented-dialog-systems-with-langgraph-and-langchain-fada6c9c4983?source=collection_archive---------2-----------------------#2024-09-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Yet another LangGraph tutorial
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)[![Déborah
+    Mesquita](../Images/3b77b7eb569e24f2679875429173daf1.png)](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------)
+    [Déborah Mesquita](https://medium.com/@mesquitadeh?source=post_page---byline--fada6c9c4983--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fada6c9c4983--------------------------------)
+    ·11 min read·Sep 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/df4dbf4e422ff2e27cc77246f75e6d94.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [Kaleidico](https://unsplash.com/pt-br/@kaleidico?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/pt-br/fotografias/duas-pessoas-desenhando-no-quadro-branco-26MJGnCM0Wc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Task-Oriented Dialogue system (ToD) is a system that assists users in **achieving
+    a particular task**, such as booking a restaurant, planning a travel itinerary
+    or ordering delivery food.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know that we instruct LLMs using prompts, but how can we implement these
+    ToD systems so that **the conversation always revolves around the task we want
+    the users to achieve**? One way of doing that is by using **prompts**, **memory**
+    and **tool calling.** FortunatelyLangChain + LangGraph can help us tie all these
+    things together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, you’ll learn how to build a Task Oriented Dialogue System that
+    helps users create User Stories with a high level of quality. The system is all
+    based on LangGraph’s [Prompt Generation from User Requirements](https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting/)
+    tutorial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why do we need to use LangGraph?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this tutorial we assume you already know how to use LangChain. A User Story
+    has some components like objective, success criteria, plan of execution and deliverables.
+    The user should provide each of them, and we need to “hold their hand” into providing
+    them one by one. Doing that using only LangChain would require a lot of ifs and
+    elses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With LangGraph we can use a graph abstraction to **create cycles** to control
+    the dialogue. It also has **built-in persistence**, so we don’t need to worry
+    about actively tracking the interactions that happen within the graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main LangGraph abstraction is the [**StateGraph**](https://langchain-ai.github.io/langgraph/reference/graphs/#stategraph),
+    which is used to create graph workflows. Each graph needs to be initialized with
+    a **state_schema**: a schema class that each node of the graph uses to read and
+    write information.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The flow of our system will consist of rounds of *LLM* and *user* messages.
+    The main loop will contain these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: User says something
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: LLM reads the messages of the state and decides if it’s ready to create the
+    User Story or if the user should respond again
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Our system is simple so the schema consists only of the messages that were exchanged
+    in the dialogue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The **add_messages** method is used to merge the output messages from each **node**
+    into the existing list of messages in the graph’s state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Speaking about nodes, another two main LangGraph concepts are **Nodes** and
+    **Edges**. Each **node** of the graph runs a function and each **edge** controls
+    the flow of one node to another. We also have **START** and **END** virtual nodes
+    to tell the graph where to start the execution and where the execution should
+    end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To run the system we’ll use the `.stream()` method. After we build the graph
+    and compile it, **each round of interaction will go through the START until the
+    END of the graph** and the path it takes (which nodes should run or not) is controlled
+    by our workflow combined with the state of the graph. The following code has the
+    main flow of our system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: At each interaction (if the user didn’t type “q” or “Q” to quit) we run graph.stream()
+    passing the message of the user using the “updates” stream_mode, which streams
+    the updates of the state after each step of the graph ([https://langchain-ai.github.io/langgraph/concepts/low_level/#stream-and-astream](https://langchain-ai.github.io/langgraph/concepts/low_level/#stream-and-astream)).
+    We then get this last message from the state_schema and print it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this tutorial we’ll still learn how to create the nodes and edges of the
+    graph, but first let’s talk more about the architecture of ToD systems in general
+    and learn how to implement one with **LLMs**, **prompts** and **tool calling**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Architecture of ToD systems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The main components of a framework to build **End-to-End Task-Oriented Dialogue
+    systems** are [1]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Natural Language Understanding (NLU) for **extracting the intent and key slots
+    of users**
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Dialogue State Tracking (DST) for **tracing users’ belief state** given dialogue
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Dialogue Policy Learning (DPL) to **determine the next step to take**
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Natural Language Generation (NLG) for **generating dialogue system response**
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/a4be2cd1978b86ea567eaae32cea0cf2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Main components of a ToD system (image from Qin, Libo, et al [1])
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using LLMs, we can combine some of these components into only one. The **NLP**
+    and the **NLG** components are easy peasy to implement using LLMs since understanding
+    and generating dialogue responses are their specialty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can implement the Dialogue State Tracking (**DST**) and the Dialogue Policy
+    Learning (**DPL**) by using LangChain’s **SystemMessage** to prime the AI behavior
+    and always pass this message every time we interact with the LLM. The state of
+    the dialogue should also always be passed to the LLM at every interaction with
+    the model. This means that we will make sure the dialogue is always centered around
+    the task we want the user to complete by **always telling the LLM what the goal
+    of the dialogue is and how it should behave.** We’ll do that first by using a
+    prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then appending this prompt everytime we send a message to the LLM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another important concept of our ToD system LLM implementation is **tool calling**.
+    If you read the last sentence of the **prompt_system_task** again it says “*After
+    you are able to discern all the information, call the relevant tool*”. This way,
+    we are telling the LLM that when it decides that the user provided all the User
+    Story parameters, **it should call the tool to create the User Story**. Our tool
+    for that will be created using a Pydantic model with the User Story parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using only the prompt and tool calling, we can control our ToD system. Beautiful
+    right? Actually we also need to use **the state of the graph** to make all this
+    work. Let’s do it in the next section, where we’ll finally build the ToD system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the dialogue system to build User Stories
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Alright, time to do some coding. First we’ll specify which LLM model we’ll
+    use, then set the prompt and bind the tool to generate the User Story:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As we were talking earlier, the state of our graph consists only of the messages
+    exchanged and a flag to know if the user story was created or not. Let’s create
+    the graph first using **StateGraph** and this schema:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next image shows the structure of the final graph:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a2eb92c3d942ba8fb79c921ee2362301.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The structure of the ToD graph to create User Stories (image created by the
+    author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the top we have a **talk_to_user** node. This node can either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finalize the dialogue (go to the **finalize_dialogue** node)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decide that it’s time to wait for the user input (go to the **END** node)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since the main loop runs forever (*while True*), every time the graph reaches
+    the END node, it waits for the user input again. This will become more clear when
+    we create the loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s create the nodes of the graph, starting with the **talk_to_user** node.
+    This node needs to keep track of the task (maintaing the main prompt during all
+    the conversation) and also keep the message exchanges because it’s where the state
+    of the dialogue is stored. This state also keeps which parameters of the User
+    Story are already filled or not using the messages. So this node should add the
+    SystemMessage every time and append the new message from the LLM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can add the **talk_to_user** node to this graph. We’ll do that by giving
+    it a name and then passing the function we’ve created:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This node should be the first node to run in the graph, so let’s specify that
+    with an **edge**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So far the graph looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da757765b057ce82f01f6af98a41e93b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Our graph with only one node (image created by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To control the flow of the graph, we’ll also use the message classes from LangChain.
+    We have four types of messages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SystemMessage:** message for priming AI behavior'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**HumanMessage:** message from a human'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**AIMessage:** the message returned from a chat model as a response to a prompt'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**ToolMessage:** message containing the result of a tool invocation, used for
+    passing the result of executing a tool back to a model'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We’ll use **the type** of the last message of the **graph state** to control
+    the flow on the **talk_to_user** node. If the last message is an ***AIMessage***
+    and it has the ***tool_calls*** key, then we’ll go to the **finalize_dialogue**
+    node because it’s time to create the User Story. Otherwise, we should go to the
+    **END** node because we’ll restart the loop since it’s time for the user to answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The **finalize_dialogue** node should build the **ToolMessage** to pass the
+    result to the model. The **tool_call_id** field is used to associate the tool
+    call request with the tool call response. Let’s create this node and add it to
+    the graph:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let’s create the last node, the **create_user_story** one. This node will
+    call the LLM using the prompt to create the User Story and the information that
+    was gathered during the conversation. If the model decided that it was time to
+    call the tool then the values of the key **tool_calls** should have all the info
+    to create the User Story.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With all the nodes are created, it’s time to add the **edges**. We’ll add a
+    conditional edge to the **talk_to_user** node. Remember that this node can either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finalize the dialogue if it’s time to call the tool (go to the **finalize_dialogue**
+    node)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decide that we need to gather user input (go to the **END** node)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This means that we’ll only check if the last message is an AIMessage and has
+    the tool_calls key; otherwise we should go to the END node. Let’s create a function
+    to check this and add it as an edge:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s add the other edges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With that the graph workflow is done. Time to compile the graph and create
+    the loop to run it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s finally test the system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f88a5dbb64636f7ecc2afae4a90569d9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The assistant in action (image created by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With LangGraph and LangChain we can build systems that guide users through structured
+    interactions reducing the complexity to create them by using the LLMs to help
+    us control the conditional logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the combination of prompts, memory management, and tool calling we can
+    create intuitive and effective dialogue systems, opening new possibilities for
+    user interaction and task automation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope that this tutorial help you better understand how to use LangGraph (I’ve
+    spend a couple of days banging my head on the wall to understand how all the pieces
+    of the library work together).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All the code of this tutorial can be found here: [dmesquita/task_oriented_dialogue_system_langgraph
+    (github.com)](https://github.com/dmesquita/task_oriented_dialogue_system_langgraph)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Qin, Libo, et al. “End-to-end task-oriented dialogue: A survey of tasks,
+    methods, and future directions.” *arXiv preprint arXiv:2311.09008* (2023).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] *Prompt generation from user requirements*. Available at: [https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting](https://langchain-ai.github.io/langgraph/tutorials/chatbots/information-gather-prompting)'
+  prefs: []
+  type: TYPE_NORMAL

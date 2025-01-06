@@ -1,0 +1,452 @@
+- en: Scaling AI Models Like You Mean It
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/scaling-ai-models-like-you-mean-it-3afa56c1e14b?source=collection_archive---------5-----------------------#2024-04-10](https://towardsdatascience.com/scaling-ai-models-like-you-mean-it-3afa56c1e14b?source=collection_archive---------5-----------------------#2024-04-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Strategies for Overcoming the Challenges of Scaling Open-Source AI Models in
+    Production
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ssheng?source=post_page---byline--3afa56c1e14b--------------------------------)[![Sean
+    Sheng](../Images/ae58cf760ce5c482e7a6614995b8b8e1.png)](https://medium.com/@ssheng?source=post_page---byline--3afa56c1e14b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3afa56c1e14b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3afa56c1e14b--------------------------------)
+    [Sean Sheng](https://medium.com/@ssheng?source=post_page---byline--3afa56c1e14b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3afa56c1e14b--------------------------------)
+    ·11 min read·Apr 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re reading this article, you probably need no introduction to the advantages
+    of deploying open-source models. Over the past couple of years, we have seen incredible
+    growth in the both the quantity and quality of open source models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Platforms such as Hugging Face have democratized access to a wide array of models,
+    including Large Language Models (LLMs) and diffusion models, empowering developers
+    to innovate freely and efficiently.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Developers enjoy greater autonomy, as they can fine-tune and combine different
+    models at will, leading to innovative approaches like Retrieval-Augmented Generation
+    (RAG) and the creation of advanced agents.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: From an economic perspective, open-source models provide substantial cost savings,
+    enabling the use of smaller, specialized models that are more budget-friendly
+    compared to general-purpose models like GPT-4.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Open-source models present an attractive solution, but what’s the next hurdle?
+    Unlike using a model endpoint like OpenAI, where the model is a scalable black
+    box behind the API, deploying your own open-source models introduces scaling challenges.
+    It’s crucial to ensure that your model scales effectively with production traffic
+    and maintains a seamless experience during traffic spikes. Additionally, it’s
+    important to manage costs efficiently, so you only pay for what you use and avoid
+    any financial surprises at the end of the month.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'True north: Serverless functions for GPUs'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Interestingly, this sounds like a challenge that modern serverless architectures,
+    like AWS Lambda, have already solved — a solution that have existed for almost
+    a decade. However, when it comes to AI model deployment, this isn’t quite the
+    case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The limitations of serverless functions for AI deployments are multifaceted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**No GPU support**. Platforms like AWS Lambda don’t support GPU. This isn’t
+    merely a technical oversight; it’s rooted in architectural and practical considerations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**GPUs cannot be easily shared.** GPUs, while highly parallelizable as devices,
+    is not as flexible in handling multiple inference tasks on different models simultaneously.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**GPUs are expensive**. They’re exceptional for model inferencetasks but costly
+    to maintain, especially if not utilized continuously.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, let’s take a look at our scaling journey and the important lessons we
+    have learned along the way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The cold start problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we could even begin to work on scaling, we have the notorious “cold
+    start” problem. This issue presents itself in three different stages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a91758d3ec08a5076eb6b8d716db9fef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Breakdown of the cold start problem. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cloud provisioning**: This phase involves the time it takes for a cloud provider
+    to allocate an instance and integrate it into our cluster. This process varies
+    widely, ranging from as quick as 30 seconds to several minutes, and in some cases,
+    even hours, especially for high-demand instances like the Nvidia A100 and H100
+    GPUs.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Container image pulling**: Unlike simple Python job images, AI model serving
+    images are very complex, due to the dependencies and custom libraries they require.
+    Although cloud providers boast multi-gigabit network bandwidth, our experience
+    often saw download speeds far below them, with image pulling time about 3 minutes.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Model loading**. The time required here is largely dependent on the model’s
+    size, with larger models like LLMs and diffusion models taking significantly longer
+    time due to their billions of parameters. For example, loading a 5GB model like
+    Stable Diffusion 2 might take approximately 1.3 minutes with 1Gbps network bandwidth,
+    while larger models like Llama 13B and Mixtral 8x7B could require 3.5 minutes
+    and 12.5 minutes respectively.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Each phase of the cold start issue demands specific strategies to minimize delays.
+    In the following sections, we’ll explore each of them in more detail, sharing
+    our strategies and solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cloud provisioning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In contrast to the homogeneous environment of serverless CPUs, managing a diverse
+    range of compute instance types is crucial when dealing with GPUs, each tailored
+    for specific use cases. For instance, IO-bound LLMs require high GPU memory bandwidth
+    and capacity, while generative models need more powerful GPU compute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensuring availability during peak traffic by maintaining all GPU instance types
+    could lead to prohibitively high costs. To avoid the financial strain of idle
+    instances, we implemented a “standby instances” mechanism. Rather than preparing
+    for the maximum potential load, we maintained a calculated number of standby instances
+    that match the incremental scaling step sizes. For example, if we scale by two
+    GPUs at a time, we need to have two standby instances ready. This allows us to
+    quickly add resources to our serving fleet as demand surges, significantly reducing
+    wait time, while keeping cost manageable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f06c07c4b29d12ce233597218a55b698.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a multi-tenant environment, where multiple teams or, in our case, multiple
+    organizations, share a common resource pool, we can achieve more efficient utilization
+    rates. This shared environment allows us to balance varying resource demands,
+    contributing to improved cost efficiency. However, managing multi-tenancy introduces
+    challenges, such as enforcing quotas and ensuring network isolation, which can
+    add complexity to the cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Container image pulling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Serverless CPU workloads often use lightweight images, like the Python slim
+    image (around 154 MB). In stark contrast, a container image built for serving
+    an LLM can be much larger (6.7 GB); the bulk of this size comes from the various
+    dependencies required to run the AI model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46e47cc296d52e7e9f4085be53b44b34.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite high-bandwidth networks advertised by cloud providers, the reality often
+    falls short, with actual download speeds being a fraction of the promised rates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Practically, a significant portion of the files were never used. One way is
+    to optimize the container image itself, but that quickly proved to be unmanageable.
+    Instead, we shifted our focus to an on-demand file pulling approach. Specifically,
+    we first downloaded only the image metadata, with the actual remote files being
+    fetched later as needed. In addition, we leveraged peer-to-peer networking within
+    the cluster to dramatically increase pulling efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae31e765f9e62607e7e19c9024344b48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Container image metadata can be pull in seconds. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With these optimizations, we reduced the image pulling time from several minutes
+    to mere seconds. However, we all know this measurement is “cheating” since the
+    actual files are not pulled at this stage. The real file pulling occurs when the
+    service runs. Therefore, it’s crucial to have a service framework that allows
+    you to define behaviors at various lifecycle stages, such as initialization and
+    serving. By doing all of the bootstrapping during initialization, we can ensure
+    that all file dependencies are pulled. This way, when it comes to serving time,
+    there are no delays caused by file pulling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/afd20effc8387a63201471c4453e6382.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Service framework that enables service initialization and API definitions. Image
+    by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the above example, model loading is done during the initialization lifecycle
+    within `__init__` and serving happens within the `@bentoml.api` named `txt2img`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model loading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Initially, the most straightforward method for model loading was to fetch it
+    directly from a remote store like Hugging Face. Using Content Delivery Networks
+    (CDNs), NVMe SSDs, and shared memory, we could remove some of the bottlenecks.
+    While this worked, it was far from optimal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To improve this process, we considered using in-region network bandwidth. We
+    seeded models in our distributed file systems and broke them into smaller chunks,
+    allowing for parallel downloads. This drastically improved performance, but we
+    still encountered cloud provider’s network bandwidth bottlenecks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In response, we further optimized to leverage in-cluster network bandwidth by
+    using peer-to-peer sharing and tapping into local caches. While the improvements
+    were substantial, they added a layer of complexity to the process, which we need
+    to abstract away from the developers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ed77644411ae062984ed93fc5af4986.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Even with the above practices, we still suffer from a sequential bottleneck:
+    the need to wait for each step to complete before proceeding with the next. Models
+    had to be downloaded to persistent drive entirely before loading into CPU memory,
+    and then into the GPU.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d24c7294db86b83eabfdd2ec71787907.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We turned to a stream-based method for loading model weights, using the distributed
+    file cache system we had in place. This system allows programs to operate as if
+    all files were logically available on disk. In reality, the required data is fetched
+    on-demand from remote storage therefore bypassed disk writing. By leveraging a
+    format like [Safetensors](https://github.com/huggingface/safetensors), we can
+    efficiently load the model weights into the main memory through memory mapping
+    (mmap) before loading to the GPU memory in a streaming fashion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, we adopted asynchronous writing to disk. By doing so, we created a
+    faster-access cache layer on the local disk. Thus, new deployments with only code
+    changes could bypass the slower remote storage fetch phase, reading the model
+    weights from local cache directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To summarize, we managed to optimize the cold start time and we were happy
+    with the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**No cloud provision delay** with standby instances.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Faster container image pulling** with on-demand and peer-to-peer streaming.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Accelerated model loading** time with distributed file systems, peer-to-peer
+    caching, and streamed loading to GPU memory.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Parallelized** image pulling and model loading enabled by service framework.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scaling metrics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next, we need to identify the most indicative signal for scaling AI model deployments
+    on GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resource utilization metrics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Initially, we considered CPU utilization. It’s straightforward and has an intuitive
+    default threshold, such as 80%. However, the obvious drawback is that CPU metrics
+    don’t capture GPU utilization. Additionally, the Global Interpreter Lock (GIL)
+    in Python limits parallelism, preventing high CPU utilization on multi-core instances,
+    making CPU utilization a less feasible metric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also explored GPU utilization as a more direct measure of our models’ workloads.
+    However, we encountered an issue: the GPU utilization reported by tools like `nvml`
+    didn''t accurately represent the actual utilization of the GPU. This metric samples
+    kernel usage over a period of time, and a GPU is considered utilized if at least
+    one kernel is executing. This aligns with our observation that better performance
+    can often be achieved through improved batching, even though the GPU device was
+    already reported as having high utilization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Note****: According to* [*the NVIDIA documentation*](https://nvidia.custhelp.com/app/answers/detail/a_id/3751/~/useful-nvidia-smi-queries)*,
+    utilization.gpu means “Percent of time over the past sample period during which
+    one or more kernels was executing on the GPU. The sample period may be between
+    1 second and 1/6 second depending on the product”.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Resource-based metrics are inherently retrospective as they only reflect usage
+    after the resources have been consumed. They’re also capped at 100%, which presents
+    a problem: when scaling based on these metrics, the maximum ratio for adjustment
+    is typically the current utilization over the desired threshold (see scaling formula
+    below). This results in a conservative scale-up behavior that doesn’t necessarily
+    match the actual demand of production traffic.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Request-based metrics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We turned to request-based metrics for more proactive signaling that are also
+    not capped at a 100%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: QPS is a widely recognized metric for its simplicity. However, its application
+    in generative AI, such as with LLMs, is still a question. QPS is not easy to configure
+    and due to the variable cost per request, which depends on the number of tokens
+    processed and generated, using QPS as a scaling metric can lead to inaccuracies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Concurrency, on the other hand, has proven to be an ideal metric for reflecting
+    the actual load on the system. It represents the number of active requests either
+    queued or being processed. This metric:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Precisely reflects the load on the system. [Little’s Law](https://en.wikipedia.org/wiki/Little%27s_law),
+    which states that QPS multiplied by average latency equals concurrency, provides
+    an elegant way to understand the relationship between QPS and concurrency. In
+    practice, the average latency per request is rather unknown in model serving.
+    However, by measuring concurrency, we don’t need to calculate average latency.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Accurately calculate the desired replicas using the scaling formula. Allowing
+    the deployment to directly scale to the ideal size without intermediate steps.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy to configure based on batch size. For non-batchable models, it’s simply
+    the number of GPUs, since each can only handle one generation task at a time.
+    For models that support batching, the batch size determines the concurrency level.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For concurrency to work, we need the support from the service framework to automatically
+    instrument concurrency as a metric and serve it as a scaling signal for the deployment
+    platform. We must also establish right scaling policies to help against overzealous
+    scale-up during a traffic spike or premature scale-down when traffic is sparse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Request queue
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A another important mechanism we integrated with concurrency is the request
+    queue. It acts as a buffer and an orchestrator, ensuring that incoming requests
+    are handled efficiently and without overloading any single server replica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a scenario without a request queue, all incoming requests are dispatched
+    directly to the server (6 requests in the image below). If multiple requests arrive
+    simultaneously, and there’s only one active server replica, it becomes a bottleneck.
+    The server tries to process each request in a first-come-first-serve manner, often
+    leading to timeouts and a bad client experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fbca33197fc380dd90ab8b0fc7f2b698.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conversely, with a request queue in place, the server consumes requests at an
+    optimal rate, processing at a rate based on the *concurrency* defined for the
+    service. When additional server replicas scale up, they too begin to pull from
+    the queue. This mechanism prevents any single server from becoming overwhelmed
+    and allows for a smoother, more manageable distribution of requests across the
+    available infrastructure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Our journey in exploring AI model scaling solutions has been an adventure, which
+    has led us to ultimately create the scaling experience on BentoCloud — a platform
+    that encapsulates all our learnings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid the impression of a promotion, we’ll illustrate our point with a picture
+    that’s worth a thousand words. The monitoring dashboard below demonstrates the
+    correlation between incoming requests and the scaling up of server instances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Equally important to scaling up is the ability to scale down. As the requests
+    waned to zero, the deployment reduced the number of active instances accordingly.
+    This ability ensures that no unnecessary costs are incurred for unused resources,
+    aligning expenditure with actual usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7aedb48ff2a14a63c2d7a79d5738bd22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: BentoCloud monitoring dashboard. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We hope the takeaway is that scaling for model deployments should be considered
+    an important aspect of production applications. Unlike scaling CPU workloads,
+    scaling model deployments on GPUs presents unique challenges, including cold start
+    times, configuring scaling metrics, and orchestrating requests. When evaluating
+    deployment platforms, their solutions to these challenges should be thoroughly
+    assessed.
+  prefs: []
+  type: TYPE_NORMAL

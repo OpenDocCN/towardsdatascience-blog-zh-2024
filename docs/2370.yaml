@@ -1,0 +1,293 @@
+- en: 'Why Your Service Engineers Need a Chatbot: The Future of Troubleshooting'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/logiq-service-engineer-chatbot-04e229beee5c?source=collection_archive---------4-----------------------#2024-09-29](https://towardsdatascience.com/logiq-service-engineer-chatbot-04e229beee5c?source=collection_archive---------4-----------------------#2024-09-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/8ede3be3aba1187f0602522551c573a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image: [The New Yorker / Widows](https://www.behance.net/gallery/73239099/The-New-Yorker-Widows)
+    © [Matt Chinworth](https://www.behance.net/mattchinworth) | CC BY-NC-ND 4.0'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As part of the Google AI Sprint 2024, I built a multimodal chatbot with Gemini
+    1.5 and here’s how it can revolutionize appliance support
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://thisisashwinraj.medium.com/?source=post_page---byline--04e229beee5c--------------------------------)[![Ashwin
+    Raj](../Images/7bfb5e302bba2c12beafb6e09268832d.png)](https://thisisashwinraj.medium.com/?source=post_page---byline--04e229beee5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04e229beee5c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04e229beee5c--------------------------------)
+    [Ashwin Raj](https://thisisashwinraj.medium.com/?source=post_page---byline--04e229beee5c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04e229beee5c--------------------------------)
+    ·8 min read·Sep 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Across industries, effective troubleshooting is crucial for maintaining smooth
+    operations, ensuring customer satisfaction, and optimizing the efficiency of service
+    processes. However, troubleshooting appliances on-site can be a challenging task.
+    With various models and countless potential issues, service engineers often find
+    themselves sifting through manuals or searching online for solutions, an approach
+    that can be both frustrating and time-consuming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where chatbots equipped with comprehensive servicing knowledge and access
+    to the latest troubleshooting manuals can transform the experience. While one
+    might assume that Retrieval-Augmented Generation (RAG) would be an ideal solution
+    for such tasks, it often falls short in this scenario. This is because these handbooks
+    often contain elements such as tables, images, and diagrams, which are difficult
+    to extract and summarization may miss the knotty details typically found in them,
+    making it unfit for production rollout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will work towards building a chatbot using Gemini to help
+    onsite service engineers find the right information in a faster, more intuitive
+    manner. We will also explore the advanced features offered by Gemini, such as
+    context caching and File API integration for multimodal prompting. In the end,
+    we will wrap this chatbot in a Streamlit interface, for easier interaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you Begin
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To build the chatbot, we’ll be using Gemini, Python 3, and Streamlit. Start
+    by installing Streamlit on your local machine by running the below command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the database, we’ll rely on SQLite which comes preinstalled with Python.
+    We will also need a Gemini API key to run inferences using Gemini 1.5 Flash. If
+    you don’t have an API key yet, you can create one for free from this [link](https://ai.google.dev/gemini-api/docs/api-key).
+    Once you have set up your key, install the Google AI Python SDK by running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can find the source code & additional resources on my GitHub repo [here](https://github.com/thisisashwinraj/LogIQ-Service-Engineer-Assistant)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Acknowledgement:*** *Google Cloud credits are provided for this project,
+    as part of #AISprint 2024*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before the implementation, let us examine the system architecture in detail.
+    The process begins by fetching the required product manual from a database and
+    passing it to Gemini. This acts as the knowledge base for our chatbot, providing
+    essential troubleshooting information for the selected appliance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7565ffd5e34ede62623634e9e9b8703d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the documents are loaded, we leverage Gemini’s multimodal document processing
+    capabilities to extract the required information from the product manual. Now,
+    when a user interacts with the chatbot, the model combines the uploaded service
+    manual data, chat history, and other contextual cues to deliver precise and insightful
+    responses to the user’s queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To enhance performance, we’ll implement context caching, which optimizes response
+    time for recurring queries. Finally, we’ll wrap this architecture in a simple
+    yet intuitive Streamlit web application, allowing service engineers to seamlessly
+    engage with the chat agent and access the information they need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loading Service Manuals into the Database
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To begin building the chatbot, the first step is to load the troubleshooting
+    guides into our database for reference. Since these files are unstructured in
+    nature, we can’t store them directly in our database. Instead, we store their
+    filepaths:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this project, we’ll store the manuals in a local directory, and save their
+    file paths in a SQLite database. For better scalability however, its recommended
+    to use an object storage service, such as Google Cloud Storage to store these
+    files & maintain URLs to the files in a database service like Google Cloud SQL
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building the Conversational Agent with Gemini
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once the product manual is loaded into the database, the next step is to build
+    the agent using 1.5 Flash. This lightweight model is part of the Gemini family
+    and has been fine-tuned through a process known as “distillation,” where the most
+    essential knowledge and skills from a larger model are transferred to a smaller,
+    more efficient model to support various high-volume tasks at scale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0b374608d80284f7b5c0abd18a97431.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from [The Keyword](https://blog.google/technology/ai/google-gemini-update-flash-ai-assistant-io-2024/#gemini-model-updates)
+    by Google
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimized for speed and operational efficiency, the 1.5 Flash model is highly
+    proficient in multimodal reasoning and features a context window of up to 1 million
+    tokens, making it the ideal choice for our service engineer’s use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multimodal Document Processing with 1.5 Flash
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To run inference on our service manuals, we first need to upload the files
+    to Gemini. The Gemini API supports uploading media files separately from the prompt
+    input, enabling us to reuse files across multiple requests. The File API supports
+    up to 20 GB of files per project, with a maximum of 2 GB per file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: To upload a file, we use the upload_file() method, which takes as parameter
+    the path (path to the file to be uploaded), name (filename in the destination,
+    defaulting to a system-generated ID), mime_type (specifying the MIME type of the
+    document, which’ll be inferred if unspecified), and the display_name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before proceeding, we need to verify that the API has successfully stored the
+    uploaded file by checking its metadata. If the file’s state is PROCESSING, it
+    cannot yet be used for inference. Once the state changes to ACTIVE, the file is
+    ready for use. A FAILED state, indicates file processing was unsuccessful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conversational Response Generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After uploading the service manual, the next step is to leverage Gemini 1.5’s
+    multimodal document processing capabilities for response generation. The chat
+    feature of the API allows us to collect multiple rounds of questions and responses,
+    facilitating in-depth analysis of issues & step-by-step resolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1540dd9ce6db00580a566619f3debedd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: When initializing the model, it’s important to provide specific guidelines and
+    context to shape the chatbot’s behavior throughout the interaction. This is done
+    by supplying system instruction to the model. System instructions help maintain
+    context, guide the style of interaction, ensure consistency, and set boundaries
+    for the chatbot’s responses, while trying to prevent hallucination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can further control the model’s response generation by tuning the model parameters
+    through the GenerationConfig class. In our application, we’ve set the max_output_tokens
+    to 1500, defining the maximum token limit for each response, and the temperature
+    to 0.4, to maintain determinism in the response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Long context optimization with Context Caching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In many cases, especially with recurring queries against the same document,
+    we end up sending the same input tokens repeatedly to the model. While this approach
+    may work, it's not optimal for large-scale, production-level rollouts
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where Gemini’s context caching feature becomes essential, offering a
+    more efficient solution by reducing both costs and latency for high-token workloads.
+    With context caching, instead of sending same input tokens with every request,
+    we can refer to the cached tokens for the subsequent requests
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1b41ca56dd2eb7728e323325dc577207.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this project, we cache both the system instruction and the service manual
+    file. At scale, using cached tokens significantly reduces the cost compared to
+    repeatedly passing the same data. By default the Time-to-Live (TTL) for these
+    cached tokens is 1 hour, though it can be adjusted as required. Once the TTL expires,
+    the cached tokens are automatically removed from Gemini’s context
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s important to note that context caching is only available for an input token
+    count of 32,768 or more. If token count is below this threshold, you’ll need to
+    rely on the standard multimodal prompting capabilities of Gemini 1.5 Flash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integrating Chatbot with Streamlit
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With our chatbot’s response generation capabilities in place, the final step
+    is to wrap it in a Streamlit app to create an intuitive user interface for the
+    users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d5221aaf47c78a7a5d1a43c8f0552755.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The interface features a dropdown where the users can select the brand, and
+    model of the appliance they are working with. After making the selection & clicking
+    the “Configure chatbot” button, the app will post the corresponding service manual
+    to Gemini and present the chat interface. From thereon, the engineer can enter
+    their queries & the chatbot will provide relevant response
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future Scope
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Looking ahead, there are several promising directions to explore. The future
+    iterations of the chatbot could integrate voice support, allowing engineers to
+    communicate more naturally with the chatbot to get their queries addressed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, expanding the system to incorporate predictive diagnostics can
+    enable engineers to preemptively identify potential issues before they lead to
+    equipment failures. By continuing to evolve this tool, the goal is to create a
+    comprehensive support system for service engineers, ultimately improving the customer
+    experience, thus transforming the troubleshooting eco-system
+  prefs: []
+  type: TYPE_NORMAL
+- en: With that, we have reached the end of this article. If you have any questions
+    or believe I have made any mistake, please feel free to reach out to me! You can
+    get in touch with me via [Email](mailto:rajashwin733@gmail.com) or [LinkedIn](https://www.linkedin.com/in/thisisashwinraj/).
+    Until then, happy learning!
+  prefs: []
+  type: TYPE_NORMAL

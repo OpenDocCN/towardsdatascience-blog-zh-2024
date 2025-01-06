@@ -1,0 +1,711 @@
+- en: Deploying LLMs Into Production Using TensorRT LLM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/deploying-llms-into-production-using-tensorrt-llm-ed36e620dac4?source=collection_archive---------2-----------------------#2024-02-22](https://towardsdatascience.com/deploying-llms-into-production-using-tensorrt-llm-ed36e620dac4?source=collection_archive---------2-----------------------#2024-02-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A guide on accelerating inference performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)[![Het
+    Trivedi](../Images/f6f11a66f60cacc6b553c7d1682b2fc6.png)](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)
+    [Het Trivedi](https://medium.com/@het.trivedi05?source=post_page---byline--ed36e620dac4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ed36e620dac4--------------------------------)
+    ·14 min read·Feb 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dbf53f99c8b64aab618b12890f6e345d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author — Created using Stable Diffusion XL
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intro
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Open-source large language models have lived up to the hype. Many companies
+    that use GPT-3.5 or GPT-4 in production have realized that these models are simply
+    not scalable from a cost perspective. Because of this, enterprises are looking
+    for good open-source alternatives. Recent models like Mixtral and Llama 2 have
+    shown stellar results when it comes to output quality. But, scaling these models
+    to support thousands of concurrent users still remains a challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While frameworks such as [vLLM](https://github.com/vllm-project/vllm) and [TGI](https://github.com/huggingface/text-generation-inference)
+    are a great starting point for boosting inference, they lack some optimizations,
+    making it difficult to scale them in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where [TensorRT-LLM](https://github.com/NVIDIA/TensorRT-LLM) comes in.
+    TensorRT-LLM is an open-source framework designed by Nvidia to boost the performance
+    of large language models in a production environment. Most of the big shots such
+    as Anthropic, OpenAI, Anyscale, etc. are already using this framework to serve
+    LLMs to millions of users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding TensorRT-LLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Unlike other inference techniques, TensorRT LLM does not serve the model using
+    raw weights. Instead, it compiles the model and optimizes the kernels to enable
+    efficient serving on an Nvidia GPU. The performance benefits of running a compiled
+    model are far greater than running it raw. This is one of the main reasons why
+    TensorRT LLM is blazing fast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c95449fd97a6e24f5c8900d72146452.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The raw model gets compiled into an optimized binary
+  prefs: []
+  type: TYPE_NORMAL
+- en: The raw model weights along with optimization options such as quantization level,
+    tensor parallelism, pipeline parallelism, etc. get passed to the compiler. The
+    compiler then takes that information and outputs a model binary that is optimized
+    for the specific GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important thing to note is that the entire model compilation process MUST
+    take place on a GPU. The compiled model that gets generated is optimized specifically
+    on the GPU that it is run on. For example, if you compile the model on a A40 GPU,
+    you won’t be able to run it on an A100 GPU. So whatever GPU is used during compilation,
+    the same GPU must get used for inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TensorRT LLM does not support all large language models out of the box. The
+    reason is that each model architecture is different and TensorRT does deep graph
+    level optimizations. With that being said, most of the popular models such as
+    Mistral, Llama, and Qwen are supported. If you’re curious about the full list
+    of supported models you can check the [TensorRT LLM Github repository](https://github.com/NVIDIA/TensorRT-LLM?tab=readme-ov-file#models).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Benefits Of Using TensorRT-LLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The TensorRT LLM python package allows developers to run LLMs at peak performance
+    without having to know C++ or CUDA. On top of that, it comes with handy features
+    such as token streaming, paged attention, and KV cache. Let’s dig a bit deeper
+    into a few of these topics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Paged Attention**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Large language models require a lot of memory to store the keys and values for
+    each token. This memory usage grows very large as the input sequence gets longer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With regular attention, the keys and values for a sequence have to be stored
+    contiguously. So even if you free up space in the middle of the sequence’s memory
+    allocation, you can’t use that space for other sequences. This causes fragmentation
+    and waste.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/08d85fea7a59e19130c1bb21226f9b37.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '“Attention”: All of the tokens have to be kept in a contiguous block of memory
+    even if there is free space'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With paged attention, each page of keys/values can be placed anywhere in memory,
+    non-contiguous. So if you free up some pages in the middle, that space can now
+    be reused for other sequences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This prevents fragmentation and allows higher memory utilization. Pages can
+    be allocated and freed dynamically as needed when generating the output sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c8cce889733d34153a40213a72e7d61b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '“Paged Attention”: Previously generated tokens can be deleted from memory by
+    deleting the whole page. This makes space for new sequences.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. **Efficient KV Caching**
+  prefs: []
+  type: TYPE_NORMAL
+- en: KV caches stand for “key-value caches” and are used to cache parts of large
+    language models (LLMs) to improve inference speed and reduce memory usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs have billions of parameters, making them slow and memory- intensive to
+    run inferences on. KV caches help address this by caching the layer outputs and
+    activations of the LLM so they don’t need to be recomputed for every inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s how it works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: During inference, as the LLM executes each layer, the outputs are cached to
+    a key-value store with a unique key.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When subsequent inferences use the same layer inputs, instead of recomputing
+    the layer, the cached outputs are retrieved using the key.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This avoids redundant computations and reduces activation memory, improving
+    inference speed and memory efficiency.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alright, enough with the theory. Let’s deploy a model for real!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hands-On Python Tutorial
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are two steps to deploy a model using TensorRT-LLM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compile the model
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Deploy the compiled model as a REST API endpoint
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Step 1: Compiling the model'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this tutorial, we will be working with [Mistral 7B Instruct v0.2](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2).
+    As mentioned earlier, the compilation phase requires a GPU. I found the easiest
+    way to compile a model is on a Google Colab notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://colab.research.google.com/drive/1tJSMGbqYDstnChytaFb9F37oBspDcsRL?usp=sharing&source=post_page-----ed36e620dac4--------------------------------)
+    [## Mistral 7B Compiler Google Colaboratory'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Edit description
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: colab.research.google.com](https://colab.research.google.com/drive/1tJSMGbqYDstnChytaFb9F37oBspDcsRL?usp=sharing&source=post_page-----ed36e620dac4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: TensorRT LLM is primarily supported on high end Nvidia GPUs. I ran the google
+    colab on an A100 40GB GPU and will use the same GPU for deployment as well.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Clone the [TensorRT-LLM git repo](https://github.com/NVIDIA/TensorRT-LLM). This
+    repo contains all of the modules and scripts we need to compile the model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Install the necessary Python dependencies.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Download the Mistral 7B Instruct v0.2 model weights from hugging face and store
+    them in a local directory at `tmp/hf_models/mistral-7b-instruct-v0.2`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you look inside the `tmp/hf_models` directory in Colab you should see the
+    model weights there.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The raw model weights cannot be compiled. Instead, they have to get converted
+    into a specific tensorRT LLM format.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `convert_checkpoint.py` script takes the raw Mistral weights and converts
+    them into a compatible format.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `--model_dir` is the path to the raw model weights.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `--output_dir` is the path to the converted weights.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `trtllm-build` command compiles the model. At this stage, you can pass in
+    various optimization flags as well. To keep things simple, I have not used any
+    additional optimizations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `--checkpoint_dir` is the path to the **converted** model weights.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `--output_dir` is where the compiled model gets saved.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mistral 7B Instruct v0.2 supports a 32K context length. I’ve set that context
+    length using the`--max_input_length` flag.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note: Compiling the model can take 15–30 minutes'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Once the model is compiled, you can upload your compiled model to [hugging face
+    hub](https://huggingface.co/new). In order the upload files to hugging face hub
+    you will need a valid access token that has **WRITE** access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code uploads the compiled model, the *.engine* file, to hugging face under
+    your user id.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Replace the **<your-repo-id>** in the code with your hugging face repo which
+    is usually your hugging face user id.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Awesome! That finishes the model compilation part. Onto the deployment step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Deploying the compiled model'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are a lot of ways to deploy this compiled model. You can use a simple
+    tool like [FastAPI](https://fastapi.tiangolo.com/) or something more complex like
+    the [triton inference server](https://github.com/triton-inference-server/server).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using a tool like FastAPI, the developer has to set up the API server,
+    write the Dockerfile, and configure CUDA correctly. Managing these things can
+    be a real pain and it ruins the overall developer experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To avoid these issues, I’ve decided to use a simple open-source tool called
+    [Truss](https://github.com/basetenlabs/truss). Truss allows developers to easily
+    package their models with GPU support and run them on any cloud environment. It
+    has a ton of great features that make containerizing models a breeze:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPU support out of the box. No need to deal with CUDA.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Automatic Dockerfile creation. No need to write it yourself.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Production ready API server
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Simple python interface
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The main benefit of using Truss is that you can easily containerize a model
+    with GPU support and deploy it to any cloud environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/02773e33ebbadeef2057f2f78e894370.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Build the Truss once. Deploy is anywhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Creating the Truss**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create or open a python virtual environment with python version ≥ 3.8 and install
+    the following dependency:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**(Optional)** If you want to create your Truss project from scratch you can
+    run the command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You will be prompted to give your model a name. Any name such as *Mistral 7B
+    Tensort LLM* will do. Running the command above auto generates the required files
+    to deploy a Truss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To speed the process up a bit, I have a Github repository that contains the
+    required files. Please clone the Github repository below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/htrivedi99/mistral-7b-tensorrt-llm-truss?source=post_page-----ed36e620dac4--------------------------------)
+    [## GitHub - htrivedi99/mistral-7b-tensorrt-llm-truss'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contribute to htrivedi99/mistral-7b-tensorrt-llm-truss development by creating
+    an account on GitHub.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/htrivedi99/mistral-7b-tensorrt-llm-truss?source=post_page-----ed36e620dac4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is what the directory structure should look like for `mistral-7b-tensorrt-llm-truss`
+    :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here’s a quick breakdown of what the files above are used for:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `config.yaml` is used to set various configurations for your model, including
+    its resources, dependencies, environmental variables, and more. This is where
+    we can specify the model name, which Python dependencies to install, as well as
+    which system packages to install.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '2\. The `model/model.py` is the heart of Truss. It contains the Python code
+    that will get executed on the Truss server. In the `model.py` there are two main
+    methods: `load()` and `predict()` .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `load` method is where we’ll download the compiled model from hugging face
+    and initialize the TensorRT LLM engine.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `predict` method receives HTTP requests and calls the model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3\. The `model/utils.py` contains some helper functions for the `model.py` file.
+    I did not write the `utils.py` file myself, I took it directly from the [TensorRT
+    LLM repository](https://github.com/NVIDIA/TensorRT-LLM/blob/main/examples/utils.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. The `requirements.txt` contains the necessary Python dependencies to run
+    our compiled model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deeper Code Explanation:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `model.py` contains the main code that gets executed, so let’s dig a bit
+    deeper into that file. Let’s first take a look at the `load` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What’s happening here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the top of the file we import the necessary modules, specifically `tensorrt_llm`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next, inside the load function, we download the compiled model using the `snapshot_download`
+    function. My compiled model is at the following repo id: `htrivedi99/mistral-7b-v0.2-trtllm`
+    . If you uploaded your compiled model elsewhere, update this value accordingly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then, we download the tokenizer for the model using the `load_tokenizer` function
+    that comes with `model/utils.py` .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we use TensorRT LLM to load our compiled model using the `ModelRunner`
+    class.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cool, let’s take a look at the `predict` function as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What’s happening here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `predict` function accepts a few model inputs such as the `prompt` , `max_new_tokens`
+    , `temperature` , etc. We extract all of these values at the top of the function
+    using the `request.pop` method.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, we format the prompt into the required format for TensorRT LLM using the
+    `self.parse_input` helper function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then, we call our LLM model to generate the outputs using the `self.model.generate`
+    function. The generate function accepts a variety of arguments that help control
+    the output of the LLM.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I’ve also added some code to enable streaming by producing a `generator` object.
+    If streaming is disabled, the tokenizer simply decodes the output of the LLM and
+    returns it as a JSON object.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Awesome! That covers the coding portion. Let’s containerize it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Containerizing the model:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to run our model in the cloud we need to containerize it. Truss will
+    take care of creating the Dockerfile and packaging everything for us, so we don’t
+    have to do much.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Outside of the `mistral-7b-tensorrt-llm-truss` directory create a file called
+    `main.py` . Paste the following code inside it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run the `main.py` file and look inside the `mistral-7b-tensorrt-llm-truss` directory.
+    You should see a bunch of files get auto-generated. We don’t need to worry about
+    what these files mean, it’s just Truss doing its magic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, let’s build our container using docker. Run the commands below sequentially:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sweet! We’re ready to deploy the model in the cloud!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying the model in GKE
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this section, we’ll be deploying the model on Google Kubernetes Engine.
+    If you recall, during the model compilation step we ran the Google Colab on an
+    A100 40GB GPU. For TensorRT LLM to work, we need to deploy the model on the exact
+    same GPU for inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I won’t go super deep into how to set up a GKE cluster as it’s not in the scope
+    of this article. But, I will provide the specs I used for the cluster. Here are
+    the specs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 node, standard kubernetes cluster (not autopilot)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1.28.5 gke kubernetes version
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1 Nvidia A100 40GB GPU
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a2-highgpu-1g machine (12 vCPU, 85 GB memory)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Google managed GPU Driver installation (Otherwise we need to install Cuda driver
+    manually)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All of this will run on a spot instance
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Once the cluster is configured, we can launch it and connect to it. After the
+    cluster is active and you’ve successfully connected to it, create the following
+    kubernetes deployment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a standard kubernetes deployment that runs a container with the image
+    `htrivedi05/mistral-7b-v0.2-trt:latest` . If you created your own image in the
+    previous section, go ahead and use that. Feel free to use mine otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can create the deployment by running the command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It takes a few minutes for the kubernetes pod to be provisioned. Once the pod
+    is running, the load function we wrote earlier will get executed. You can check
+    the logs of the pod by running the command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once the model is loaded, you will see something like `Completed model.load()
+    execution in 449234 ms` in the pod logs. To send a request to the model via HTTP
+    we need to port-forward the service. You can use the command below to do that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Great! We can finally start sending requests to the model! Open up any Python
+    script and run the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You will see an output like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The performance of TensorRT LLM can be visibly noticed when the tokens are
+    streamed. Here’s an example of how to do that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: This mistral model has a fairly large context window, so feel free to try it
+    out with different prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance Benchmarks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Just by looking at the tokens being streamed, you can probably tell TensorRT
+    LLM is really fast. However, I wanted to get real numbers to capture the performance
+    gains of using TensorRT LLM. I ran some custom benchmarks and got the following
+    results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Small Prompt:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5a6f8b5d892474e2c42ece02b29c7454.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hugging Face vs TensorRT LLM benchmarks for small prompt
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Medium prompt:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/75ce9cad155634a4a8edaf2c4cf452ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hugging Face vs TensorRT LLM benchmarks for medium prompt
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Large prompt:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7cdbad4a1946898f79af8aeeeab9d2d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hugging Face vs TensorRT LLM benchmarks for large prompt
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this blog post, my goal was to demonstrate how state-of-the-art inference
+    can be achieved using TensorRT LLM. We covered everything from compiling an LLM
+    to deploying the model in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While TensorRT LLM is more complex than other inferencing optimizers, the performance
+    speaks for itself. This tool provides state-of-the-art LLM optimizations while
+    being completely open-source and is designed for commercial use. This framework
+    is still in the early stages and is under active development. The performance
+    we see today will only improve in the coming years.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you found something valuable in this article. Thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enjoyed This Story?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Consider* [*subscribing*](https://medium.com/@het.trivedi05/subscribe) *for
+    free.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@het.trivedi05/subscribe?source=post_page-----ed36e620dac4--------------------------------)
+    [## Get an email whenever Het Trivedi publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Het Trivedi publishes. By signing up, you will create
+    a Medium account if you don't already have…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@het.trivedi05/subscribe?source=post_page-----ed36e620dac4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Images
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If not otherwise stated, all images are created by the author.
+  prefs: []
+  type: TYPE_NORMAL

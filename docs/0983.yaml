@@ -1,0 +1,262 @@
+- en: Structured Generative AI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/structured-generative-ai-e772123428e4?source=collection_archive---------3-----------------------#2024-04-18](https://towardsdatascience.com/structured-generative-ai-e772123428e4?source=collection_archive---------3-----------------------#2024-04-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to constrain your model to output defined formats
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)[![Oren
+    Matar](../Images/8b1fa6aa3585fc283d51828b53a0754c.png)](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------)
+    [Oren Matar](https://medium.com/@orenmatar?source=post_page---byline--e772123428e4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e772123428e4--------------------------------)
+    ·7 min read·Apr 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this post I will explain and demonstrate the concept of “structured generative
+    AI”: generative AI constrained to defined formats. By the end of the post, you
+    will understand where and when it can be used and how to implement it whether
+    you’re crafting a transformer model from scratch or utilizing Hugging Face’s models.
+    Additionally, we will cover an important tip for tokenization that is especially
+    relevant for structured languages.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One of the many uses of generative AI is as a translation tool. This often
+    involves translating between two human languages but can also include computer
+    languages or formats. For example, your application may need to translate natural
+    (human) language to SQL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or to convert text data into a JSON format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Naturally, many more applications are possible, for other structured languages.
+    The training process for such tasks involves feeding examples of natural language
+    alongside structured formats to an encoder-decoder model. Alternatively, leveraging
+    a pre-trained Language Model (LLM) can suffice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While achieving 100% accuracy is unattainable, there is one class of errors
+    that we can eliminate: syntax errors. These are violations of the format of the
+    language, like replacing commas with dots, using table names that are not present
+    in the SQL schema, or omitting bracket closures, which render SQL or JSON non-executable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The fact that we’re translating into a structured language means that the list
+    of legitimate tokens at every generation step is limited, and pre-determined.
+    If we could insert this knowledge into the generative AI process we can avoid
+    a wide range of incorrect results. This is the idea behind structured generative
+    AI: constrain it to a list of legitimate tokens.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A quick reminder on how tokens are generated**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Whether employing an encoder-decoder or GPT architecture, token generation operates
+    sequentially. Each token’s selection relies on both the input and previously generated
+    tokens, continuing until a <end> token is generated, signifying the completion
+    of the sequence. At each step, a classifier assigns logit values to all tokens
+    in the vocabulary, representing the probability of each token as the next selection.
+    The next token is sampled based on those logits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cad3a2ae8eae2f7150a70bacdecbaa82.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The decoder classifier assigns a logit to every token in the vocabulary (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Limiting token generation**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To constrain token generation, we incorporate knowledge of the output language’s
+    structure. Illegitimate tokens have their logits set to -inf, ensuring their exclusion
+    from selection. For instance, if only a comma or “FROM” is valid after “Select
+    name,” all other token logits are set to -inf.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re using Hugging Face, this can be implemented using a “logits processor”.
+    To use it you need to implement a class with a __call__ method, which will be
+    called after the logits are calculated, but before the sampling. This method receives
+    all token logits and generated input IDs, returning modified logits for all tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e92f5fbfb0e5b222e3b5b4571ae33971.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The logits returned from the logits processor: all illegitimate tokens get
+    a value of -inf (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll demonstrate the code with a simplified example. First, we initialize the
+    model, we will use Bart in this case, but this can work with any model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we want to generate a translation from the natural language to SQL, we can
+    run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Returning
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we did not fine-tune the model for text-to-SQL tasks, the output does
+    not resemble SQL. We will not train the model in this tutorial, but we will guide
+    it to generate an SQL query. We will achieve this by employing a function that
+    maps each generated token to a list of permissible next tokens. For simplicity,
+    we’ll focus only on the immediate preceding token, but more complicated mechanisms
+    are easy to implement. We will use a dictionary defining for each token, which
+    tokens are allowed to follow it. E.g. The query must begin with “SELECT” or “DELETE”,
+    and after “SELECT” only “name”, “email”, or ”id” are allowed since those are the
+    columns in our schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we need to convert these tokens to the IDs used by the model. This will
+    happen inside a class inheriting from LogitsProcessor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we will implement the __call__ function, which is called after the
+    logits are calculated. The function creates a new tensor of -infs, checks which
+    IDs are legitimate according to the rules (the dictionary), and places their scores
+    in the new tensor. The result is a tensor that only has valid values for the valid
+    tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And that’s it! We can now run a generation with the logits-processor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Returning
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The outcome is a little strange, but remember: **we didn’t even train the model!**
+    We only enforced token generation based on specific rules. Notably, constraining
+    generation doesn’t interfere with training; constraints only apply during generation
+    post-training. Thus, when appropriately implemented, these constraints can only
+    enhance generation accuracy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our simplistic implementation falls short of covering all the SQL syntax. A
+    real implementation must support more syntax, potentially considering not just
+    the last token but several, and enable batch generation. Once these enhancements
+    are in place, our trained model can reliably generate executable SQL queries,
+    constrained to valid table and column names from the schema. A Similar approach
+    can enforce constraints in generating JSON, ensuring key presence and bracket
+    closure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Be careful of tokenization**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Tokenization is often overlooked but correct tokenization is crucial when using
+    generative AI for structured output. However, under the hood, tokenization can
+    make an impact on the training of your model. For example, you may fine-tune a
+    model to translate text into a JSON. As part of the fine-tuning process, you provide
+    the model with examples of text-JSON pairs, which it tokenizes. What will this
+    tokenization look like?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc9052660570390852112c1180650f1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While you read “[[“ as two square brackets, the tokenizer converts them into
+    a single ID, which will be treated as a completely distinct class from the single
+    bracket by the token classifier. This makes the entire logic that the model must
+    learn — more complicated (for example, remembering how many brackets to close).
+    Similarly, adding a space before words may change their tokenization and their
+    class ID. For instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/756198370ecbaaf8710bcdb24c8ccf3a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, this complicates the logic the model will have to learn since the weights
+    connected to each of these IDs will have to be learned separately, for slightly
+    different cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For simpler learning, ensure each concept and punctuation is consistently converted
+    to the same token, by adding spaces before words and characters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ce09edd397c68277a6d2ddf93b2cb378.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Spaced-out words lead to more consistent tokenization (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inputting spaced examples during fine-tuning simplifies the patterns the model
+    has to learn, enhancing model accuracy. During prediction, the model will output
+    the JSON with spaces, which you can then remove before parsing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summary**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Generative AI offers a valuable approach for translating into a formatted language.
+    By leveraging the knowledge of the output structure, we can constrain the generative
+    process, eliminating a class of errors and ensuring the executability of queries
+    and parse-ability of data structures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, these formats may use punctuation and keywords to signify certain
+    meanings. Making sure that the tokenization of these keywords is consistent can
+    dramatically reduce the complexity of the patterns that the model has to learn,
+    thus reducing the required size of the model and its training time, while increasing
+    its accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structured generative AI can effectively translate natural language into any
+    structured format. These translations enable information extraction from text
+    or query generation, which is a powerful tool for numerous applications.
+  prefs: []
+  type: TYPE_NORMAL

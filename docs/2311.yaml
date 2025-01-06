@@ -1,0 +1,276 @@
+- en: How I Deal with Hallucinations at an AI Startup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-i-deal-with-hallucinations-at-an-ai-startup-9fc4121295cc?source=collection_archive---------0-----------------------#2024-09-22](https://towardsdatascience.com/how-i-deal-with-hallucinations-at-an-ai-startup-9fc4121295cc?source=collection_archive---------0-----------------------#2024-09-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: And the difference between weak vs strong grounding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)[![Tarik
+    Dzekman](../Images/0c66b22ecbdbbce79b2516e555c67432.png)](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------)
+    [Tarik Dzekman](https://medium.com/@TarikDzekman?source=post_page---byline--9fc4121295cc--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9fc4121295cc--------------------------------)
+    ·6 min read·Sep 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/39ae2c52e7738b8d6311b35c04226fd5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I work as an AI Engineer in a particular niche: document automation and information
+    extraction. In my industry using Large Language Models has presented a number
+    of challenges when it comes to hallucinations. Imagine an AI misreading an invoice
+    amount as $100,000 instead of $1,000, leading to a 100x overpayment. When faced
+    with such risks, preventing hallucinations becomes a critical aspect of building
+    robust AI solutions. These are some of the key principles I focus on when designing
+    solutions that may be prone to hallucinations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using validation rules and “human in the loop”
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are various ways to incorporate human oversight in AI systems. Sometimes,
+    extracted information is always presented to a human for review. For instance,
+    a parsed resume might be shown to a user before submission to an Applicant Tracking
+    System (ATS). More often, the extracted information is automatically added to
+    a system and only flagged for human review if potential issues arise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A crucial part of any AI platform is determining when to include human oversight.
+    This often involves different types of validation rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Simple rules, such as ensuring line-item totals match the invoice total.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Lookups and integrations, like validating the total amount against a purchase
+    order in an accounting system or verifying payment details against a supplier’s
+    previous records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d374b961f36a3502d81dcd65f1450504.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'An example validation error when there needs to be a human in the loop. Source:
+    Affinda'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These processes are a good thing. But we also don’t want an AI that constantly
+    triggers safeguards and forces manual human intervention. Hallucinations can defeat
+    the purpose of using AI if it’s constantly triggering these safeguards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Small Language Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One solution to preventing hallucinations is to use Small Language Models (SLMs)
+    which are “extractive”. This means that the model labels parts of the document
+    and we collect these labels into structured outputs. I recommend trying to use
+    a SLMs where possible rather than defaulting to LLMs for every problem. For example,
+    in resume parsing for job boards, waiting 30+ seconds for an LLM to process a
+    resume is often unacceptable. For this use case we’ve found an SLM can provide
+    results in 2–3 seconds with higher accuracy than larger models like GPT-4o.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example from our pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In our startup a document can be processed by up to 7 different models — only
+    2 of which might be an LLM. That’s because an LLM isn’t always the best tool for
+    the job. Some steps such as Retrieval Augmented Generation rely on a small multimodal
+    model to create useful embeddings for retrieval. The first step — detecting whether
+    something is even a document — uses a small and super-fast model that achieves
+    99.9% accuracy. It’s vital to break a problem down into small chunks and then
+    work out which parts LLMs are best suited for. This way, you reduce the chances
+    of hallucinations occurring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distinguishing Hallucinations from Mistakes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I make a point to differentiate between hallucinations (the model inventing
+    information) and mistakes (the model misinterpreting existing information). For
+    instance, selecting the wrong dollar amount as a receipt total is a mistake, while
+    generating a non-existent amount is a hallucination. Extractive models can only
+    make mistakes, while generative models can make **both** mistakes and hallucinations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Risk tolerance and Grounding
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When using generative models we need some way of eliminating hallucinations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Grounding* refers to any technique which forces a generative AI model to justify
+    its outputs with reference to some authoritative information. How grounding is
+    managed is a matter of risk tolerance for each project.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example — a company with a general-purpose inbox might look to identify
+    action items. Usually, emails requiring actions are sent directly to account managers.
+    A general inbox that’s full of invoices, spam, and simple replies (“thanks”, “OK”,
+    etc.) has far too many messages for humans to check. What happens when actions
+    are mistakenly sent to this general inbox? Actions regularly get missed. If a
+    model makes mistakes but is generally accurate it’s already doing better than
+    doing nothing. In this case the tolerance for mistakes/hallucinations can be high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other situations might warrant particularly low risk tolerance — think financial
+    documents and “straight-through processing”. This is where extracted information
+    is automatically added to a system without review by a human. For example, a company
+    might not allow invoices to be automatically added to an accounting system unless
+    (1) the payment amount exactly matches the amount in the purchase order, and (2)
+    the payment method matches the previous payment method of the supplier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Even when risks are low, I still err on the side of caution. Whenever I’m focused
+    on information extraction I follow a simple rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**If text is extracted from a document, then it must exactly match text found
+    in the document.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This is tricky when the information is structured (e.g. a table) — especially
+    because PDFs don’t carry any information about the order of words on a page. For
+    example, a description of a line-item might split across multiple lines so the
+    aim is to draw a coherent box around the extracted text regardless of the left-to-right
+    order of the words (or right-to-left in some languages).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forcing the model to point to exact text in a document is “strong grounding”.
+    Strong grounding isn’t limited to information extraction. E.g. customer service
+    chat-bots might be required to quote (verbatim) from standardised responses in
+    an internal knowledge base. This isn’t always ideal given that standardised responses
+    might not actually be able to answer a customer’s question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another tricky situation is when information needs to be inferred from context.
+    For example, a medical assistant AI might infer the presence of a condition based
+    on its symptoms without the medical condition being expressly stated. Identifying
+    where those symptoms were mentioned would be a form of “weak grounding”. The justification
+    for a response must exist in the context but the exact output can only be synthesised
+    from the supplied information. A further grounding step could be to force the
+    model to lookup the medical condition and justify that those symptoms are relevant.
+    This may still need weak grounding because symptoms can often be expressed in
+    many ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grounding for complex problems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Using AI to solve increasingly complex problems can make it difficult to use
+    grounding. For example, how do you ground outputs if a model is required to perform
+    “reasoning” or to infer information from context? Here are some considerations
+    for adding grounding to complex problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identify complex decisions which could be broken down into a set of rules. Rather
+    than having the model generate an answer to the final decision have it generate
+    the components of that decision. Then use rules to display the result. (Caveat
+    — this can sometimes make hallucinations worse. Asking the model multiple questions
+    gives it multiple opportunities to hallucinate. Asking it one question could be
+    better. But we’ve found current models are generally worse at complex multi-step
+    reasoning.)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If something can be expressed in many ways (e.g. descriptions of symptoms),
+    a first step could be to get the model to tag text and standardise it (usually
+    referred to as “coding”). This might open opportunities for stronger grounding.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Set up “tools” for the model to call which constrain the output to a very specific
+    structure. We don’t want to execute arbitrary code generated by an LLM. We want
+    to create tools that the model can call and give restrictions for what’s in those
+    tools.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Wherever possible, include grounding in tool use — e.g. by validating responses
+    against the context before sending them to a downstream system.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Is there a way to validate the final output? If handcrafted rules are out of
+    the question, could we craft a prompt for verification? (And follow the above
+    rules for the verified model as well).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Key Takeaways
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When it comes to information extraction, we don’t tolerate outputs not found
+    in the original context.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We follow this up with verification steps that catch mistakes as well as hallucinations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Anything we do beyond that is about risk assessment and risk minimisation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Break complex problems down into smaller steps and identify if an LLM is even
+    needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For complex problems use a systematic approach to identify verifiable task:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: — Strong grounding forces LLMs to quote verbatim from trusted sources. It’s
+    always preferred to use strong grounding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: — Weak grounding forces LLMs to reference trusted sources but allows synthesis
+    and reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: — Where a problem can be broken down into smaller tasks use strong grounding
+    on tasks where possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Affinda AI Platform**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ve built a powerful [AI document processing](https://www.affinda.com/platform)
+    platform used by organisations around the world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: About the Author
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I’m the Lead AI Engineer @ Affinda. I spent 10 years making [a career change
+    from UX to AI](https://medium.com/@TarikDzekman/my-career-change-to-ai-from-ux-b1ed6690c09a).
+    Looking for a more in-depth understanding of generative AI? Read my deep dive:
+    [what Large Language Models actually understand](https://medium.com/towards-data-science/what-do-large-language-models-understand-befdb4411b77).'
+  prefs: []
+  type: TYPE_NORMAL

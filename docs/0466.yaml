@@ -1,0 +1,341 @@
+- en: An Introduction to Air Travel Network Optimization Using Mixed Integer Programming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/introduction-0dd288ba9738?source=collection_archive---------7-----------------------#2024-02-18](https://towardsdatascience.com/introduction-0dd288ba9738?source=collection_archive---------7-----------------------#2024-02-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to design an algorithm to route passenger demand across a network in the
+    most cost-effective manner
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@rohan2465?source=post_page---byline--0dd288ba9738--------------------------------)[![Rohan
+    Nanda](../Images/a1cc23be56f19fe6c75094e9859ffdc0.png)](https://medium.com/@rohan2465?source=post_page---byline--0dd288ba9738--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0dd288ba9738--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0dd288ba9738--------------------------------)
+    [Rohan Nanda](https://medium.com/@rohan2465?source=post_page---byline--0dd288ba9738--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0dd288ba9738--------------------------------)
+    ·8 min read·Feb 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction:**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is a take on the Vehicle Routing Problem problem, but adapted to the air
+    transport networks, namely the **Origin Destination-to-Leg** problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d4a0648185fb304f0805b133a61619d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [NASA](https://unsplash.com/@nasa?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A little background first: Airlines are constantly faced with the question
+    of how to address demand between city-pairs — do they open a direct connection,
+    or provide connecting itineraries so that the demand is channeled through one
+    or more hubs? The latter is of course preferable from a passenger perspective,
+    but is more costly for the airline and therefore riskier — what if the flight
+    is not filled? Operating a route is very expensive. In other words, we are trying
+    to do this*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf268b098a59afa69e2695a8d576a259.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: Schema of the problem we are trying to solve. On the Left we have
+    the Origin-Destination (OD) demand, while the Right we have the Legs (with associated
+    traffic routing), which can be thought of as the market response to demand.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Graph theory enthusiasts will recognize this as a special case of the Graph
+    Sparsification problem, which has seen considerable attention lately.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The industry typically addresses this using so-called itinerary choice models,
+    which are simply probabilistic models to determine which routings passengers will
+    prefer on the basis of number of connections, route length, flight times etc…
+    While this works well when the network shape is already fixed, deciding which
+    routes to open is more complicated. This is because there are a number of routes
+    which are only viable if they can capture enough connecting traffic from other
+    sources — this in turn only occurs if there are no direct routes to serve said
+    traffic. In other words, the status of each route is dependent on the status of
+    neighboring routes, turning this into a combinatorial problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is precisely the kind of problem that Mixed Integer Programs (MIP) are
+    designed for! Specifically, we will formulate a problem to reflect the following
+    behaviors: **Network Flow Conservation** and **Edge Activation Costs to enforce
+    sparsification.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Toy Problem:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For the rest of this article, I will use a toy example as illustration. To
+    completely describe the problem, we need the following inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Input Graph:**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A dense Origin-Destination bidirectional graph ***G = (V, E)***, with ***n***
+    vertices ***V*** and ***m*** edges ***E***. Each edge has as attribute the Origin-Destination
+    demand (***O****)* and the distance between each city-pair (***Distance***). Typically,
+    the demand follows a pareto distribution, where a few edges have high demand and
+    the rest have low demand*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e5fb688745397298df9ada053a9162d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Input Demand Graph (L) and Distribution of demand by edges (R)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Graph generated by randomly instantiating the coordinates of the nodes and
+    their population. Using the so-called gravity model for transport, a realistic
+    demand profile can then be obtained. For more information, see* [*link*](https://www.princeton.edu/~alaink/Orf467F12/The%20Gravity%20Model.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Cost Assumptions:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Depending on the edge distance and typical vehicle type that would be assigned,
+    each edge would have the following cost properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cost of per passenger, ***Costₚₐₓ***, where pax is short-hand for passenger.
+    In practice, it is the cost-per-seat that should be considered, rather than cost-per-pax,
+    since not every vehicle is necessarily filled completely. However, this would
+    require discrete modelling of each vehicle (and an associated integer variable),
+    which would explode the size of the problem.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Minimum cost of operating a route, ***Costₘᵢₙ***. Think of this as the edge
+    activation cost.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bear in mind that both ***Costₚₐₓ*** and ***Costₘᵢₙ*** are *m × 1* vectors (one
+    per edge), and both costs scale linearly with distance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this, we have everything we need to design our MIP. As you might have guessed,
+    the idea is to minimize the cost function of the system while respecting the network
+    flow constraint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Network Flow Conservation**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This is a well-known condition, which states that the inflow and outflow of
+    each vertex must be balanced, unless it is a source or sink:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/63ec1ba87684aa282018a23597606351.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here ***(i, j, k)*** are vertex indices. I’m personally not a big fan of this
+    type of notation, and prefer the equivalent expression using the concept of the
+    edge-incidence matrix from graph theory. This is usually denoted by the *n × m*
+    matrix ***B***, where each row entry is zero except at the incidence vertices
+    for the corresponding edge, which are 1 & -1 to represent the source & sink:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c249021959fb3327d6546c6377046ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'If we initialize an *m × m* variable matrix (let’s call it ***R*** for Itinerary
+    Routing — see Figure 1) to represent the flow routing for each demand edge in
+    ***G***, we can equivalently formulate the above condition by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/96b8bde9106bcd387e70bd0b647420d2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Where ***diag(O)*** is an *m × m* matrix with each diagonal entry corresponding
+    to the demand from edge *i*. If you multiply out any row *i* of the RHS, it immediately
+    becomes obvious why any ***R*** that satisfies this equation is valid from a flow
+    conservation perspective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note however that both the ***B*** and ***R*** are directional. In the context
+    of our cost function, we don’t really care whether some flows are negative — we
+    just want the absolute, total number of passengers flowing along the edge *i*
+    in order to quantify the cost of carrying them. To represent this, we can define
+    the *m × 1* leg vector ***L***:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e2ed1cb38f8206debefc2c59c136b385.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With these definitions, we have a function mapping ***O → L*** that is compatible
+    with the network flow conservation principle*.* From hereon, ***L*** represents
+    the total passenger volume on each edge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Edge Activation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This is the heart of the problem! Consider that if ***Costₘᵢₙ=0***, the solution
+    would be trivial, with ***L*** mapping to ***O*** on a one-to-one basis. This
+    is because any alternative routing would necessarily cover a longer distance than
+    the direct route, so that the cheapest option would always be the latter. However,
+    in the presence of ***Costₘᵢₙ,*** there is a trade-off between the ***△Cost***
+    incurred by longer distance travelled vs. ***△Cost*** incurred through edge-activation.
+    In other words, we need the cost profile for each edge to be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/09c27a4ca94509f72262b762fa8997a8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3: Illustration of the cost function with edge activation costs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are 3 parts to this function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the number of passengers is zero, no costs are incurred (***Cost*** ***=***
+    0***)***
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the number of passengers is between 0 and the threshold, a fixed cost is
+    incurred (***Cost*** ***=*** ***Cₘᵢₙ)***, no matter the number of passengers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the number of passengers exceeds the threshold, costs scale linearly with
+    ​according to the cost per pax ***(Cost = Cₚₐₓ.L)***
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If it were not for the zero-point discontinuity, this would have been a pretty
+    simple problem to solve. Instead, we have a non-convex, combinatorial problem
+    because there is a sudden shift in behavior depending on whether the number of
+    passengers along an edge is zero or not. In this situation, we need an activation
+    (binary) variable to tell the algorithm which condition to follow. Using the big-M
+    approach, we can formulate this as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1df0f9bed7e9cc9a9655e4eefc993f69.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Where the *m × 1* vector of binary variables ***z***(i.e. ***z ∈ [0,1]***)
+    indicates if a route is open or not, and a very large scalar variable ***M***.
+    If you’re not familiar with the big-M method, you can read up on it [here](https://en.wikipedia.org/wiki/Big_M_method).
+    In this context, it simply enforces the following conditions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Lᵢ = 0*** *→* ***zᵢ=0***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Lᵢ >0*** *→* ***zᵢ=1***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Ideally, we would have liked to simply multiply the cost function by this activation
+    variable to tell it which cost behavior to follow. However, this would make the
+    constraint non-linear and very complicated to solve. Instead, we can use Big-M
+    again, this time to linearize the problem while getting the same effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5bd96d3186cb461140043fef13a5bf59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Combining the cost minimization objective with the ≥ inequalities, we basically
+    end up with a minmax problem where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***zᵢ=0 → Costᵢ = minmax(0, -M) = 0***.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***zᵢ=1 → Costᵢ = minmax(Cₘᵢₙ, CₚₐₓL)***.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And there we have it! The complete formulation of the problem is shown:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44218b9e33a6678bd3f9ceacb602009c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We now only have to plug in some numbers to see the magic happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sensitivity to minimum threshold
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'It should be clear from the description that the minimum threshold is the main
+    input of interest here, because it defines the degree of sparsification. It’s
+    interesting to see the impact using progressively higher thresholds:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ebbc530cc607635549d02f84209dcfe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4: From Left to Right, applying Low, Mid and High Thresholds for edge
+    costs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Notice how, no matter the threshold, the graph remains connected — this is
+    a result of the network flow conservation principle, to ensure all demand is satisfied.
+    Another neat way to visualize it is to look at the demand distribution along edges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e4d531731f90fb0d94727f43873349b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5: Low, Mid and High Thresholds on the Input Cost function vs. Output
+    Traffic Distribution'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we see how the higher the threshold, the higher the level of consolidation
+    (fewer routes with higher volume of traffic), and a correspondingly high number
+    of routes with no traffic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This was a simple introduction to what is in reality a very complex problem
+    (there is far more nuance to airline networks than just minimum threshold costs).
+    Still, it demonstrates one of the core behaviors of real networks, while giving
+    a basic introduction to some key concepts for formulating MIPs. The codes for
+    this are on my [Github](https://github.com/rn306/OD-to-LEG), feel free to give
+    it a try.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you actually try to run it, you’ll soon notice that solve time scales exponentially
+    with the number of vertices in the graph. This is especially the case if you solve
+    it with cvxpy — a common (but rudimentary) open source python library for simple
+    optimization problems. That said, even the sophisticated commercial solvers soon
+    run into their limits. This is the unescapable truth of combinatorial problems;
+    they scale poorly, and are often impractical beyond a certain problem size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next article, I will introduce a way to try to abstract away some of
+    the complexity by using Graph Neural Networks as surrogate models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images unless otherwise stated are by me, the author.*'
+  prefs: []
+  type: TYPE_NORMAL

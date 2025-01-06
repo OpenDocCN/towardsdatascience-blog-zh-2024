@@ -1,0 +1,352 @@
+- en: How to Expose Delta Tables via REST APIs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-expose-delta-tables-via-rest-apis-53b4dd7afa4e?source=collection_archive---------0-----------------------#2024-05-06](https://towardsdatascience.com/how-to-expose-delta-tables-via-rest-apis-53b4dd7afa4e?source=collection_archive---------0-----------------------#2024-05-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Three architectures discussed and tested to serve delta tables
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[![René
+    Bremer](../Images/e422c4b84e225d2a949251ebc24dbd2c.png)](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)
+    [René Bremer](https://rebremer.medium.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53b4dd7afa4e--------------------------------)
+    ·7 min read·May 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c9e1d23ea5b1cf0a55e7475f13b53a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Expose data inside out — image by [Joshua Sortino on Unsplash](https://unsplash.com/@sortino)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Delta tables in a [medallion architecture](https://www.databricks.com/glossary/medallion-architecture)
+    are generally used to create data products. These data products are used for data
+    science, data analytics, and reporting. However, a common question is to also
+    expose data products via REST APIs. The idea is to embed these APIs in web apps
+    with more strict performance requirements. Important questions are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is reading data from delta tables fast enough to serve web apps?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is a compute layer needed to make solution more scalable?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is a storage layer needed to achieve strict performance requirements?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To deep-dive on these questions, three architectures are evaluated as follows:
+    architecture A — libraries in API, architecture B — compute layer, and architecture
+    C — storage layer. See also image below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4660f725419bf5d6260407749ecb8d6f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Three architectures to expose delta tables — image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the remainder of the blog post, the three architectures are described, deployed
+    and tested. Then a conclusion is made.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Architecture description
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '2.1 Architecture A: Libraries in API using DuckDB and PyArrow'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this architecture, APIs are directly connecting to delta tables and there
+    is no compute layer in between. This implies that data is analyzed by using the
+    memory and compute of the API itself. To improve performance, Python libraries
+    of [embedded database DuckDB](https://duckdb.org/why_duckdb#simple) and [PyArrow](https://pyarrow.readthedocs.io/en/latest/)
+    are used. These libraries make sure that only relevant data is loaded (e.g. only
+    columns that are needed by the API).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60464d2733670c853ce8caa4d24451df.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Architecture A: Libraries in API — image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pro of this architecture is that data does not have to be duplicated and
+    there is no layer needed in between the API and the delta tables. This means less
+    moving parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The con of this architecture is that it’s harder to scale and all of the work
+    needs to be done in the compute and memory of the API itself. This is especially
+    challenging if a lot of data needs to be analyzed. This can come from many records,
+    large columns and/or a lot of concurrent requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2.2 Architecture B: Compute layer using Synapse, Databricks, or Fabric'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this architecture, APIs are connecting to a compute layer and not directly
+    to the delta tables. This compute layer fetches data from delta tables and then
+    analyzes the data. The compute layer can be [Azure Synapse](https://learn.microsoft.com/en-us/azure/synapse-analytics/overview-what-is),
+    [Azure Databricks](https://learn.microsoft.com/en-us/azure/databricks/introduction/),
+    or [Microsoft Fabric](https://learn.microsoft.com/en-us/fabric/get-started/microsoft-fabric-overview)
+    and typically scales well. The data is not duplicated to the compute layer, though
+    caching can be applied in the compute layer. In the remaining of this blog there
+    is tested with [Synapse Serverless](https://learn.microsoft.com/en-us/azure/synapse-analytics/sql/on-demand-workspace-overview).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dfc98b85a7d99735689388832e72f6e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Architecture B: Compute layer — image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pro of this architecture is that the data does not have to be duplicated
+    and the architecture scales well. Furthermore, it can be used to crunch large
+    datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The con of this architecture is that an additional layer is needed between the
+    API and the delta tables. This means that more moving parts have to be maintained
+    and secured.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2.3 Architecture C: Optimized storage layer using Azure SQL or Cosmos DB'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this architecture, APIs are not connecting to delta tables, but to a different
+    storage layer in which the delta tables are duplicated. The different storage
+    layer can be Azure SQL or Cosmos DB. The storage layer can be optimized for fast
+    retrieval of data. In the remainder of this blog there is tested with Azure SQL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/84a687b97eb88e5346449d5e6a4704fb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Architecture C: Optimized storage layer — image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pro of this architecture is that the storage layer can be optimized to read
+    data fast using indexes, partitioning and materialized views. This is typically
+    a requirement in scenarios of request-response web apps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The con of this architecture is that data needs to be duplicated and an additional
+    layer is needed between the API and the delta tables. This means that more moving
+    parts need to be maintained and secured.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the remainder of the blog the architectures are deployed and tested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Deployment and testing of architectures
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 3.1 Deploying architectures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To deploy the architectures, a GitHub project is created that deploys the three
+    solutions as discussed in the previous chapter. The project can be found in the
+    link below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following will be deployed when the GitHub project is executed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A delta table originating from standard test dataset [WideWorldImporterdDW full](https://azuresynapsestorage.blob.core.windows.net/sampledata/WideWorldImportersDW/csv/full/WideWorldImportersDW/csv/full/fact_sale_1y_full/).
+    The test dataset consists of 50M records and 22 columns with 1 large description
+    column. The delta table will be partitioned using year, quarter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'All architectures: [Azure Function](https://learn.microsoft.com/en-us/azure/azure-functions/functions-overview?pivots=programming-language-python)
+    acting as API.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Architecture B: Synapse Serverless acting as compute layer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Architecture C: Azure SQL acting as optimized storage layer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once deployed, tests can be executed. The tests are described in the next paragraph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Testing architectures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To test the architecture, different types of queries and different scaling
+    will be applied. The different type of queries can be described as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Look up of 20 records with 11 small columns (char, integer, datetime).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Look up of 20 records with 2 columns including a large description column that
+    contains more than 500 characters per field.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Aggregation of data using group by, having, max, average.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The queries are depicted below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The scaling can be described as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For architecture A, the data processing will be done in the API itself. This
+    means that the compute and memory of the API is used via its [app service plan](https://learn.microsoft.com/en-us/azure/app-service/overview-hosting-plans).
+    These will be tested with both [SKU Basic](https://azure.microsoft.com/en-us/pricing/details/app-service/windows/#pricing)
+    (1 core and 1.75 GB memory) and SKU P1V3 SKU (2 cores, 8 GB memory). For architecture
+    B and C, this is not relevant, since the processing is done elsewhere.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For architecture B, Synapse Serverless is used. Scaling will be done automatically.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For architecture C, an Azure SQL database of [standard tier](https://learn.microsoft.com/en-us/azure/azure-sql/database/service-tiers-dtu?view=azuresql)
+    is taken with 125 DTUs. There will be tested without an index and with an index
+    on CityKey. This index can be applied afterwards and does not require repartitioning
+    of the data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the next paragraph the results are described.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'After deployment and testing the architectures, the results can be obtained.
+    This is a summary of the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0881c24c646ce4ade82355446a0f7a03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Test results summary
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture A cannot be deployed with SKU B1\. In case it is SKU P1V3 is used,
+    then results can be calculated within 15 seconds in case the column size is not
+    too big. Notice that all data is analyzed in the API app service plan. If too
+    much data is loaded (either via many rows, large columns and/or many concurrent
+    requests), this architecture is hard to scale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture B using Synapse Serverless performs within 10–15 seconds. The compute
+    is done on Synapse Serverless which is scaled automatically to fetch and analyze
+    the data. Performance is consistent for all three types of queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture C using Azure SQL performs best when indexes are created. For look
+    up queries 1 and 2, the API responds in around 1 seconds. Query 3 requires a full
+    table scan and there performance is more or less equal to other solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Delta tables in a [medallion architecture](https://www.databricks.com/glossary/medallion-architecture)
+    are generally used to create data products. These data products are used for data
+    science, data analytics, and reporting. However, a common question is to also
+    expose delta tables via REST APIs. In this blog post, three architectures are
+    described with its pros and cons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Architecture A: Libraries in API using DuckDB and PyArrow.** In this architecture,
+    APIs are directly connecting to delta tables and there is no layer in between.
+    This implies that all data is analyzed in memory and compute of the Azure Function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pro of this architecture is that no additional resources are needed. This
+    means less moving parts that need to be maintained and secured.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The con of this architecture is that it does not scale well since all data needs
+    to be analyzed in the API itself. Therefore, it shall only be used for small amounts
+    of data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Architecture B: Compute layer using Synapse, Databricks or Fabric.** In this
+    architecture, APIs are connecting to a compute layer. This compute layer fetches
+    and analyzes data from delta tables.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pro of this architecture is that it scales well and data is not duplicated.
+    It works well for queries that do aggregations and crunch large datasets.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The con of this architecture is that it is not possible to get responseswithin
+    5 seconds for look up queries consistently. Also, additional resources need to
+    be secured and maintained.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Architecture C: Optimized storage layer using Azure SQL or Cosmos DB**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this architecture, APIs are connecting to an optimized storage layer. Delta
+    tables are duplicated to this storage layer in advance and the storage layer is
+    used to fetch and analyze the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pro of this architecture is that it can be optimized for fast querying of
+    look ups using indexes, partitioning, materialized views. This is often a requirement
+    for request-response web apps.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The con of this architecture is that data is duplicated to a different storage
+    layer, which needs to be kept in sync. Also, additional resources need to be secured
+    and maintained.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unfortunately, there is no silver bullet solution. This article aimed to give
+    guidance in choosing the best architecture to expose delta tables via REST APIs.
+  prefs: []
+  type: TYPE_NORMAL

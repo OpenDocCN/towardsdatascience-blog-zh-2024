@@ -1,0 +1,491 @@
+- en: A Practical Guide to Proximal Policy Optimization in JAX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/breaking-down-state-of-the-art-ppo-implementations-in-jax-6f102c06c149?source=collection_archive---------7-----------------------#2024-05-01](https://towardsdatascience.com/breaking-down-state-of-the-art-ppo-implementations-in-jax-6f102c06c149?source=collection_archive---------7-----------------------#2024-05-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: All the tricks and details you wish you knew about PPO
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ryanpegoud?source=post_page---byline--6f102c06c149--------------------------------)[![Ryan
+    Pégoud](../Images/9314b76c2be56bda8b73b4badf9e3e4d.png)](https://medium.com/@ryanpegoud?source=post_page---byline--6f102c06c149--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6f102c06c149--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6f102c06c149--------------------------------)
+    [Ryan Pégoud](https://medium.com/@ryanpegoud?source=post_page---byline--6f102c06c149--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6f102c06c149--------------------------------)
+    ·9 min read·May 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9706450ef22f9e46c08b73bbee0735d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Lorenzo Herrera](https://unsplash.com/@lorenzoherrera?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since its publication in a [2017 paper by OpenAI](https://arxiv.org/pdf/1707.06347.pdf),
+    Proximal Policy Optimization (PPO) is widely regarded as one of the state-of-the-art
+    algorithms in Reinforcement Learning. Indeed, PPO has demonstrated remarkable
+    performances across various tasks, from [attaining superhuman performances in
+    Dota 2](https://openai.com/research/openai-five) teams to solving a [Rubik’s cube
+    with a single robotic hand](https://openai.com/research/solving-rubiks-cube) while
+    maintaining three main advantages: simplicity, stability, and sample efficiency.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, implementing RL algorithms from scratch is notoriously difficult and
+    error-prone, given the numerous error sources and implementation details to be
+    aware of.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we’ll focus on breaking down the clever tricks and programming
+    concepts used in a popular implementation of PPO in JAX. Specifically, we’ll focus
+    on the [implementation featured in the PureJaxRL library](https://github.com/luchris429/purejaxrl/blob/main/purejaxrl/ppo.py),
+    developed by [Chris Lu](https://chrislu.page).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Disclaimer: Rather than diving too deep into theory, this article covers the
+    practical implementation details and (numerous) tricks used in popular versions
+    of PPO. Should you require any reminders about PPO’s theory, please refer to the
+    “****references****” section at the end of this article. Additionally, all the
+    code (minus the added comments) is copied directly from PureJaxRL for pedagogical
+    purposes.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/luchris429/purejaxrl/tree/main?source=post_page-----6f102c06c149--------------------------------)
+    [## UGitHub - luchris429/purejaxrl: Really Fast End-to-End Jax RL Implementations'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Really Fast End-to-End Jax RL Implementations. Contribute to luchris429/purejaxrl
+    development by creating an account on…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/luchris429/purejaxrl/tree/main?source=post_page-----6f102c06c149--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Actor-Critic Architectures**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Proximal Policy Optimization is categorized within the policy gradient family
+    of algorithms, a subset of which includes actor-critic methods. The designation
+    ‘actor-critic’ reflects the dual components of the model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **actor network** creates a **distribution over actions** given the current
+    state of the environment and returns an action sampled from this distribution.
+    Here, the actor network comprises three dense layers separated by two activation
+    layers (either ReLU or hyperbolic tangeant) and a final categorical layer applying
+    the **softmax** function to the computed distribution.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The **critic network** **estimates the value function of the current state**,
+    in other words, how good a particular action is at a given time. Its architecture
+    is almost identical to the actor network, except for the final softmax layer.
+    Indeed, the critic network doesn’t apply any activation function to the final
+    dense layer outputs as it performs a regression task.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/1e67cc67befceb9cb6015af67bab3bf3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Actor-critic architecture, as defined in PureJaxRL (illustration made by the
+    author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, this implementation pays particular attention to **weight initialization**
+    in dense layers. Indeed, all dense layers are initialized by **orthogonal matrices**
+    with specific coefficients. This initialization strategy has been shown to **preserve
+    the gradient norms** (i.e. scale) during forward passes and backpropagation, leading
+    to **smoother convergence** and limiting the risks of vanishing or exploding gradients[1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Orthogonal initialization is used in conjunction with specific scaling coefficients:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Square root of 2**: Used for the first two dense layers of both networks,
+    this factor aims to **compensate for the variance reduction** induced by ReLU
+    activations (as inputs with negative values are set to 0). For the tanh activation,
+    the Xavier initialization is a popular alternative[2].'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**0.01:** Used in the last dense layer of the actor network, this factor helps
+    to **minimize the initial differences in logit values** before applying the softmax
+    function. This will reduce the difference in action probabilities and thus **encourage
+    early exploration**.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**1:** As the critic network is performing a regression task, we do not scale
+    the initial weights.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Actor critic network (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training Loop
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The training loop is divided into 3 main blocks that share similar coding patterns,
+    taking advantage of Jax’s functionalities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Trajectory collection:** First, we’ll interact with the environment for a
+    set number of steps and collect observations and rewards.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Generalized Advantage Estimation (GAE):** Then, we’ll approximate the expected
+    return for each trajectory by computing the generalized advantage estimation.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Update step:** Finally, we’ll compute the gradient of the loss and update
+    the network parameters via gradient descent.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Before going through each block in detail, here’s a quick reminder about the
+    `jax.lax.scan`function that will show up multiple times throughout the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jax.lax.scan
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A common programming pattern in JAX consists of defining a function that acts
+    on a single sample and using `jax.lax.scan`to **iteratively apply it to elements
+    of a sequence** or an array, while carrying along some state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, we’ll apply it to the `step` function to step our environment
+    N consecutive times while carrying the new state of the environment through each
+    iteration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In pure Python, we could proceed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However, we avoid writing such loops in JAX for performance reasons (as pure
+    Python loops are incompatible with JIT compilation). The alternative is `jax.lax.scan`which
+    is equivalent to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using `jax.lax.scan` is more efficient than a Python loop because it allows
+    the transformation to be optimized and executed as a single compiled operation
+    rather than interpreting each loop iteration at runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can see that the `scan` function takes multiple arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**f:** A function that is applied at each step. It takes the current state
+    and an element of `xs` (or a placeholder if `xs` is `None`) and returns the updated
+    state and an output.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**init:** The initial state that `f` will use in its first invocation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**xs:** A sequence of inputs that are iteratively processed by `f`. If `xs`
+    is `None`, the function simulates a loop with `length` iterations using `None`
+    as the input for each iteration.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**length:** Specifies the number of iterations if `xs` is `None`, ensuring
+    that the function can still operate without explicit inputs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Additionally, `scan` returns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**carry:** The final state after all iterations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**ys:** An array of outputs corresponding to each step’s application of `f`,
+    stacked for easy analysis or further processing.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, `scan` can be used in combination with `vmap` to scan a function over
+    multiple dimensions in parallel. As we’ll see in the next section, this allows
+    us to interact with several environments in parallel to collect trajectories rapidly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/123e5e98f340935db435e9aab42629a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustration of vmap, scan, and scan + vmap in the context of the step function
+    (made by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Trajectory Collection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As mentioned in the previous section, the trajectory collection block consists
+    of a `step` function scanned across N iterations. This `step` function successively:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Selects an action using the actor network
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Steps the environment
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stores transition data in a `transition` tuple
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stores the model parameters, the environment state, the current observation,
+    and rng keys in a `runner_state` tuple
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Returns `runner_state` and `transition`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scanning this function returns the latest `runner_state` and `traj_batch`, an
+    array of `transition` tuples. In practice, transitions are collected from multiple
+    environments in parallel for efficiency as indicated by the use of `jax.vmap(env.step,
+    …)`(for more details about vectorized environments and `vmap`, refer to my [previous
+    article](https://medium.com/towards-data-science/vectorize-and-parallelize-rl-environments-with-jax-q-learning-at-the-speed-of-light-49d07373adf5)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'env step function (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Generalized Advantage Estimation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'After collecting trajectories, we need to compute the **advantage function,**
+    a crucial component of PPO’s loss function. The advantage function measures how
+    much better a specific action is compared to the average action in a given state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9025657609723998de22ebbc42479942.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Where **Gt** is the return at time ***t***and **V(St) is** the value of state
+    ***s***at time ***t****.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As the return is generally unknown, we have to approximate the advantage function.
+    A popular solution is **generalized advantage estimation**[3], defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ccf1cf4804dffef16e94feee6c2eb2a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'With **γ** the discount factor, **λ** a parameter that controls the trade-off
+    between bias and variance in the estimate, and ***δt***the temporal difference
+    error at time ***t***:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/298fa9ce55afb829287e91b9688fa335.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As we can see, the value of the GAE at time *t* depends on the GAE at future
+    timesteps. Therefore, we compute it backward, starting from the end of a trajectory.
+    For example, for a trajectory of 3 transitions, we would have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cbc3f0a15854dd74ba9a902e27bd939d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Which is equivalent to the following recursive form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8fbb9ca9d51bbddd821b3dc3747ee3bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Once again, we use `jax.lax.scan` on the trajectory batch (this time in reverse
+    order) to iteratively compute the GAE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'generalized advantage estimation (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the function returns `advantages + traj_batch.value` as a second output,
+    which is equivalent to the return according to the first equation of this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Update step
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The final block of the training loop defines the loss function, computes its
+    gradient, and performs gradient descent on minibatches. Similarly to previous
+    sections, the update step is an arrangement of several functions in a hierarchical
+    order:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s break them down one by one, starting from the innermost function of the
+    update step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 Loss function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This function aims to define and compute the PPO loss, originally defined as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0b4c98a735ce19abbf8e5090017b346.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/11464fd7edf1eeda50b976b7ab409280.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'However, the PureJaxRL implementation features some tricks and differences
+    compared to the original PPO paper[4]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The paper defines the PPO loss in the context of gradient ascent whereas the
+    implementation performs gradient descent. Therefore, the sign of each loss component
+    is reversed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The value function term is modified to include an additional clipped term.
+    This could be seen as a way to make the value function updates more conservative
+    (as for the clipped surrogate objective):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/add641cf22538f261da9af6a70c8c46e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The GAE is standardized.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here’s the complete loss function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PPO loss function (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Update Minibatch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `update_minibatch` function is essentially a wrapper around `loss_fn` used
+    to compute its gradient over the trajectory batch and update the model parameters
+    stored in `train_state`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'update minibatch (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Update Epoch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, `update_epoch` wraps `update_minibatch` and applies it on minibatches.
+    Once again, `jax.lax.scan` is used to apply the update function on all minibatches
+    iteratively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'update epoch (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: From there, we can wrap all of the previous functions in an `update_step` function
+    and use `scan` one last time for N steps to complete the training loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A global view of the training loop would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Summary of the training script (source: PureJaxRL, Chris Lu)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can now run a fully compiled training loop using `jax.jit(train(rng))` or
+    even train multiple agents in parallel using `jax.vmap(train(rng))`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There we have it! We covered the essential building blocks of the PPO training
+    loop as well as common programming patterns in JAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To go further, I highly recommend reading the [full training script](https://github.com/luchris429/purejaxrl/blob/main/purejaxrl/ppo.py)
+    in detail and running example notebooks on the PureJaxRL repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/luchris429/purejaxrl?source=post_page-----6f102c06c149--------------------------------)
+    [## GitHub - luchris429/purejaxrl: Really Fast End-to-End Jax RL Implementations'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Really Fast End-to-End Jax RL Implementations. Contribute to luchris429/purejaxrl
+    development by creating an account on…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/luchris429/purejaxrl?source=post_page-----6f102c06c149--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you very much for your support, until next time 👋
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'References:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Full training script](https://github.com/luchris429/purejaxrl/blob/main/purejaxrl/ppo.py),
+    PureJaxRL, Chris Lu, 2023'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] [***Explaining and illustrating orthogonal initialization for recurrent
+    neural networks***](https://smerity.com/articles/2016/orthogonal_init.html), Smerity,
+    2016'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [***Initializing neural networks***](https://www.deeplearning.ai/ai-notes/initialization/index.html),
+    DeepLearning.ai'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [***Generalized Advantage Estimation in Reinforcement Learning***](/generalized-advantage-estimation-in-reinforcement-learning-bf4a957f7975),
+    Siwei Causevic, Towards Data Science, 2023'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [***Proximal Policy Optimization Algorithms***](https://arxiv.org/pdf/1707.06347),
+    Schulman et Al., OpenAI, 2017'
+  prefs: []
+  type: TYPE_NORMAL

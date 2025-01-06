@@ -1,0 +1,622 @@
+- en: 'Advanced Retrieval-Augmented Generation: From Theory to LlamaIndex Implementation'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/advanced-retrieval-augmented-generation-from-theory-to-llamaindex-implementation-4de1464a9930?source=collection_archive---------0-----------------------#2024-02-19](https://towardsdatascience.com/advanced-retrieval-augmented-generation-from-theory-to-llamaindex-implementation-4de1464a9930?source=collection_archive---------0-----------------------#2024-02-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to address limitations of naive RAG pipelines by implementing targeted advanced
+    RAG techniques in Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@iamleonie?source=post_page---byline--4de1464a9930--------------------------------)[![Leonie
+    Monigatti](../Images/4044b1685ada53a30160b03dc78f9626.png)](https://medium.com/@iamleonie?source=post_page---byline--4de1464a9930--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4de1464a9930--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4de1464a9930--------------------------------)
+    [Leonie Monigatti](https://medium.com/@iamleonie?source=post_page---byline--4de1464a9930--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4de1464a9930--------------------------------)
+    ·10 min read·Feb 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/de34a1aedcd7cbeadae031e9f75a3fc4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Difference between Naive and Advanced RAG (Image by the author, inspired by
+    [1])
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A recent survey on [Retrieval-Augmented Generation (RAG)](https://medium.com/towards-data-science/retrieval-augmented-generation-rag-from-theory-to-langchain-implementation-4e9bd5f6a4f2)
+    [1] summarized three recently evolved paradigms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Naive RAG,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: advanced RAG, and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: modular RAG.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The advanced RAG paradigm comprises of a set of techniques targeted at addressing
+    known limitations of naive RAG. This article first discusses these techniques,
+    which can be categorized into *pre-retrieval, retrieval, and post-retrieval optimizations*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the second half, you will learn how to implement a naive RAG pipeline using
+    [Llamaindex](https://www.llamaindex.ai/) in Python, which will then be enhanced
+    to an advanced RAG pipeline with a selection of the following advanced RAG techniques:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Pre-retrieval optimization: Sentence window retrieval](#c968)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Retrieval optimization: Hybrid search](#3275)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Post-retrieval optimization: Re-ranking](#c1e2)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This article focuses on the **advanced RAG paradigm** and its implementation.
+    If you are unfamiliar with the fundamentals of RAG, you can catch up on it here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/retrieval-augmented-generation-rag-from-theory-to-langchain-implementation-4e9bd5f6a4f2?source=post_page-----4de1464a9930--------------------------------)
+    [## Retrieval-Augmented Generation (RAG): From Theory to LangChain Implementation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the theory of the original academic paper to its Python implementation
+    with OpenAI, Weaviate, and LangChain
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/retrieval-augmented-generation-rag-from-theory-to-langchain-implementation-4e9bd5f6a4f2?source=post_page-----4de1464a9930--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Advanced RAG
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the recent advancements in the RAG domain, advanced RAG has evolved as
+    a new paradigm with targeted enhancements to address some of the limitations of
+    the naive RAG paradigm. As summarized in a recent survey [1], advanced RAG techniques
+    can be categorized into pre-retrieval, retrieval, and post-retrieval optimizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4448aad435386e145364d6e85076d755.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Difference between Naive and Advanced RAG (Image by the author, inspired by
+    [1])
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-retrieval optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Pre-retrieval optimizations focus on data indexing optimizations as well as
+    query optimizations. Data indexing optimization techniques aim to store the data
+    in a way that helps you improve retrieval efficiency, such as [1]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sliding window** uses an overlap between chunks and is one of the simplest
+    techniques.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Enhancing data granularity** applies data cleaning techniques, such as removing
+    irrelevant information, confirming factual accuracy, updating outdated information,
+    etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Adding metadata**, such as dates, purposes, or chapters, for filtering purposes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Optimizing index structures** involves different strategies to index data,
+    such as adjusting the chunk sizes or using multi-indexing strategies. One technique
+    we will implement in this article is sentence window retrieval, which embeds single
+    sentences for retrieval and replaces them with a larger text window at inference
+    time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/42d3ba853f8b1794f5f0eadd32d9b55e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sentence window retrieval
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, pre-retrieval techniques aren’t limited to data indexing and can
+    cover **techniques at inference time**, such as query routing, query rewriting,
+    and query expansion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieval optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The retrieval stage aims to identify the most relevant context. Usually, the
+    retrieval is based on vector search, which calculates the semantic similarity
+    between the query and the indexed data. Thus, the majority of retrieval optimization
+    techniques revolve around the embedding models [1]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fine-tuning embedding models** customizes embedding models to domain-specific
+    contexts, especially for domains with evolving or rare terms. For example, `BAAI/bge-small-en`
+    is a high-performance embedding model that can be fine-tuned (see [Fine-tuning
+    guide](https://betterprogramming.pub/fine-tuning-your-embedding-model-to-maximize-relevance-retrieval-in-rag-pipeline-2ea3fa231149))'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Dynamic Embedding** adapts to the context in which words are used, unlike
+    static embedding, which uses a single vector for each word. For example, OpenAI’s
+    `embeddings-ada-02` is a sophisticated dynamic embedding model that captures contextual
+    understanding. [1]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are also other retrieval techniques besides vector search, such as hybrid
+    search, which often refers to the concept of combining vector search with keyword-based
+    search. This retrieval technique is beneficial if your retrieval requires exact
+    keyword matches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/improving-retrieval-performance-in-rag-pipelines-with-hybrid-search-c75203c2f2f5?source=post_page-----4de1464a9930--------------------------------)
+    [## Improving Retrieval Performance in RAG Pipelines with Hybrid Search'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to find more relevant search results by combining traditional keyword-based
+    search with modern vector search
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/improving-retrieval-performance-in-rag-pipelines-with-hybrid-search-c75203c2f2f5?source=post_page-----4de1464a9930--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Post-retrieval optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Additional processing of the retrieved context can help address issues such
+    as exceeding the context window limit or introducing noise, thus hindering the
+    focus on crucial information. Post-retrieval optimization techniques summarized
+    in the RAG survey [1] are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt compression** reduces the overall prompt length by removing irrelevant
+    and highlighting important context.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Re-ranking** uses machine learning models to recalculate the relevance scores
+    of the retrieved contexts.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/b53b6b4dead55ba22f8b77f052e09a30.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Re-ranking
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For additional ideas on how to improve the performance of your RAG pipeline
+    to make it production-ready, continue reading here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/a-guide-on-12-tuning-strategies-for-production-ready-rag-applications-7ca646833439?source=post_page-----4de1464a9930--------------------------------)
+    [## A Guide on 12 Tuning Strategies for Production-Ready RAG Applications'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to improve the performance of your Retrieval-Augmented Generation (RAG)
+    pipeline with these “hyperparameters” and…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/a-guide-on-12-tuning-strategies-for-production-ready-rag-applications-7ca646833439?source=post_page-----4de1464a9930--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prerequisites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section discusses the required packages and API keys to follow along in
+    this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Required Packages
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This article will guide you through implementing a naive and an advanced RAG
+    pipeline using [LlamaIndex](https://www.llamaindex.ai/) in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this article, we will be using [LlamaIndex](https://blog.llamaindex.ai/llamaindex-v0-10-838e735948f8)
+    `[v0.10](https://blog.llamaindex.ai/llamaindex-v0-10-838e735948f8)`. If you are
+    upgrading from an older LlamaIndex version, you need to run the following commands
+    to install and run LlamaIndex properly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: LlamaIndex offers an option to store vector embeddings locally in JSON files
+    for persistent storage, which is great for quickly prototyping an idea. However,
+    we will use a vector database for persistent storage since advanced RAG techniques
+    aim for production-ready applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we will need metadata storage and hybrid search capabilities in addition
+    to storing the vector embeddings, we will use the open source vector database
+    [Weaviate](http://weaviate.io) (`v3.26.2`), which supports these features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: API Keys
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will be using Weaviate embedded, which you can use for free without registering
+    for an API key. However, this tutorial uses an embedding model and LLM from [OpenAI](https://openai.com/),
+    for which you will need an OpenAI API key. To obtain one, you need an OpenAI account
+    and then “Create new secret key” under [API keys](https://platform.openai.com/account/api-keys).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, create a local `.env` file in your root directory and define your API
+    keys in it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Afterwards, you can load your API keys with the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing Naive RAG with LlamaIndex
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This section discusses how to implement a naive RAG pipeline using LlamaIndex.
+    You can find the entire naive RAG pipeline in this [Jupyter Notebook](https://github.com/weaviate/recipes/blob/main/integrations/llamaindex/retrieval-augmented-generation/naive_rag.ipynb).
+    For the implementation using LangChain, you can continue in [this article (naive
+    RAG pipeline using LangChain](https://medium.com/towards-data-science/retrieval-augmented-generation-rag-from-theory-to-langchain-implementation-4e9bd5f6a4f2)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Define the embedding model and LLM'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, you can define an embedding model and LLM in a global settings object.
+    Doing this means you don’t have to specify the models explicitly in the code again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Embedding model: used to generate vector embeddings for the document chunks
+    and the query.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'LLM: used to generate an answer based on the user query and the relevant context.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 2: Load data'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, you will create a local directory named `data` in your root directory
+    and download some example data from the [LlamaIndex GitHub repository](https://github.com/run-llama/llama_index)
+    (MIT license).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Afterward, you can load the data for further processing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 3: Chunk documents into nodes'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As the entire document is too large to fit into the context window of the LLM,
+    you will need to partition it into smaller text chunks, which are called `Nodes`
+    in LlamaIndex. You can parse the loaded documents into nodes using the `SimpleNodeParser`
+    with a defined chunk size of 1024.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 4: Build index'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, you will build the index that stores all the external knowledge in [Weaviate](https://weaviate.io/),
+    an open source vector database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, you will need to connect to a Weaviate instance. In this case, we’re
+    using [Weaviate Embedded](https://weaviate.io/developers/weaviate/installation/embedded),
+    which allows you to experiment in Notebooks for free without an API key. For a
+    production-ready solution, deploying Weaviate yourself, e.g., [via Docker](https://weaviate.io/developers/weaviate/installation/docker-compose)
+    or utilizing a [managed service](https://weaviate.io/developers/weaviate/installation/weaviate-cloud-services),
+    is recommended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, you will build a `VectorStoreIndex` from the Weaviate client to store
+    your data in and interact with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 5: Setup query engine'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Lastly, you will set up the index as the query engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 6: Run a naive RAG query on your data'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now, you can run a naive RAG query on your data, as shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing Advanced RAG with LlamaIndex
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this section, we will cover some simple adjustments you can make to turn
+    the above naive RAG pipeline into an advanced one. This walkthrough will cover
+    the following selection of advanced RAG techniques:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Pre-retrieval optimization: Sentence window retrieval](#c968)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Retrieval optimization: Hybrid search](#3275)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Post-retrieval optimization: Re-ranking](#c1e2)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we will only cover the modifications here, you can find the [full end-to-end
+    advanced RAG pipeline in this Jupyter Notebook](https://github.com/weaviate/recipes/blob/main/integrations/llamaindex/retrieval-augmented-generation/advanced_rag.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Indexing optimization example: Sentence window retrieval'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For the [sentence window retrieval technique](https://docs.llamaindex.ai/en/stable/examples/node_postprocessor/MetadataReplacementDemo.html),
+    you need to make two adjustments: First, you must adjust how you store and post-process
+    your data. Instead of the `SimpleNodeParser`, we will use the `SentenceWindowNodeParser`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `SentenceWindowNodeParser` does two things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It separates the document into single sentences, which will be embedded.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For each sentence, it creates a context window. If you specify a `window_size
+    = 3`, the resulting window will be three sentences long, starting at the previous
+    sentence of the embedded sentence and spanning the sentence after. The window
+    will be stored as metadata.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: During retrieval, the sentence that most closely matches the query is returned.
+    After retrieval, you need to replace the sentence with the entire window from
+    the metadata by defining a `MetadataReplacementPostProcessor` and using it in
+    the list of `node_postprocessors`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Retrieval optimization example: Hybrid search'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Implementing a hybrid search in LlamaIndex is as easy as two parameter changes
+    to the `query_engine` if the underlying vector database supports hybrid search
+    queries. The `alpha` parameter specifies the weighting between vector search and
+    keyword-based search, where `alpha=0` means keyword-based search and `alpha=1`
+    means pure vector search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Post-retrieval optimization example: Re-ranking'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Adding a reranker to your advanced RAG pipeline only takes three simple steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, define a reranker model. Here, we are using the `[BAAI/bge-reranker-base](https://huggingface.co/BAAI/bge-reranker-base)`[from
+    Hugging Face](https://huggingface.co/BAAI/bge-reranker-base).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the query engine, add the reranker model to the list of `node_postprocessors`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Increase the `similarity_top_k` in the query engine to retrieve more context
+    passages, which can be reduced to `top_n` after reranking.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are many more different techniques within the advanced RAG paradigm.
+    If you are interested in further implementations, I recommend the following two
+    resources:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.deeplearning.ai/short-courses/building-evaluating-advanced-rag/?source=post_page-----4de1464a9930--------------------------------)
+    [## Building and Evaluating Advanced RAG Applications'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn methods like sentence-window retrieval and auto-merging retrieval, improving
+    your RAG pipeline's performance…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'www.deeplearning.ai](https://www.deeplearning.ai/short-courses/building-evaluating-advanced-rag/?source=post_page-----4de1464a9930--------------------------------)
+    [](/advanced-rag-01-small-to-big-retrieval-172181b396d4?source=post_page-----4de1464a9930--------------------------------)
+    [## Advanced RAG 01: Small-to-Big Retrieval'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Child-Parent RecursiveRetriever and Sentence Window Retrieval with LlamaIndex
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/advanced-rag-01-small-to-big-retrieval-172181b396d4?source=post_page-----4de1464a9930--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article covered the concept of advanced RAG, which covers a set of techniques
+    to address the limitations of the naive RAG paradigm. After an overview of advanced
+    RAG techniques, which can be categorized into pre-retrieval, retrieval, and post-retrieval
+    techniques, this article implemented a naive and advanced RAG pipeline using LlamaIndex
+    for orchestration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The RAG pipeline components were language models from [OpenAI](https://openai.com/),
+    a reranker model from [BAAI](https://www.baai.ac.cn/english.html) hosted on [Hugging
+    Face](https://huggingface.co/), and a [Weaviate](https://weaviate.io/) vector
+    database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We implemented the following selection of techniques using LlamaIndex in Python:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Pre-retrieval optimization: Sentence window retrieval](#c968)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Retrieval optimization: Hybrid search](#3275)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Post-retrieval optimization: Re-ranking](#c1e2)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You can find the Jupyter Notebooks containing the full end-to-end pipelines
+    here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Naive RAG in LlamaIndex](https://github.com/weaviate/recipes/blob/main/integrations/llamaindex/retrieval-augmented-generation/naive_rag.ipynb)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Advanced RAG in LlamaIndex](https://github.com/weaviate/recipes/blob/main/integrations/llamaindex/retrieval-augmented-generation/advanced_rag.ipynb)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enjoyed This Story?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[*Subscribe for free*](https://medium.com/subscribe/@iamleonie) *to get notified
+    when I publish a new story.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@iamleonie/subscribe?source=post_page-----4de1464a9930--------------------------------)
+    [## Get an email whenever Leonie Monigatti publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Leonie Monigatti publishes. By signing up, you will create
+    a Medium account if you don't already…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@iamleonie/subscribe?source=post_page-----4de1464a9930--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Find me on* [*LinkedIn*](https://www.linkedin.com/in/804250ab/),[*Twitter*](https://twitter.com/helloiamleonie)*,
+    and* [*Kaggle*](https://www.kaggle.com/iamleonie)*!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disclaimer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I am a Developer Advocate at Weaviate at the time of this writing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Literature
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Gao, Y., Xiong, Y., Gao, X., Jia, K., Pan, J., Bi, Y., … & Wang, H. (2023).
+    Retrieval-augmented generation for large language models: A survey. [*arXiv preprint
+    arXiv:2312.10997*](https://arxiv.org/pdf/2312.10997.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Images
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If not otherwise stated, all images are created by the author.
+  prefs: []
+  type: TYPE_NORMAL

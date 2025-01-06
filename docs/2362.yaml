@@ -1,0 +1,573 @@
+- en: Vector Embeddings Are Lossy. Here’s What to Do About It.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/vector-embeddings-are-lossy-heres-what-to-do-about-it-4f9a8ee58bb7?source=collection_archive---------0-----------------------#2024-09-28](https://towardsdatascience.com/vector-embeddings-are-lossy-heres-what-to-do-about-it-4f9a8ee58bb7?source=collection_archive---------0-----------------------#2024-09-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: AI systems aren’t perfect (GASP!) and these are some of the reasons why.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@briangodsey?source=post_page---byline--4f9a8ee58bb7--------------------------------)[![Brian
+    Godsey](../Images/1a657e68741618b79bf470f34f9f3b26.png)](https://medium.com/@briangodsey?source=post_page---byline--4f9a8ee58bb7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4f9a8ee58bb7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4f9a8ee58bb7--------------------------------)
+    [Brian Godsey](https://medium.com/@briangodsey?source=post_page---byline--4f9a8ee58bb7--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f9a8ee58bb7--------------------------------)
+    ·17 min read·Sep 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ffa7dec7116f68999a24a8954b924aca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Created by the author using DALL-E. Some information loss was involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we bring enterprise AI systems into production, we shouldn’t expect them
+    to function in the same way as search engines, or as databases of exact words
+    and phrases. Yes, AI systems often feel like they have the same search capabilities
+    as a (non-vector) document store or search engine, but under the hood, they work
+    in a very different way. If we try to use an AI system — consisting mainly of
+    a vector store and LLM — as if the data were structured and the query results
+    were exact, we could get some unexpected and disappointing results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AI systems do not generally “memorize” the data itself. Even RAG systems, which
+    preserve the full texts of the main document set, use vector search for retrieval,
+    a process that is powerful but imperfect and inexact. Some amount of information
+    is “lost” in virtually all AI systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This, of course, leads to the question: what should we do about this information
+    loss? The short answer: we should recognize the use cases that benefit from the
+    preservation of certain types of information, and deliberately preserve that information,
+    where possible. Often, this means incorporating deterministic, structured, non-AI
+    software processes into our systems, with the goal of preserving structure and
+    exactness where we need it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we discuss the nuances of the problem and some potential solutions.
+    There are many possibilities for addressing specific problems, such as implementing
+    a knowledge graph to structure topics and concepts, integrating keyword search
+    as a feature alongside the vector store, or tailoring the data processing, chunking,
+    and loading to fit your exact use case. In addition to those, as we discuss below,
+    one of the most versatile and accessible methods to layer structure onto a vector
+    store of unstructured documents is to use document metadata to navigate the knowledge
+    base in structured ways. A vector graph of document links and tags can be a powerful,
+    lightweight, efficient, and easy-to-implement way of layering useful structure
+    back into your unstructured data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AI systems are mostly unstructured, inexact, and fuzzy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is a given that some information loss will occur in systems built around
+    large amounts of unstructured data. Diagnosing where, how, and why this information
+    loss occurs for your use case can be a helpful exercise leading to improved systems
+    and better applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With respect to information preservation and loss in AI systems, the three
+    most important things to note are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector embeddings do not preserve 100% of the information in the original text.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: LLMs are non-deterministic, meaning text generation includes some randomness.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It is hard to predict what will be lost and what will be preserved.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The first of these means that some information is lost from our documents on
+    their way into the vector store; the second means that some information is randomized
+    and inexact after retrieval on the way through the LLM; and the third means that
+    we probably don’t know when we might have a problem or how big it will be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below, we dive deeper into point one above: that vector embeddings themselves
+    are lossy. We examine how lossy embeddings are generally unavoidable, how it affects
+    our applications, and how — rather than trying to recover or prevent the loss
+    within the LLM framework — it is much more valuable for us to maintain awareness
+    of the process of information loss and add structured layers of information into
+    our AI systems that suit our specific use cases and build upon the power of our
+    existing vector-embedding-powered AI systems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, let’s dig a little deeper into the question of how information loss works
+    in vector embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector embeddings are lossy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Vector representations of text — the embeddings that LLMs work with — contain
+    vast amounts of information, but this information is necessarily approximate.
+    Of course, it is possible to build a deterministic LLM whose vectors represent
+    precise texts that can be generated, word-for-word, over and over given the same
+    initial vector. But, this would be limited and not very helpful. For an LLM and
+    its vector embeddings to be useful in the ways we work with them today, the embedding
+    process needs to capture nuanced concepts of language more than the exact words
+    themselves. We want our LLMs to “understand” that two sentences that say essentially
+    the same thing represent the same set of concepts, regardless of the specific
+    words used. “I like artificial intelligence” and “AI is great” tell us basically
+    the same information, and the main role of vectors and embeddings is to capture
+    this information, not memorize the words themselves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector embeddings are high-dimensional and precise, allowing them to encapsulate
+    complex ideas within a vast conceptual space. These dimensions can number in the
+    hundreds or even thousands, each subtly encoding aspects of language — from syntax
+    and semantics to pragmatics and sentiment. This high dimensionality enables the
+    model to navigate and represent a broad spectrum of ideas, making it possible
+    to grasp intricate and abstract concepts embedded within the text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite the precision of these embeddings, text generation from a given vector
+    remains a non-deterministic process. This is primarily due to the probabilistic
+    nature of the models used to generate text. When an LLM generates text, it calculates
+    the probability of each possible word that could come next in a sequence, based
+    on the information contained in the vector. This process incorporates a level
+    of randomness and contextual inference, which means that even with the same starting
+    vector, the output can vary each time text is generated. This variability is crucial
+    for producing natural-sounding language that is adaptable to various contexts
+    but also means that exact reproduction of text is not always possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While vectors capture the essence of the text’s meaning, specific words and
+    information are often lost in the vector embedding process. This loss occurs because
+    the embeddings are designed to generalize from the text, capturing its overall
+    meaning rather than the precise wording. As a result, minor details or less dominant
+    themes in the text may not be robustly represented in the vector space. This characteristic
+    can lead to challenges when trying to retrieve specific facts or exact terms from
+    a large corpus, as the system may prioritize overall semantic similarity over
+    exact word matches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Two of the most common ways that we may have problems with information loss
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tangential details contained in a text are “lost” among the semantic meaning
+    of the text as a whole.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The significance of specific keywords or phrases are “lost” during the embedding
+    process into semantic space.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The first of these two cases concerns the “loss” of actual details contained
+    within a document (or chunk) because the embedding doesn’t capture it very well.
+    The second case mostly concerns the loss of specific wording of the information
+    and not necessarily any actual details. Of course, both types of loss can be significant
+    and problematic in their own ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The very recent article [Embeddings are Kind of Shallow](/embeddings-are-kind-of-shallow-727076637ed5)
+    (also in this publication) gives a lot of fun examples of ways that embeddings
+    lose or miss details, by way of testing search and retrieval results among relatively
+    small text chunks across a few popular embeddings algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next let’s look at some live examples of how each of these two types of loss
+    works, with code and data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Case study: AI product pages'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this case study, I created a dataset of product pages for the website of
+    a fictional company called **Phrase AI**. Phrase AI builds LLMs and provides them
+    as a service. Its first three products are **Phrase Flow**, **Phrase Forge**,
+    and **Phrase Factory**. Phrase Flow is the company’s flagship LLM, suitable for
+    general use cases, but exceptionally good at engaging, creative content. The other
+    two products are specialized LLMs with their own strengths and weaknesses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset of HTML documents consists of a main home page for `phrase.ai`(fictional),
+    one product page per LLM (three total), and four more pages on the site: **Company
+    Purpose**, **Ongoing Work**, **Getting Started**, and **Use Cases**. The non-product
+    pages center mostly on the flagship product, Phrase Flow, and each of the product
+    pages focuses on the corresponding LLM. Most of the text is standard web copy,
+    generated by ChatGPT, but there are a few features of the documents that are important
+    for our purposes here.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Most importantly, **each product page contains important information about
+    the flagship product, Phrase Flow**. Specifically, each of the product pages for
+    the two specialized LLMs contains a warning not to use the Phrase Flow model for
+    specific purposes. The bottom of the Phrase Forge product page contains the text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And, the bottom of the Phrase Factory product page contains the text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Of course, it is easy to argue that Phrase AI should have these warnings on
+    their Phrase Flow page, and not just on the pages for the other two products.
+    But, I think we all have seen examples of critical information being in the “wrong”
+    place on a website or in documentation, and we still want our RAG systems to work
+    well even when some information is not in the best possible place in the document
+    set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this dataset is fabricated and very small, we have designed it to be clearly
+    illustrative of issues that can be quite common in real-life cases, which can
+    be hard to diagnose on larger datasets. Next, let’s examine these issues more
+    closely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tangential details can get buried in semantic space
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Vector embeddings are lossy, as I’ve discussed above, and it can be hard to
+    predict which information will be lost in this way. All information is at risk,
+    but some more than others. Details that relate directly to the main topic of a
+    document are generally more likely to be captured in the embedding, whereas details
+    that stray from the main topic are more likely to be lost or hard to find using
+    vector search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case study above, we highlighted two pieces of information about the
+    Phrase Flow product that are found on the product pages for the other two models.
+    These two warnings are quite strong, using the wording, “Do not use Phrase Flow
+    for…”, and could be critical to answering queries about the capabilities of the
+    Phrase Flow model. But, they appear in documents that are not primarily about
+    Phrase Flow, and are therefore “tangential” details with respect to those documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To test how a typical RAG system might handle these documents, we built a RAG
+    pipeline using LangChain’s `GraphVectorStore`, and OpenAI APIs. Code can be found
+    in [this Colab notebook](https://drive.google.com/file/d/1n01w3hZ6VJN0zmQybeJ9UkgAffqMNgPX/view?usp=sharing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can query the system about the weaknesses of Phrase Flow and get the following
+    results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we set up the retriever to fetch the top four documents — half of
+    the eight total documents. The two product pages with the warnings about Phrase
+    Flow do not appear in these results, and so the LLM response has no context about
+    weaknesses of Phrase Flow. We get similar results for other wordings and other
+    queries asking about “issues” or “problems” with Phrase Flow. See the notebook
+    for more examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we don’t limit our retriever to four documents, we get the following results,
+    including the retrieval rankings of all eight documents:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notably, the product pages for Phrase Forge and Phrase Factory — the two pages
+    with the warnings about Phrase Flow, are ranked 6th and 7th in the retrieved results.
+    Roughly speaking, those two warnings are less discoverable because they have been
+    “buried” in vector embeddings that mainly capture information relevant to the
+    topics of each page: either Phrase Forge or Phrase Factory.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, if we rephrase the query to semantics that more closely align with
+    the phrasing of the warnings, “Do not use Phrase Flow…”, we get the results we
+    want and expect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, retrieval seems to be sensitive to the particular wording of the query,
+    and the phrase “not use Phrase Flow” nudges us closer to the documents that we
+    need, in semantic vector space. But, we wouldn’t know this beforehand. We wouldn’t
+    know exactly what we are looking for, and we are relying on our RAG stack to help
+    us find it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further below, we discuss some possible solutions for addressing this type of
+    buried information mainly due to lossy semantic vectors. But first, let’s look
+    at another way that lossy vectors can cause counter-intuitive behavior in RAG
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector retrieval is not a search engine or keyword search
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Many users tend to expect AI and RAG systems to be able to match names, keywords,
+    and phrases exactly. We are used to traditional search engines, and we have the
+    distinct feeling that AI is so much more powerful, so why wouldn’t it be able
+    to find the exact matches that we want?
+  prefs: []
+  type: TYPE_NORMAL
+- en: As previously discussed, vector search operates fundamentally differently from
+    search engines, text search, and other pre-AI methods for querying data — all
+    of which operate on search algorithms for exact matches, with limited fuzzy search
+    operators. While vector search does often locate specific words and phrases, there
+    is no guarantee, because vectors are in semantic space and embedding text into
+    vectors is a lossy process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The words and phrases that are most likely to experience some kind of information
+    loss are those whose semantic meanings are unclear or ambiguous. We included examples
+    of this in the dataset for our case study. Specifically, the following text appears
+    at the end of the Ongoing Work page for our fictional company, Phrase AI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is the only mention in the dataset of these forthcoming models. Not only
+    are “Flow Factory”, “Flow Forge”, and “Factory Forge” confusing remixes of other
+    names in the product line, but they are also simple combinations of dictionary
+    words. “Flow Factory”, for example, has a semantic meaning beyond the product
+    name, including some combination of the well-known meanings of the words “flow”
+    and “factory” separately. Contrast this with a proprietary spelling such as “FloFaktoree”,
+    which has virtually no real inherent semantic meaning and would likely be treated
+    by an AI system in a very different way — and would likely be more discoverable
+    as a term that does not blend in with anything else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we ask specifically about “Flow Forge” or “Factory Forge”, we get results
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: So the system successfully retrieves the one document — the page about Ongoing
+    Work — that contains a reference to “Flow Forge”, but it is the 3rd-ranked retrieved
+    document. In semantic space, two documents appear more relevant, even though they
+    don’t mention “Flow Forge” at all. In large datasets, it is easy to imagine names,
+    terms, keywords, and phrases getting buried or “lost” in semantic space in hard-to-diagnose
+    ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What to do about lossy vectors?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have been discussing lossy vectors as if they are a problem that needs to
+    be solved. Sure, there are problems that stem from vectors being “lossy”, but
+    vector search and AI systems depend on using vector embeddings to translate documents
+    from text into semantic space, a process that necessarily loses some textual information,
+    but gains all of the power of semantic search. So “lossy” vectors are a feature,
+    not a bug. Even if lossy vectors are not a bug, it helps for us to understand
+    their advantages, disadvantages, and limits in order to know what they can do
+    as well as when they might surprise us with unexpected behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If any of the issues described above ring true for your AI systems, the root
+    cause is probably not that vector search is performing poorly. You could try to
+    find alternate embeddings that work better for you, but this is a complex and
+    opaque process, and there are usually much simpler solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The root cause of the above issues is that we are often trying to make vector
+    search do things that it was not designed to do. The solution, then, is to build
+    functionality into your stack, adding the capabilities that you need for your
+    specific use case, alongside vector search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternate chunking and embedding methods
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are many options when it comes to chunking documents for loading as well
+    as for embedding methods. We can prevent some information loss during the embedding
+    process by choosing methods that align well with our dataset and our use cases.
+    Here are a few such alternatives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Optimized chunking strategy —** The chunking strategy dictates how text is
+    segmented into chunks for processing and retrieval. Optimizing chunking goes beyond
+    mere size or boundary considerations; it involves segmenting texts in a way that
+    aligns with thematic elements or logical divisions within the content. This approach
+    ensures that each chunk represents a complete thought or topic, which facilitates
+    more coherent embeddings and improves the retrieval accuracy of the RAG system.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multi-vector embedding techniques** — Standard embedding practices often
+    reduce a passage to a single vector representation, which might not capture the
+    passage’s multifaceted nature. Multi-vector embedding techniques address this
+    limitation by employing models to generate several embeddings from one passage,
+    each corresponding to different interpretations or questions that the passage
+    might answer. This strategy enhances the dimensional richness of the data representation,
+    allowing for more precise retrieval across varied query types.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ColBERT: Token-level embeddings** — [ColBERT (Contextualized Late Interaction
+    over BERT)](https://arxiv.org/abs/2004.12832) is an embedding practice in which
+    each token within a passage is assigned its own embedding. This granular approach
+    allows individual tokens — especially significant or unique keywords — to exert
+    greater influence on the retrieval process, mirroring the precision of keyword
+    searches while leveraging the contextual understanding of modern BERT models.
+    Despite its higher computational requirements, ColBERT can offer superior retrieval
+    performance by preserving the significance of key terms within the embeddings.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multi-head RAG approach** — Building on the capabilities of transformer architectures,
+    [Multi-Head RAG](https://arxiv.org/abs/2406.05085) utilizes the multiple attention
+    heads of a transformer to generate several embeddings for each query or passage.
+    Each head can emphasize different features or aspects of the text, resulting in
+    a diverse set of embeddings that capture various dimensions of the information.
+    This method enhances the system’s ability to handle complex queries by providing
+    a richer set of semantic cues from which the model can draw when generating responses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build structure into your AI stack
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Vector search and AI systems are ideal for unstructured knowledge and data,
+    but most use cases could benefit from some structure in the AI stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One very clear example of this: if your use case and your users rely on keyword
+    search and exact text matching, then it is probably a good idea to integrate a
+    document store with text search capabilities. It is generally cheaper, more robust,
+    and easier to integrate classical text search than it is to try to get a vector
+    store to be a highly reliable text search tool.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Knowledge graphs can be another good way to incorporate structure into your
+    AI stack. If you already have, or can build, a high quality graph that fits your
+    use case, then building out some graph functionality, [such as **graph RAG**](https://www.datastax.com/guides/graph-rag),
+    can boost the overall utility of your AI system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many cases, **our original data set may have inherent structure** that we
+    are not taking advantage of with vector search. It is typical for almost all document
+    structure to be stripped away during the data prep process, before loading into
+    a vector store. HTML, PDFs, Markdown, and most other document types contain structural
+    elements that can be exploited to make our AI systems better and more reliable.
+    In the next section, let’s have a look at how this might work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add a layer of structure with document linking and tagging
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Returning to our case study above, we can exploit the structure of our HTML
+    documents to make our vector search and RAG system better and more reliable. In
+    particular, we can use the hyperlinks in the HTML documents to connect related
+    entities and concepts to ensure that we are getting the big picture via all of
+    the relevant documents in our vector store. [See this previous article](/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2)
+    for an introduction to document linking in graph RAG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notably, in our document set, all product names are linked to product pages.
+    Each time one of the three products is mentioned on a page, the product name text
+    is hyperlinked to the corresponding product page. And all of the product pages
+    link to each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can take advantage of this link structure using vector graph traversal and
+    the `GraphVectorStore` [implementation in LangChain](https://api.python.langchain.com/en/latest/community_api_reference.html#module-langchain_community.graph_vectorstores).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This implementation allows us to easily build a knowledge graph based on hyperlinks
+    between documents, and then traverse this graph to pull in documents that are
+    directly linked to given documents. In practice (and under the hood), we first
+    perform a standard document retrieval via vector search, and then we traverse
+    the links in the retrieved documents in order to pull in more connected documents,
+    regardless of whether they appear “relevant” to the vector search. With this implementation,
+    retrieval fetches both the set of documents that are most semantically relevant
+    to the query, as well as documents that are directly linked, which could provide
+    valuable supporting information to answer the query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Re-configuring the retrieval from our use case to traverse the graph of links
+    by one step from each document (`depth=1`), we get the following results from
+    our original query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see in this output that, even though we still have the initial retrieval
+    set to `k=4` documents returned from vector search, two additional documents were
+    retrieved because they are directly linked from the original document set. These
+    two documents contain precisely that critical information that was missing from
+    the original query results, when we were using only vector search and no graph.
+    With these two documents included, the two warnings about Phrase Flow are available
+    in the retrieved document set, and the LLM can provide a properly informed response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within this RAG system with vector graph, the vectors may be lossy, but hyperlinks
+    and the resulting graph edges are not. They provide solid and meaningful connections
+    between documents that can be used to enrich the retrieved document set in a reliable
+    and deterministic way, which can be an antidote to the lossy and unstructured
+    nature of AI systems. And, as AI continues to revolutionize the way we work with
+    unstructured data, our software and data stacks continue to benefit from exploiting
+    structure wherever we find it, especially when it is built to fit the use case
+    in front of us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We know that vector embeddings are lossy, in a variety of ways. Choosing an
+    embedding scheme that aligns with your dataset and your use case can improve results
+    and reduce the negative effects of lossy embeddings, but there are other helpful
+    options as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A vector graph can take direct advantage of structure inherent in the document
+    dataset. In a sense, it’s like letting the data build an inherent knowledge graph
+    that connects related chunks of text with each other — for example, by using hyperlinks
+    and other references that are present in the documents to discover other documents
+    that are related and potentially relevant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can try linking and vector graph yourself using the code in [this Colab
+    notebook](https://drive.google.com/file/d/1n01w3hZ6VJN0zmQybeJ9UkgAffqMNgPX/view?usp=sharing)
+    referenced in this article. Or to learn about and try document linking, [see my
+    previous article](/your-documents-are-trying-to-tell-you-whats-relevant-better-rag-using-links-386b7433d0f2)
+    or the deeper technical details of [Scaling Knowledge Graphs by Eliminating Edges](https://www.datastax.com/blog/scaling-knowledge-graphs-by-eliminating-edges?utm_medium=byline&utm_source=tds&utm_campaign=graphlossy&utm_content=lossy).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*by Brian Godsey, Ph.D. (*[*LinkedIn*](https://bit.ly/4enqFRa)*) — mathematician,
+    data scientist and engineer // works on AI products at* [*DataStax*](https://www.datastax.com/)
+    *// Wrote the book* [*Think Like a Data Scientist*](https://manning.com/books/think-like-a-data-scientist?a_aid=thinklikeadatascientist&a_bid=eb49dc22)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: P.S. Just for fun, here are some other attempts at generating cover images for
+    this article. 😎
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47c463e37f19432a822f1fc4e2242cee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated by the author using DALL-E.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9b52ef3ea36de0a5ea56081ed8370d11.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated by the author using DALL-E.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,1045 @@
+- en: Foundation Models in Graph & Geometric Deep Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/foundation-models-in-graph-geometric-deep-learning-f363e2576f58?source=collection_archive---------0-----------------------#2024-06-18](https://towardsdatascience.com/foundation-models-in-graph-geometric-deep-learning-f363e2576f58?source=collection_archive---------0-----------------------#2024-06-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://mgalkin.medium.com/?source=post_page---byline--f363e2576f58--------------------------------)[![Michael
+    Galkin](../Images/c5eb13334712ca0462d8a5df4a268ad0.png)](https://mgalkin.medium.com/?source=post_page---byline--f363e2576f58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f363e2576f58--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f363e2576f58--------------------------------)
+    [Michael Galkin](https://mgalkin.medium.com/?source=post_page---byline--f363e2576f58--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f363e2576f58--------------------------------)
+    ·20 min read·Jun 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Foundation Models in language, vision, and audio have been among the primary
+    research topics in Machine Learning in 2024 whereas FMs for graph-structured data
+    have somewhat lagged behind. In this post, we argue that the era of Graph FMs
+    has already begun and provide a few examples of how one can use them already today.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This post was written and edited by* [*Michael Galkin*](https://twitter.com/michael_galkin)
+    *and* [*Michael Bronstein*](https://twitter.com/mmbronstein) *with significant
+    contributions from* [*Jianan Zhao*](https://twitter.com/AndyJiananZhao)*,* [*Haitao
+    Mao*](https://twitter.com/haitao_mao_)*,* [*Zhaocheng Zhu*](https://twitter.com/zhu_zhaocheng)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/499b977cbe07cc686ff86f6c35480d28.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The timeline of emerging foundation models in graph- and geometric deep learning.
+    Image by Authors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table of Contents**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[What are Graph Foundation Models and how to build them?](#6f0a)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Node Classification: GraphAny](#b4b7)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Link Prediction: Not yet](#89a1)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Knowledge Graph Reasoning: ULTRA and UltraQuery](#bda1)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Algorithmic Reasoning: Generalist Algorithmic Learner](#11c3)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Geometric and AI4Science Foundation Models](#65b0)a. [ML Potentials: JMP-1,
+    DPA-2 for molecules, MACE-MP-0 and MatterSim for inorganic crystals](#4d3e)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'b. [Protein LMs: ESM-2](#b2cd)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'c. [2D Molecules: MiniMol and MolGPS](#cc8c)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[Expressivity & Scaling Laws: Do Graph FMs scale?](#1443)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[The Data Question: What should be scaled? Is there enough graph data to train
+    Graph FMs?](#40c5)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[👉 Key Takeaways 👈](#2add)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What are Graph Foundation Models and how to build them?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Since there is a certain degree of ambiguity in what counts as a “foundational”
+    model, it would be appropriate to start with a definition to establish a common
+    ground:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “A Graph Foundation Model is a single (neural) model that learns transferable
+    graph representations that can generalize to any new, previously unseen graph”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One of the challenges is that graphs come in all forms and shapes and their
+    connectivity and feature structure can be very different. Standard Graph Neural
+    Networks (GNNs) are not “foundational” because they can work in the best case
+    only on graphs with the same type and dimension of features. Graph heuristics
+    like [Label Propagation](https://en.wikipedia.org/wiki/Label_propagation_algorithm)
+    or [Personalized PageRank](https://en.wikipedia.org/wiki/PageRank) that can run
+    on any graph can neither be considered Graph FMs because they do not involve any
+    learning. As much as we love Large Language Models, it is still unclear whether
+    parsing graphs into sequences that can be then passed to an LLM (like in [GraphText](https://arxiv.org/abs/2310.01089)
+    or [Talk Like A Graph](https://openreview.net/forum?id=IuXR1CCrSi)) is a suitable
+    approach for retaining graph symmetries and scaling to anything larger than toy-sized
+    datasets (we leave LLMs + Graphs to a separate post).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Perhaps the most important question for designing Graph FMs is transferable
+    graph representations. LLMs, as suggested in the recent [ICML 2024 position paper
+    by Mao, Chen et al](https://arxiv.org/abs/2402.02216)., can squash any text in
+    any language into tokens from a fixed-size vocabulary. Video-Language FMs resort
+    to patches that can always be extracted from an image (one always has RGB channels
+    in any image or video). It is not immediately clear what could a universal featurization
+    (à la tokenization) scheme be for graphs, which might have very diverse characteristics,
+    e.g.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One large graph with node features and some given node labels (typical for node
+    classification tasks)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One large graph without node features and classes, but with meaningful edge
+    types (typical for link prediction and KG reasoning)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many small graphs with/without node/edge features, with graph-level labels (typical
+    for graph classification and regression)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/af6091af7bbb5362938fa26f9fca562c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 🦄 An ideal graph foundation model that takes any graph with any node/edge/graph
+    features and performs any node- / edge- / graph-level task. Such Graph FMs do
+    not exist in pure form as of mid-2024\. Image by Authors
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So far, there is a handful of open research questions for the graph learning
+    community when designing Graph FMs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1️⃣ How to generalize across graphs with heterogeneous node/edge/graph features?**
+    For example, the popular [Cora](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.datasets.Planetoid.html#torch_geometric.datasets.Planetoid)
+    dataset for node classification is one graph with node features of dimension 1,433,
+    whereas the Citeseer dataset has 3,703-dimensional features. How can one define
+    a single representation space for such diverse graphs?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2️⃣ How to generalize across prediction tasks?** Node classification tasks
+    may have a different number of node classes (e.g., Cora has 7 classes and Citeseer
+    6). Even further, can a node classification model perform well in link prediction?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3️⃣ What should the foundational model expressivity be?** Much research has
+    been done on the expressive power of GNNs, typically resorting to the analogy
+    with Weisfeiler-Lehman isomorphism tests. Since graph foundational models should
+    ideally handle a broad spectrum of problems, the right expressive power is elusive.
+    For instance, in node classification tasks, node features are important along
+    with graph homophily or heterophily. In link prediction, structural patterns and
+    breaking automorphisms are more important (node features often don’t give a huge
+    performance boost). In graph-level tasks, graph isomorphism starts to play a crucial
+    role. In 3D geometric tasks like molecule generation, there is an additional complexity
+    of continuous symmetries to take care of (see the [Hitchhiker’s Guide to Geometric
+    GNNs](https://arxiv.org/abs/2312.07511)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following sections, we will show that at least in some tasks and domains,
+    Graph FMs are already available. We will highlight their design choices when it
+    comes to transferable features and practical benefits when it comes to inductive
+    inference on new unseen graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [1][2] and** [**Github Repo**](https://github.com/CurryTang/Awesome_Graph_Foundation_Models)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Node Classification: GraphAny'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For years, GNN-based node classifiers have been limited to a single graph dataset.
+    That is, given e.g. the Cora graph with 2.7K nodes, 1433-dimensional features,
+    and 7 classes, one has to train a GNN specifically on the Cora graph with its
+    labels and run inference on the same graph. Applying a trained model on another
+    graph, e.g. Citeseer with 3703-dimensional features and 6 classes would run into
+    an unsurmountable difficulty: how would one model generalize to different input
+    feature dimensions and a different number of classes? Usually, prediction heads
+    are hardcoded to a fixed number of classes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**GraphAny**](https://arxiv.org/abs/2405.20445) is, to the best of our knowledge,
+    the first Graph FM where a single pre-trained model can perform node classification
+    on any graph with any feature dimension and any number of classes. A single GraphAny
+    model pre-trained on 120 nodes of the standard [Wisconsin](https://pytorch-geometric.readthedocs.io/en/latest/generated/torch_geometric.datasets.WebKB.html#torch_geometric.datasets.WebKB)
+    dataset successfully generalizes to 30+ other graphs of different sizes and features
+    and, on average, outperforms GCN and GAT graph neural network architectures trained
+    from scratch on each of those graphs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e92e81c9cefb5768acd1e515dc448c7d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Overview of GraphAny: LinearGNNs are used to perform non-parametric predictions
+    and derive the entropy-normalized distance features. The final prediction is generated
+    by fusing multiple LinearGNN predictions on each node with attention learned based
+    on the distance features. Source: [Zhao et al](https://arxiv.org/abs/2405.20445).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Setup:** Semi-supervised node classification: given a graph G, node features
+    X, and a few labeled nodes from C classes, predict labels of target nodes (binary
+    or multi-class classification). The dimension of node features and the number
+    of unique classes are not fixed and are graph-dependent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable:** Instead of modeling a universal latent space for
+    all possible graphs (which is quite cumbersome or maybe even practically impossible),
+    GraphAny bypasses this problem and focuses on the *interactions between predictions
+    of spectral filters*. Given a collection of high-pass and low-pass filters akin
+    to [Simplified Graph Convolutions](https://arxiv.org/abs/1902.07153) (for instance,
+    operations of the form AX and (I-A)X, dubbed “LinearGNNs” in the paper) and known
+    node labels:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 0️⃣ GraphAny applies filters to all nodes;
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1️⃣ GraphAny obtains optimal weights for each predictor from nodes with known
+    labels by solving a least squares optimization problem in closed form (optimal
+    weights are expressed as a pseudoinverse);
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2️⃣ Applies the optimal weights to unknown nodes to get tentative prediction
+    logits;
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3️⃣ Computes pair-wise distances between those logits and applies entropy regularization
+    (such that different graph- and feature sizes will not affect the distribution).
+    For example, for 5 LinearGNNs, this would result in 5 x 4 = 20 combinations of
+    logit scores;
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4️⃣ Learns the inductive attention matrix over those logits to weight the predictions
+    most effectively (e.g., putting more attention to high-pass filters for heterophilic
+    graphs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the end, the only learnable component in the model is the parameterization
+    of attention (via MLP), which *does not depend* on the target number of unique
+    classes, but only on the number of LinearGNNs used. In the same vein, all LinearGNN
+    predictors are non-parametric, their updated node features and optimal weights
+    can be pre-computed beforehand for faster inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [3]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Link Prediction: Not yet'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Setup**: given a graph G, with or without node features, predict whether
+    a link exists between a pair of nodes (v1, v2)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 😢 For graphs with node features, we are not aware of any single transferable
+    model for link prediction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For non-featurized graphs (or when you decide to omit node features deliberately),
+    there is more to say — basically, all GNNs with a labeling trick *potentially*
+    can transfer to new graphs thanks to the uniform node featurization strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is known that in link prediction, the biggest hurdle is the presence of automorphic
+    nodes (nodes that have the same structural roles) — vanilla GNNs assign them the
+    same feature making two links (v1, v2) and (v1, v3) in the image below 👇 indistinguishable.
+    [Labeling tricks](https://arxiv.org/abs/2010.16103) like [Double Radius Node Labeling](https://proceedings.neurips.cc/paper/2018/hash/53f0d7c537d99b3824f0f99d62ea2428-Abstract.html)
+    or [Distance Encoding](https://proceedings.neurips.cc/paper_files/paper/2020/hash/2f73168bf3656f697507752ec592c437-Abstract.html)
+    are such node featurization strategies that break automorphism symmetries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0c043afe3e726a494270ae3dab284874.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'V2 and v3 are automorphic nodes and standard GNNs score (v1,v2) and (v1,v3)
+    equally. When we predict (v1, v2), we will label these two nodes differently from
+    the rest, so that a GNN is aware of the target link when learning v1 and v2’s
+    representations. Similarly, when predicting (v1, v3), nodes v1 and v3 will be
+    labeled differently. This way, the representation of v2 in the left graph will
+    be different from that of v3 in the right graph, enabling GNNs to distinguish
+    the non-isomorphic links (v1, v2) and (v1, v3). Source: [Zhang et al](https://arxiv.org/abs/2010.16103).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Perhaps the only approach with a labeling trick (for non-featurized graphs)
+    that was evaluated on link prediction on unseen graphs is [UniLP](https://arxiv.org/abs/2402.07738).
+    UniLP is an in-context, contrastive learning model that requires a set of positive
+    and negative samples for each target link to be predicted. Practically, UniLP
+    uses [SEAL](https://proceedings.neurips.cc/paper/2018/hash/53f0d7c537d99b3824f0f99d62ea2428-Abstract.html)
+    as a backbone GNN and learns an attention over a fixed number of positive and
+    negative samples. On the other hand, SEAL is notoriously slow, so the first step
+    towards making UniLP scale to large graphs is to replace subgraph mining with
+    more efficient approaches like [ELPH](https://arxiv.org/abs/2209.15486) and [BUDDY](https://arxiv.org/abs/2209.15486).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d3b18da48a991a5b346bb00ba7c3706b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Overview of the Universal Link Predictor framework. (a) For predicting a query
+    link 𝑞, we initially sample positive (𝑠+) and negative (𝑠-) in-context links from
+    the target graph. Both the query link and these in-context links are independently
+    processed through a shared subgraph GNN encoder. An attention mechanism then calculates
+    scores based on the similarity between the query link and the in-context links.
+    (b) The final representation of the query link, contextualized by the target graph,
+    is obtained through a weighted summation, which combines the representations of
+    the in-context links with their respective labels. Source: [Dong et al.](https://arxiv.org/abs/2402.07738)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable:** structural patterns learned by labeling trick GNNs
+    — it is proven that methods like [Neural Bellman-Ford](https://arxiv.org/abs/2106.06935)
+    capture metrics over node pairs, eg, Personalized PageRank or Katz index (often
+    used for link prediction).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, as we know how to deal with automorphisms, the only step towards a single
+    graph FM for link prediction would be to add a support for heterogeneous node
+    features — perhaps GraphAny-style approaches might be an inspiration?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [4][5][6][7]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Knowledge Graph Reasoning: ULTRA and UltraQuery'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Knowledge graphs have graph-specific sets of entities and relations, e.g. common
+    encyclopedia facts from Wikipedia / Wikidata or biomedical facts in Hetionet,
+    those relations have different semantics and are not directly mappable to each
+    other. For years, KG reasoning models were hardcoded to a given vocabulary of
+    relations and could not transfer to new, unseen KGs with completely new entities
+    and relations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[ULTRA](https://openreview.net/forum?id=jVEoydFOl9) is the first foundation
+    model for KG reasoning that transfers to any KG at inference time in the zero-shot
+    manner. That is, a single pre-trained model can run inference on any multi-relational
+    graph with any size and entity/relation vocabulary. Averaged over 57 graphs, ULTRA
+    significantly outperforms baselines trained specifically on each graph. Recently,
+    ULTRA was extended to [UltraQuery](https://arxiv.org/abs/2404.07198) to support
+    even more complex logical queries on graphs involving conjunctions, disjunctions,
+    and negation operators. UltraQuery transfers to unseen graphs and 10+ complex
+    query patterns on those unseen graphs outperforming much larger baselines trained
+    from scratch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/816385f060a3fa6b50d11575547cdb80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Given a query (Michael Jackson, genre, ?), ULTRA builds a graph of relations
+    (edge types) to capture their interactions in the original graph conditioned on
+    the query relation (genre) and derives relational representations from this smaller
+    graph. Those features are then used as edge type features in the original bigger
+    graph to answer the query. Source: [Galkin et al](https://openreview.net/forum?id=jVEoydFOl9).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Setup:** Given a multi-relational graph G with |E| nodes and |R| edge types,
+    no node features, answer simple KG completion queries *(head, relation, ?)* or
+    complex queries involving logical operators by returning a probability distribution
+    over all nodes in the given graph. The set of nodes and relation types depends
+    on the graph and can vary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable:** ULTRA relies on modeling relational interactions.
+    Forgetting about relation identities and target graph domain for a second, if
+    we see that relations “authored” and “collaborated” can share the same starting
+    node, and relations “student” and “coauthor” in another graph can share a starting
+    node, then the relative, structural representations of those two pairs of relations
+    might be similar. This holds for any multi-relational graph in any domain, be
+    it encyclopedia or biomedical KGs. ULTRA goes further and captures 4 such “fundamental”
+    interactions between relations. Those fundamental interactions are transferable
+    to any KG (together with learned GNN weights) — this way, one single pre-trained
+    model is ready for inference on any unseen graph and simple or complex reasoning
+    query.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Read more in the dedicated Medium post:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/ultra-foundation-models-for-knowledge-graph-reasoning-9f8f4a0d7f09?source=post_page-----f363e2576f58--------------------------------)
+    [## ULTRA: Foundation Models for Knowledge Graph Reasoning'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One model to rule them all
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/ultra-foundation-models-for-knowledge-graph-reasoning-9f8f4a0d7f09?source=post_page-----f363e2576f58--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [8][9]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Algorithmic Reasoning: Generalist Algorithmic Learner'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/d719d30af605e44657fe13140067cb22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A generalist neural algorithmic learner is a single processor GNN P, with a
+    single set of weights, capable of solving several algorithmic tasks in a shared
+    latent space (each of which is attached to P with simple encoders/decoders f and
+    g). Among others, the processor network is capable of sorting (top), shortest
+    path-finding (middle), and convex hull finding (bottom). Source: [Ibarz et al.](https://proceedings.mlr.press/v198/ibarz22a/ibarz22a.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Setup:** [Neural algorithmic reasoning](https://arxiv.org/abs/2105.02761)
+    (NAR) studies the execution of standard algorithms (eg, sorting, searching, dynamic
+    programming) in the latent space and generalization to the inputs of arbitrary
+    size. A lot of such algorithms can be represented with a graph input and pointers.
+    Given a graph G with node and edge features, the task is to simulate the algorithm
+    and produce the correct output. Optionally, you can get access to hints — time
+    series of intermediate states of the algorithm which can act as the intermediate
+    supervised signal. Obviously, different algorithms require a different number
+    of steps to execute, so length is not fixed here.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable:** Homogeneous feature space and similar control flow
+    for similar algorithms. For instance, Prim’s and Dijkstra’s algorithms share a
+    similar structure, differing only in the choice of key function and edge relaxation
+    subroutine. Besides, there are [several](https://arxiv.org/abs/1905.13211) [proofs](https://arxiv.org/abs/2203.15544)
+    of a direct alignment between message passing and dynamic programming. This is
+    the main motivation behind one “processor” neural network that updates latent
+    states for all considered algorithms ([30 classic algos](https://github.com/google-deepmind/clrs)
+    from the CLRS book).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Triplet-GMPNN](https://proceedings.mlr.press/v198/ibarz22a/ibarz22a.pdf) was
+    the first such universal processor neural net (by 2024 it became rather standard
+    in the NAR literature) — it is a GNN that operates on triples of nodes and their
+    features (akin to [Edge Transformers](https://arxiv.org/abs/2112.00578) and triangular
+    attention in AlphaFold). The model is trained in the multi-task mode on all algorithmic
+    tasks in the benchmark with a handful of optimization and tricks. A single model
+    bumps the average performance on 30 tasks by over 20% (in absolute numbers) compared
+    to single-task specialist models.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still, encoders and decoders are parameterized specifically for each task —
+    one of the ways to unify the input and output formats might as well be text with
+    LLM processors as done in the recent [text version of CLRS](https://arxiv.org/abs/2406.04229).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35f10005a7020cbd88a744051d639e8e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Top**: The graph algorithmic trace of insertion sorting a list *[5, 2, 4,
+    3, 1]* in graph form. **Bottom**: The same algorithmic trace, represented textually,
+    by using the CLRS-Text generator. The model receives as input (depicted in green)
+    the input array (key) and the initial value of the sorting trace (initial_trace),
+    using which it is prompted to predict the trace (depicted in blue) of gradually
+    sorting the list, by inserting one element at a time into a partially sorted list,
+    from left to right. At the end, the model needs to output the final sorted array
+    (depicted in red), and it is evaluated on whether this array is predicted correctly.
+    Source: [Markeeva, McLeish, Ibarz, et al.](https://arxiv.org/abs/2406.04229)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Perhaps the most interesting question of 2024 and 2025 in NAR is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Can algorithmic reasoning ideas for OOD generalization be the key to generalizable
+    LLM reasoning?*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: LLMs notoriously struggle with complex reasoning problems, dozens of papers
+    appear on arxiv every month trying a new prompting method to bump benchmarking
+    performance another percentage-or-two, but most of them do not transfer across
+    tasks of similar graph structures (see the example below). There is a need for
+    more principled approaches and NAR has the potential to fill this gap!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8df0df88abfbd23a7ca070c14f81293.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Failure of LLMs on reasoning problems with similar graph structures. Image by
+    Authors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [10][11]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Geometric and AI4Science Foundation Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the world of Geometric Deep Learning and scientific applications, foundation
+    models are becoming prevalent as universal ML potentials, protein language models,
+    and universal molecular property predictors. Although the universal vocabulary
+    exists in most such cases (e.g., atom types in small molecules or amino acids
+    in proteins) and we do not have to think about universal featurization, the main
+    complexity lies in the real-world physical nature of atomistic objects — they
+    have pronounced 3D structure and properties (like energy), which have theoretical
+    justifications rooted in chemistry, physics, and quantum mechanics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ML Potentials: JMP-1, DPA-2 for molecules, MACE-MP-0 and MatterSim for inorganic
+    crystals'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Setup**: given a 3D structure, predict the energy of the structure and per-atom
+    forces;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable**: a vocabulary of atoms from the periodic table.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ML potentials estimate the potential energy of a chemical compound — like molecules
+    or periodic crystals — given their 3D coordinates and optional input (like periodic
+    boundary conditions for crystals). For any atomistic model, the vocabulary of
+    possible atoms is always bound by the [Periodic Table](https://en.wikipedia.org/wiki/Periodic_table)
+    which currently includes 118 elements. The “foundational” aspect in ML potentials
+    is to generalize to any atomistic structure (there can be combinatorially many)
+    and be stable enough to be used in molecular dynamics (MD), drug- and materials
+    discovery pipelines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[JMP-1](https://arxiv.org/abs/2310.16802) and [DPA-2](https://arxiv.org/abs/2312.15492)
+    released around the same time aim to be such universal ML potential models — they
+    are trained on a sheer variety of structures — from organic molecules to crystals
+    to MD trajectories. For example, a single pre-trained JMP-1 excels at QM9, rMD17
+    for small molecules, MatBench and QMOF on crystals, and MD22, SPICE on large molecules
+    being on-par or better than specialized per-dataset models. Similarly, [MACE-MP-0](https://arxiv.org/abs/2401.00096)
+    and [MatterSim](https://arxiv.org/abs/2405.04967) are the most advanced FMs for
+    inorganic crystals (MACE-MP-0 is already available with weights) evaluated on
+    20+ crystal tasks ranging from multicomponent alloys to combustion and molten
+    salts. Equivariant GNNs are at the heart of those systems helping to process equivariant
+    features (Cartesian coordinates) and invariant features (like atom types).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fa55ad6dff257dc117eefc32cb637976.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sources: (1) Pre-training and fine-tuning of **JMP-1** for molecules and crystals,
+    [Shoghi et al](https://arxiv.org/abs/2310.16802) (2) **MACE-MP-0** is trained
+    only on the Materials Project data and transfers to molecular dynamics simulation
+    across a wide variety of chemistries in the solid, liquid and gaseous phases,
+    [Batatia, Benner, Chiang, Elena, Kovács, Riebesell et al](https://arxiv.org/abs/2401.00096).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next frontier seems to be ML-accelerated molecular dynamics simulations
+    — traditional computational methods work at the femtosecond scale (10–15) and
+    require millions and billions of steps to simulate a molecule, crystal, or protein.
+    Speeding up such computations would have an immense scientific impact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [12][13][14][15]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Protein LMs: ESM-2'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Setup**: given a protein sequence, predict the masked tokens akin to masked
+    language modeling;'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable**: a vocabulary of 20 (22) amino acids.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Protein sequences resemble natural language with amino acids as tokens, and
+    Transformers excel at encoding sequence data. Although the vocabulary of amino
+    acids is relatively small, the space of possible proteins is enormous, so training
+    on large volumes of known proteins might hint at the properties of unseen combinations.
+    [ESM-2](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v1) is perhaps
+    the most popular protein LM thanks to the pre-training data size, a variety of
+    available checkpoints, and informative features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3796a202aa30508022eba58d8a368413.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'ESM2 as a masked LM and ESMFold for protein structure prediction. Source: [Lin,
+    Akin, Rao, Hie, et al.](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ESM features are used in countless applications from predicting 3D structure
+    (in [ESMFold](https://github.com/facebookresearch/esm)) to protein-ligand binding
+    ([DiffDock](https://arxiv.org/abs/2210.01776) and its descendants) to protein
+    structure generative models (like a recent [FoldFlow 2](https://www.dreamfold.ai/blog/foldflow-2)).
+    Bigger transformers and more data are likely to increase protein LMs’ performance
+    even further — at this scale, however, the data question becomes more prevalent
+    (we also discuss the interplay between architecture and data in the dedicated
+    section), eg, the [ESM Metagenomic Atlas](https://esmatlas.com/) already encodes
+    700M+ structures including those seen outside humans in the soil, oceans, or hydrothermal
+    vents. Is there a way to trillions of tokens as in common LLM training datasets?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [16][17]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2D Molecules: MiniMol and MolGPS'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Setup**: given a 2D graph structure with atom types and bond types, predict
+    molecular properties'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is transferable**: a vocabulary of atoms from the periodic table and
+    bond types'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With 2D graphs (without 3D atom coordinates) universal encoding and transferability
+    come from a fixed vocabulary of atom and bond types which you can send to any
+    GNN or Transformer encoder. Although molecular fingerprints have been used since
+    1960s ([Morgan fingerprints](https://pubs.acs.org/doi/abs/10.1021/c160017a018)
+    [18]), their primary goal was to evaluate similarity, not to model a latent space.
+    The task of a single (large) neural encoder is to learn useful representations
+    that might hint at certain physical molecular properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recent examples of generalist models for learning molecular representations
+    are [MiniMol](https://arxiv.org/pdf/2404.14986) and [MolGPS](https://arxiv.org/abs/2404.11568v1)
+    which have been trained on a large corpus of molecular graphs and probed on dozens
+    of downstream tasks. That said, you still need to fine-tune a separate task-specific
+    decoder / predictor given the models’ representations — in that sense, one single
+    pre-trained model will not be able to run zero-shot inference on all possible
+    unseen tasks, rather on those for which decoders have been trained. Fine-tuning
+    is still a good cheap option though since those models are orders of magnitude
+    smaller than LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ecb1c3dab87648d36a6710602ab0524.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: (1) Workflow overview of the [MiniMol](https://arxiv.org/pdf/2404.14986)
+    pre-training and downstream task evaluation. (2) Criteria of the scaling study
+    of [MolGPS](https://arxiv.org/abs/2404.11568v1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [19][20]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Expressivity & Scaling Laws: Do Graph FMs scale?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Transformers in LLMs and multi-modal frontier models are rather standard and
+    we know some basic scaling principles for them. Do transformers (as an architecture,
+    not LLMs) work equally well on graphs? What are the general challenges when designing
+    a backbone for Graph FMs?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you categorize the models highlighted in the previous sections, only 2 areas
+    feature transformers — protein LMs (ESM) with a natural sequential bias and small
+    molecules (MolGPS). The rest are GNNs. There are several reasons for that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vanilla transformers do not scale to any reasonably large graph larger than
+    a standard context length (>4–10k nodes). Anything above that range requires tricks
+    like feeding only subgraphs (losing the whole graph structure and long-range dependencies)
+    or linear attention (that might not have good scaling properties). In contrast,
+    GNNs are linear in the number of edges, and, in the case of sparse graphs (V ~
+    E), are linear in the number of nodes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vanilla transformers without positional encodings are [less expressive than
+    GNNs](https://arxiv.org/abs/2302.04181). Mining positional encodings like Laplacian
+    PEs on a graph with V nodes is O(V³).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What should be a “token” when encoding graphs via transformers? There is no
+    clear winner in the literature, e.g., [nodes](https://arxiv.org/abs/2106.05234),
+    [nodes + edges](https://arxiv.org/abs/2406.03148), or [subgraphs](https://arxiv.org/abs/2212.13350)
+    are all viable option
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**➡️** Touching upon **expressivity**, different graph tasks need to deal with
+    different symmetries, e.g., automorphic nodes in link prediction lead to indistinguishable
+    representations, whereas in graph classification/regression going beyond 1-WL
+    is necessary for distinguishing molecules which otherwise might look isomorphic
+    to vanilla GNNs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90096ce16fd35189294dadd4da0ca661.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Different tasks need to deal with different symmetries. Image by Authors. Sources
+    of graphs: (1) [Zhang et al](https://arxiv.org/abs/2010.16103), (2) [Morris et
+    al](https://arxiv.org/abs/2112.09992)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This fact begs two questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*How expressive should GFMs be? What is the trade-off between expressivity
+    and scalability?*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Ideally, we want a single model to resolve all those symmetries equally well.
+    However, more expressive models would lead to more computationally expensive architectures
+    both in training and inference. We agree with the recent [ICML’24 position paper
+    on the future directions in Graph ML theory](https://arxiv.org/abs/2402.02287)
+    that the community should seek the balance between expressivity, generalization,
+    and optimization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still, it is worth noting that with the growing availability of training data,
+    it might be a computationally cheaper idea to defer learning complex symmetries
+    and invariances directly from the data (instead of baking them into a model).
+    A few recent good examples of this thesis are [AlphaFold 3](https://www.nature.com/articles/s41586-024-07487-w)
+    and [Molecular Conformer Fields](https://arxiv.org/abs/2311.17932) that reach
+    SOTA in many generative applications *without* expensive equivariant geometric
+    encoders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [21]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**➡️** When it comes to **scaling**, both model and data should be scaled up.
+    However:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '❌ Non-geometric graphs: There is no principled study on scaling GNNs or Transformers
+    to large graphs and common tasks like node classification and link prediction.
+    2-layer GraphSAGE is often not very far away from huge 16-layer graph transformers.
+    In a similar trend, in the KG reasoning domain, a single ULTRA model (discussed
+    above) with <200k parameters outperforms million-sized shallow embedding models
+    on 50+ graphs. Why is it happening? We’d hypothesize the crux is in 1️⃣ task nature
+    — most of non-geometric graphs are noisy similarity graphs that are not bounded
+    to a concrete physical phenomenon like molecules 2️⃣ Given rich node and edge
+    features, models have to learn *representations of graph structures* (common for
+    link prediction) or just *functions over given features* (a good example is [node
+    classification in OGB](https://ogb.stanford.edu/docs/leader_nodeprop/) where most
+    gains are achieved by adding an LLM feature encoder).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '✅ Geometric graphs: There are several recent works focusing on molecular graphs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Frey et al](https://www.nature.com/articles/s42256-023-00740-3) (2023) study
+    scaling of geometric GNNs for ML potentials;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Sypetkowski, Wenkel et al](https://arxiv.org/abs/2404.11568v1) (2024) introduce
+    MolGPS and study scaling MPNNs and Graph Transformers up to 1B parameters on the
+    large dataset of 5M molecules'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Liu et al](https://arxiv.org/abs/2402.02054) (2024) probe GCN, GIN, and GraphGPS
+    up to 100M parameters on molecular datasets up to 4M molecules.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/73d40bef726833d6ae93a9e9c4bff79b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Scaling molecular GNNs and GTs. Sources: (1) [Sypetkowski, Wenkel et al](https://arxiv.org/abs/2404.11568v1),
+    (2) [Liu et al](https://arxiv.org/abs/2402.02054)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Data Question: What should be scaled? Is there enough graph data to train
+    Graph FMs?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 1️⃣ **What should be scaled in graph data?** Nodes? Edges? The number of graphs?
+    Something else?
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no clear winner in the literature, we would rather gravitate towards
+    a broader term ***diversity***, that is, a diversity of patterns in the graph
+    data. For example, in node classification on large product graphs, it likely would
+    not matter much if you train on a graph with 100M nodes or 10B nodes since it’s
+    the same nature of a user-item graph. However, showing examples with homophily
+    and heterophily on different scales and sparsities might be quite beneficial.
+    In **GraphAny**, showing examples of such graphs allowed to build a robust node
+    classifier that generalizes to different graph distributions,
+  prefs: []
+  type: TYPE_NORMAL
+- en: In KG reasoning with **ULTRA**, it was found that the ***diversity of relational
+    patterns*** in pre-training plays the biggest role in inductive generalization,
+    e.g., one large dense graph is worse than a collection of smaller but sparse,
+    dense, few-relational, and many-relational graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In molecular graph-level tasks, e.g., in **MolGPS**, scaling the number of unique
+    molecules with different physical properties helps a lot (as shown in the charts
+    above 👆).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides, [UniAug](https://arxiv.org/abs/2406.01899) finds that increased coverage
+    of the structural patterns in pre-training data adds to the performance across
+    different downstream tasks from various domains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2️⃣ Is there enough data to train Graph FMs?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Openly available graph data is orders of magnitudes smaller than natural language
+    tokens or images or videos, and it is fine. This very article includes thousands
+    of language and image tokens and no explicit graphs (unless you try to parse this
+    text to a graph like an [abstract meaning representation](https://en.wikipedia.org/wiki/Abstract_Meaning_Representation)
+    graph). The number of ‘good’ proteins with known structures in PDB is small, the
+    number of known ‘good’ molecules for drugs is small.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Are Graph FMs doomed because of data scarcity?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Well, not really. The two open avenues are: (1) more sample-efficient architectures;
+    (2) using more black-box and synthetic data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Synthetic benchmarks like [GraphWorld](https://arxiv.org/abs/2203.00112) might
+    be of use to increase the diversity of training data and improve generalization
+    to real-world datasets. Black-box data obtained from scientific experiments, in
+    turn, is likely to become the key factor in building successful foundation models
+    in AI 4 Science — those who master it will prevail on the market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/the-road-to-biology-2-0-will-pass-through-black-box-data-bbd00fabf959?source=post_page-----f363e2576f58--------------------------------)
+    [## The Road to Biology 2.0 Will Pass Through Black-Box Data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future bio-AI breakthroughs will arise from novel high-throughput low-cost AI-specific
+    “black-box” data modalities.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/the-road-to-biology-2-0-will-pass-through-black-box-data-bbd00fabf959?source=post_page-----f363e2576f58--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**📚Read more in references [20][22][23]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 👉 Key Takeaways 👈
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**➡️ How to generalize across graphs with heterogeneous node/edge/graph features?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Non-geometric graphs: Relative information transfers (such as prediction differences
+    in *GraphAny* or relational interactions in *Ultra*), absolute information does
+    not.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Geometric graphs: transfer is easier thanks to the fixed set of atoms, but
+    models have to learn some notion of physics to be reliable'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**➡️ How to generalize across prediction tasks?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To date, there is no single model (among non-geometric GNNs) that would be able
+    to perform node classification, link prediction, and graph classification in the
+    zero-shot inference mode.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Framing all tasks through the lens of one might help, eg, node classification
+    can be framed as link prediction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**➡️ What is the optimal model expressivity?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Node classification, link prediction, and graph classification leverage different
+    symmetries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Blunt application of maximally expressive models quickly leads to exponential
+    runtime complexity or enormous memory costs — need to maintain the *expressivity
+    vs efficiency* balance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The link between expressivity, sample complexity (how much training data you
+    need), and inductive generalization is still unknown.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**➡️ Data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Openly available graph data is orders of magnitude smaller than text/vision
+    data, models have to be sample-efficient.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Scaling laws are at the emerging stage, it is still unclear what to scale —
+    number of nodes? Edges? Motifs? What is the notion of a token in graphs?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Geometric GNNs: there is much more experimental data available that makes little
+    sense to domain experts but might be of value to neural nets.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mao, Chen, et al. [Graph Foundation Models Are Already Here](https://arxiv.org/abs/2402.02216).
+    ICML 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Morris et al. [Future Directions in Foundations of Graph Machine Learning](https://arxiv.org/abs/2402.02287).
+    ICML 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Zhao et al. [GraphAny: A Foundation Model for Node Classification on Any Graph](https://arxiv.org/abs/2405.20445).
+    Arxiv 2024\. [Code on Github](https://github.com/DeepGraphLearning/GraphAny)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Dong et al. [Universal Link Predictor By In-Context Learning on Graphs](https://arxiv.org/abs/2402.07738),
+    arxiv 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Zhang et al. [Labeling Trick: A Theory of Using Graph Neural Networks for Multi-Node
+    Representation Learning](https://arxiv.org/abs/2010.16103). NeurIPS 2021'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Chamberlain, Shirobokov, et al. [Graph Neural Networks for Link Prediction with
+    Subgraph Sketching](https://arxiv.org/abs/2209.15486). ICLR 2023
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Zhu et al. [Neural Bellman-Ford Networks: A General Graph Neural Network Framework
+    for Link Prediction](https://arxiv.org/abs/2106.06935). NeurIPS 2021'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Galkin et al. [Towards Foundation Models for Knowledge Graph Reasoning](https://openreview.net/forum?id=jVEoydFOl9).
+    ICLR 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Galkin et al. [Zero-shot Logical Query Reasoning on any Knowledge Graph](https://arxiv.org/abs/2404.07198).
+    arxiv 2024\. [Code on Github](https://github.com/DeepGraphLearning/ULTRA)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ibarz et al. [A Generalist Neural Algorithmic Learner](https://proceedings.mlr.press/v198/ibarz22a/ibarz22a.pdf)
+    LoG 2022
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Markeeva, McLeish, Ibarz, et al. [The CLRS-Text Algorithmic Reasoning Language
+    Benchmar](https://arxiv.org/abs/2406.04229)k. arxiv 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Shoghi et al. [From Molecules to Materials: Pre-training Large Generalizable
+    Models for Atomic Property Prediction](https://arxiv.org/abs/2310.16802). ICLR
+    2024'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Zhang, Liu et al. [DPA-2: Towards a universal large atomic model for molecular
+    and material simulation](https://arxiv.org/abs/2312.15492), arxiv 2023'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Batatia et al. [A foundation model for atomistic materials chemistry](https://arxiv.org/abs/2401.00096),
+    arxiv 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Yang et al. [MatterSim: A Deep Learning Atomistic Model Across Elements, Temperatures
+    and Pressures](https://arxiv.org/abs/2405.04967), arxiv 2024'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Rives et al. [Biological Structure and Function Emerge from Scaling Unsupervised
+    Learning to 250 Million Protein Sequences](https://www.pnas.org/doi/full/10.1073/pnas.2016239118).
+    PNAS 2021
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Lin, Akin, Rao, Hie, et al. [Language models of protein sequences at the scale
+    of evolution enable accurate structure prediction](https://www.biorxiv.org/content/10.1101/2022.07.20.500902v1).
+    Science 2023\. [Code](https://github.com/facebookresearch/esm)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Morgan HL (1965) [The generation of a unique machine description for chemical
+    structures — a technique developed at chemical abstracts service](https://pubs.acs.org/doi/abs/10.1021/c160017a018).
+    J Chem Doc 5:107–113.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Kläser, Banaszewski, et al. [MiniMol: A Parameter Efficient Foundation Model
+    for Molecular Learning](https://arxiv.org/pdf/2404.14986), arxiv 2024'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sypetkowski, Wenkel et al. [On the Scalability of GNNs for Molecular Graphs](https://arxiv.org/abs/2404.11568v1),
+    arxiv 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Morris et al. [Future Directions in Foundations of Graph Machine Learning](https://arxiv.org/abs/2402.02287).
+    ICML 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Liu et al. [Neural Scaling Laws on Graphs](https://arxiv.org/abs/2402.02054),
+    arxiv 2024
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Frey et al. [Neural scaling of deep chemical models](https://www.nature.com/articles/s42256-023-00740-3),
+    Nature Machine Intelligence 2023
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

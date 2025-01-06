@@ -1,0 +1,272 @@
+- en: Understanding the Optimization Process Pipeline in Linear Programming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understanding-the-optimization-process-pipeline-in-linear-programming-15569d92ba94?source=collection_archive---------4-----------------------#2024-12-27](https://towardsdatascience.com/understanding-the-optimization-process-pipeline-in-linear-programming-15569d92ba94?source=collection_archive---------4-----------------------#2024-12-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The post describes the backend and frontend processes in linear programming
+    including the mathematical programming system (mps) files, problem matrix, optimization
+    processes, results extraction, and solution files using an open-source solver
+    called HiGHS with its Python wrapper called highspy.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@himalaya.birshrestha?source=post_page---byline--15569d92ba94--------------------------------)[![Himalaya
+    Bir Shrestha](../Images/9766140c1c44381029d0a78154217775.png)](https://medium.com/@himalaya.birshrestha?source=post_page---byline--15569d92ba94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--15569d92ba94--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--15569d92ba94--------------------------------)
+    [Himalaya Bir Shrestha](https://medium.com/@himalaya.birshrestha?source=post_page---byline--15569d92ba94--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--15569d92ba94--------------------------------)
+    ·7 min read·Dec 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this 2021 [post](https://medium.com/towards-data-science/linear-programming-with-python-and-julia-be9e045a5d17),
+    I demonstrated how linear optimization problems could be solved using the Pyomo
+    package in Python and the JuMP package in Julia. I also introduced different types
+    of commercial and non-commercial solvers available for solving linear, mixed integer,
+    or non-linear optimization problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, I will introduce mathematical programming system (mps) files used
+    to represent optimization problems, the optimization process of a solver, and
+    the solution file formats. For this purpose, I will use the same problem as in
+    the previous post but with additional bounds. I am going to use an open-source
+    solver called [HiGHS](https://highs.dev/) for this purpose. HiGHS has been touted
+    as one of the most powerful solvers among the open-source ones to solve linear
+    optimization problems. In Python, I get access to this solver simply by installing
+    the `highpy` [package](https://ergo-code.github.io/HiGHS/dev/interfaces/python/)
+    with `pip install highspy`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without further ado, let’s get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bc13eb6eeae2ae8d5ca037f2172c3e3f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Unseen Studio](https://unsplash.com/@uns__nstudio?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Problem Statement
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The problem statement is given below. `x` and `y` are the two decision variables.
+    The objective is to maximize profit subject to three constraints. Both x and y
+    have lower and upper bounds respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Optimization using highspy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the code below, I initiate the model as `h`. Then, I introduce my decision
+    variables `x` and `y` along with their lower bounds and upper bounds respectively,
+    and also assign the names. Next, I add the three constraint inequalities which
+    I have referred to as c0, c1 and c2 respectively. Each constraint has coefficient
+    for x and y, and a RHS value. Then, I maximized the value of 90x+75y, which is
+    the objective function. The model is run in this line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: What happens in the backend during the optimization process?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When the model runs, one can see the following progress happening in the terminal
+    window. But what exactly is going on here? I describe it below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf6bb0a465fd15ca4313ce515293e6f2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Problem size:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The constraints in the linear problem can be represented in the matrix form
+    as Ax≤b, wherein, A is the matrix of constraint coefficients, x is the vector
+    containing decision variables, and b is the matrix of RHS values. For the given
+    problem, the constraints are represented in the matrix format as shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3016e6b7873348fafadeaf26fdbec02c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Representing constraints in the form of matrix. Illustration by Author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem matrix size is characterized by rows, columns and non-zero elements.
+    Row refers to the number of constraints (here 3), column refers to the number
+    of decision variables (here 2), and elements/non-zeros refer to the coefficients,
+    which don’t have zero values. In all three constraints, there are no coefficient
+    with zero value. Hence the total number of non-zero elements is six.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an example of a very simple problem. In reality, there can be problems
+    where the number of rows, columns and non-zero elements can be in the order of
+    thousands and millions. An increase in the problem size increases the complexity
+    of the model, and the time taken to solve it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Coefficient ranges**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The coefficients of x and y in the problem range from 2 to 10\. Hence, the matrix
+    coefficient range is displayed as [2e+00, 1e+01].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cost refers to the objective function here. Its coefficient is 90 for x and
+    75 for y. As a result, Cost has a coefficient range of [8e+01, 9e+01].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bounds for x and y range between 2 and 40\. Hence, Bound has a coefficient range
+    of [2e+00, 4e+01]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coefficients of RHS range between 66 and 200\. Hence, RHS has a coefficient
+    range of [7e+01, 2e+02].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Presolving** [Presolve](https://lpsolve.sourceforge.net/5.5/Presolve.htm#:~:text=Presolve%20is%20a%20preprocess%20of,model%20and%20likely%20solves%20faster)
+    is the initial process when a solver tries to solve an optimization problem, it
+    tries to simplify the model at first. For example, it might treat a coefficient
+    beyond a certain value as infinity. The purpose of the [presolve](https://support.gurobi.com/hc/en-us/articles/360024738352-How-does-presolve-work)
+    is to create a smaller version of the problem matrix, with identical objective
+    function and with a feasible space that can be mapped to the feasible space of
+    the original problem. The reduced problem matrix would be simpler, easier, and
+    faster to solve than the original one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, the presolve step was completed in just two iterations resulting
+    in an empty matrix. This also means that the solution was obtained and no further
+    optimization was required. The objective value it returned was 2100, and the run
+    time of the HiGHS solver was just 0.01 seconds. After the solution is obtained
+    from the optimization, the solver can use the postsolve/unpresolve step wherein,
+    the solution is mapped to the feasible space of the original problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mathematical Programming System (MPS) format
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Mathematical Programming System (MPS) is a [file format](https://en.wikipedia.org/wiki/MPS_(format))
+    for representing linear and mixed integer linear programming problems. It is a
+    relatively old format but accepted by all commercial linear program solvers. Linear
+    problems can also be written in other formats such as LP, AMPL, and GAMS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One can use `highspy` to write mps file by simply using `h.writeModel("foo.mps")`.
+    And reading the mps file is as simple as `h.readModel("foo.mps")`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5035e99707bba76399dca7eda3b78193.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: MPS format of the given LP problem. Illustration by Author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The structure of the MPS file of the given optimization problem is shown above.
+    It starts with the NAME of the LP problem. OBJSENSE indicates whether the problem
+    is a minimization (MIN) or maximization (MAX), here the latter. The ROWS section
+    indicates the objective, names of all constraints, and their types in terms of
+    equality/inequality. E stands for equality, G stands for greater than or equal
+    rows, L stands for less than or equal rows, and N stands for no restriction rows.
+    Here, the three constraints are given as __c0, __c1, and __c2 while Obj is the
+    abbreviation for the objective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the COLUMNS section, the names of the decision variables (here x and y) are
+    assigned on the left, and their coefficients which belong to objective or constraints
+    inequalities are provided on the right. The RHS section contains the right-hand
+    side vectors of the model constraints. The lower and upper bounds of the decision
+    variables are defined in the BOUNDS section. The MPS file closes with ENDATA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization Process and Getting Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: HiGHS uses [algorithms](https://ergo-code.github.io/HiGHS/dev/options/definitions/#option-solver)
+    such as simplex or interior point method for the optimization process. To explain
+    these algorithms deserve a separate post of their own. I hope to touch upon them
+    in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code used to extract the results is given below. The model status is optimum.
+    I extract the objective function value and the solution values of the decision
+    variables. Furthermore, I print the number of iterations, the status of primal
+    and dual solutions, and basis validity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7f69ec7b81599082ddbdb184c9ac2de9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Printing results of the code above. Illustration by Author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solution Files
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After the optimization process, HiGHS allows writing the solution into a solution
+    file with a `.sol` extension. Further, the solution can be written in different
+    formats as given [here](https://ergo-code.github.io/HiGHS/dev/options/definitions/#write_solution_style).
+    1 stands for HiGHS pretty format, and 3 stands for Glpsol pretty format respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04c4e9bb7f3902eafe29504488db543e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Solution file styles available with HiGHS. Illustration based on [HiGHS documentation](https://ergo-code.github.io/HiGHS/dev/options/definitions/#write_solution_style).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get the solution in style 3, I used `h.writeSolution("mysolution.sol", 3)`.
+    The problem statistics are provided at the top. The optimal solution values are
+    provided in the Activity column. The St column specifies the status of the solution.
+    For example, B stands for Basic- the variable or constraint is part of the basis
+    solution (optimal). NU refers that the solution is non-basic and is the same as
+    the upper bound. The value in the Marginal column (often referred to as the shadow
+    price or dual value) [refers to](https://or.stackexchange.com/questions/3070/glpk-meaning-of-the-marginal-column-in-the-solution-output)
+    how much the objective function would vary with the unit change in the non-basic
+    variable. For more information on the GLPK solution file information, one can
+    refer to [here](https://en.wikibooks.org/wiki/GLPK/Solution_information).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8f70b5d2ff64dc95a4efeca4af1fc8da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Structure of the solution file in Glpsol pretty style. Illustration by Author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, I presented an example of solving a simple linear optimization
+    problem using an open-source solver called HiGHS with the `highspy` package in
+    Python. Next, I explained how the optimization problem size can be inferred using
+    the coefficient matrix, decision variable vector and RHS vector. I introduced
+    and explained different components of mathematical programming system (mps) files
+    for representing optimization problem. Finally, I demonstrated the optimization
+    process of a solver, steps for extracting results and analyzing the solution file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The notebook and relevant files for this post is available in this GitHub [repository](https://github.com/hbshrestha/Optimization).
+    Thank you for reading!
+  prefs: []
+  type: TYPE_NORMAL

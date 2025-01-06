@@ -1,0 +1,480 @@
+- en: 'NLP: Text Summarization and Keyword Extraction on Property Rental Listings
+    — Part 1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/nlp-text-summarization-and-keyword-extraction-on-property-rental-listings-part-1-f1b760cc7bbb?source=collection_archive---------1-----------------------#2024-07-08](https://towardsdatascience.com/nlp-text-summarization-and-keyword-extraction-on-property-rental-listings-part-1-f1b760cc7bbb?source=collection_archive---------1-----------------------#2024-07-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A practical implementation of NLP techniques such as text summarization, NER,
+    topic modeling, and text classification on rental listing data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@kristiyanto_?source=post_page---byline--f1b760cc7bbb--------------------------------)[![Daniel
+    Kristiyanto](../Images/b9e0fea509c17ef9507f5a9998f7ba5b.png)](https://medium.com/@kristiyanto_?source=post_page---byline--f1b760cc7bbb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f1b760cc7bbb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f1b760cc7bbb--------------------------------)
+    [Daniel Kristiyanto](https://medium.com/@kristiyanto_?source=post_page---byline--f1b760cc7bbb--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1b760cc7bbb--------------------------------)
+    ·10 min read·Jul 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Natural Language Processing (NLP) can significantly enhance the analysis and
+    usability of rental listing descriptions. In this exercise, we’ll explore the
+    practical application of NLP techniques such as text summarization, Named Entity
+    Recognition (NER), and topic modeling to extract insights and enrich the listing
+    description on Airbnb listing data in Tokyo. Using publicly available data and
+    tools like spaCy and SciKit-Learn, you can follow along, reproduce the results,
+    or apply these techniques to your own text data with minimal adjustments. The
+    codebase is available on [GitHub](https://github.com/kristiyanto/nlp_on_airbnb_dataset)
+    for you to fork and experiment with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/264198623a04de117747b2f69f02975b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This article demonstrates the use of various NLP techniques to extract information
+    from property listing description (left) data written by property owner, into
+    more informative description (right). All images in this article are produced
+    by the author. Codes and Jupyter notebook is available on [GitHub](https://github.com/kristiyanto/nlp_on_airbnb_dataset),
+    and the data is available under creative common attribution from [*insideairbnb.com*](https://insideairbnb.com/get-the-data/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Part 1 (this article) covers the basics:** the goal, the data and its preparation,
+    and the methods used to extract keywords and text summaries using various techniques
+    such as named entity recognition (NER), TF-IDF / sentence scoring, and Google’s
+    T5 (Text-to-Text Transformer). We’ll also touch on leveraging these insights to
+    improve user experience — serving suggestions included.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Part 2 (coming soon)** **covers topic modeling and text prediction**: Part
+    2 will demonstrate how to perform topic modeling on unlabeled data. This upcoming
+    article will discuss techniques like clustering to uncover hidden themes and building
+    a predictive model to classify property rentals based on their categories and
+    themes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Goal
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The task is straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Given an example input:** The rental description'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Generate output:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Keywords:** “*commercial street*”, “*stores*”, or “*near station*”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Keywords help visualize data, uncover themes, identify similarities, and improve
+    search functionality on the front end. Suggestions to serve these keywords are
+    included at the bottom of this article.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Summary:** A sentence or two, roughly about 80 characters.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summaries provide concise information, enhancing the user experience by quickly
+    conveying the most essential aspects of a listing.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Theme/Topic:** “*Excellent Access*”, “*Family Friendly*.”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Categorizing listings that share the same theme can serve as a recommender system,
+    aiding users in finding properties that match their preferences. Unlike individual
+    keywords, these themes can cover a group of multiple keywords (kitchen, desk,
+    queen bed, long-term => “Digital-Nomad Friendly”). We will deep-dive this in Part
+    2 (upcoming article).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Chapters:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data and Preparation**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Getting the data, cleaning, custom lemma
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Text Summarization**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: TFIDF/sentence scoring, Deep-Learning, LLM (T5), evaluation
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Keyword Extraction using NER**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Regex, Matcher, Deep-Learning
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Serving Suggestion**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 1\. Data and Preparation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Our dataset consists of rental listing descriptions sourced from [*insideairbnb.com*](https://insideairbnb.com/get-the-data/)*,*
+    licensed under a [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).
+    We focus on the text written by property owners. The data contains nearly 15,000
+    rental descriptions, mainly in English. Records written in Japanese (surprisingly,
+    only a handful of them!) were removed as part of the data cleaning task, which
+    also involved removing duplicates and HTML artifacts left by the scraper. Due
+    to a lot of data deduplication, which could be the byproduct of the web scraper,
+    or possibly even more complex issues (such as owners posting multiple identical
+    listings), data cleaning removed about half of the original size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1a. spaCy Pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Once the data is clean, we can start building the spaCy pipeline. We can begin
+    with a blank slate or use a pre-trained model like en_core_web_sm to process documents
+    in English. This model includes a robust pipeline with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tokenization:** Splitting text into words, punctuation marks, etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Part-of-Speech Tagging:** Tagging words as nouns, verbs, etc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Dependency Parsing:** Identifying relationships between words.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Sentencizer**: Breaking down the documents into sentences.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Lemmatization:** Reducing words to their base forms (e.g., seeing, see, saw,
+    seen).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Attribute Ruler:** Adding, removing, or changing token attributes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Named Entity Recognition:** Identifying categories of named entities (persons,
+    locations, etc.).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 1b. Custom Lemmatization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even with a battle-tested pipeline like en_core_web_sm, adjustments are often
+    needed to cover specific use cases. For example, abbreviations commonly used in
+    the rental industry (e.g., br for bedroom, apt for apartment, st for street) could
+    be introduced into the pipeline through custom lemmatization. To evaluate this,
+    we can count the number of `token.lemma_` between pipeline with and without the
+    custom lemma. If needed, other more robust pre-made pipeline, such as en_core_web_md
+    (medium), or en_core_web_lg (large), are also available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In production-level projects, a more thorough list is needed and more rigorous
+    data cleaning might be required. For example, emojis and emoji-like symbols are
+    frequently included in culturally influenced writing, like by Japanese users.
+    These symbols can introduce noise and require specific handling, such as removal
+    or transformation. Other data pre-processing, such as a more robust proper sentence
+    boundary detector may also be necessary to address sentences with missing spaces,
+    such as *“This is a sentence.This is too. And also this.and this. But, no, this
+    Next.js is a valid term and not two sentences!”*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Text Summarization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Navigating rental options in Tokyo can be overwhelming. Each listing promises
+    to be the ideal home. Still, the data suggests that the property descriptions
+    often fall short — they can be overly long, frustratingly brief, or muddled with
+    irrelevant details; this is why text summarization can come in handy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a24a755fb9b1d8b693867f92b9a33236.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sentence scoring to select the most informative sentences as the summary (right)
+    from the description (left).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2a. Level: Easy — TF-IDF'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One typical approach to text summarization involves leveraging a technique called
+    TF-IDF (Term Frequency-Inverse Document Frequency). TF-IDF considers both how
+    frequently a word appears in a specific document (the rental listing) and how
+    uncommon it is across the entire dataset of listings or corpus. This technique
+    is also helpful for various text analysis tasks, such as indexing, similarity
+    detection, and clustering (which we will explore in Part 2).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculating the sentence ranking based on the relevance of detected keywords.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another variation of the technique is sentence scoring based on word co-occurrence.
+    Like TF-IDF, this method calculates scores by comparing word occurrences within
+    the document. This approach is fast and easy and requires no additional tools
+    or even awareness of other documents. You can even do this on the fly at the front
+    end using typescript, although it is not recommended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, *extractive summarization* techniques like these have a pitfall: they
+    only find the best sentence in the document, which means that typos or other issues
+    in the chosen sentence will appear in the summary. These typos also affect the
+    scoring, making this model less forgiving of mistakes and important information
+    not included in the selected sentence (or sentences) might be missed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2b. Level: Intermediate — Deep Learning'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Beyond frequency-based methods, we can leverage the power of deep learning for
+    text summarization. Sequence-to-sequence (Seq2Seq) models are a neural network
+    architecture designed to translate sequences from one form to another. In text
+    summarization tasks, these models act like complex translators.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A Seq2Seq model typically consists of two parts: an encoder and a decoder.
+    The encoder processes the entire input text, capturing its meaning and structure.
+    This information is then compressed into a hidden representation. Then, the decoder
+    takes this hidden representation from the encoder to generate a new sequence —
+    the text summary. During training, the decoder learns to translate the encoded
+    representation that captures the key points of the original text. Unlike extractive
+    methods, these models perform *abstractive summarization:* generating summaries
+    in their own words rather than extracting sentences directly from the text.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2c. Level: Advanced — Pre-Trained Language Models'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For abstractive summarization, consider using T5 (Text-To-Text Transfer Transformer)
+    models. While the `t5-small` offers a good starting point, you might achieve superior
+    results with a larger model like `t5-base` or `t5-large`. Be aware that larger
+    models may require more computational resources and take longer to run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5fa0b7994b8c847d53c02bf4cd7aba2e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLMs can summarize documents in a creative way (going beyond just copying sentences),
+    but getting the best results might involve additional steps before, during, and
+    after the summarization process, including proper prompt engineering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-trained language models like T5 (Text-To-Text Transfer Transformer) or BERT
+    (Bidirectional Encoder Representations from Transformers) can significantly enhance
+    summarization for those with the resources and setup capabilities. However, while
+    these models can be effective for large text, they might be overkill for this
+    specific use case. Not only does it require more setup to function optimally,
+    but it also includes the need for prompt engineering (pre-processing), retraining
+    or fine-tuning, and post-processing (such as grammar, text capitalization, or
+    even fact-checking and sanity check) to guide the model toward the desired output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.d Evaluating Text Summarization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/696b776edf6bd88cb54cc7a5d59a6675.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extractive (left) versus Abstractive (right) text summarization. Given that
+    the quality of summaries is subjective, the winner is not always definitive. Comparison
+    gets even more complex by factoring the efforts, cost and computing power needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As seen from the picture above, when comparing “simple” model using TFIDF versus
+    complex model using LLM, the winner isn’t always clear. Evaluating the quality
+    of a text summarization system is a complicated challenge. Unlike tasks with a
+    single, definitive answer, there’s no single perfect summary for a given text.
+    Humans can prioritize different aspects of the original content, which further
+    makes it hard to design automatic metrics that perfectly align with human judgment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation metrics like ROUGE (Recall-Oriented Understudy for Gisting Evaluation)
+    attempt to do just this. By comparing the overlaps between n-grams (sequences
+    of words) between generated summaries and human-written summaries, ROUGE systematically
+    scores the quality of the summaries. This method relies on a collection of human-written
+    summaries as a baseline for evaluation, which often not available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Keyword Extraction Using Named Entity Recognition (NER)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While summaries are helpful, keywords have different purposes. Keywords capture
+    the most essential aspects that potential renters might be looking for. To extract
+    keywords, we can use NLP techniques such as Named Entity Recognition (NER). This
+    process goes beyond just identifying frequent words. We can extract critical information
+    by considering factors like word co-occurrence and relevance to the domain of
+    rental listings. This information can be a single word, such as ‘luxurious’ (adjective),
+    ‘Ginza’ (location), or a phrase like ‘quiet environment’ (noun phrases) or ‘near
+    to Shinjuku’ (proximity).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e5d3925865319e0c06d69ec78b94d253.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Evaluating NER: SpaCy’s built-in NER performs well, but certain entity types
+    might require additional training data for optimal accuracy. (NER stands for Named
+    Entity Recognition, GPE: Geo Political Entity)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3a. Level: Easy — Regex'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ‘find’ function in string operations, along with regular expressions, can
+    do the job of finding keywords. However, this approach requires an exhaustive
+    list of words and patterns, which is sometimes not practical. If an exhaustive
+    list of keywords to look for is available (like stock exchange abbreviations for
+    finance-related projects), regex might be the simplest way to do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3b. Level: Intermediate — The Matcher'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While regular expressions can be used for simple keyword extraction, the need
+    for extensive lists of rules makes it hard to cover all bases. Fortunately, most
+    NLP tools have this NER capability that is out of the box. For example, Natural
+    Language Toolkit (NLTK) has Named Entity Chunkers, and spaCy has Matcher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Matcher allows you to define patterns based on linguistic features like part-of-speech
+    tags or specific keywords. These patterns can be matched against the rental descriptions
+    to identify relevant keywords and phrases. This approach captures single words
+    (like, Tokyo) and meaningful phrases (like, beautiful house) that better represent
+    the selling points of a property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '3c. Level: Advanced — Deep Learning-Based Matcher'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even with Matcher, some terms may not be captured by rule-based matching due
+    to the context of the words in the sentence. For example, the Matcher might miss
+    a term like ‘a stone’s throw away from Ueno Park’ since it won’t pass any predefined
+    patterns, or mistake “Shinjuku Kabukicho” as a person (it’s a neighborhood, or
+    LOC).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such cases, deep-learning-based approaches can be more effective. By training
+    on a large corpus of rental listing with associated keywords these model learn
+    the semantic relationships between words. This makes this method more adaptable
+    to evolving language use and can uncover hidden insights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using spaCy, performing deep-learning-based NER is straightforward. However,
+    the major building block for this method is usually the availability of the labeled
+    training data, as also the case for this exercise. The label is a pair of the
+    target terms and the entity name (example: ‘a stone throw away’ is a noun phrase
+    — or as shown in picture: Shinjuku Kabukicho is a LOC, not a person), formatted
+    in a certain way. Unlike rule-based where we describe the terms into noun, location,
+    and others from the built-in functionality, data exploration or domain expert
+    are needed to discover the target terms that we want to identify.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Part 2 of the article will discuss this technique of discovering themes or labels
+    from the data for topic modeling using clustering, bootstrapping, and other methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Serving Suggestions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Extracted keywords** are valuable for both backend and frontend applications.
+    We can use them for various downstream analyses, such as theme and topic exploration
+    (discussed in Part 2). On the front end, these keywords can empower users to find
+    listings with similar characteristics — think of them like hashtags on Instagram
+    or Twitter (but automatic!). You can also highlight and display these keywords
+    or make them clickable. For example, named entity recognition (NER) can identify
+    locations like “Iidabashi” or “Asakusa.” When a user hovers over these keywords,
+    a pop-up can display relevant information about those places.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summaries** provide a concise overview of the listing, making them ideal
+    for quickly grasping the key details, or for mobile displays.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7edfd94e96e80f98979310e6250eedf4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Keywords and text summaries can enrich user experience. In this example, we
+    use the extracted text summary to provide quick overview of the listing description.
+    The select keywords (example, LOC) are also used to provide more context of the
+    listing description. This process can be done either at the back end (for faster
+    load), or at the front end (for more convenience).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving Forward
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we demonstrated the practical implementation of various NLP
+    techniques, such as text summarization and named entity recognition (NER) on a
+    rental listing dataset. These techniques can significantly improve user experience
+    by providing concise, informative, and easily searchable rental listings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the upcoming article (Part 2), we will use methods like clustering to discover
+    hidden themes and labels. This will allow us to build a robust model that can
+    act as a recommender engine. We will also explore advanced NLP techniques like
+    topic modeling and text classification further to enhance the analysis and usability
+    of rental listing descriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 以上です★これからもうよろしくおねがいします☆また今度｡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) Github Repository:** [**https://github.com/kristiyanto/nlp_on_airbnb_dataset**](https://github.com/kristiyanto/nlp_on_airbnb_dataset)
+    **2) Data (**[**Creative Commons Attribution 4.0 International License**](http://creativecommons.org/licenses/by/4.0/)**):**
+    [**https://insideairbnb.com/get-the-data/**](https://insideairbnb.com/get-the-data/)
+    **3) All images in this article are produced by the author.**
+  prefs: []
+  type: TYPE_NORMAL

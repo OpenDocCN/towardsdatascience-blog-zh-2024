@@ -1,0 +1,494 @@
+- en: Relation Extraction with Llama3 Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/relation-extraction-with-llama3-models-f8bc41858b9e?source=collection_archive---------0-----------------------#2024-04-26](https://towardsdatascience.com/relation-extraction-with-llama3-models-f8bc41858b9e?source=collection_archive---------0-----------------------#2024-04-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Enhanced relation extraction by fine-tuning Llama3–8B with a synthetic dataset
+    created using Llama3–70B*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@silviaonofrei?source=post_page---byline--f8bc41858b9e--------------------------------)[![Silvia
+    Onofrei](../Images/198b04b2063b4269eaff52402dc5f8d5.png)](https://medium.com/@silviaonofrei?source=post_page---byline--f8bc41858b9e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f8bc41858b9e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f8bc41858b9e--------------------------------)
+    [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--f8bc41858b9e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f8bc41858b9e--------------------------------)
+    ·12 min read·Apr 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31614e3e1a26eb32ed70b3333c7d3913.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated with DALL-E.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Premise
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Relation extraction (RE) is the task of extracting relationships from unstructured
+    text to identify connections between various named entities. It is done in conjunction
+    with named entity recognition (NER) and is an essential step in a natural langage
+    processing pipeline. With the rise of Large Language Models (LLMs), traditional
+    supervised approaches that involve tagging entity spans and classifying relationships
+    (if any) between them are enhanced or entirely replaced by LLM-based approaches
+    [[1](https://arxiv.org/pdf/2305.05003.pdf)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Llama3 is the most recent major release in the domain of GenerativeAI [[2](https://ai.meta.com/blog/meta-llama-3/)].
+    The base model is available in two sizes, 8B and 70B, with a 400B model expected
+    to be released soon. These models are available on the HuggingFace platform; see
+    [[3](https://huggingface.co/blog/llama3)] for details. The 70B variant powers
+    Meta’s new chat website [Meta.ai](http://Meta.ai) and exhibits performance comparable
+    to ChatGPT. The 8B model is among the most performant in its class. The architecture
+    of Llama3 is similar to that of Llama2, with the increase in performance primarily
+    due to data upgrading. The model comes with an upgaded tokenizer and expanded
+    context window. It is labelled as open-source, although only a small percentage
+    of the data is released. Overall, it is an excellent model, and I cannot wait
+    to give it a try.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Llama3–70B can produce amazing results, but due to its size it is impractical,
+    prohibitively expensive and hard to use on local systems. Therefore, to leverage
+    its capabilities, we have Llama3–70B teach the smaller Llama3–8B the task of relation
+    extraction from unstructured text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifically, with the help of Llama3–70B, we build a supervised fine-tuning
+    dataset aimed at relation extraction. We then use this dataset to fine-tune Llama3–8B
+    to enhance its relation extraction capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To reproduce the code in the [Google Colab Notebook](https://github.com/SolanaO/Blogs_Content/blob/master/llama3_re/Llama3_RE_Inference_SFT.ipynb)
+    associated to this blog, you will need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HuggingFace credentials (to save the fine-tuned model, optional) and Llama3
+    access, which can be obtained by following the instructions from one of the models’
+    cards;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A free [GroqCloud](https://console.groq.com) account (you can loggin with a
+    Google account) and a corresponding API Key.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Workspace Setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this project I used a Google Colab Pro equipped with an A100 GPU and a High-RAM
+    setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We start by installing all the required libraries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: I was very pleased to notice that the entire setup worked from the beginning
+    without any dependencies issues or the need to install `transformers` from the
+    source, despite the novelty of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also need to give access Goggle Colab to the drive and files and set the
+    working directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: For those who wish to upload the model to the HuggingFace Hub, we need to upload
+    the Hub credentials. In my case, these are stored in Google Colab secrets, which
+    can be accessed via the key button on the left. This step is optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I also added some path variables to simplify file access:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that our workspace is set up, we can move to the first step, which is to
+    build a synthetic dataset for the task of relation extraction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a Synthetic Dataset for Relation Extraction with Llama3–70B
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are several relation extraction datasets available, with the best-known
+    being the [CoNLL04](https://paperswithcode.com/dataset/conll04) dataset. Additionally,
+    there are excellent datasets such as [web_nlg](https://huggingface.co/datasets/web_nlg#dataset-card-for-webnlg),
+    available on HuggingFace, and [SciREX](https://github.com/allenai/SciREX?tab=readme-ov-file)
+    developed by AllenAI. However, most of these datasets come with restrictive licenses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inspired by the format of the `web_nlg` dataset we will build our own dataset.
+    This approach will be particularly useful if we plan to fine-tune a model trained
+    on our dataset. To start, we need a collection of short sentences for our relation
+    extraction task. We can compile this corpus in various ways.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gather a Collection of Sentences
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will use [databricks-dolly-15k](https://huggingface.co/datasets/databricks/databricks-dolly-15k),
+    an open source dataset generated by Databricks employees in 2023\. This dataset
+    is designed for supervised fine-tuning and includes four features: instruction,
+    context, response and category. After analyzing the eight categories, I decided
+    to retain the first sentence of the context from the `information_extraction`
+    category. The data parsing steps are outlined below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The selection process yields a dataset comprising 1,041 sentences. Given that
+    this is a mini-project, I did not handpick the sentences, and as a result, some
+    samples may not be ideally suited for our task. In a project designated for production,
+    I would carefully select only the most appropriate sentences. However, for the
+    purposes of this project, this dataset will suffice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Format the Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We first need to create a system message that will define the input prompt
+    and instruct the model on how to generate the answers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since this is an experimental phase, I am keeping the demands on the model to
+    a minimum. I did test several other prompts, including some that requested outputs
+    in CoNLL format where entities are categorized, and the model performed quite
+    well. However, for simplicity’s sake, we’ll stick to the basics for now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also need to convert the data into a conversational format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Groq Client and API
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Llama3 was released just a few days ago, and the availability of API options
+    is still limited. While a chat interface is available for Llama3–70B, this project
+    requires an API that could process my 1,000 sentences with a couple lines of code.
+    I found this excellent [YouTube video](https://www.youtube.com/watch?v=ySwJT3Z1MFI)
+    that explains how to use the GroqCloud API for free. For more details please refer
+    to the video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Just a reminder: you’ll need to log in and retrieve a free API Key from the
+    [GroqCloud](https://console.groq.com/playground) website. My API key is already
+    saved in the Google Colab secrets. We start by initializing the Groq client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we need to define a couple of helper functions that will enable us to
+    interact with the [Meta.ai](http://meta.ai/) chat interface effectively (these
+    are adapted from the [YouTube video](https://www.youtube.com/watch?v=ySwJT3Z1MFI)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first function `process_data()` serves as a wrapper for the chat completion
+    function of the Groq client. The second function `send_messages()`, processes
+    the data in small batches. If you follow the Settings link on the Groq playground
+    page, you will find a link to [Limits](https://console.groq.com/settings/limits)
+    which details the conditions under which we can use the free API, including caps
+    on the number of requests and generated tokens. To avoid exceedind these limits,
+    I added a 10-seconds delay after each batch of 10 messages, although it wasn’t
+    strictly necessary in my case. You might want to experiment with these settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What remains now is to generate our relation extraction data and integrate
+    it with the initial dataset :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Evaluating Llama3–8B for Relation Extraction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before proceeding with fine-tuning the model, it’s important to evaluate its
+    performance on several samples to determine if fine-tuning is indeed necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a Testing Dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will select 20 samples from the dataset we just constructed and set them
+    aside for testing. The remainder of the dataset will be used for fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will use the GroqCloud API and the utilities defined above, specifying `model=llama3-8b-8192`
+    while the rest of the function remains unchanged. In this case, we can directly
+    process our small dataset without concern of exceeded the API limits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a sample output that provides the original `text`, the Llama3-70B generation
+    denoted `gold_re` and the Llama3-8B hgeneration labelled `test_re`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the full test dataset, please refer to the [Google Colab notebook.](https://github.com/SolanaO/Blogs_Content/blob/master/llama3_re/Llama3_RE_Inference_SFT.ipynb)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just from this example, it becomes clear that Llama3–8B could benefit from some
+    improvements in its relation extraction capabilities. Let’s work on enhancing
+    that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Supervised Fine Tuning of Llama3–8B
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will utilize a full arsenal of techniques to assist us, including QLoRA and
+    Flash Attention. I won’t delve into the specifics of choosing hyperparameters
+    here, but if you’re interested in exploring further, check out these great references
+    [[4](https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms)]
+    and [[5](https://www.philschmid.de/fine-tune-llms-in-2024-with-trl)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: The A100 GPU supports Flash Attention and bfloat16, and it possesses about 40GB
+    of memory, which is sufficient for our fine-tuning needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Preparing the SFT Dataset**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We start by parsing the dataset into a conversational format, including a system
+    message, input text and the desired answer, which we derive from the Llama3–70B
+    generation. We then save it as a HuggingFace dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Choose the Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Load the Tokenizer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Choose Quantization Parameters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Load the Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: LoRA Configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: The best results are achieved when targeting all the linear layers. If memory
+    constraints are a concern, opting for more standard values such as alpha=32 and
+    rank=16 can be beneficial, as these settings result in significantly fewer parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training Arguments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you choose to save the model locally, you can omit the last three parameters.
+    You may also need to adjust the `per_device_batch_size` and `gradient_accumulation_steps`
+    to prevent Out of Memory (OOM) errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initialize the Trainer and Train the Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: The training, including model saving, took about 10 minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s clear the memory to prepare for inference tests. If you’re using a GPU
+    with less memory and encounter CUDA Out of Memory (OOM) errors, you might need
+    to restart the runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Inference with SFT Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this final step we will load the base model in half precision along with
+    the Peft adapter. For this test, I have chosen not to merge the model with the
+    adapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we load the tokenizer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we build the text generation pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We load the test dataset, which consists of the 20 samples we set aside previously,
+    and format the data in a conversational style. However, this time we omit the
+    assistant message and format it as a Hugging Face dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: One Sample Test
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s generate relation extraction output using SFT Llama3–8B and compare it
+    to the previous two outputs on a single instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We obtain the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, we observe significant improvements in the relation extraction
+    capabilities of Llama3–8B through fine-tuning. Despite the fine-tuning dataset
+    being neither very clean nor particularly large, the results are impressive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the complete results on the 20-sample dataset, please refer to the [Google
+    Colab notebook](https://github.com/SolanaO/Blogs_Content/blob/master/llama3_re/Llama3_RE_Inference_SFT.ipynb).
+    Note that the inference test takes longer because we load the model in half-precision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In conclusion, by utilizing Llama3–70B and an available dataset, we successfully
+    created a synthetic dataset which was then used to fine-tune Llama3–8B for a specific
+    task. This process not only familiarized us with Llama3, but also allowed us to
+    apply straightforward techniques from Hugging Face. We observed that working with
+    Llama3 closely resembles the experience with Llama2, with the notable improvements
+    being enhanced output quality and a more effective tokenizer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For those interested in pushing the boundaries further, consider challenging
+    the model with more complex tasks such as categorizing entities and relationships,
+    and using these classifications to build a knowledge graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Somin Wadhwa, Silvio Amir, Byron C. Wallace, Revisiting Relation Extraction
+    in the era of Large Language Models, [arXiv.2305.05003](https://arxiv.org/pdf/2305.05003.pdf)
+    (2023).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Meta, Introducing Meta Llama 3: The most capable openly available LLM to date,
+    April 18, 2024 ([link)](https://ai.meta.com/blog/meta-llama-3/).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Philipp Schmid, Omar Sanseviero, Pedro Cuenca, Youndes Belkada, Leandro von
+    Werra, [Welcome Llama 3 — Met’s new open LLM,](https://huggingface.co/blog/llama3)
+    April 18, 2024.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sebastian Raschka, [Practical Tips for Finetuning LLMs Using LoRA (Low-Rank
+    Adaptation)](https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms),
+    Ahead of AI, Nov 19, 2023.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Philipp Schmid, [How to Fine-Tune LLMs in 2024 with Hugging Face,](https://www.philschmid.de/fine-tune-llms-in-2024-with-trl)
+    Jan 22, 2024.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[databricks-dolly-15K](https://huggingface.co/datasets/databricks/databricks-dolly-15k)
+    on Hugging Face platform (CC BY-SA 3.0)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Full Code and Processed Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Github Repo](https://github.com/SolanaO/Blogs_Content/tree/master/llama3_re)'
+  prefs: []
+  type: TYPE_NORMAL

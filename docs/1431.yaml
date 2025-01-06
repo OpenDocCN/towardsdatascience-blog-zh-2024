@@ -1,0 +1,477 @@
+- en: What Is a Good Imputation for Missing Values?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/what-is-a-good-imputation-for-missing-values-e9256d45851b?source=collection_archive---------5-----------------------#2024-06-08](https://towardsdatascience.com/what-is-a-good-imputation-for-missing-values-e9256d45851b?source=collection_archive---------5-----------------------#2024-06-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: My current take on what imputation should be
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jeffrey_85949?source=post_page---byline--e9256d45851b--------------------------------)[![Jeffrey
+    Näf](../Images/0ce6db85501192cdebeeb910eb81a688.png)](https://medium.com/@jeffrey_85949?source=post_page---byline--e9256d45851b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e9256d45851b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e9256d45851b--------------------------------)
+    [Jeffrey Näf](https://medium.com/@jeffrey_85949?source=post_page---byline--e9256d45851b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e9256d45851b--------------------------------)
+    ·18 min read·Jun 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is a first article summarizing and discussing my most recent [paper](https://hal.science/hal-04521894).
+    We study general-purpose imputation of tabular datasets. That is, the imputation
+    should be done in a way that works for many different tasks in a second step (sometimes
+    referred to as “broad imputation”).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will write 3 lessons that I learned working on this problem
+    over the last years. I am very excited about this paper in particular, but also
+    cautious, as the problem of missing values has many aspects and it can be difficult
+    to not miss something. So I invite you to judge for yourself if my lessons make
+    sense to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do not want to get into great discussions about missing values, I will
+    summarize my recommendations at the end of the article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Disclaimer:*** *The goal of this article is to use imputation to recreate
+    the original data distribution. While I feel this is what most researchers and
+    practitioners actually want, this is a difficult goal that might not be necessary
+    in all applications. For instance, when performing (conditional mean) prediction,
+    there are several recent papers showing that even simple imputation methods are
+    sufficient for large sample sizes.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images in this article were created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preliminaries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before continuing we need to discuss how I think about missing values in this
+    article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We assume there is an underlying distribution *P** from which observations
+    *X** are drawn. In addition, there is a vector of 0/1s of the same dimension as
+    *X** that is drawn, let’s call this vector *M*. The actual observed data vector
+    *X* is then *X** masked by *M*. Thus, we observe *n* independently and identically
+    distributed (i.i.d.) copies of the joint vector *(X,M)*. If we write this up in
+    a data matrix, this might look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/94912a4e4605beac18aa07a39621e32a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The data generating process: X* and M are drawn, then we observe n i.id. copies
+    of (X,M), where X is X* but masked by M.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As usual small values *x, m* means “observed”, while large values refer to random
+    quantities. The missingness mechanisms everyone talks about are then assumptions
+    about the relationship or joint distribution of *(X*,M):*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Missing Completely at Random (MCAR):** The probability of a value being missing
+    is a coin flip, independent of any variable in the dataset. Here missing values
+    are but a nuisance. You could ignore them and just focus on the fully observed
+    part of your dataset and there would be no bias. In math for all *m* and *x*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c04f98834fcb6936aad2af377e81393.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Missing at Random (MAR):** The probability of missingness can now depend
+    on the *observed* variables in your dataset. A typical example would be two variables,
+    say income and age, whereby age is always observed, but income might be missing
+    for certain values of age. This is the example we study below. This may sound
+    reasonable, but here it can get complicated. In math, for all *m* and *x*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c38d327ba903dd79498b41377fbb2ffd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Missing Not at Random (MNAR):** Everything is possible here, and we cannot
+    say anything about anything in general.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key is that for imputation, we need to learn the conditional distribution
+    of missing values given observed values in one pattern *m’* to impute in another
+    pattern *m*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A well-known method of achieving this is the Multiple Imputation by Chained
+    Equations (**MICE**) method: Initially fill the values with a simple imputation,
+    such as mean imputation. Then for each iteration *t*, for each variable *j* regress
+    the observed *X_j* on all other variables (which are imputed). Then plug in the
+    values of these variables into the learned imputer for all *X_j* that are not
+    observed. This is explained in detail in [this article](https://medium.com/@ofirdi/mice-is-nice-but-why-should-you-care-e66698f245a3),
+    with an amazing illustration that will make things immediately clear. In R this
+    is conveniently implemented in the [mice R package](https://cran.r-project.org/web/packages/mice/index.html).
+    As I will outline below, I am a huge fan of this method, based on the performance
+    I have seen. In fact, the ability to recreate the underlying distribution of certain
+    instances of MICE, such as mice-cart, is uncanny. In this article, we focus on
+    a very simple example with only one variable missing, and so we can code by hand
+    what MICE would usually do iteratively, to better illustrate what is happening.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A first mini-lesson is that MICE is a host of methods; whatever method you choose
+    to regress *X_j* on the other variables gives you a different imputation method.
+    As such, there are countless variants in the mice R package, such as mice-cart,
+    mice-rf, mice-pmm, mice-norm.nob, mice-norm.predict and so on. These methods will
+    perform widely differently as we will see below. Despite this, at least some papers
+    (in top conferences such as NeurIPS) confidently proclaim that they compare their
+    methods to “MICE”, without any detail on what exactly they are using.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will look at a very simple but illustrative example: Consider a data set
+    with two jointly normal variables, *X_1, X_2*. We assume both variables have variance
+    of 1 and a positive correlation of 0.5\. To give some context, we can imagine
+    *X_1* to be (the logarithm of) income and *X_2* to be age. (This is just for illustration,
+    obviously no one is between -3 and 3 years old). Moreover, assume a missing mechanism
+    for the income *X_1*, whereby *X_1* tends to be missing whenever age is “high”.
+    That is we set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b492606e06c00d26ddb636b76c91d888.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'So *X_1* (income) is missing with probability 0.8 whenever *X_2* (age) is “large”
+    (i.e., larger zero). As we assume *X_2* is always observed, this is a textbook
+    MAR example with two patterns, one where all variables are fully observed (*m1*)
+    and a second (*m2*), wherein *X_1* is missing. Despite the simplicity of this
+    example, if we assume that higher age is related to higher income, there is a
+    *clear shift in the distribution of income and age when moving from one pattern
+    to the other*. In pattern *m2*, where income is missing, values of both the observed
+    age and the (unobserved) income tend to be higher. Let’s look at this in code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/468ab5a6d59712941c96279dab0cf9aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Top: Distribution of (X_1,X_2) in the pattern where X_1 is observed, Bottom:
+    Distribution of (X_1,X_2) in the pattern where X_1 is missing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lesson 1: Imputation is a distributional prediction problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In my view, the goal of (general purpose) imputation should be to replicate
+    the underlying data distribution as well as possible. To illustrate this, consider
+    again the first example with *p=0*, such that only *X_1* has missing values. We
+    will now try to impute this example, using the famous [MICE](https://medium.com/@ofirdi/mice-is-nice-but-why-should-you-care-e66698f245a3)
+    approach. Since only *X_1* is missing, we can implement this by hand. We start
+    with the *mean imputation*, which simply calculates the mean of *X_1* in the pattern
+    where it is observed, and plugs this mean in the place of NA. We also use the
+    *regression imputation* which is a bit more sophisticated: We regress *X_1* onto
+    *X_2* in the pattern where *X_1* is observed and then for each missing observation
+    of *X_1* we plug in the prediction of the regression. Thus here we impute the
+    conditional mean of *X_1* given *X_2*. Finally, for the *Gaussian imputation*,
+    we start with the same regression of *X_1* onto *X_2*, but then impute each missing
+    value of *X_1* by drawing from a Gaussian distribution. *In other words, instead
+    of imputing the conditional expectation (i.e. just the center of the conditional
+    distribution), we draw from this distribution.* This leads to a random imputation,
+    which may be a bit counterintuitive at first, but will actually lead to the best
+    result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/e08bd7255512d697e271005c69023417.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The distribution of (X_1, X_2) plotted for different imputation methods. Different
+    Imputation methods (red are the imputed points).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Studying this plot immediately reveals that the mean and regression imputations
+    might not be ideal, as they completely fail at recreating the original data distribution.
+    In contrast, the Gaussian imputation looks pretty good, in fact, I’d argue it
+    would be hard to differentiate it from the truth. This might just seem like a
+    technical notion, but this has consequences. Imagine you were given any of those
+    imputed data sets and now you would like to find the regression coefficient when
+    regressing *X_2* onto *X_1* (the opposite of what we did for imputation). The
+    truth in this case is given by *beta=cov(X_1,X_2)/var(X_1)=0.7*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Gaussian imputation is pretty close to 0.7 (0.71), and importantly, it is
+    very close to the estimate using the full (unobserved) data! On the other hand,
+    the mean imputation underestimates *beta*, while *the regression imputation overestimates
+    beta*. The latter is natural, as the conditional mean imputation artificially
+    inflates the relationship between variables. This effect is particularly important,
+    as this will result in effects that are overestimated in science and (data science)
+    practice!!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The regression imputation might seem overly simplistic. However, the key is
+    that very commonly used imputation methods in machine learning and other fields
+    work exactly like this. For instance, knn imputation and random forest imputation
+    (i.e., [missForest](https://academic.oup.com/bioinformatics/article/28/1/112/219101)).
+    Especially the latter has been praised and recommended in several benchmarking
+    papers and appears very widely used. However, missForest fits a Random Forest
+    on the observed data and then simply imputes by the conditional mean. So, using
+    it in this example the result would look very similar to the regression imputation,
+    thus resulting in an artificial strengthening of relations between variable and
+    biased estimates!
+  prefs: []
+  type: TYPE_NORMAL
+- en: A lot of commonly used imputation methods, such as mean imputation, knn imputation,
+    and missForest fail at replicating the distribution. What they estimate and approximate
+    is the (conditional) mean, and so the imputation will look like that of the regression
+    imputation (or even worse for the mean imputation). Instead, we should try to
+    impute by drawing from estimated (conditional) distributions.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Lesson 2: Imputation should be evaluated as a distributional prediction problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is a dual problem connected to the discussion of the first lesson. How
+    should imputation methods be evaluated?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine we developed a new imputation method and now want to benchmark this
+    against methods that exist already such as missForest, MICE, or [GAIN](https://arxiv.org/abs/1806.02920).
+    In this setting, we artificially induce the missing values and so we have the
+    actual data set just as above. We now want to compare this true dataset to our
+    imputations. For the sake of the example, let us assume the regression imputation
+    above is our new method, and we would like to compare it to mean and Gaussian
+    imputation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Even in the most prestigious conferences, this is done by calculating the root
+    mean squared error (RMSE):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e09af5aad14d3f1fb12bc30d5e878641.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This is implemented here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This discussion is related to the discussion on how to correctly score predictions.
+    [In this article](https://medium.com/towards-data-science/how-to-evaluate-your-predictions-cef80d8f6a69),
+    I discussed that (R)MSE is the right score to evaluate (conditional) mean predictions.
+    It turns out the exact same logic applies here; using RMSE like this to evaluate
+    our imputation, will favor methods that impute the conditional mean, such as the
+    regression imputation, knn imputation, and missForest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead, imputation should be *evaluated* as a distributional prediction problem.
+    I suggest using the *energy distance between the distribution of the fully observed
+    data and the imputation “distribution”*. Details can be found in the paper, but
+    in R it is easily coded using the nice “energy” R package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now apply the two scores to our imaginary research project and try to figure
+    out whether our regression imputation is better than the other two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ea0401b75e1292ebc9b18887aea7cd7c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If we look at RMSE, then our regression imputation appears great! It beats both
+    mean and Gaussian imputation. However this clashes with the analysis from above,
+    and choosing the regression imputation can and likely will lead to highly biased
+    results. On the other hand, the (scaled) energy distance correctly identifies
+    that the Gaussian imputation is the best method, agreeing with both visual intuition
+    and better parameter estimates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When evaluating imputation methods (when the true data are available) measures
+    such as RMSE and MAE should be avoided. Instead, the problem should be treated
+    and evaluated as a distributional prediction problem, and distributional metrics
+    such as the energy distance should be used. The overuse of RMSE as an evaluation
+    tool has some serious implications for research in this area.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Again this is not surprising, identifying the best mean prediction is what RMSE
+    does. What is surprising, is how consistently it is used in research to evaluate
+    imputation methods. In my view, this throws into question at least some recommendations
+    of recent papers, about what imputation methods to use. Moreover, as new imputation
+    methods get developed they are compared to other methods in terms of RMSE and
+    are thus likely not replicating the distribution correctly. One thus has to question
+    the usefulness of at least some of the myriad of imputation methods developed
+    in recent years.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The question of evaluation gets much harder, **when the underlying observations
+    are not available.** In the paper we develope a score that allows to rank imputation
+    methods, even in this case! (a refinement of the idea presented in [this article](/i-scores-how-to-choose-the-best-method-to-fill-in-nas-in-your-data-set-43f3f0df971f)).
+    The details are reserved for another medium post, but we can try it for this example.
+    The “Iscore.R” function can be found on [Github](https://github.com/JeffNaef/MARimputation/tree/c1f5a1e48e8a60db95c727876086db5b7305f614/Useable)
+    or at the end of this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Thus *without every seeing the values of the missing data*, our score is able
+    to identify that norm.nob is the best method! This comes in handy, especially
+    when the data has more than two dimensions. I will give more details on how to
+    use the score and how it works in a next article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lesson 3: MAR is weirder than you think'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When reading the literature on missing value imputation, it is easy to get a
+    sense that MAR is a solved case, and all the problems arise from whether it can
+    be assumed or not. While this might be true under standard procedures such as
+    maximum likelihood, if one wants to find a good (nonparametric) imputation, this
+    is not the case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our paper discusses how complex distribution shifts are possible under MAR when
+    changing from say the fully observed pattern to a pattern one wants to impute.
+    We will focus here on the shift in distribution that can occur in the observed
+    variables. For this, we turn to the example above, where we took *X_1* to be income
+    and *X_2* to be age. As we have seen in the first figure the distribution looks
+    quite different. However, the conditional distribution of *X_1 | X_2* remains
+    the same! This allows to identify the right imputation distribution in principle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae052c33d825988f15194972c9256b78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Distribution of X_2 in the pattern where X_1 is observed, Bottom: Distribution
+    of (X_1,X_2) in the pattern where X_1 is missing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem is that even if we can nonparametrically estimate the conditional
+    distribution in the pattern where *X_1* is missing, we need to extrapolate this
+    to the distribution of *X_2* where *X_1* is missing. To illustrate this I will
+    now introduce two very important nonparametric mice methods. One old (*mice-cart*)
+    and one new (*mice-DRF*). The former uses one tree to regress *X_j* on all the
+    other variables and then imputes by drawing samples from that tree. Thus instead
+    of using the conditional expectation prediction of a tree/forest, as missForest
+    does, it draws from the leaves to approximate sampling from the conditional distribution.
+    In contrast, mice-DRF uses the [Distributional Random Forest](https://medium.com/towards-data-science/drf-a-random-forest-for-almost-everything-625fa5c3bcb8),
+    a forest method designed to estimate distributions and samples from those predictions.
+    Both work exceedingly well, as I will lay out below!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/e991ed2be1c9f70f0c552c5361ef0877.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Though both mice-cart and mice-DRF do a good job, they are still not quite as
+    good as the Gaussian imputation. This is not surprising per se, as the Gaussian
+    imputation is the ideal imputation in this case (because *(X_1, X_2)* are indeed
+    Gaussian). Nonetheless the distribution shift in *X_2* likely plays a role in
+    the difficulty of mice-cart and mice-DRF to recover the distribution even for
+    3000 observations (these methods are usually really really good). Note that this
+    kind of extrapolation is not a problem for the Gaussian imputation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The paper also discusses a similar, but more extreme example with two variables
+    *(X_1, X_2)*. In this example, the distribution shift is much more pronounced,
+    and the forest-based methods struggle accordingly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a8ab1ef4047e142f30d01eb755c79d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: More extreme example of distribution shift in the paper. While the Gausisan
+    imputation is near perfect, mice-RF and mice-DRF are not able to extrapolate correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem is that these kinds of extreme distribution shifts are possible
+    under MAR and forest-based methods have a hard time extrapolating outside of the
+    data set (so do neural nets btw). Indeed, can you think of a method that can (1)
+    learn a distribution nonparametrically and (2) extrapolate from *X_2* coming from
+    the upper distribution to *X_2* drawn from the lower distribution reliably? For
+    now, I cannot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imputation is hard, even if MAR can be assumed, and the search for reliable
+    imputation methods is not over.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Conclusion: My current recommendations'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Missing values are a hairy problem. Indeed, the best way to deal with missing
+    values is to not have them. Accordingly, Lesson 3 shows that the search for imputation
+    methods is not yet concluded, even if one only considers MAR. We still lack a
+    method that can do (1) nonparametric distributional prediction and (2) adapt to
+    distribution shifts that are possible under MAR. That said, I also sometimes feel
+    people make the problem more complicated than it is; some MICE methods perform
+    extremely well and might be enough for many missing value problems already.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I first want to mention that that there are very fancy machine learning methods
+    like [GAIN](https://arxiv.org/abs/1806.02920) and variants, that try to impute
+    data using neural nets. I like these methods because they follow the right idea:
+    Impute the conditional distributions of missing given observed. However, after
+    using them a bit, I am somewhat disappointed by their performance, especially
+    compared to MICE.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, if I had a missing value problem the first thing I’d try is *mice-cart*
+    (implemented in the mice R package) or the new *mice-DRF* (code on [Github](https://github.com/JeffNaef/MARimputation/tree/c1f5a1e48e8a60db95c727876086db5b7305f614/Useable))
+    we developed in the paper. I have tried those two on quite a few examples and
+    their ability to recreate the data is uncanny. However note that these observations
+    of mine are not based on a large, systematic benchmarking and should be taken
+    with a grain of salt. Moreover, this requires at least an intermediate sample
+    size of say above 200 or 300\. Imputation is not easy and completely nonparametric
+    methods will suffer if the sample size is too low. In the case of less than 200
+    observations, I would go with simpler methods such as Gaussian imputation (*mice-norm.nob*
+    in the R package). If you would then like to find the best out of these methods
+    I recommend trying our score developed in the paper,as done in Lesson 2 (though
+    the implementation might not be the best).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, note that none of these methods are able to effectively deal with **imputation
+    uncertainty**! In a sense, we only discussed single imputation in this article.
+    (Proper) multiple imputation would require that the uncertainty of the imputation
+    method itself is taken into account, which is usually done using Bayesian methods.
+    For frequentist method like we looked at here, this appears to be an open problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Appendix 1: m-I-Score'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The File “Iscore.R”, which can also be found on [Github](https://github.com/JeffNaef/MARimputation/tree/c1f5a1e48e8a60db95c727876086db5b7305f614/Useable).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE

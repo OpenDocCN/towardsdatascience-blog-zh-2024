@@ -1,0 +1,445 @@
+- en: Fine-Tune Llama 3.1 Ultra-Efficiently with Unsloth
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/fine-tune-llama-3-1-ultra-efficiently-with-unsloth-7196c7165bab?source=collection_archive---------0-----------------------#2024-07-29](https://towardsdatascience.com/fine-tune-llama-3-1-ultra-efficiently-with-unsloth-7196c7165bab?source=collection_archive---------0-----------------------#2024-07-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*A beginner’s guide to state-of-the-art supervised fine-tuning*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mlabonne?source=post_page---byline--7196c7165bab--------------------------------)[![Maxime
+    Labonne](../Images/a7efdd305e3cc77d5509bbb1076d57d8.png)](https://medium.com/@mlabonne?source=post_page---byline--7196c7165bab--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7196c7165bab--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7196c7165bab--------------------------------)
+    [Maxime Labonne](https://medium.com/@mlabonne?source=post_page---byline--7196c7165bab--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7196c7165bab--------------------------------)
+    ·12 min read·Jul 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/442eac2ef94d8b6584ef18418dcbdb93.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image generated with DALL-E 3 by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The recent release of Llama 3.1 offers models with an incredible level of performance,
+    closing the gap between closed-source and open-weight models. Instead of using
+    frozen, general-purpose LLMs like GPT-4o and Claude 3.5, you can fine-tune Llama
+    3.1 for your specific use cases to achieve better performance and customizability
+    at a lower cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e2bfb879bf9d5078c60062fe6e5f8c59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will provide a comprehensive overview of supervised fine-tuning.
+    We will compare it to prompt engineering to understand when it makes sense to
+    use it, detail the main techniques with their pros and cons, and introduce major
+    concepts, such as LoRA hyperparameters, storage formats, and chat templates. Finally,
+    we will implement it in practice by fine-tuning Llama 3.1 8B in Google Colab with
+    state-of-the-art optimization using Unsloth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the code used in this article is available on [Google Colab](https://colab.research.google.com/drive/164cg_O7SV7G8kZr_JXqLd6VC7pd86-1Z?usp=sharing)
+    and in the [LLM Course](https://github.com/mlabonne/llm-course).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🔧 Supervised Fine-Tuning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/721214d6a9b43ef4eaa195651d4a8119.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Supervised Fine-Tuning (SFT) is a method to **improve and customize** pre-trained
+    LLMs. It involves retraining base models on a smaller dataset of instructions
+    and answers. The main goal is to transform a basic model that predicts text into
+    an assistant that can follow instructions and answer questions. SFT can also enhance
+    the model’s overall performance, add new knowledge, or adapt it to specific tasks
+    and domains. Fine-tuned models can then go through an optional preference alignment
+    stage (see [my article about DPO](https://mlabonne.github.io/blog/posts/Fine_tune_Mistral_7b_with_DPO.html))
+    to remove unwanted responses, modify their style, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following figure shows an instruction sample. It includes a system prompt
+    to steer the model, a user prompt to provide a task, and the output the model
+    is expected to generate. You can find a list of high-quality open-source instruction
+    datasets in the [💾 LLM Datasets](https://github.com/mlabonne/llm-datasets) GitHub
+    repo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f1f2c16c4190c178e4fa8be8bccb8c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before considering SFT, I recommend trying prompt engineering techniques like
+    **few-shot prompting** or **retrieval augmented generation** (RAG). In practice,
+    these methods can solve many problems without the need for fine-tuning, using
+    either closed-source or open-weight models (e.g., Llama 3.1 Instruct). If this
+    approach doesn’t meet your objectives (in terms of quality, cost, latency, etc.),
+    then SFT becomes a viable option when instruction data is available. Note that
+    SFT also offers benefits like additional control and customizability to create
+    personalized LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, SFT has limitations. It works best when leveraging knowledge already
+    present in the base model. Learning completely new information like an unknown
+    language can be challenging and lead to more frequent hallucinations. For new
+    domains unknown to the base model, it is recommended to continuously pre-train
+    it on a raw dataset first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the opposite end of the spectrum, instruct models (i.e., already fine-tuned
+    models) can already be very close to your requirements. For example, a model might
+    perform very well but state that it was trained by OpenAI or Meta instead of you.
+    In this case, you might want to slightly steer the instruct model’s behavior using
+    preference alignment. By providing chosen and rejected samples for a small set
+    of instructions (between 100 and 1000 samples), you can force the LLM to say that
+    you trained it instead of OpenAI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⚖️ SFT Techniques
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The three most popular SFT techniques are full fine-tuning, LoRA, and QLoRA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a95694ba5600c25c2a3027f40c66b853.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Full fine-tuning** is the most straightforward SFT technique. It involves
+    retraining all parameters of a pre-trained model on an instruction dataset. This
+    method often provides the best results but requires significant computational
+    resources (several high-end GPUs are required to fine-tune a 8B model). Because
+    it modifies the entire model, it is also the most destructive method and can lead
+    to the catastrophic forgetting of previous skills and knowledge.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Low-Rank Adaptation (LoRA)** is a popular parameter-efficient fine-tuning
+    technique. Instead of retraining the entire model, it freezes the weights and
+    introduces small adapters (low-rank matrices) at each targeted layer. This allows
+    LoRA to train a number of parameters that is drastically lower than full fine-tuning
+    (less than 1%), reducing both memory usage and training time. This method is non-destructive
+    since the original parameters are frozen, and adapters can then be switched or
+    combined at will.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**QLoRA (Quantization-aware Low-Rank Adaptation)** is an extension of LoRA
+    that offers even greater memory savings. It provides up to 33% additional memory
+    reduction compared to standard LoRA, making it particularly useful when GPU memory
+    is constrained. This increased efficiency comes at the cost of longer training
+    times, with QLoRA typically taking about 39% more time to train than regular LoRA.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While QLoRA requires more training time, its substantial memory savings can
+    make it the only viable option in scenarios where GPU memory is limited. For this
+    reason, this is the technique we will use in the next section to fine-tune a Llama
+    3.1 8B model on Google Colab.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🦙 Fine-Tune Llama 3.1 8B
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To efficiently fine-tune a [Llama 3.1 8B](https://huggingface.co/meta-llama/Meta-Llama-3.1-8B)
+    model, we’ll use the [Unsloth](https://github.com/unslothai/unsloth) library by
+    Daniel and Michael Han. Thanks to its custom kernels, Unsloth provides 2x faster
+    training and 60% memory use compared to other options, making it ideal in a constrained
+    environment like Colab. Unfortunately, Unsloth only supports single-GPU settings
+    at the moment. For multi-GPU settings, I recommend popular alternatives like [TRL](https://huggingface.co/docs/trl/en/index)
+    and [Axolotl](https://github.com/OpenAccess-AI-Collective/axolotl) (both also
+    include Unsloth as a backend).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, we will QLoRA fine-tune it on the [mlabonne/FineTome-100k](https://huggingface.co/datasets/mlabonne/FineTome-100k)
+    dataset. It’s a subset of [arcee-ai/The-Tome](https://huggingface.co/datasets/arcee-ai/The-Tome)
+    (without [arcee-ai/qwen2–72b-magpie-en](https://huggingface.co/datasets/arcee-ai/qwen2-72b-magpie-en))
+    that I re-filtered using [HuggingFaceFW/fineweb-edu-classifier](https://huggingface.co/HuggingFaceFW/fineweb-edu-classifier).
+    Note that this classifier wasn’t designed for instruction data quality evaluation,
+    but we can use it as a rough proxy. The resulting FineTome is an ultra-high quality
+    dataset that includes conversations, reasoning problems, function calling, and
+    more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s start by installing all the required libraries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once installed, we can import them as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s now load the model. Since we want to use QLoRA, I chose the pre-quantized
+    [unsloth/Meta-Llama-3.1–8B-bnb-4bit](https://huggingface.co/unsloth/Meta-Llama-3.1-8B-bnb-4bit).
+    This 4-bit precision version of [meta-llama/Meta-Llama-3.1–8B](https://markdown-to-medium.surge.sh/meta-llama/Meta-Llama-3.1-8B)
+    is significantly smaller (5.4 GB) and faster to download compared to the original
+    16-bit precision model (16 GB). We load in NF4 format using the bitsandbytes library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When loading the model, we must specify a maximum sequence length, which restricts
+    its context window. Llama 3.1 supports up to 128k context length, but we will
+    set it to 2,048 in this example since it consumes more compute and VRAM. Finally,
+    the `dtype` parameter automatically detects if your GPU supports the [BF16 format](https://mlabonne.github.io/blog/posts/Introduction_to_Weight_Quantization.html#background-on-floating-point-representation)
+    for more stability during training (this feature is restricted to Ampere and more
+    recent GPUs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that our model is loaded in 4-bit precision, we want to prepare it for
+    parameter-efficient fine-tuning with LoRA adapters. LoRA has three important parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Rank** (r), which determines LoRA matrix size. Rank typically starts at 8
+    but can go up to 256\. Higher ranks can store more information but increase the
+    computational and memory cost of LoRA. We set it to 16 here.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Alpha** (α), a scaling factor for updates. Alpha directly impacts the adapters’
+    contribution and is often set to 1x or 2x the rank value.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Target modules**: LoRA can be applied to various model components, including
+    attention mechanisms (Q, K, V matrices), output projections, feed-forward blocks,
+    and linear output layers. While initially focused on attention mechanisms, extending
+    LoRA to other components has shown benefits. However, adapting more modules increases
+    the number of trainable parameters and memory needs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here, we set r=16, α=16, and target every linear module to maximize quality.
+    We don’t use dropout and biases for faster training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, we will use [Rank-Stabilized LoRA](https://arxiv.org/abs/2312.03732)
+    (rsLoRA), which modifies the scaling factor of LoRA adapters to be proportional
+    to 1/√r instead of 1/r. This stabilizes learning (especially for higher adapter
+    ranks) and allows for improved fine-tuning performance as rank increases. Gradient
+    checkpointing is handled by Unsloth to offload input and output embeddings to
+    disk and save VRAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this LoRA configuration, we’ll only train 42 million out of 8 billion parameters
+    (0.5196%). This shows how much more efficient LoRA is compared to full fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now load and prepare our dataset. Instruction datasets are stored in
+    a **particular format**: it can be Alpaca, ShareGPT, OpenAI, etc. First, we want
+    to parse this format to retrieve our instructions and answers. Our [mlabonne/FineTome-100k](https://huggingface.co/datasets/mlabonne/FineTome-100k)
+    dataset uses the ShareGPT format with a unique “conversations” column containing
+    messages in JSONL. Unlike simpler formats like Alpaca, ShareGPT is ideal for storing
+    multi-turn conversations, which is closer to how users interact with LLMs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once our instruction-answer pairs are parsed, we want to reformat them to follow
+    a **chat template**. Chat templates are a way to structure conversations between
+    users and models. They typically include special tokens to identify the beginning
+    and the end of a message, who’s speaking, etc. Base models don’t have chat templates
+    so we can choose any: ChatML, Llama3, Mistral, etc. In the open-source community,
+    the ChatML template (originally from OpenAI) is a popular option. It simply adds
+    two special tokens (`<|im_start|>` and `<|im_end|>`) to indicate who''s speaking.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we apply this template to the previous instruction sample, here’s what we
+    get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the following code block, we parse our ShareGPT dataset with the `mapping`
+    parameter and include the ChatML template. We then load and process the entire
+    dataset to apply the chat template to every conversation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’re now ready to specify the training parameters for our run. I want to briefly
+    introduce the most important hyperparameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Learning rate**: It controls how strongly the model updates its parameters.
+    Too low, and training will be slow and may get stuck in local minima. Too high,
+    and training may become unstable or diverge, which degrades performance.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**LR scheduler**: It adjusts the learning rate (LR) during training, starting
+    with a higher LR for rapid initial progress and then decreasing it in later stages.
+    Linear and cosine schedulers are the two most common options.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Batch size**: Number of samples processed before the weights are updated.
+    Larger batch sizes generally lead to more stable gradient estimates and can improve
+    training speed, but they also require more memory. Gradient accumulation allows
+    for effectively larger batch sizes by accumulating gradients over multiple forward/backward
+    passes before updating the model.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Num epochs**: The number of complete passes through the training dataset.
+    More epochs allow the model to see the data more times, potentially leading to
+    better performance. However, too many epochs can cause overfitting.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Optimizer**: Algorithm used to adjust the parameters of a model to minimize
+    the loss function. In practice, AdamW 8-bit is strongly recommended: it performs
+    as well as the 32-bit version while using less GPU memory. The paged version of
+    AdamW is only interesting in distributed settings.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Weight decay**: A regularization technique that adds a penalty for large
+    weights to the loss function. It helps prevent overfitting by encouraging the
+    model to learn simpler, more generalizable features. However, too much weight
+    decay can impede learning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Warmup steps**: A period at the beginning of training where the learning
+    rate is gradually increased from a small value to the initial learning rate. Warmup
+    can help stabilize early training, especially with large learning rates or batch
+    sizes, by allowing the model to adjust to the data distribution before making
+    large updates.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Packing**: Batches have a pre-defined sequence length. Instead of assigning
+    one batch per sample, we can combine multiple small samples in one batch, increasing
+    efficiency.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I trained the model on the entire dataset (100k samples) using an A100 GPU (40
+    GB of VRAM) on Google Colab. The training took 4 hours and 45 minutes. Of course,
+    you can use smaller GPUs with less VRAM and a smaller batch size, but they’re
+    not nearly as fast. For example, it takes roughly 19 hours and 40 minutes on an
+    L4 and a whopping 47 hours on a free T4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, I recommend only loading a subset of the dataset to speed up training.
+    You can do it by modifying the previous code block, like `dataset = load_dataset("mlabonne/FineTome-100k",
+    split="train[:10000]")` to only load 10k samples. Alternatively, you can use cheaper
+    cloud GPU providers like Paperspace, RunPod, or Lambda Labs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that the model is trained, let’s test it with a simple prompt. This is not
+    a rigorous evaluation but just a quick check to detect potential issues. We use
+    `FastLanguageModel.for_inference()` to get 2x faster inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The model’s response is “9.9”, which is correct!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now save our trained model. If you remember the part about LoRA and QLoRA,
+    what we trained is not the model itself but a set of adapters. There are three
+    save methods in Unsloth: `lora` to only save the adapters, and `merged_16bit`/`merged_4bit`
+    to merge the adapters with the model in 16-bit/ 4-bit precision.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following, we merge them in 16-bit precision to maximize the quality.
+    We first save it locally in the “model” directory and then upload it to the Hugging
+    Face Hub. You can find the trained model on [mlabonne/FineLlama-3.1–8B](https://huggingface.co/mlabonne/FineLlama-3.1-8B).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Unsloth also allows you to directly convert your model into GGUF format. This
+    is a quantization format created for llama.cpp and compatible with most inference
+    engines, like [LM Studio](https://lmstudio.ai/), [Ollama](https://ollama.com/),
+    and oobabooga’s [text-generation-webui](https://github.com/oobabooga/text-generation-webui).
+    Since you can specify different precisions (see [my article about GGUF and llama.cpp](https://mlabonne.github.io/blog/posts/Quantize_Llama_2_models_using_ggml.html)),
+    we’ll loop over a list to quantize it in `q2_k`, `q3_k_m`, `q4_k_m`, `q5_k_m`,
+    `q6_k`, `q8_0` and upload these quants on Hugging Face. The [mlabonne/FineLlama-3.1-8B-GGUF](https://huggingface.co/mlabonne/FineLlama-3.1-8B-GGUF)
+    contains all our GGUFs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Congratulations, we fine-tuned a model from scratch and uploaded quants you
+    can now use in your favorite inference engine. Feel free to try the final model
+    available on [mlabonne/FineLlama-3.1–8B-GGUF](https://huggingface.co/mlabonne/FineLlama-3.1-8B-GGUF).
+    What to do now? Here are some ideas on how to use your model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Evaluate** it on the [Open LLM Leaderboard](https://huggingface.co/spaces/open-llm-leaderboard/open_llm_leaderboard)
+    (you can submit it for free) or using other evals like in [LLM AutoEval](https://github.com/mlabonne/llm-autoeval).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Align** it with Direct Preference Optimization using a preference dataset
+    like [mlabonne/orpo-dpo-mix-40k](https://huggingface.co/datasets/mlabonne/orpo-dpo-mix-40k)
+    to boost performance.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Quantize** it in other formats like EXL2, AWQ, GPTQ, or HQQ for faster inference
+    or lower precision using [AutoQuant](https://colab.research.google.com/drive/1b6nqC7UZVt8bx4MksX7s656GXPM-eWw4?usp=sharing).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Deploy** it on a Hugging Face Space with [ZeroChat](https://colab.research.google.com/drive/1LcVUW5wsJTO2NGmozjji5CkC--646LgC)
+    for models that have been sufficiently trained to follow a chat template (~20k
+    samples).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article provided a comprehensive overview of supervised fine-tuning and
+    how to apply it in practice to a Llama 3.1 8B model. By leveraging QLoRA’s efficient
+    memory usage, we managed to fine-tune an 8B LLM on a super high-quality dataset
+    with limited GPU resources. We also provided more efficient alternatives for bigger
+    runs and suggestions for further steps, including evaluation, preference alignment,
+    quantization, and deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope this guide was useful. If you’re interested in learning more about LLMs,
+    I recommend checking the [LLM Course](https://github.com/mlabonne/llm-course).
+    If you enjoyed this article, follow me on X [@maximelabonne](https://x.com/maximelabonne)
+    and on Hugging Face [@mlabonne](https://huggingface.co/mlabonne). Good luck fine-tuning
+    models!
+  prefs: []
+  type: TYPE_NORMAL

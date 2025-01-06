@@ -1,0 +1,289 @@
+- en: Mastering Object Counting in Videos
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/mastering-object-counting-in-videos-3d49a9230bd2?source=collection_archive---------3-----------------------#2024-06-25](https://towardsdatascience.com/mastering-object-counting-in-videos-3d49a9230bd2?source=collection_archive---------3-----------------------#2024-06-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Step-by-step guide to counting strolling ants on a tree using detection and
+    tracking techniques.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lihigurarie?source=post_page---byline--3d49a9230bd2--------------------------------)[![Lihi
+    Gur Arie, PhD](../Images/7a1eb30725a95159401c3672fa5f43ab.png)](https://medium.com/@lihigurarie?source=post_page---byline--3d49a9230bd2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3d49a9230bd2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3d49a9230bd2--------------------------------)
+    [Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--3d49a9230bd2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3d49a9230bd2--------------------------------)
+    ·7 min read·Jun 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ants counting in a video. In and Out counts appear on the upper left corner.
+    Each ant is assigned a unique ID and color. Labels by Author, Original video by
+    [Lui Lo Franco at Pexels](https://www.pexels.com/video/ants-carrying-leaves-on-tree-trunk-9888614/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Counting objects in videos is a challenging Computer Vision task. Unlike counting
+    objects in static images, videos involve additional complexities, since objects
+    can move, become occluded, or appear and disappear at different times, which complicates
+    the counting process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this tutorial, we’ll demonstrate how to count ants moving along a tree, using
+    Object Detection and tracking techniques. We’ll harness Ultralytics platform to
+    integrate YOLOv8 model for detection, BoT-SORT for tracking, and a line counter
+    to count the ants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t have a paid Medium account, you can read for free[here](/mastering-object-counting-in-videos-3d49a9230bd2?sk=8ec6a61e5dc66ec0ebc762ba01b6af73).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Pipeline Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In a typical video object counting pipeline, each frame undergoes a sequence
+    of processes: detection, tracking, and counting. Here’s a brief overview of each
+    step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Detection:** An object detector identifies and locates objects in each frame,
+    producing bounding boxes around them.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Tracking**: A tracker follows these objects across frames, assigning unique
+    IDs to each object to ensure they are counted only once.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Counting**: The counting module aggregates this information and adds each
+    new object to provide accurate results.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/020922d351e2affc484485704545edb2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connecting an object detector, a tracker, and a counter might require extensive
+    coding. Fortunately, the Ultralytics library [1] simplifies this process by providing
+    a convenient pipeline that seamlessly integrates these components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Detecting Objects with YOLOv8
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first step is to detect the ants in each frame produce bounding boxes around
+    them. In this tutorial, we will use a YOLOv8 detector that I trained in advance
+    to detect ants. I used [Grounding DINO](/automatic-labeling-of-object-detection-datasets-using-groundingdino-b66c486656fe?sk=7c98df89b60ea49a6de9efd5278f645e)
+    [2] to label the data, and then I used the annotated data to train the YOLOv8
+    model. If you want to learn more about training a YOLO model, refer to my previous
+    post on [training YOLOv5](/the-practical-guide-for-object-detection-with-yolov5-algorithm-74c04aac4843?sk=00d2a9d6dd84d6ac4de153cab3dba7c0),
+    as the concepts are similar. For your application, you can use a pre-trained model
+    or train a custom model of your own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started, we need to initialize the detector with the pre-trained weights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Later on, we will use the detector to detect ants in each frame within the video
+    loop, integrating the detection with the tracking process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Tracking Objects with BoT-SORT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since ants appear multiple times across the video frames, it is essential to
+    track each ant and assign it a unique ID, to ensure that each ant is counted only
+    once. Ultralytics supports both BoT-SORT [3] and ByteTrack [4] for tracking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ByteTrack:** Provides a balance between accuracy and speed, with lower computational
+    complexity. It may not handle occlusions and camera motion as well as BoT-SORT.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**BoT-SORT:** Offers improved tracking accuracy and robustness over ByteTrack,
+    especially in challenging scenarios with occlusions and camera motion. However,
+    it comes at the cost of higher computational complexity and lower frame rates.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The choice between these algorithms depends on the specific requirements of
+    your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**How BoT-SORT Works**: BoT-SORT is a multi-object tracker, meaning it can
+    track multiple objects at the same time. It combines motion and appearance information
+    along with camera motion compensation. The objects’ positions are predicted using
+    a Kalman filter, and the matches to existing tracks are based on both their location
+    and visual features. This approach allows BoT-SORT to maintain accurate tracks
+    even in the presence of occlusions or when the camera is moving.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A well-configured tracker can compensate for the detector’s mild faults. For
+    example if the object detector temporarily fails to detect an ant, the tracker
+    can maintain the ant’s track using motion and appearance cues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The detector and tracker are used iteratively on each frame within the video
+    loop to produce the tracks. This is how you integrate it into your video processing
+    loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The tracker configuration is defined in the ‘botsort.yaml’ file. You can adjust
+    these parameters to best fit your needs. To change the tracker to ByteTrack, simply
+    pass ‘bytetrack.yaml’ to the tracker parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensure that the Intersection Over Union (IoU) value fits your application requirements;
+    the IoU threshold (used for non-maximum suppression) determines how close detections
+    must be to be considered the same object. The `persist=True` argument tells the
+    tracker that the current frame is part of a sequence and to expect tracks from
+    the previous frame to persist into the current frame.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Counting Objects
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have detected and tracked the ants, the final step is to count the
+    unique ants that crosses a designated line in the video. The `ObjectCounter` class
+    from the Ultralytics library allows us to define a counting region, which can
+    be a line or a polygon. For this tutorial, we will use a simple line as our counting
+    region. This approach reduces errors by ensuring that an ant is counted only once
+    when it crosses the line, even if its unique ID changes due to tracking errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we initialize the `ObjectCounter` before the video loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Inside the video loop, the `ObjectCounter` will count the tracks produced by
+    the tracker. The points of the line are passed to the counter at the reg_pts parameter,
+    in the [(x1, y1), (x2, y2)] format. When the center point of an ant’s bounding
+    box crosses the line for the first time, it is added to the count according to
+    its trajectory direction. Objects moving in a certain direction counted as ‘In’,
+    and objects moving to the other direction counted as ‘Out’.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Full Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have seen the counting components, let’s integrate the code with
+    the video loop and save the resulting video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code above integrates object detection and tracking into a video processing
+    loop to save the annotated video. Using OpenCV, we open the input video and set
+    up a video writer for the output. In each frame, we perform object tracking with
+    BoTSORT, count the objects, and annotate the frame. The annotated frames, including
+    bounding boxes, unique IDs, trajectories, and ‘in’ and ‘out’ counts, are saved
+    to the output video. The ‘in’ and ‘out’ counts can be retrieved from `counter.in_counts`
+    and `counter.out_counts`, respectively, and are also printed on the output video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7f437e548c99be9e341810585847d79.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An annotated frame. Each ant is assigned with a bounding box and a uniqe ID.
+    Ants are counted as they cross the pink line. The counts of ants moving ‘in’ and
+    ‘out’ are displayed at the corner of the image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concluding Remarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the annotated video, we correctly counted a total of 85 ants, with 34 entering
+    and 51 exiting. For precise counts, it is crucial that the detector performs well
+    and the tracker is well configured. A well-configured tracker can compensate for
+    detector misses, ensuring continuity in tracking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the annotated video we can see that the tracker handled missing detections
+    very well, as evidenced by the disappearance of the bounding box around an ant
+    and its return in subsequent frames with the correct ID. Additionally, tracking
+    mistakes that assigned different IDs to the same object (e.g., ant #42 turning
+    into #48) did not affect the counts since only the ants that cross the line are
+    counted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this tutorial, we explored how to count objects in videos using advanced
+    object detection and tracking techniques. We utilized YOLOv8 for detecting ants
+    and BoT-SORT for robust tracking, all integrated seamlessly with the Ultralytics
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Congratulations on making it all the way here. Click 👍 to show your appreciation
+    and raise the algorithm self esteem 🤓
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Want to learn more?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**Explore**](https://medium.com/@lihigurarie) additional articles I’ve written'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[**Subscribe**](https://medium.com/@lihigurarie/subscribe)to get notified when
+    I publish articles'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Follow me on [**Linkedin**](https://www.linkedin.com/in/lihi-gur-arie/)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[1] [Ultralytics GitHub](https://github.com/ultralytics/ultralytics)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set
+    Object Detection](https://arxiv.org/pdf/2303.05499)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [BoT-SORT: Robust Associations Multi-Pedestrian Tracking](https://arxiv.org/pdf/2206.14651)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [ByteTrack: Multi-Object Tracking by Associating Every Detection Box](https://arxiv.org/pdf/2110.06864)'
+  prefs: []
+  type: TYPE_NORMAL

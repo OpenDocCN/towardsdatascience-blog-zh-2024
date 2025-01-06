@@ -1,0 +1,222 @@
+- en: Estimating Individualized Treatment Rules Using Outcome Weighted Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/estimating-individualized-treatment-rules-using-outcome-weighted-learning-1095b3c2d6e9?source=collection_archive---------8-----------------------#2024-03-31](https://towardsdatascience.com/estimating-individualized-treatment-rules-using-outcome-weighted-learning-1095b3c2d6e9?source=collection_archive---------8-----------------------#2024-03-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A non-parametric approach for fitting personalized treatments to patients
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)[![Nadav
+    Har-Tuv](../Images/981fadd23cdfb60cfe0fa02dbb8edca6.png)](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)
+    [Nadav Har-Tuv](https://medium.com/@nadavgoo?source=post_page---byline--1095b3c2d6e9--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1095b3c2d6e9--------------------------------)
+    ·6 min read·Mar 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many diseases, different patients will react differently to different treatments.
+    A drug that is beneficial for some patients may not work for other patients with
+    different characteristics. Therefore, healthcare can significantly improve by
+    treating patients based on their characteristics, rather than treating all patients
+    with the same treatment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will try to show you how we can train a machine-learning
+    model to learn the optimal personalized treatment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This article is about the field of personalized health care, but the results
+    can be used in any field. For example: Different people will react differently
+    to different ads on social media, so, in cases where there are multiple ads for
+    the same product, how do you choose which ad to show to which viewers?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method is useful in any case where you have to give a treatment but you
+    can only give one treatment to every individual in the sample and therefore you
+    have no way of knowing how that individual would respond to the other treatments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s formalize the problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An experiment was performed to compare two (or more) treatments. We’ll name
+    them T = 1,2… A vector of covariates X represents every patient. Every patient
+    *i* with a covariates vector Xᵢ, that was given a treatment Tᵢ has a recorded
+    response to the treatment, Rᵢ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, let’s assume that you want to test 3 different drugs for diabetes,
+    we’ll name these drugs “1”, “2”, “3”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have a patient named Esther, she is 64 years old, she’s been diagnosed with
+    diabetes 8 years ago, she weighs 65 kilos and her height is 1.54 meters. Esther
+    has received drug “1” and her blood sugar was reduced by 10 points after being
+    given the new drug.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our example, the data point we have on Esther is X = {Female, 64 years old,
+    8 years since diagnosis, 65 kg, 1.54 meters}, T = “1”, R = 10.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this setting, we would like to learn an optimal decision rule D(x), that
+    assigns a treatment “1”, “2”, or “3” to every patient to optimize the outcome
+    for that patient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The old way of solving this problem was to model the outcome as a function
+    of the data and the treatment and denote the predicted outcome as *f*(X,T). Once
+    we have a model we can create a decision rule D(x): we compute *f*(X,1), *f*(X,2),
+    and *f*(X,3) and give the patient the drug that maximizes their expected outcome.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This solution can work when we have a fairly good understanding of the underlying
+    model that created the data. In this case, all we need is some finetuning to find
+    the best parameters for our case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if the model is bad then our results will be bad, regardless of the
+    amount of data at hand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we come up with a decision rule that is not parametric and does not assume
+    any prior knowledge of the relationship between the data and the treatment result?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The answer is yes, we can use machine learning to find a decision rule that
+    does not make any assumptions about the relationship between the response and
+    the treatment!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solving with a non-parametric approach using Outcome Weighted Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The way to solve this problem is to solve a classification problem where the
+    labels are the treatments given in the experiment and every data point *i* is
+    weighted by Rᵢ/π(Tᵢ|Xᵢ), where π(Tᵢ|Xᵢ) is the propensity of getting treatment
+    Tᵢ, given that you have the characteristics Xᵢ, which can be computed from the
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This makes sense because we try to follow the experiment’s results, but only
+    where it worked best. The reason we divide by the propensities is to correct the
+    category size bias. If you’ve learned some reinforced learning then this whole
+    process should look familiar to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is an example of an owl classifier using SVM. You can feel free to use
+    any classifier you like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Simulation to test the OWL method
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Simulating data can test the owl method. We create the reward function so that
+    we know what the optimal treatment is for every patient. We can then train the
+    OWL classifier on the data and check how well it fits the optimal classifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I created 50 features that are all sampled from a U([-1,1]) distribution. I
+    gave the patients one of three treatments {1,2,3} at random, uniformly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The response function is sampled from a N(μ, 1) distribution, where μ = (X₁
+    + X₂)*I(T=1) + (X₁ — X₂)*I(T=2) + (X₂-X₁)*I(T=3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is not hard to see that the optimal treatment regime is to give treatment
+    1 if both X₁ and X₂ are positive. If they are both negative, give treatment 2
+    if X₂<X₁ and give treatment 3 if X₁<X₂. If X₁ is positive and X₂ is negative,
+    give treatment 2\. If X₂ is positive and X₁ is negative, give treatment 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or we can show this with an image. These are the different ranges of the optimal
+    treatment, shown for ranges of X₁, X₂:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae2b6be38b81bf4c36916484382a510e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimal treatment ranges for combinations of X₁, X₂
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I sampled 500 data points with 50 features and the reward function that I described
+    above. I fit an OWL classifier with a Gaussian (‘rbf’) kernel and got the following
+    classifications, which I visualized for values of X₁, X₂:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77bcf965453c276e5caa43f081138e22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classification of treatment groups visualized for values of X₁, X₂
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In case you missed what happened here: The data was composed of 2 features
+    that affected the response and 48 features of noise. The model managed to learn
+    the effect of the two important features without us modeling this relationship
+    in any way!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is just one simple example, I made the reward function depend on X₁ and
+    X₂ so that it’s easy to understand and visualize but you can feel free to use
+    other examples and try out different classifiers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Outcome-weighted learning can be used to learn an optimal treatment in cases
+    where we only see one treatment per patient in the training data, without having
+    to model the response as a function of the features and the treatment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is some math that I dropped out from this article that justifies this
+    whole process, I did not just make this up from the top of my head.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Future research on this topic should include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exploitation vs. exploration: Even after we learned a treatment rule, it’s
+    still beneficial to sometimes explore options that are considered not optimal
+    according to our model. The model can be wrong.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Sequential treatment: when there is a sequence of treatments, each one of them
+    changes the state of the patient. The solution for the whole sequence should be
+    found via dynamic programming.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Design: in this article, I just assumed the treatments were given according
+    to a given rule. Perhaps we can find some design that can improve the learning
+    process.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

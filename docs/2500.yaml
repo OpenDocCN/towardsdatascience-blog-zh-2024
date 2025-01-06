@@ -1,0 +1,857 @@
+- en: Nine Rules for Running Rust on Embedded Systems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13](https://towardsdatascience.com/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e?source=collection_archive---------0-----------------------#2024-10-13)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Practical Lessons from Porting `range-set-blaze` to `no_std`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[![Carl
+    M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)
+    [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--b0c247ee877e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b0c247ee877e--------------------------------)
+    ·16 min read·Oct 13, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c3cbaa1585fa74c08e577624b2a2e707.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Rust Running on Embedded — Source: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/).
+    All other figures from the author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you want your Rust code to run everywhere — from large servers to web pages,
+    robots, and even watches? In this final article of a three-part series [[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
+    [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1),
+    [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)],
+    we’ll see how to use Rust to run on embedded devices using `no_std`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Porting your Rust project to a `no_std` environment allows you to target microcontrollers
+    and deeply embedded systems, creating highly efficient software for constrained
+    environments. For example, I used the upcoming version of `range-set-blaze` to
+    create an LED animation sequencer and compositor that runs on a Raspberry Pi Pico:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 minute video showing LED animation on the Pico
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running Rust without the standard library presents unique challenges. Without
+    operating system support, features like file I/O, networking, and sometimes even
+    dynamic memory allocation are unavailable. In this article, we’ll look at practical
+    strategies to overcome these limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Porting Rust to `no_std` requires careful steps and choices, and missing any
+    step can lead to failure. We’ll simplify the process by following these nine rules,
+    which we will examine in detail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Confirm that your project works with WASM WASI and WASM in the Browser.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use target `thumbv7m-none-eabi` and `cargo tree` to identify and fix dependencies
+    incompatible with `no_std`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Mark main (non-test) code `no_std` and `alloc`. Replace `std::` with `core::`
+    and `alloc::`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use Cargo features to let your main code use `std` optionally for file-related
+    (etc.) functions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Understand why test code always uses the standard library.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a simple embedded test project. Run it with QEMU.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In `Cargo.toml`, add keywords and categories for WASM and `no_std`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Optional] Use preallocated data types to avoid `alloc`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add `thumbv7m-none-eabi` and QEMU to your CI (continuous integration) tests.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Aside: These articles are based on a three-hour workshop that I presented at
+    [RustConf24](https://rustconf.com/programs/#755) in Montreal. Thanks to the participants
+    of that workshop. A special thanks, also, to the volunteers from the Seattle Rust
+    Meetup who helped test this material. These articles replace [an article I wrote
+    last year](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)
+    with updated information.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As with the [first](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
+    and [second](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)
+    articles in this series, before we look at the rules one by one, let’s define
+    our terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Native:** Your home OS (Linux, Windows, macOS)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Standard library (std)**: Provides Rust’s core functionality — `Vec`, `String`,
+    file input/output, networking, time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**WASM**: WebAssembly (WASM) is a binary instruction format that runs in most
+    browsers (and beyond).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**WASI**: WebAssembly System Interface (WASI) allows outside-the-browser WASM
+    to access file I/O, networking (not yet), and time handling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**no_std**: Instructs a Rust program not to use the full standard library,
+    making it suitable for small, embedded devices or highly resource-constrained
+    environments.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**alloc**: Provides heap memory allocation capabilities (`Vec`, `String`, etc.)
+    in `no_std` environments, essential for dynamically managing memory.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Based on my experience with `[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`,
+    a data structure project, here are the decisions I recommend, described one at
+    a time. To avoid wishy-washiness, I’ll express them as rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 1: Confirm that your project works with WASM WASI and WASM in the Browser.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before porting your Rust code to an embedded environment, ensure it runs successfully
+    in [WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
+    and [WASM in the Browser](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1).
+    These environments expose issues related to moving away from the standard library
+    and impose constraints like those of embedded systems. By addressing these challenges
+    early, you’ll be closer to running your project on embedded devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: If you don’t need your project to also run on native and/or WASM, you
+    can skip this step. You may, however, find some steps from the previous articles
+    useful — for example, running in a 32-bit environment and understanding conditional
+    compilation.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/c13b6ccb5fcff21890cb7aa324a1c097.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Environments in which we wish to run our code as a Venn diagram of progressively
+    tighter constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run the following commands to confirm that your code works in both WASM WASI
+    and WASM in the Browser:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If the tests fail or don’t run, revisit the steps from the earlier articles
+    in this series: [WASM WASI](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)
+    and [WASM in the Browser](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The WASM WASI article also provides crucial background on understanding Rust
+    targets (Rule 2), conditional compilation (Rule 4), and Cargo features (Rule 6).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’ve fulfilled these prerequisites, the next step is to see how (and
+    if) we can get our dependencies working on embedded systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 2: Use target `thumbv7m-none-eabi` and `cargo tree` to identify and fix
+    dependencies incompatible with `no_std`.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To check if your dependencies are compatible with an embedded environment,
+    compile your project for an embedded target. I recommend using the `thumbv7m-none-eabi`
+    target:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`thumbv7m` — Represents the ARM Cortex-M3 microcontroller, a popular family
+    of embedded processors.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`none` — Indicates that there is no operating system (OS) available. In Rust,
+    this typically means we can’t rely on the standard library (`std`), so we use
+    `no_std`. Recall that the standard library provides core functionality like `Vec`,
+    `String`, file input/output, networking, and time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`eabi` — Embedded Application Binary Interface, a standard defining calling
+    conventions, data types, and binary layout for embedded executables.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since most embedded processors share the `no_std` constraint, ensuring compatibility
+    with this target helps ensure compatibility with other embedded targets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Install the target and check your project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When I did this on `range-set-blaze`, I encountered errors complaining about
+    dependencies, such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/78e11b0199b7ae21db407aaaf719595f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This shows that my project depends on `num-traits`, which depends on `either`,
+    ultimately depending on `std`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The error messages can be confusing. To better understand the situation, run
+    this `cargo tree` command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It displays a recursive list of your project’s dependencies and their active
+    Cargo features. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We see multiple occurrences of Cargo features named `use_std` and `std`, strongly
+    suggesting that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These Cargo features require the standard library.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can turn these Cargo features off.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Using the techniques explained in the [first article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
+    Rule 6, we disable the `use_std` and `std` Cargo features. Recall that Cargo features
+    are additive and have defaults. To turn off the default features, we use `default-features
+    = false`. We then enable the Cargo features we want to keep by specifying, for
+    example, `features = ["use_alloc"]`. The `Cargo.toml` now reads:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Turning off Cargo features will not always be enough to make your dependencies
+    `no_std`-compatible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the popular `thiserror` crate introduces `std` into your code and
+    offers no Cargo feature to disable it. However, the community has created `no_std`
+    alternatives. You can find these alternatives by searching, for example, [https://crates.io/search?q=thiserror+no_std](https://crates.io/search?q=thiserror+no_std).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of `range-set-blaze`, a problem remained related to crate `[gen_ops](https://crates.io/crates/gen_ops)`
+    — a wonderful crate for conveniently defining operators such as `+` and `&`. The
+    crate used `std` but didn’t need to. I identified the required one-line change
+    (using the methods we''ll cover in Rule 3) and submitted a pull request. The maintainer
+    accepted it, and they released an updated version: `0.4.0`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, our project can’t disable `std` because we need capabilities like
+    file access when running on a full operating system. On embedded systems, however,
+    we're willing—and indeed must—give up such capabilities. In Rule 4, we'll see
+    how to make `std` usage optional by introducing our own Cargo features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using these methods fixed all the dependency errors in `range-set-blaze`. However,
+    resolving **those** errors revealed 281 errors in the main code. Progress!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 3: Mark main (non-test) code `no_std` and `alloc`. Replace `std::` with
+    `core::` and `alloc::`.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'At the top of your project’s `lib.rs` (or `main.rs`) add:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This means we won’t use the standard library, but we will still allocate memory.
+    For `range-set-blaze`, this change reduced the error count from 281 to 52.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many of the remaining errors are due to using items in `std` that are available
+    in `core` or `alloc`. Since much of `std` is just a re-export of `core` and `alloc`,
+    we can resolve many errors by switching `std` references to `core` or `alloc`.
+    This allows us to keep the essential functionality without relying on the standard
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, we get an error for each of these lines:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Changing `std::` to either `core::` or (if memory related) `alloc::` fixes
+    the errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Some capabilities, such as file access, are `std`-only—that is, they are defined
+    outside of `core` and `alloc`. Fortunately, for `range-set-blaze`, switching to
+    `core` and `alloc` resolved all 52 errors in the main code. However, this fix
+    revealed 89 errors in its test code. Again, progress!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: You can also find places where `std` could be `alloc` or `core` [via
+    Clippy rules](https://users.rust-lang.org/t/how-to-libraries-and-no-std/119455/3).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We’ll address errors in the test code in Rule 5, but first, let’s figure out
+    what to do if we need capabilities like file access when running on a full operating
+    system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 4: Use Cargo features to let your main code use `std` optionally for file-related
+    (etc.) functions.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If we need two versions of our code — one for running on a full operating system
+    and one for embedded systems — we can use Cargo features (see Rule 6 in the [first
+    article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a)).
+    For example, let’s define a feature called `foo`, which will be the default. We'll
+    include the function `demo_read_ranges_from_file` only when `foo` is enabled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In `Cargo.toml` (preliminary):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In `lib.rs` (preliminary):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This says to define function `demo_read_ranges_from_file` only when Cargo feature
+    `foo` is enabled. We can now check various versions of our code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s give our Cargo feature a more meaningful name by renaming `foo` to
+    `std`. Our `Cargo.toml` (intermediate) now looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In our `lib.rs`, we add these lines near the top to bring in the `std` library
+    when the `std` Cargo feature is enabled:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'So, `lib.rs` (final) looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’d like to make one more change to our `Cargo.toml`. We want our new Cargo
+    feature to control dependencies and their features. Here is the resulting `Cargo.toml`
+    (final):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: If you’re confused by the `Cargo.toml` format for specifying dependencies
+    and features, see my recent article: [*Nine Rust Cargo.toml Wats and Wat Nots:
+    Master Cargo.toml formatting rules and avoid frustration*](https://medium.com/towards-data-science/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648)
+    *in* Towards Data Science.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To check that your project compiles both with the standard library (`std`)
+    and without, use the following commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: With `cargo check` working, you’d think that `cargo test` would be straight
+    forward. Unfortunately, it’s not. We’ll look at that next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 5: Understand why test code always uses the standard library.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When we compile our project with `--no-default-features`, it operates in a `no_std`
+    environment. However, Rust's testing framework always includes the standard library,
+    even in a `no_std` project. This is because `cargo test` requires `std`; for example,
+    the `#[test]` attribute and the test harness itself are defined in the standard
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a result, running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'does not actually test the `no_std` version of your code. Functions from `std`
+    that are unavailable in a true `no_std` environment will still be accessible during
+    testing. For instance, the following test will compile and run successfully with
+    `--no-default-features`, even though it uses `std::fs`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Additionally, when testing in `std` mode, you may need to add explicit imports
+    for features from the standard library. This is because, even though `std` is
+    available during testing, your project is still compiled as `#![no_std]`, meaning
+    the standard prelude is not automatically in scope. For example, you’ll often
+    need the following imports in your test code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: These imports bring in the necessary utilities from the standard library so
+    that they are available during testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To genuinely test your code without the standard library, you’ll need to use
+    alternative methods that do not rely on `cargo test`. We'll explore how to run
+    `no_std` tests in the next rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 6: Create a simple embedded test project. Run it with QEMU.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can’t run your regular tests in an embedded environment. However, you **can**
+    — and should — run at least one embedded test. My philosophy is that even a single
+    test is infinitely better than none. Since “if it compiles, it works” is generally
+    true for `no_std` projects, one (or a few) well-chosen test can be quite effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: There is hope for embedded running tests in a more normal fashion [[1](https://users.rust-lang.org/t/how-to-implement-unit-tests-for-a-project-with-embedded-rust/99768)][[2](https://www.reddit.com/r/rust/comments/1g3i5uh/comment/lrxith4/)].
+    As far as I know, nothing works easily with normal, native tests. If this changes,
+    please let me know and I’ll update this section.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To run this test, we use QEMU (Quick Emulator, pronounced “cue-em-you”), which
+    allows us to emulate `thumbv7m-none-eabi` code on our main operating system (Linux,
+    Windows, or macOS).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Install QEMU.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'See the QEMU [download page](https://www.qemu.org/download/) for full information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Linux/WSL**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ubuntu: `sudo apt-get install qemu-system`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Arch: `sudo pacman -S qemu-system-arm`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Fedora: `sudo dnf install qemu-system-arm`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Windows**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Method 1: [https://qemu.weilnetz.de/w64](https://qemu.weilnetz.de/w64). Run
+    the installer (tell Windows that it is OK). Add `"C:\Program Files\qemu\"` to
+    your path.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Method 2: Install MSYS2 from [https://www.msys2.org/](https://www.msys2.org/).
+    Open MSYS2 UCRT64 terminal. `pacman -S mingw-w64-x86_64-qemu`. Add `C:\msys64\mingw64\bin\`
+    to your path.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Mac**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`brew install qemu` or `sudo port install qemu`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Test installation with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create an embedded subproject.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Create a subproject for the embedded tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: This command generates a new subproject, including the configuration file at
+    `tests/embedded/Cargo.toml`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aside**:** This command also modifies your top-level `Cargo.toml` to add the
+    subproject to your workspace. In Rust, a workspace is a collection of related
+    packages defined in the `[workspace]` section of the top-level `Cargo.toml`. All
+    packages in the workspace share a single `Cargo.lock` file, ensuring consistent
+    dependency versions across the entire workspace.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Edit `tests/embedded/Cargo.toml` to look like this, but replace `"range-set-blaze"`
+    with the name of your top-level project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Update the test code.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Replace the contents of `tests/embedded/src/main.rs` with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Most of this `main.rs` code is embedded system boilerplate. The actual test
+    code is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the test fails, it returns `EXIT_FAILURE`; otherwise, it returns `EXIT_SUCCESS`.
+    We use the `hprintln!` macro to print messages to the console during emulation.
+    Since this is an embedded system, the code ends in an infinite loop to run continuously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add supporting files.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before you can run the test, you must add two files to the subproject: `build.rs`
+    and `memory.x` from the Cortex-M [quickstart repository](https://github.com/rust-embedded/cortex-m-quickstart/tree/master):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Linux/WSL/macOS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Windows (Powershell)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Also, create a `tests/embedded/.cargo/config.toml` with the following content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: This configuration instructs Cargo to use QEMU to run the embedded code and
+    sets `thumbv7m-none-eabi` as the default target for the subproject.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the test.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Run the test with `cargo run` (not `cargo test`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see log messages, and the process should exit without error. In
+    my case, I see: `"-4..=-3, 100..=103"`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These steps may seem like a significant amount of work just to run one (or a
+    few) tests. However, it’s primarily a one-time effort involving mostly copy and
+    paste. Additionally, it enables running tests in a CI environment (see Rule 9).
+    The alternative — claiming that the code works in a `no_std` environment without
+    ever actually running it in `no_std`—risks overlooking critical issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next rule is much simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 7: In `Cargo.toml`, add keywords and categories for WASM and `no_std`.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Once your package compiles and passes the additional embedded test, you may
+    want to publish it to [crates.io](https://crates.io/), Rust’s package registry.
+    To let others know that it is compatible with WASM and `no_std`, add the following
+    keywords and categories to your `Cargo.toml` file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that for categories, we use a hyphen in `no-std`. For keywords, `no_std`
+    (with an underscore) is more popular than `no-std`. Your package can have a maximum
+    of five keywords and five categories.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a list of [categories](https://crates.io/categories/) and [keywords](https://crates.io/keywords)
+    of possible interest, along with the number of crates using each term:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Category no-std](https://crates.io/categories/no-std?sort=downloads) (6884)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Category embedded](https://crates.io/categories/embedded?sort=downloads) (3455)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Category wasm](https://crates.io/categories/wasm?sort=downloads) (2026)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Category no-std::no-alloc](https://crates.io/categories/no-std::no-alloc?sort=downloads)
+    (581)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Keyword wasm](https://crates.io/keywords/wasm?sort=downloads) (1686)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Keyword no_std](https://crates.io/keywords/no_std?sort=downloads) (1351)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Keyword no-std](https://crates.io/keywords/no-std?sort=downloads) (1157)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Keyword embedded](https://crates.io/keywords/embedded?sort=downloads) (925)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Keyword webassembly](https://crates.io/keywords/webassembly?sort=downloads)
+    (804)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Good categories and keywords will help people find your package, but the system
+    is informal. There’s no mechanism to check whether your categories and keywords
+    are accurate, nor are you required to provide them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we’ll explore one of the most restricted environments you’re likely to
+    encounter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 8: [Optional] Use preallocated data types to avoid `alloc`.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: My project, `range-set-blaze`, implements a dynamic data structure that requires
+    memory allocation from the heap (via `alloc`). But what if your project doesn't
+    need dynamic memory allocation? In that case, it can run in even more restricted
+    embedded environments—specifically those where all memory is preallocated when
+    the program is loaded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reasons to avoid `alloc` if you can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Completely deterministic memory usage
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reduced risk of runtime failures (often caused by memory fragmentation)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lower power consumption
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There are crates available that can sometimes help you replace dynamic data
+    structures like `Vec`, `String`, and `HashMap`. These alternatives generally require
+    you to specify a maximum size. The table below shows some popular crates for this
+    purpose:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f7714b6900349e2d92b8951535736c8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I recommend the `heapless` crate because it provides a collection of data structures
+    that work well together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is an example of code — using `heapless` — related to an LED display. This
+    code creates a mapping from a byte to a list of integers. We limit the number
+    of items in the map and the length of the integer list to `DIGIT_COUNT` (in this
+    case, 4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Full details about creating a `no_alloc` project are beyond my experience.
+    However, the first step is to remove this line (added in Rule 3) from your `lib.rs`
+    or `main.rs`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Rule 9: Add `thumbv7m-none-eabi` and QEMU to your CI (continuous integration)
+    tests.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Your project is now compiling to `no_std` and passing at least one embedded-specific
+    test. Are you done? Not quite. As I said in the previous two articles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If it’s not in CI, it doesn’t exist.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Recall that continuous integration (CI) is a system that can automatically
+    run tests every time you update your code. I use GitHub Actions as my CI platform.
+    Here’s the configuration I added to `.github/workflows/ci.yml` to test my project
+    on embedded platforms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: By testing embedded and `no_std` with CI, I can be sure that my code will continue
+    to support embedded platforms in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, there you have it — nine rules for porting your Rust code to embedded. To
+    see a snapshot of the whole `range-set-blaze` project after applying all nine
+    rules, see [this branch on Github](https://github.com/CarlKCarlK/range-set-blaze/tree/rustconf24.nostd).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what surprised me about porting to embedded:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Bad:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We cannot run our existing tests on embedded systems. Instead, we must create
+    a new subproject and write (a few) new tests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Many popular libraries rely on `std`, so finding or adapting dependencies that
+    work with `no_std` can be challenging.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The Good:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Rust saying that “if it compiles, it works” holds true for embedded development.
+    This gives us confidence in our code’s correctness without requiring extensive
+    new tests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although `no_std` removes our immediate access to the standard library, many
+    items continue to be available via `core` and `alloc`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thanks to emulation, you can develop for embedded systems without hardware.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thank you for joining me on this journey from WASI to WebAssembly in the browser
+    and, finally, to embedded development. Rust has continued to impress me with its
+    ability to run efficiently and safely across environments. As you explore these
+    different domains, I hope you find Rust’s flexibility and power as compelling
+    as I do. Whether you’re working on cloud servers, browsers, or microcontrollers,
+    the tools we’ve discussed will help you tackle the challenges ahead with confidence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interested in future articles? Please [follow me on Medium](https://medium.com/@carlmkadie).
+    I write about Rust and Python, scientific programming, machine learning, and statistics.
+    I tend to write about one article per month.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL

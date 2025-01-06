@@ -1,0 +1,807 @@
+- en: Building a Biomedical Entity Linker with LLMs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19](https://towardsdatascience.com/building-a-biomedical-entity-linker-with-llms-d385cb85c15a?source=collection_archive---------1-----------------------#2024-03-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How can an LLM be applied effectively for biomedical entity linking?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[![Anand
+    Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)
+    [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--d385cb85c15a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d385cb85c15a--------------------------------)
+    ·26 min read·Mar 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d4e8f951e2ffc6a22bf4f64e0b63818.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Alina Grubnyak](https://unsplash.com/@alinnnaaaa) on [Unsplash](https://unsplash.com/photos/low-angle-photography-of-metal-structure-ZiQkhI7417A)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Biomedical text is a catch-all term that broadly encompasses documents such
+    as research articles, clinical trial reports, and patient records, serving as
+    rich repositories of information about various biological, medical, and scientific
+    concepts. Research papers in the biomedical field present novel breakthroughs
+    in areas like drug discovery, drug side effects, and new disease treatments. Clinical
+    trial reports offer in-depth details on the safety, efficacy, and side effects
+    of new medications or treatments. Meanwhile, patient records contain comprehensive
+    medical histories, diagnoses, treatment plans, and outcomes recorded by physicians
+    and healthcare professionals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mining these texts allows practitioners to extract valuable insights, which
+    can be beneficial for various downstream tasks. You could mine text to identify
+    adverse drug reactions, build automated medical coding algorithms or implement
+    information retrieval or question-answering systems for extracting information
+    from vast research corpora. However, one issue affecting biomedical document processing
+    is the often unstructured nature of the text. For example, researchers might use
+    different terms to refer to the same concept. What one researcher calls a **“heart
+    attack**” might be referred to as a **“myocardial infarction”** by another. Similarly,
+    in drug-related documentation, technical and common names may be used interchangeably.
+    For instance, **“Acetaminophen”** is the technical name of a drug, while **“Paracetamol”**
+    is its more common counterpart. The prevalence of abbreviations also adds another
+    layer of complexity; for instance, **“Nitric Oxide”** might be referred to as
+    **“NO”** in another context. Despite these varying terms referring to the same
+    concept, these variations make it difficult for a layman or a text-processing
+    algorithm to determine whether they refer to the same concept. Thus, **Entity
+    Linking** becomes crucial in this situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table of Contents:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[What is Entity Linking?](#558f)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Where do LLMs come in here?](#9285)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Experimental Setup](#5023)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Processing the Dataset](#29ad)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Zero-Shot Entity Linking using the LLM](#5925)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[LLM with Retrieval Augmented Generation for Entity Linking](#1299)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Zero-Shot Entity Extraction with the LLM and an External KB Linker](#8d3c)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Fine-tuned Entity Extraction with the LLM and an External KB Linker](#274a)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Benchmarking Scispacy](#63d3)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Takeaways](#7e94)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Limitations](#8e52)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[References](#fb75)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What is Entity Linking?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When text is unstructured, accurately identifying and standardizing medical
+    concepts becomes crucial. To achieve this, medical terminology systems such as
+    **Unified Medical Language System (UMLS)** [1], **Systematized Medical Nomenclature
+    for Medicine–Clinical Terminology (SNOMED-CT)** [2], and **Medical Subject Headings
+    (MeSH)** [3] play an essential role. These systems provide a comprehensive and
+    standardized set of medical concepts, each uniquely identified by an alphanumeric
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Entity linking involves recognizing and extracting entities within the text
+    and mapping them to standardized concepts in a large terminology. In this context,
+    a **Knowledge Base (KB)** refers to a detailed database containing standardized
+    information and concepts related to the terminology, such as medical terms, diseases,
+    and drugs. Typically, a KB is expert-curated and designed, containing detailed
+    information about the concepts, including variations of the terms that could be
+    used to refer to the concept, or how it is related to other concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2d49dc0785ee698265fce0c8c4a29456.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An overview of the Entity Recognition and Linking Pipeline. The entities are
+    first parsed from the text, and then each entity is linked to a Knowledge Base
+    to obtain their corresponding identifiers. The knowledge base considered in this
+    example is MeSH Terminology. The example text is taken from the BioCreative V
+    CDR Corpus [4,5,6,7,8] (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Entity recognition entails extracting words or phrases that are significant
+    in the context of our task. In this context, it usually refers to extraction of
+    biomedical terms such as drugs, diseases etc. Typically, lookup-based methods
+    or machine learning/deep learning-based systems are often used for entity recognition.
+    Linking the entities to a KB usually involves a retriever system that indexes
+    the KB. This system takes each extracted entity from the previous step and retrieves
+    likely identifiers from the KB. The retriever here is also an abstraction, which
+    may be sparse (BM-25), dense (embedding-based), or even a generative system (like
+    a Large Language Model, (LLM)) that has encoded the KB in its parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where do LLMs come in here?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I’ve been curious for a while about the best ways to integrate LLMs into biomedical
+    and clinical text-processing pipelines. Given that Entity Linking is an important
+    part of such pipelines, I decided to explore how best LLMs can be utilized for
+    this task. Specifically I investigated the following setups:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Zero-Shot Entity Linking with an LLM:** Leveraging an LLM to directly identify
+    all entities and concept IDs from input biomedical texts without any fine-tuning.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**LLM with Retrieval Augmented Generation (RAG)**: Utilizing the LLM within
+    a RAG framework by injecting information about relevant concept IDs in the prompt
+    for entity linking.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Zero-Shot Entity Extraction with LLM with an External KB Linker**: Employing
+    the LLM for zero-shot entity extraction from biomedical texts, with an external
+    linker/retriever for mapping the entities to concept IDs.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Fine-tuned Entity Extraction with an External KB Linker:** Finetuning the
+    LLM first on the entity extraction task, and using it as an entity extractor with
+    an external linker/retriever for mapping the entities to concept IDs.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Comparison with an existing pipeline:** How do these methods fare comparted
+    to Scispacy, a commonly used library for biomedical text processing?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Experimental Setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All code and resources related to this article are made available at [this Github
+    repository](https://github.com/anand-subu/blog_resources), under the entity_linking
+    folder. Feel free to pull the repository and run the notebooks directly to run
+    these experiments. Please let me know if you have any feedback or observations
+    or if you notice any mistakes!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To conduct these experiments, we utilize the [Mistral-7B Instruct](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2)
+    [9] as our LLM. For the medical terminology to link entities against, we utilize
+    the MeSH terminology. To quote the [National Library of Medicine website](https://www.nlm.nih.gov/mesh/meshhome.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “The Medical Subject Headings (MeSH) thesaurus is a controlled and hierarchically-organized
+    vocabulary produced by the National Library of Medicine. It is used for indexing,
+    cataloging, and searching of biomedical and health-related information.”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We utilize the BioCreative-V-CDR-Corpus [4,5,6,7,8] for evaluation. This dataset
+    contains annotations of disease and chemical entities, along with their corresponding
+    MeSH IDs. For evaluation purposes, we randomly sample 100 data points from the
+    test set. We used a version of the MeSH KB provided by Scispacy [10,11], which
+    contains information about the MeSH identifiers, such as definitions and entities
+    corresponding to each ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For performance evaluation, we calculate two metrics. The first metric relates
+    to the entity extraction performance. The original dataset contains all mentions
+    of entities in the text, annotated at the substring level. A strict evaluation
+    would check if the algorithm has outputted all occurrences of all entities. However,
+    we simplify this process for easier evaluation; we lower-case and de-duplicate
+    the entities in the ground truth. We then calculated the Precision, Recall and
+    F1 score for each instance and calculate the macro-average for each metric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose you have a set of actual entities, `ground_truth`, and a set of entities
+    predicted by a model, `pred` for each input text. The **true positives** `TP`
+    can be determined by identifying the common elements between `pred` and `ground_truth`,
+    essentially by calculating the intersection of these two sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For each input, we can then calculate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`precision = len(TP)/ len(pred)` ,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`recall = len(TP) / len(ground_truth)` and'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`f1 = 2 * precision * recall / (precision + recall)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: and finally calculate the macro-average for each metric by summing them all
+    up and dividing by the number of datapoints in our test set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For evaluating the overall entity linking performance, we again calculate the
+    same metrics. In this case, for each input datapoint, we have a set of tuples,
+    where each tuple is a `(entity, mesh_id)` pair. The metrics are otherwise calculated
+    the same way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processing the Dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Right, let’s kick off things by first defining some helper functions for processing
+    our dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We first parse the dataset from the text files provided in the original dataset.
+    The original dataset includes the title, abstract, and all entities annotated
+    with their entity type (Disease or Chemical), their substring indices indicating
+    their exact location in the text, along with their MeSH IDs. While processing
+    our dataset, we make a few simplifications. We disregard the substring indices
+    and the entity type. Moreover, we de-duplicate annotations that share the same
+    entity name and MeSH ID. At this stage, we only de-duplicate in a case-sensitive
+    manner, meaning if the same entity appears in both lower and upper case across
+    the document, we retain both instances in our processing so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Zero-Shot Entity Linking using the LLM**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, we aim to determine whether the LLM already possesses an understanding
+    of MeSH terminology due to its pre-training, and if it can function as a zero-shot
+    entity linker. By zero-shot, we mean the LLM’s capability to directly link entities
+    to their MeSH IDs from biomedical text based on its intrinsic knowledge, without
+    depending on an external KB linker. This hypothesis is not entirely unrealistic,
+    considering the availability of information about MeSH online, which makes it
+    possible that the model might have encountered MeSH-related information during
+    its pre-training phase. However, even if the LLM was trained with such information,
+    it is unlikely that this alone would enable the model to perform zero-shot entity
+    linking effectively, due to the complexity of biomedical terminology and the precision
+    required for accurate entity linking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To evaluate this, we provide the input text to the LLM and directly prompt
+    it to predict the entities and corresponding MeSH IDs. Additionally, we create
+    a few-shot prompt by sampling three data points from the training dataset. It
+    is important to clarify the distinction in the use of “zero-shot” and “few-shot”
+    here: “zero-shot” refers to the LLM as a whole performing entity linking without
+    prior specific training on this task, while “few-shot” refers to the prompting
+    strategy employed in this context.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd42fe12a7a1f7a02ab36a6869cb6304.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLM as a Zero-Shot Entity Linker (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To calculate our metrics, we define functions for evaluating the performance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now run the model and get our predictions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: At the entity extraction level, the LLM performs quite well, considering it
+    has not been explicitly fine-tuned for this task. However, its performance as
+    a zero-shot linker is quite poor, with an overall performance of less than 1%.
+    This outcome is intuitive, though, because the output space for MeSH labels is
+    vast, and it is a hard task to exactly map entities to a specific MeSH ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Zero-Shot Entity Extraction and Entity Linking Scores
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LLM with Retrieval Augmented Generation for Entity Linking**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Retrieval Augmented Generation (RAG) [12] refers to a framework that combines
+    LLMs with an external KB equipped with a querying function, such as a retriever/linker.
+    For each incoming query, the system first retrieves knowledge relevant to the
+    query from the KB using the querying function. It then combines the retrieved
+    knowledge and the query, providing this combined prompt to the LLM to perform
+    the task. This approach is based on the understanding that LLMs may not have all
+    the necessary knowledge or information to answer an incoming query effectively.
+    Thus, knowledge is injected into the model by querying an external knowledge source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using a RAG framework can offer several advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An existing LLM can be utilized for a new domain or task **without the need
+    for domain-specific fine-tuning**, as the relevant information can be queried
+    and provided to the model through a prompt.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: LLMs can sometimes provide **incorrect answers (hallucinate)** when responding
+    to queries. Employing RAG with LLMs can significantly reduce such hallucinations,
+    as the answers provided by the LLM **are more likely to be grounded in facts**
+    due to the knowledge supplied to it.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Considering that the LLM lacks specific knowledge of MeSH terminologies, we
+    investigate whether a RAG setup could enhance performance. In this approach, for
+    each input paragraph, we utilize a BM-25 retriever to query the KB. For each MeSH
+    ID, we have access to a general description of the ID and the entity names associated
+    with it. After retrieval, we inject this information to the model through the
+    prompt for entity linking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To investigate the effect of the number of retrieved IDs provided as context
+    to the model on the entity linking process, we run this setup by providing top
+    10, 30 and 50 documents to the model and quantify its performance on entity extraction
+    and MeSH concept identification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d148dffe6caaa1a993320d088efbe29e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLM with RAG as an Entity Linker (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s first define our BM-25 Retriever:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now process our KB file and create a BM-25 retriever instance that indexes
+    it. While indexing the KB, we index each ID using a concatenation of their description,
+    aliases and canonical name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: In general, the RAG setup improves the overall MeSH Identification process,
+    compared to the original zero-shot setup. But what is the impact of the number
+    of documents provided as information to the model? We plot the scores as a function
+    of the number of retrieved IDs provided to the model as context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6ae236d2474983aadfbb5d1e563cb577.png)![](../Images/b3d3431fb1870acf1eb3e99153a7c978.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plots of Entity Extraction and Entity Linking performance metrics as a function
+    of the number of retrieved documents in the RAG setting (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We observe interesting trends while investigating the plots. For entity extraction,
+    an increase in the number of retrieved documents correlates with a sharp increase
+    in macro-precision, reaching a score of slightly higher than 50%. This is nearly
+    10% higher than the zero-shot entity extraction performance of the model. However,
+    the impact on macro-recall is task-dependent; it remains unchanged for entity
+    extraction but improves for entity linking. Overall, increasing the number of
+    documents provided to the model as context improves all metrics significantly
+    in the MeSH Identification setting, but has mixed gains in the entity extraction
+    setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important limitation to consider in this experiment is the performance of
+    the upstream retriever. If the retriever fails to retrieve relevant documents,
+    the performance of the LLM will suffer as a consequence because the actual answer
+    is not present in the knowledge provided to the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7295ffa080576fa90975f690981e945d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '% of ground truth MeSH IDs present in the MeSH IDs fetched by the retriever
+    per input text as a function of total retrieved IDs (Image by Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To investigate this, we calculated the average % of ground truth MeSH IDs present
+    in the MeSH IDs fetched by the retriever per input text. Our findings show that
+    the BM-25 retriever manages to retrieve only about 12.6% to 17.7% of the relevant
+    MeSH IDs for each input data point on average. The choice of retriever and the
+    way we retrieve is therefore a significant performance bottleneck for the RAG
+    setup and can potentially be optimized for better performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Zero-Shot Entity Extraction with the LLM and an External KB Linker**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So far, we’ve examined how the LLM performs as a zero-shot entity linker and
+    to what extent RAG can enhance its performance. Though RAG improves performance
+    compared to the zero-shot setup, there are limitations to this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When using LLMs in a RAG setup, we have kept the knowledge component (KB +
+    retriever) **upstream** of the model until now. The retrieval of knowledge in
+    the RAG setup is **coarse**, in that we retrieve possible MeSH IDs by querying
+    the retriever using the entire biomedical text. This ensures **diversity** to
+    a certain extent in the retrieved results, as the fetched results are likely to
+    correspond to different entities in the text, but the results are less likely
+    to be **precise**. This may not seem like a problem at first, because you can
+    mitigate this to a certain degree by providing more relevant results as context
+    to the model in the RAG setting. However, this has two drawbacks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs generally have an upper bound on the context length for processing text.
+    The context length of an LLM roughly refers to the maximum number of tokens the
+    LLM can take into account (the number of tokens in the prompt) before generating
+    new text. This can restrict the amount of knowledge we can provide to the LLM.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Let’s assume we have an LLM capable of processing long context lengths. We can
+    now retrieve and append more context to the model. Great! However, a longer context
+    length may not necessarily correlate with enhanced RAG abilities for the LLM [13].
+    Even if you pass a lot of relevant knowledge to the LLM by retrieving more results,
+    this does not guarantee that the LLM will accurately extract the correct answer.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This brings us back to the **traditional pipeline** of entity linking as described
+    initially. In this setting, the knowledge component is kept **downstream** to
+    the model, where after entity extraction, the entities are provided to an external
+    retriever for obtaining the relevant MeSH ID. Provided you have a good entity
+    extractor, you can retrieve more precise MeSH IDs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Earlier, we observed in the fully zero-shot setting that, while the LLM was
+    poor at predicting the MeSH ID, its entity extraction performance was quite decent.
+    We now extract the entities using the Mistral model and provide them to an external
+    retriever for fetching the MeSH IDs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd74260b6f485d82ec964f16ec94c936.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Entity Linking with LLM as Entity Extractor and External Retriever (Image by
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For retrieval here, we again use a BM-25 retriever as our KB linker. However,
+    a small change we make here is to index our IDs based on concatenating their canonical
+    name and aliases. We re-use the entities extracted from the first zero-shot setup
+    for our experiment here. Let’s now evaluate how well this setup performs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The performance in this setting significantly improves over the RAG setting
+    across all the metrics. We achieve more than 12% improvement in Macro-Precision,
+    20% improvement in Macro-Recall and 16% improvement in Macro-F1 scores compared
+    to the best RAG setting (retrieval at 50 documents). To **stress the point again**,
+    this is more akin to the traditional pipeline of entity extraction where you have
+    entity extraction and linking as separate components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Zero-Shot LLM Entity Extraction and External Retriever Scores
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fine-tuned Entity Extraction with the LLM and an External KB Linker**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Until now, we got the best performance by using the LLM as an entity extractor
+    within a larger pipeline. However, we did the entity extraction in a zero-shot
+    manner. Could we achieve further performance gains by fine-tuning the LLM specifically
+    for entity extraction?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For fine-tuning, we utilize the training set from the BioCreative V dataset,
+    which consists of 500 data points. We employ Q-Lora [14] for fine-tuning our LLM,
+    a process that involves quantizing our LLM to 4-bit and freezing it, while fine-tuning
+    a Low-Rank Adapter. This approach is generally parameter and memory efficient,
+    as the Adapter possesses only a fraction of the weights compared to the original
+    LLM, meaning we are fine-tuning significantly fewer weights than if we were to
+    fine-tune the entire LLM. It also enables us to fine-tune our model on a single
+    GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s implement the fine-tuning component. For this part, I referred to and
+    modified [Niels Rogge’s notebook on fine-tuning a Mistral Model with Q-Lora](https://github.com/NielsRogge/Transformers-Tutorials/blob/master/Mistral/Supervised_fine_tuning_(SFT)_of_an_LLM_using_Hugging_Face_tooling.ipynb),
+    with the modifications mostly around correctly preparing and processing the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now load the tokenizer and set the appropriate parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s now prepare and format our dataset properly. We define the prompts for
+    our model and format our datasets in the expected chat template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now define the appropriate configs for fine-tuning our model. We define
+    the configuration for quantizing the LLM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we are all-set to finetune our model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that we’ve completed the fine-tuning process, let’s now utilize the model
+    for inference and obtain the performance metrics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This setup is exactly similar to the previous setup in that we continue to use
+    the LLM as an entity extractor, and an external retriever for linking each entity
+    to the MeSH ID. Fine-tuning the model leads to significant improvements across
+    entity extraction and linking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compared to zero-shot entity extraction, fine-tuning improves all metrics by
+    a factor of upto or more than 20%. Similarly, entity linking is also improved
+    by a factor of around 12–14% across all metrics compared to the previous setting.
+    These are not surprising takeaways though, as a task-specific model is expected
+    to perform much better than the zero-shot setup. Still it’s nice to quantify these
+    improvements concretely!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fine-tuned LLM as Entity Extractor and External Retriever Scores
+  prefs: []
+  type: TYPE_NORMAL
+- en: Benchmarking Scispacy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: How does this implementation compare with an existing tool that can perform
+    entity linking? Scispacy is a common work-horse for biomedical and clinical text
+    processing, and provides features for entity extraction and entity linking. Specifically,
+    Scispacy also provides a functionality to link entities to the MeSH KB, which
+    is the file we also use as the KB originally for our LLM experiments. Let’s benchmark
+    the performance of Scispacy on our test set for comparison with our LLM experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We use the “**en_ner_bc5cdr_md**” [15] in Scispacy as the entity extraction
+    module, as this model has been specifically trained on the BioCreative V dataset.
+    Let’s evaluate the performance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Scispacy evaluation scores
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scispacy outperforms the fine-tuned LLM on entity extraction by a factor of
+    10% across all metrics, and by a factor of 14–20% on entity linking! For the task
+    of biomedical entity extraction and linking, Scispacy remains a robust tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Takeaways
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/c719dd37db7371d0764e5c9e4843dc01.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Macro-F1 Scores of Entity Extraction and Entity Linking across all setups
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having come to the end of our experiments, what are the concrete takeaways from
+    them?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strengths in Zero-Shot Entity Extraction:** Mistral-Instruct is a decent
+    zero-shot entity extractor for biomedical text. While its parametric knowledge
+    is not sufficient for performing zero-shot MeSH entity linking, we leverage it
+    as an entity extractor in conjunction with an external KB retriever in our experiments
+    to get much better performance.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**RAG’s Improvement over Zero-Shot Prediction:** The LLM in a RAG setup demonstrates
+    an improvement over a purely zero-shot approach for entity linking. However, the
+    retriever component within a RAG setup can be a significant bottleneck, as in
+    our case, the BM-25 retriever only manages to retrieve around 12–17% of relevant
+    IDs per data point. This suggests a need for more effective retrieval methods.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Pipelined extraction provides the best performance:** Given the capabilities
+    of the LLM as an entity extractor, the best performance is achieved when leveraging
+    these capabilities within a larger pipeline that includes an external retriever
+    to link entities to the MeSH knowledge base (KB). This is identical to the traditional
+    setting, where entity extraction and KB-linking are kept as separate modules.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Benefits of Fine-Tuning:** Fine-tuning the LLM using QLora for the entity
+    extraction task leads to significant performance improvements on entity extraction
+    and entity linking when used in tandem with an external retriever.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Scispacy performs the best**: Scispacy outperforms all LLM-based methods
+    for entity linking tasks in our experiments. For biomedical text processing, Scispacy
+    remains a robust tool. It also requires less computational power for running compared
+    to an LLM, which needs a good GPU for fast inference. In contrast, Scispacy only
+    requires a good CPU.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Opportunities for Optimization:** Our current implementations of LLM-based
+    pipelines for entity linking are quite naive with substantial room for improvement.
+    Some areas that could benefit from optimization include the choice of retrieval
+    and the retrieval logic itself. Fine-tuning the LLM with more data could also
+    further boost its entity extraction performance.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are some limitations to our experiments so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multiple MeSH IDs for an entity:** In our dataset, a few entities in each
+    document could be linked to multiple MeSH IDs. Out of a total of 968 entities
+    across 100 documents in our test set, this occurs in 15 cases (1.54%). In the
+    Scispacy evaluation, as well as in all LLM experiments where we used the external
+    KB linker (BM-25 retriever) after entity extraction, we link only one MeSH concept
+    per entity. Although Scispacy offers the possibility of linking more than one
+    MeSH ID per entity, we opt not to use this feature to ensure a fair comparison
+    with our LLM experiments. Extending the functionality to support linking to more
+    than one concept would also be an interesting addition.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**MeSH IDs not in the Knowledge Base:** In the test dataset, there are MeSH
+    IDs for entities that are not included in KB. Specifically, 64 entities (6.6%
+    of cases) possess a MeSH ID that is absent from our KB. This limitation lies on
+    the retriever side and can be addressed by updating the KB.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Entities lacking a MeSH ID:** Similarly, another 1.65% of entities (16 out
+    of 968) cannot be mapped to a MeSH ID. In all LLM experiments where we use the
+    external KB linker after entity extraction, we currently lack the ability to determine
+    whether an entity has no MeSH ID.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I’ve included all papers and resources referred in this article here. Please
+    let me know if I missed out on anything, and I will add them!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[1] Bodenreider O. (2004). The Unified Medical Language System (UMLS): integrating
+    biomedical terminology. *Nucleic acids research*, *32*(Database issue), D267–D270\.
+    [https://doi.org/10.1093/nar/gkh061](https://doi.org/10.1093/nar/gkh061)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [https://www.nlm.nih.gov/healthit/snomedct/index.html](https://www.nlm.nih.gov/healthit/snomedct/index.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [https://www.nlm.nih.gov/mesh/meshhome.html](https://www.nlm.nih.gov/mesh/meshhome.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Wei CH, Peng Y, Leaman R, Davis AP, Mattingly CJ, Li J, Wiegers TC, Lu
+    Z. Overview of the BioCreative V Chemical Disease Relation (CDR) Task, Proceedings
+    of the Fifth BioCreative Challenge Evaluation Workshop, p154–166, 2015'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Li J, Sun Y, Johnson RJ, Sciaky D, Wei CH, Leaman R, Davis AP, Mattingly
+    CJ, Wiegers TC, Lu Z. Anotating chemicals, diseases and their interactions in
+    biomedical literature, Proceedings of the Fifth BioCreative Challenge Evaluation
+    Workshop, p173–182, 2015'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Leaman R, Dogan RI, Lu Z. DNorm: disease name normalization with pairwise
+    learning to rank, Bioinformatics 29(22):2909–17, 2013'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Leaman R, Wei CH, Lu Z. tmChem: a high performance approach for chemical
+    named entity recognition and normalization. J Cheminform, 7:S3, 2015'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Li, J., Sun, Y., Johnson, R. J., Sciaky, D., Wei, C. H., Leaman, R., Davis,
+    A. P., Mattingly, C. J., Wiegers, T. C., & Lu, Z. (2016). BioCreative V CDR task
+    corpus: a resource for chemical disease relation extraction. *Database : the journal
+    of biological databases and curation*, *2016*, baw068\. [https://doi.org/10.1093/database/baw068](https://doi.org/10.1093/database/baw068)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] Jiang, A. Q., Sablayrolles, A., Mensch, A., Bamford, C., Chaplot, D. S.,
+    Casas, D. D. L., … & Sayed, W. E. (2023). Mistral 7B. *arXiv preprint arXiv:2310.06825*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10] Neumann, M., King, D., Beltagy, I., & Ammar, W. (2019, August). ScispaCy:
+    Fast and Robust Models for Biomedical Natural Language Processing. In *Proceedings
+    of the 18th BioNLP Workshop and Shared Task* (pp. 319–327).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11] [https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl](https://ai2-s2-scispacy.s3-us-west-2.amazonaws.com/data/kbs/2020-10-09/mesh_2020.jsonl)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[12] Lewis, P., Perez, E., Piktus, A., Petroni, F., Karpukhin, V., Goyal, N.,
+    … & Kiela, D. (2020). Retrieval-augmented generation for knowledge-intensive nlp
+    tasks. *Advances in Neural Information Processing Systems*, *33*, 9459–9474.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[13] Liu, N. F., Lin, K., Hewitt, J., Paranjape, A., Bevilacqua, M., Petroni,
+    F., & Liang, P. (2024). Lost in the Middle: How Language Models Use Long Contexts.
+    *Transactions of the Association for Computational Linguistics*, *12*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14] Dettmers, T., Pagnoni, A., Holtzman, A., & Zettlemoyer, L. (2024). Qlora:
+    Efficient finetuning of quantized llms. *Advances in Neural Information Processing
+    Systems*, *36*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15] [https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.4.0/en_ner_bc5cdr_md-0.4.0.tar.gz](https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_ner_bc5cdr_md-0.5.4.tar.gz)'
+  prefs: []
+  type: TYPE_NORMAL

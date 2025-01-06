@@ -1,0 +1,451 @@
+- en: 'Avoiding abuse and misuse of T-test and ANOVA: Regression for categorical responses'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/avoiding-abuse-and-misuse-of-t-test-and-anova-regression-for-categorical-responses-af15af53a456?source=collection_archive---------2-----------------------#2024-04-07](https://towardsdatascience.com/avoiding-abuse-and-misuse-of-t-test-and-anova-regression-for-categorical-responses-af15af53a456?source=collection_archive---------2-----------------------#2024-04-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An approach using Bayesian regression with brms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@damanrique?source=post_page---byline--af15af53a456--------------------------------)[![Daniel
+    Manrique-Castano](../Images/06f857ae6e82688113f1089c7f03be88.png)](https://medium.com/@damanrique?source=post_page---byline--af15af53a456--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af15af53a456--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af15af53a456--------------------------------)
+    [Daniel Manrique-Castano](https://medium.com/@damanrique?source=post_page---byline--af15af53a456--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af15af53a456--------------------------------)
+    ·11 min read·Apr 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In neuroscience and other biomedical sciences, it is common to use behavioral
+    tests to assess responses to experimental conditions or treatments. We can assess
+    many aspects, from basic motor and exploratory behaviors to memory and learning.
+    Many of these variables are continuous (numerical) responses, i.e. they can take
+    (finite or infinite) values in a given range. Time in the open field, animal weight,
+    or the number of cells in a brain region are some examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, there are other types of variables that we record in our experiments.
+    A very common one is ordered categorical variables, also called ordinal variables.
+    These are categorical variables that have a natural order, analogous to the well-known
+    surveys in which we answer whether we agree or disagree with a statement, with
+    0 being strongly disagree and 5 being strongly agree. To facilitate the recording
+    of these variables in printed or digital datasheets, we codify them (by convention)
+    as numbers. This is the case of the 5-point Bederson score used in the context
+    of cerebral ischemia research in rodent models ([*1*](#ref-bieber2019)), which
+    is coded as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- 0 = no observable deficit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- 1 = forelimb flexion'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- 2 = forelimb flexion and decreased resistance to lateral push'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- 3 = circling'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- 4 = circling and spinning around the cranial-caudal axis'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- 5 = no spontaneous movement.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the numbers are just simple conventions. We could also use a,b,c,d,e;
+    excellent, good, not so good, bad, very bad, almost dead; etc. I do not think
+    it is presumptuous to stress the self-evident nature of the matter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Surprisingly, however, [Figure 1](#fig-sample) represents a particular and
+    widespread malpractice that scientists in this field have been practicing for
+    years: They use t-tests and ANOVAS to analyze such ordered categorical variables.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/dfe23d879272aa75262729034a662f78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: Left: Neurological score by Onufriev et. al (2021) (CC-BY). Right:
+    Neurological score by Liu et al. (2022) (CC-BY).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I still cannot find a logical explanation for why dozens of authors, reviewers,
+    and editors feel comfortable with this scenario. Not only is it not logical, but
+    more importantly, it leads to biased effect sizes, low detection rates, and type
+    I error rates, among other things ([*2*](#ref-bürkner2019)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When I have played the role of reviewer 2 and emphasized this point to authors,
+    asking them why they evaluate a categorical response with a statistical test designed
+    to deal with continuous numerical variables, what I get is a long list of published
+    articles that follow this irrational practice. So I finally found an answer to
+    why they do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: what Gerd Gigerenzer (2004) calls “the ritual of mindless statistics” ([*3*](#ref-gigerenzer2004)).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In fact, most of us scientists have little idea what we are doing with our data,
+    and are simply repeating common malpractices passed down from generation to generation
+    in labs around the world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we’ll then look at a more viable alternative for analyzing
+    ordered categorical variables using `R`, `brms` ([*4*](#ref-brms-2)) and elements
+    from the `tidyverse` ([*5*](#ref-tidyverse)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Facing the ritual of mindless statistics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To avoid the ritual of mindless statistics, we’ll recreate the data set from
+    Liu et. al (2022) in Figure 1 by eyeballing the data points and organizing them
+    in a table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0f4acb0cfd1ce8d29027d0a591b80196.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'If you look at the R code (in R-studio) at this point, you will notice that
+    the variable `Response’ is identified as a number ranging from 0 to 4\. Of course,
+    we are fully aware that this response is not numeric, but an ordered (ordinal)
+    categorical variable. So we do the conversion explicitly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b51543a383becaf2fd36a51d2f134e5a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now we can verify that it is recognized as an ordered categorical variable.
+    With this in hand, we can easily move on to visualization and modeling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploratory data visualization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, let’s load the necessary libraries and create a visual theme for our
+    plots.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: A simple way to visualize categorical data is with a bar graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/562e64721f5f471abd117d05802250b4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Response colored by group'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 2](#fig-Fig2) shows the frequency per group. This is more in line with
+    the logic of a categorical variable than box plots, which are more relevant for
+    continuous numerical variables. Now let’s run a regression to unravel the mysteries
+    (if any) of this data set.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fitting an Ordinal Regression with brms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ll use `brms` to fit a cumulative model. This model assumes that the neurological
+    score Y is derived from the categorization of a (presumably) latent (but not observable
+    or measured) continuous variable Y˜ ([*2*](#ref-bürkner2019)). As usual in most
+    `brms` tutorials, I must apologize for skipping the “priors” issue. Let’s assume
+    an “I have no idea” mentality and let the default (flat) `brms` priors do the
+    dirty work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We fit the `cumulative` model by following the usual formula syntax and adding
+    `cumulative("probit")` as a family (assuming the latent variable and the corresponding
+    error term are normally distributed). We have only one predictor variable, the
+    experimental group to which each animal belongs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before we look at the results, let’s do some model diagnostics to compare the
+    observations and the model predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model diagnostics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5ae2a42533a599da282f6f969168a389.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3: Model diagnostics for the ordinal regression'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From [Figure 3](#fig-OrdinalDiag1), I speculate that such deviations are the
+    results of the uneven distribution (variance) of scores across groups. Later,
+    we’ll see if predicting the variance yields better estimates. For now, we are
+    good to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking the results for the ordinal regression
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s take a look at the posterior distribution using the `describe_posterior`
+    function from the `bayestestR` package ([*6*](#ref-bayestestR)), as an alternative
+    to the typical `summary` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ec92131815f91c915210971045a9a935.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The thresholds (score thresholds) are labeled as “Intercepts” in this model,
+    which apply to our baseline “sham” condition. The coefficients for “GrouptMCAO”
+    and “GrouptMCAO_C” indicate the difference from sham animals on the latent Y˜
+    scale. Thus, we see that “GrouptMCAO” has 8.6 standard deviations higher scores
+    on the latent Y˜ scale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to point out a crucial (and not trivial) aspect here as a reminder for
+    a future post (stay tuned). In my opinion, it is irrelevant to make comparisons
+    between a group that does not have a distribution (which is 0 in all cases), such
+    as the sham group, and a group that does have a distribution (the experimental
+    groups). If you think about it carefully, the purpose of this procedure is null.
+    But let us follow the thread of modern scientific culture and not think too much
+    about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, appreciating the difference between the groups becomes more feasible
+    if we look at it visually with the `conditional effects' function of`brms’.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/aea59d20dceceba49b75a796eea90fb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4: Conditional effects for the Ordinal model'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Curiously (or perhaps not so much from the MCMC simulation framework), the model
+    estimates that the dummy group can have values of 1, although we have not seen
+    this in the data. One possible reason is that the model estimates a common variance
+    for all groups. We’ll see if this aspect changes when we model the variance as
+    a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Otherwise, the estimates obtained for the tMCAO and tMCO_C groups are much closer
+    to the data. This allows us to make more precise statements instead of running
+    an ANOVA (incorrectly for ordinal variables) and saying that there is “a significant
+    difference” between one group and the other, which is a meaningless statement.
+    For example, the model tells us that scores of 2–4 for the tMCAO group have a
+    similar probability (about 25%). The case is different for the tMCAO_C group,
+    where the probability of 2 in the neurological score is higher (with considerable
+    uncertainty) than for the other scores. If I were confronted with this data set
+    and this model, I would claim that the probability that the tMCAO_C group reflects
+    less neurological damage (based on scores 1 and 2) is higher than for the tMCAO
+    group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we get precise numbers that quantify the differences between the scores
+    of the different groups and their uncertainty? Of course, we can! using the `emmeans`
+    package ([*7*](#ref-emmeans)). But that will be the subject of another post (stay
+    tuned).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Including the variance as a response variable
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this type of cumulative model, there is no `sigma` parameter. Instead, to
+    account for unequal variances, we need to use a parameter called `disc`. For more
+    on this aspect, see the Ordinal Regression tutorial by Paul-Christian Bürkner,
+    the creator of `brms` ([*2*](#ref-bürkner2019)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Model diagnostics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We perform the model diagnostics as done previously:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/a0cccc3b90e1d782d3fd4b77a5ceaa29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5: Model diagnostics for our model predicting the variance'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Figure 5](#fig-OrdinalDiag2) shows that my expectations were not met. Including
+    the variance as a response in the model does not improve the fit to data. The
+    trend is maintained, but the predictions still vary significantly. Nevertheless,
+    this is another candidate we can consider to be our **generative model**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking the results for our new model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We visualize the posterior distribution for this model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2b05941efb854bc676667692429f78ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see a meaningful difference in the coefficients compared to the first
+    model. The coefficient for “GrouptMCAO” increases from 8.6 to 15.9 and that for
+    “GrouptMCAO_C” from 7 to 10.8\. Undoubtedly, this model gives us a different picture.
+    Otherwise, the variance term is presented under the names “disc_GrouptMCAO” and
+    “disc_GrouptMCAO_C”. We can see that both variances are very different from our
+    “sham” baseline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s plot the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/bbc2d410397bbf402c3c31daf1979d7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 6: Conditional effects for our model including the variance as a response'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contrary to what I expected, the model still predicts that sham animals have
+    a small probability of scoring 1\. What we have confirmed here is that this prediction
+    is not based on the (false) assumption that all groups have the same variance.
+    Nevertheless, it is still a logical prediction (not irrational) within this framework
+    (ordinal regression) based on thresholds. If we go to Richard McElreath’s Statistical
+    Rethinking ([*8*](#ref-mcelreath2020k)) we find the same situation with monkeys
+    pulling levers. Fitting a more constrained model will require the use of informative
+    priors. Leave that for a future post. I know I made three promises here, but I
+    will keep them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this model, the probabilities for the different outcomes in the tMCAO group
+    shift slightly. However, given the high uncertainty, I will not change my conclusion
+    about the performance of this group based on this model. For the tMCAO_C group,
+    on the other hand, the predictions do not shift in a way that is readily apparent
+    to the eye. Let’s conclude this blog post by comparing the two models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model comparison
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We do the model comparison using the the `loo` package ([*9*](#ref-loo), [*10*](#ref-vehtari2016))
+    for leave-one-out cross validation. For an alternative approach using the WAIC
+    criteria ([*11*](#ref-gelman2013)) I suggest you read [this](https://medium.com/towards-data-science/do-not-over-think-about-outliers-use-a-student-t-distribution-instead-b6c584b91d5c)
+    post also published by [TDS Editors](https://medium.com/u/7e12c71dfa81?source=post_page---user_mention--af15af53a456--------------------------------).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Under this scheme, the models have very similar performance. In fact, the first
+    model is slightly better for out-of-sample predictions. Accounting for variance
+    did not help much in this particular case, where (perhaps) relying on informative
+    priors can unlock the next step of scientific inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would appreciate your comments or feedback letting me know if this journey
+    was useful to you. If you want more quality content on data science and other
+    topics, you might consider becoming a [medium member](https://medium.com/membership).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the future, you may find an updated version of this post on my [GitHub site](https://github.com/daniel-manrique/MediumBlog/blob/main/2024-04-03_UseAndAbuseANOVA.qmd).
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 1.M. Bieber, J. Gronewold, A.-C. Scharf, M. K. Schuhmann, F. Langhauser, S.
+    Hopp, S. Mencl, E. Geuss, J. Leinweber, J. Guthmann, T. R. Doeppner, C. Kleinschnitz,
+    G. Stoll, P. Kraft, D. M. Hermann, [Validity and Reliability of Neurological Scores
+    in Mice Exposed to Middle Cerebral Artery Occlusion](https://doi.org/10.1161/strokeaha.119.026652).
+    *Stroke*. **50**, 2875–2882 (2019).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. P.-C. Bürkner, M. Vuorre, [Ordinal Regression Models in Psychology: A Tutorial](https://doi.org/10.1177/2515245918823199).
+    *Advances in Methods and Practices in Psychological Science*. **2**, 77–101 (2019).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. G. Gigerenzer, [Mindless statistics](https://doi.org/10.1016/j.socec.2004.09.033).
+    *The Journal of Socio-Economics*. **33**, 587–606 (2004).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. P.-C. Bürkner, Brms: An r package for bayesian multilevel models using
+    stan. **80** (2017), doi:[10.18637/jss.v080.i01](https://doi.org/10.18637/jss.v080.i01).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. H. Wickham, M. Averick, J. Bryan, W. Chang, L. D. McGowan, R. François,
+    G. Grolemund, A. Hayes, L. Henry, J. Hester, M. Kuhn, T. L. Pedersen, E. Miller,
+    S. M. Bache, K. Müller, J. Ooms, D. Robinson, D. P. Seidel, V. Spinu, K. Takahashi,
+    D. Vaughan, C. Wilke, K. Woo, H. Yutani, [Welcome to the tidyverse](https://doi.org/10.21105/joss.01686).
+    **4**, 1686 (2019).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6\. D. Makowski, M. S. Ben-Shachar, D. Lüdecke, [bayestestR: Describing effects
+    and their uncertainty, existence and significance within the bayesian framework.](https://doi.org/10.21105/joss.01541)
+    **4**, 1541 (2019).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '7\. R. V. Lenth, Emmeans: Estimated marginal means, aka least-squares means
+    (2023) (available at [https://CRAN.R-project.org/package=emmeans](https://CRAN.R-project.org/package=emmeans)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. R. McElreath, *Statistical rethinking* (Chapman; Hall/CRC, 2020; [http://dx.doi.org/10.1201/9780429029608](http://dx.doi.org/10.1201/9780429029608)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '9\. A. Vehtari, J. Gabry, M. Magnusson, Y. Yao, P.-C. Bürkner, T. Paananen,
+    A. Gelman, Loo: Efficient leave-one-out cross-validation and WAIC for bayesian
+    models (2022) (available at [https://mc-stan.org/loo/](https://mc-stan.org/loo/)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 10\. A. Vehtari, A. Gelman, J. Gabry, [Practical Bayesian model evaluation using
+    leave-one-out cross-validation and WAIC](https://doi.org/10.1007/s11222-016-9696-4).
+    *Statistics and Computing*. **27**, 1413–1432 (2016).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 11\. A. Gelman, J. Hwang, A. Vehtari, [Understanding predictive information
+    criteria for Bayesian models](https://doi.org/10.1007/s11222-013-9416-2). *Statistics
+    and Computing*. **24**, 997–1016 (2013).
+  prefs: []
+  type: TYPE_NORMAL

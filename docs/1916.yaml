@@ -1,0 +1,541 @@
+- en: How to Dynamically Restrict Data Import in Power Query
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-dynamically-restrict-data-import-in-power-query-68a29fce0640?source=collection_archive---------10-----------------------#2024-08-06](https://towardsdatascience.com/how-to-dynamically-restrict-data-import-in-power-query-68a29fce0640?source=collection_archive---------10-----------------------#2024-08-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*When we store a large amount of data, we might ask ourselves: Do I really
+    need all this data in my reporting? If you know this question and want to learn
+    how to control the amount of data in your Power BI file, this is the one piece
+    to read.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--68a29fce0640--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68a29fce0640--------------------------------)
+    ·8 min read·Aug 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/be1a76f7b3dac12b0445af16cc220af0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Claudio Schwarz](https://unsplash.com/@purzlbaum?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: My largest data set contains 20 years’ worth of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this is good when I want to perform some tests with a large data set,
+    it’s not uncommon for a report to need more than a few years of historical data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My clients usually want no more than two or three years of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now comes the challenge:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can I control the time frame when importing the data into Power BI?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is not a big deal when working with SQL databases or accessing a data source
+    that can be controlled programmatically or by passing parameters, such as a web-based
+    REST API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, sometimes, I must control this myself. In such a case, I must do it
+    in Power Query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ideally, I want to build it once, and it will run forever without any further
+    intervention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is what this piece is all about.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preparation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you haven’t already, enable the formula bar in Power Query to follow my instructions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open the Settings of Power BI and switch to the Power Query Editor page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There, enable the “Display the Formula Bar” option:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4bb15b293231d4c825e9c52034880804.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Enable the Formula Bar for the Power Query Editor (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the dynamic parameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: OK, the title is a little bit misleading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Power Query parameters are not dynamic per se.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They can be based on a Query, but I cannot set the value with an expression,
+    even though the Query can be dynamic or data-driven.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, I must build one or two queries, which can then be used to filter our data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the data contains data up to a point in time that is useful for the intended
+    reporting targets, I need one query for the earliest date to import.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I need two queries if I need to restrict the start and the end date, for example,
+    the date of the latest data point of interest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s assume that I want to load data from the beginning of the year, two years
+    ago, to the end of the previous month: From the beginning of 2022 to the end of
+    July 2024.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After opening Power Query, I create a new blank query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69922758f602a1075a5d5ba3f3928ca9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Create a blank query in Power query (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will contain the start date for my data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I will use the M-functions [#date](https://learn.microsoft.com/en-us/powerquery-m/sharpdate),
+    [Date.Year](https://learn.microsoft.com/en-us/powerquery-m/date-year) and [DateTime.LocalNew](https://learn.microsoft.com/en-us/powerquery-m/datetime-localnow)
+    to set it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: DateTime.LocalNow() gets the current date and time
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Date.Year() extract only the year from the given date
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '#date() creates a date from the parameters for the year, month, and day'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As I subtract two from the year, I get 2022 as the year, and with the following
+    two parameters, I will get 2022–01–01.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the result is not as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/33441bd01f8f807a8b58ca543597329e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Result of the M-expression if the Blank Query (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we open the Advanced Editor, we see that Power Query has set the expression
+    as a string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We must remove the quotes, and it will work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bad77b815f213dd31b3c942384076dbf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Remove the Quotes to set the expression as intended (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, before I continue, I change the Query name from Query1 to “StartDate”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, I create a second Blank Query (Or I duplicate the first one) and set
+    the following expression in the same way as the one above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: DateTime.LocalNow gets the current date and time
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Date.AddMonths() add months to the given date.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In this case, it goes back for one month.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Date.EndOfMonth() shifts the date to the last day of the given month.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In my case, I will get 2024–07–31.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the Result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d7496bd6e5fa948d9ff450e646e52723.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Result of the Expression to get the End Date (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As I need only the date, I can remove the time part by transforming the result
+    to a Date:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a6405772ab4f6151f2c2ab028e6bc2b5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 — Transform the Date/Time output to a Date only (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After renaming the new Query, everything is ready to filter the Data based on
+    these two queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filter the data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next, I can add a filter expression to my Fact tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I find the Date column for my data and select a between filter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f934c0c3a89da5bb19c3942ca5e25a7a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Select the Between filter for the Date column (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, I enter two arbitrary dates in the two fields (I will replace them with
+    the newly created queries afterward):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a77c34167fba0b4ec1beee32990308ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8 — Add arbitrary dates in the between filter (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After clicking on OK, the data is already filtered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But now, I want to change the filter to use the two queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this, I replace the dates in the filter Expression to use them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When I look at the Formula Bar at the top of the Power Query Editor, I see the
+    expression for the selected step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I change the expression from this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As I have two fact tables, I copy this expression and add it to the other table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I select the table, and I click on the fx button. After this, I can paste the
+    same expression as before into the formula bar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7f0f0f72b817b337511fe1e0aff9f5ef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9 — Add a new Expression to filter the second table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lastly, I change the name of the Step to something meaningful on both tables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0a9a340d779f102aead7abb575e28a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10 — Change the name of the Step to filter the data (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add a Parameter to control the amount of Years
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, I can add a Power Query parameter to control the years I want to import
+    in Power BI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d01621619f23d278e6500c75f05b0735.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 11 — Create a new Parameter to store the number of years (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I enter a Name, set the type to Decimal Number, and enter 2 for the Current
+    Value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8138176ad2d829ccb6148b4012a1ae2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 12 — Set the new parameter (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, I change the M-Expression for the StartDate Query to use this parameter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result doesn’t change, as I used two before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, I can change the parameter from Power BI and the amount of data without
+    changing the expression in Power Query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Furthermore, I can change this parameter after publishing the Report on the
+    Power BI Cloud:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open the Settings of the Semantic Model, open the “Parameters” Section, and
+    change the value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After loading the data in Power BI, I see only data from the 1st of January
+    2022 up to the End of July 2024:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5affd53933446b4685549d8392c18204.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 13 — Filtered Data after loading it into Power BI (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: And what about a DateId?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The above expressions will no longer work if your data doesn’t contain a Date
+    column but a numerical DateId column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For those unfamiliar with a DateId, this is a numerical representation of a
+    Date.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, 2024–07–15 is translated to 20240715.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In such a case, use these expressions to calculate the DateId:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For StartDate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the EndDate, here is the entire M-Script (Replace the Script into the Advanced
+    Editor after creating a Blank Query):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The data filtering is the same as above but with numerical values instead of
+    Dates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turn off the Load for the new Queries
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Without any further steps, the two new queries are loaded into Power BI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04a75b0381653ff4ec8f5574683675dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 14 — Start- and EndDate tables in Power BI (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As these two tables are of little use in Power BI (Except if you want to show
+    these two values in the report as information), I will Disable the Load in Power
+    Query for both tables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0bdec8218ca8ef319292ed520935985a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 15 — Disable the load into Power BI of the unneeded tables (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will get a Warning about a possible data loss. You can acknowledge it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The names of the tables will turn in cursive, and they are not loaded into Power
+    BI anymore.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The approach shown here is very useful for dynamically defining the time frame
+    of data imported into Power BI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In my case, I use a SQL Server as my Source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Power Query can translate the data filtering to SQL and send (fold) the query
+    to the Source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you want to learn more about Query folding, read this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/exploring-query-folding-in-power-query-8288fb3c9c2f?source=post_page-----68a29fce0640--------------------------------)
+    [## Exploring Query Folding in Power Query'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Query folding is an important feature in Power Query to offload processing steps
+    to the Source. Here we take a closer…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/exploring-query-folding-in-power-query-8288fb3c9c2f?source=post_page-----68a29fce0640--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the general approach works with any other data source as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But be aware: If Power Query cannot pass the filter to the Source, it will
+    first load the entire data set and filter out the unwanted rows after loading
+    all the data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can be a problem if you have a vast amount of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As useful as this approach is, having only the needed data in the source is
+    essential. Please ask your data provider for help.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it may be helpful to restrict the amount of data loaded into Power
+    BI during development and load the entire data set after the solution is published.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In any case, I hope that you have learned something new about Power Query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like in my previous articles, I use the Contoso sample dataset. You can download
+    the ContosoRetailDW Dataset for free from Microsoft [here](https://www.microsoft.com/en-us/download/details.aspx?id=18279).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Contoso Data can be freely used under the MIT License, as described [here](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I enlarged the dataset to make the DAX engine work harder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Online Sales table contains 71 million rows (instead of 12.6 million rows),
+    and the Retail Sales table contains 18.5 million rows (instead of 3.4 million
+    rows).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----68a29fce0640--------------------------------)
+    [## Get an email whenever Salvatore Cagliari publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
+    create a Medium account if you don't…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----68a29fce0640--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I make my articles accessible to everyone, even though Medium has a paywall.
+    This allows me to earn a little for each reader, but I turn it off so you can
+    read my pieces without cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work, which I do during my free time, through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

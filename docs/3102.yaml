@@ -1,0 +1,1122 @@
+- en: Multi-Agentic RAG with Hugging Face Code Agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/multi-agentic-rag-with-hugging-face-code-agents-005822122930?source=collection_archive---------0-----------------------#2024-12-31](https://towardsdatascience.com/multi-agentic-rag-with-hugging-face-code-agents-005822122930?source=collection_archive---------0-----------------------#2024-12-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using *Qwen2.5–7B-Instruct* powered code agents to create a local, open source,
+    multi-agentic RAG system
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)[![Gabriele
+    Sgroi, PhD](../Images/b81978d35e6238d160457de2affc2b0e.png)](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------)
+    [Gabriele Sgroi, PhD](https://medium.com/@gabrielesgroi94?source=post_page---byline--005822122930--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--005822122930--------------------------------)
+    ·61 min read·4 days ago
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1ff9aca5ba93aaf9ae77e0a74be9e734.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Jaredd Craig](https://unsplash.com/@jaredd?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Large Language Models have shown impressive capabilities and they are still
+    undergoing steady improvements with each new generation of models released. Applications
+    such as chatbots and summarisation can directly exploit the language proficiency
+    of LLMs as they are only required to produce textual outputs, which is their natural
+    setting. Large Language Models have also shown impressive abilities to understand
+    and solve complex tasks, but as long as their solution stays “on paper”, i.e.
+    in pure textual form, they need an external user to act on their behalf and report
+    back the results of the proposed actions. Agent systems solve this problem by
+    letting the models act on their environment, usually via a set of tools that can
+    perform specific operations. In this way, an LLM can find solutions iteratively
+    by trial and error while interacting with the environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An interesting situation is when the tools that an LLM agent has access to
+    are agents themselves: this is the core concept of multi-agentic systems. A multi-agentic
+    system solves tasks by distributing and delegating duties to specialized models
+    and putting their output together like puzzle pieces. A common way to implement
+    such systems is by using a manager agent to orchestrate and coordinate other agents''
+    workflow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Agentic systems, and in particular multi-agentic systems, require a powerful
+    LLM as a backbone to perform properly, as the underlying model needs to be able
+    to understand the purpose and applicability of the various tools as well as break
+    up the original problem into sub-problems that can be tackled by each tool. For
+    this reason, proprietary models like ChatGpt or Anthropic’s Claude are generally
+    the default go-to solution for agentic systems. Fortunately, open-source LLMs
+    have continued to see huge improvements in performance so much so that some of
+    them now rival proprietary models in some instances. Even more interestingly,
+    modestly-sized open LLMs can now perform complex tasks that were unthinkable a
+    couple of years ago.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, I will show how a “small” LLM that can run on consumer hardware
+    is capable enough to power a multi-agentic system with good results. In particular,
+    I will give a tutorial on how you can use *Qwen2.5–7B-Instruct* to create a multi-agentic
+    RAG system. You can find the code implementation in the following [GitHub repo](https://github.com/GabrieleSgroi/multiagentic_rag)
+    and an illustrative [Colab notebook](https://colab.research.google.com/drive/1ZxF-Fkv4QV31uo79FagZWFm8tvXgCtBN).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before diving into the details of the system architecture, I will recall some
+    basic notions regarding LLM agents that will be useful to better understand the
+    framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ReAct
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'ReAct, proposed in [ReAct: Synergizing Reasoning and Acting in Language Models](https://arxiv.org/abs/2210.03629),
+    is a popular framework for building LLM agents. The main idea of the method is
+    to incorporate the effectiveness of Chain of Thought prompting into an agent framework.
+    ReACT consists of interleaved reasoning and action steps: the Large Language Model
+    is prompted to provide a thought sequence before emitting an action. In this way
+    the model can create dynamic reasoning traces to steer actions and update the
+    high-level plan while incorporating information coming from the interaction with
+    the environment. This allows for an iterative and incremental approach to solving
+    the given task. In practice, the workflow of a ReAct agent is made up of Thought,
+    Action, and Observation sequences: the model produces reasoning for a general
+    plan and specific tool usage in the Thought step, then invokes the relevant tool
+    in the Action step, and finally receives feedback from the environment in the
+    Observation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is an example of what the ReACT framework looks like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bb48e73b9eeef9ce664171f66c3b531d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Comparison between the ReACT, Chain-of-Thought, and Act-Only frameworks for
+    a Question Answering task. Image from [ReAct: Synergizing Reasoning and Acting
+    in Language Models](https://arxiv.org/abs/2210.03629).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code Agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Code agents are a particular type of LLM agents that use executable Python code
+    to interact with the environment. They are based on the CodeAct framework proposed
+    in the paper [Executable Code Actions Elicit Better LLM Agents](https://arxiv.org/abs/2402.01030).
+    CodeAct is very similar to the ReAct framework, with the difference that each
+    action consists of arbitrary executable code that can perform multiple operations.
+    Hand-crafted tools are provided to the agent as regular Python functions that
+    it can call in the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code agents come with a unique set of advantages over more traditional agents
+    using JSON or other text formats to perform actions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: They can leverage existing software packages in combination with hand-crafted
+    task-specific tools.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They can self-debug the generated code by using the error messages returned
+    after an error is raised.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LLMs are familiar with writing code as it is generally widely present in their
+    pre-training data, making it a more natural format to write their actions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Code naturally allows for the storage of intermediate results and the composition
+    of multiple operations in a single action, while JSON or other text formats may
+    need multiple actions to accomplish the same.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For these reasons, Code Agents can offer improved performance and faster execution
+    speed than agents using JSON or other text formats to execute actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a67f4047cd5299419a6fe7f81077f750.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison between code agents and agents using JSON or text as actions. Image
+    from [Executable Code Actions Elicit Better LLM Agents](https://arxiv.org/abs/2402.01030).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is a concrete example from the original paper that showcases how code
+    agents can require fewer actions to solve certain tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a96c18b5be55a21b4f23952aefcad2e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Code agents vs agents using JSON/text action format. Code agents can execute
+    multiple operations in one action. Image from [Executable Code Actions Elicit
+    Better LLM Agents](https://arxiv.org/abs/2402.01030). [RIVEDERE]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Hugging Face transformers library provides useful modules to build agents
+    and, in particular, code agents. The Hugging Face transformer agents framework
+    focuses on clarity and modularity as core design principles. These are particularly
+    important when building an agent system: the complexity of the workflow makes
+    it essential to have control over all the interconnected parts of the architecture.
+    These design choices make Hugging Face agents a great tool for building custom
+    and flexible agent systems. When using open-source models to power the agent engine,
+    the Hugging Face agents framework has the further advantage of allowing easy access
+    to the models and utilities present in the Hugging Face ecosystem.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Hugging Face code agents also tackle the issue of insecure code execution.
+    In fact, letting an LLM generate code unrestrained can pose serious risks as it
+    could perform undesired actions. For example, a hallucination could cause the
+    agent to erase important files. In order to mitigate this risk, Hugging Face code
+    agents implementation uses a ground-up approach to secure code execution: the
+    code interpreter can only execute explicitly authorized operations. This is in
+    contrast to the usual top-down paradigm that starts with a fully functional Python
+    interpreter and then forbids actions that may be dangerous. The Hugging Face implementation
+    includes a list of safe, authorized functions that can be executed and provides
+    a list of safe modules that can be imported. Anything else is not executable unless
+    it has been preemptively authorized by the user. You can read more about Hugging
+    Face (code) agents in their blog posts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[License to Call: Introducing Transformers Agents 2.0](https://huggingface.co/blog/agents)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Our Transformers Code Agent beats the GAIA benchmark!](https://huggingface.co/blog/beating-gaia)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Agentic RAG
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Retrieval Augmented Generation has become the de facto standard for information
+    retrieval tasks involving Large Language Models. It can help keep the LLM information
+    up to date, give access to specific information, and reduce hallucinations. It
+    can also enhance human interpretability and supervision by returning the sources
+    the model used to generate its answer. The usual RAG workflow, consisting of a
+    retrieval process based on semantic similarity to a user’s query and a model’s
+    context enhancement with the retrieved information, is not adequate to solve some
+    specific tasks. Some situations that are not suited for traditional RAG include
+    tasks that need interactions with the information sources, queries needing multiple
+    pieces of information to be answered, and complex queries requiring non-trivial
+    manipulation to be connected with the actual information contained in the sources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A concrete challenging example for traditional RAG systems is multi-hop question
+    answering (MHQA). It involves extracting and combining multiple pieces of information,
+    possibly requiring several iterative reasoning processes over the extracted information
+    and what is still missing. For instance, if the model has been asked the question
+    “Does birch plywood float in ethanol?”, even if the sources used for RAG contained
+    information about the density of both materials, the standard RAG framework could
+    fail if these two pieces of information are not directly linked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A popular way to enhance RAG to avoid the abovementioned shortcomings is to
+    use agentic systems. An LLM agent can break down the original query into a series
+    of sub-queries and then use semantic search as a tool to retrieve passages for
+    these generated sub-queries, changing and adjusting its plan as more information
+    is collected. It can autonomously decide whether it has collected enough information
+    to answer each query or if it should continue the search. The agentic RAG framework
+    can be further enhanced by extending it to a multi-agentic system in which each
+    agent has its own defined tasks and duties. This allows, for example, the separation
+    between the high-level task planning and the interaction with the document sources.
+    In the next section, I will describe a practical implementation of such a system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-Agentic RAG with Code Agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, I will discuss the general architectural choices I used to
+    implement a Multi-Agentic RAG system based on code agents following the ReAct
+    framework. You can find the remaining details in the full code implementation
+    in the following [GitHub repo](https://github.com/GabrieleSgroi/multiagentic_rag).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The goal of the multi-agentic system is to answer a question by searching the
+    necessary information on Wikipedia. It is made up of 3 agents:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A manager agent whose job is to break down the task into sub-tasks and use their
+    output to provide a final answer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Wikipedia search agent that finds relevant pages on Wikipedia and combines
+    the information extracted from them.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A page search agent to retrieve and summarize information relevant to a given
+    query from the provided Wikipedia page.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These three agents are organized in a hierarchical fashion: each agent can
+    use the agent immediately below in the hierarchy as a tool. In particular, the
+    manager agent can call the Wikipedia search agent to find information about a
+    query which, in turn, can use the page search agent to extract particular information
+    from Wikipedia pages.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is the diagram of the architecture, specifying which hand-crafted tools
+    (including tools wrapping other agents) each agent can call. Notice that since
+    code agents act using code execution, these are not actually the only tools they
+    can use as any native Python operation and function (as long as it is authorized)
+    can be used as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/54e5a02732eb01048ba8b64cc5648fc5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Architecture diagram showing agents and hand-crafted tools. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s dive into the details of the workings of the agents involved in the architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manager agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the top-level agent, it receives the user’s question and it is tasked
+    to return an answer. It can use the Wikipedia search agent as a tool by prompting
+    it with a query and receiving the final results of the search. Its purpose is
+    to collect the necessary pieces of information from Wikipedia by dividing the
+    user question into a series of sub-queries and putting together the result of
+    the search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is the system prompt used for this agent. It is built upon the default
+    Hugging Face default prompt template. Notice that the examples provided in the
+    prompt follow the chat template of the model powering the agent, in this case,
+    *Qwen2.5–7B-Instruct.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = wikipedia_search_agent("Italy capital")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print("Capital of Italy:", result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = wikipedia_search_agent("Rome foundation date")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print("Rome foundation:", result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("According to the legend Rome was founded on 21 April 753 BCE,
+    but archaeological evidence dates back its development during the Bronze Age.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: population_guangzhou_info = wikipedia_search_agent("New York City population")
+  prefs: []
+  type: TYPE_NORMAL
+- en: population_shanghai_info = wikipedia_search_agent("Shanghai population")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print("Population Guangzhou:", population_guangzhou)
+  prefs: []
+  type: TYPE_NORMAL
+- en: print("Population Shanghai:", population_shanghai)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: population_difference = 24.87*1e6 - 8.25*1e6
+  prefs: []
+  type: TYPE_NORMAL
+- en: answer=f"The difference in population between Shanghai and New York is {population_difference}
+    inhabitants."
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer(answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Wikipedia search agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This agent reports to the manager agent, it receives a query from it and it
+    is tasked to return the information it has retrieved from Wikipedia. It can access
+    two tools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Wikipedia search tool, using the built-in search function from the [wikipedia
+    package](https://pypi.org/project/wikipedia/). It receives a query as input and
+    returns a list of Wikipedia pages and their summaries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A page search agent that retrieves information about a query from a specific
+    Wikipedia page.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This agent collects the information to answer the query, dividing it into further
+    sub-queries, and combining information from multiple pages if needed. This is
+    accomplished by using the search tool of the wikipedia package to identify potential
+    pages that can contain the necessary information to answer the query: the agent
+    can either use the reported page summaries or call the page search agent to extract
+    more information from a specific page. After enough data has been collected, it
+    returns an answer to the manager agent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The system prompt is again a slight modification of the Hugging Face default
+    prompt with some specific examples following the model’s chat template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("France capital")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print("Capital of France:", result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The capital of France is Paris.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("highest mountain")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("world's tallest mountain")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("Mauna Kea is the world's tallest mountain, rising about 10,203
+    m (33,474 ft) from the Pacific Ocean floor.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Page search agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This agent reports to the Wikipedia search agent, which provides it with a query
+    and the title of a Wikipedia page, and it is tasked to retrieve the relevant information
+    to answer the query from that page. This is, in essence, a single-agent RAG system.
+    To perform the task, this agent generates custom queries and uses the semantic
+    search tool to retrieve the passages that are more similar to them. The semantic
+    search tool follows a simple implementation that splits the page contents into
+    chunks and embeds them using the FAISS vector database provided by LangChain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is the system prompt, still built upon the one provided by default by
+    Hugging Face
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = search_wikipedia("Seneca philosopher birth")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print("result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("According to the Wikipedia page 'Seneca the Younger', Seneca was
+    born in 4 BC.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = search_wikipedia("Charlemagne predecessor")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = search_info("Charlemagne predecessor", "Charlemagne")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("According to the information extracted from the Wikipedia page
+    'Charlemagne', his predecessor was Pepin the Short.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementation choices
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this subsection, I will outline the main points that differ from what could
+    be a straightforward implementation of the architecture using Hugging Face agents.
+    These are the results of limited trial and error before obtaining a solution that
+    works reasonably well. I haven’t performed extensive testing and ablations so
+    they may not be the optimal choices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompting:** as explained in the previous sections, each agent has its own
+    specialized system prompt that differs from the default one provided by Hugging
+    Face Code Agents. I observed that, perhaps due to the limited size of the model
+    used, the general standard system prompt was not giving good results. The model
+    seems to work best with a system prompt that reflects closely the tasks it is
+    asked to perform, including tailored examples of significant use cases. Since
+    I used a chat model with the aim of improving instruction following behavior,
+    the provided examples follow the model’s chat template to be as close as possible
+    to the format encountered during a run.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Summarizing history:** long execution histories have detrimental effects
+    on both execution speed and task performance. The latter could be due to the limited
+    ability of the model to retrieve the necessary information from a long context.
+    Moreover, extremely long execution histories could exceed the maximum context
+    length for the engine model. To mitigate these problems and speed up execution,
+    I chose not to show all the details of the previous thought-action-observation
+    steps, but instead collected only the previous observations. More specifically,
+    at each step the model only receives the following chat history: the system message,
+    the first message containing the task, its last action, and all the history of
+    the previous observations. Furthermore, execution errors are present in the observation
+    history only if they happen in the last step, previous errors that have been already
+    solved are discarded.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Tools vs managed agents:** Hugging Face agents implementationhas native support
+    for managed agents but wrapping them as tools allows for better control of the
+    prompts and a more streamlined implementation. In particular, Hugging Face implementation
+    adds particular prompts to both the managed agents and their managers. While I
+    haven’t seen substantial differences in the ability to solve the given task, I
+    preferred the second approach as it is more flexible and streamlined for the presented
+    architecture, and it allows for easier control over the agents'' behavior. This
+    also helps with reducing the prompt length, which is useful for speeding up computations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Limit the maximum number of trials for the page search agent:** sometimes
+    the page search agent keeps looking for information on a given page that doesn’t
+    contain it. Reducing the maximum number of trials mitigated this issue: after
+    reaching that number the agent execution is stopped and the tool returns the last
+    observation from code execution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Changing tool response to user message:** this is more of a technical, implementation-specific
+    point. Since the only supported roles for the chat template of *Qwen2.5–7B-Instruct*
+    are system, user, and assistant, observations are returned as user messages.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Examples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, I will collect some examples produced with the described architecture.
+    I will also provide the detailed execution of all the agents involved in the task
+    to showcase how they interact in some real cases. You can explore more examples
+    using the illustrative [Colab notebook](https://colab.research.google.com/drive/1ZxF-Fkv4QV31uo79FagZWFm8tvXgCtBN).
+    All the extracted passages are taken from the Wikipedia page specified in the
+    execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s start exploring a simple example that requires combining information from
+    multiple sources and some basic arithmetic understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Task: How many years passed between the construction of the Eiffel Tower and
+    the construction of the Empire State Building?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below are the logs of the execution of the manager agent. It can correctly break
+    up the task into finding the construction periods for both buildings and compute
+    the year difference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: wikipedia_search_agent(query="Eiffel Tower construction year")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: wikipedia_search_agent(query="Empire State Building construction year")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: construction_eiffel_tower_start = 1887
+  prefs: []
+  type: TYPE_NORMAL
+- en: construction_eiffel_tower_end = 1889
+  prefs: []
+  type: TYPE_NORMAL
+- en: construction_empire_state_building_start = 1930
+  prefs: []
+  type: TYPE_NORMAL
+- en: construction_empire_state_building_end = 1931
+  prefs: []
+  type: TYPE_NORMAL
+- en: years_passed = construction_empire_state_building_start - construction_eiffel_tower_end
+  prefs: []
+  type: TYPE_NORMAL
+- en: answer = f"The number of years passed between the construction of the Eiffel
+    Tower and the Empire State Building is {years_passed} years."
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer(answer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s now visualize the execution of the Wikipedia search agent. It correctly
+    searches and reports the construction periods found in the summary of the pages,
+    without needing to inspect the individual pages. It is interesting to note that
+    despite being asked generically about the “construction year”, it reports the
+    entire construction period as it is not clear if the year refers to the start
+    or the end of the construction works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_wikipedia('Eiffel Tower construction year')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("According to the information extracted from the Wikipedia page
+    'Eiffel Tower', the construction of the Eiffel Tower took place from 1887 to 1889.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_wikipedia('Empire State Building construction year')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("According to the information extracted from the Wikipedia page
+    'Empire State Building', the construction of the Empire State Building started
+    in 1930 and ended in 1931.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The passage retrieval agent was not used as all the information was already
+    found in the summaries of the pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now try a more complicated example asking if birch plywood floats in alcohol.
+    This question requires basic physics understanding and arithmetic abilities, combined
+    with non-trivial retrieval tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Task: Does birch plywood float in ethanol?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s first visualize the logs of the various agents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manager agent logs
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: birch_plywood_density_info = wikipedia_search_agent("density of birch plywood")
+  prefs: []
+  type: TYPE_NORMAL
+- en: ethanol_density_info = wikipedia_search_agent("density of ethanol")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(birch_plywood_density_info)
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(ethanol_density_info)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("Birch plywood will float in ethanol because its density (680 kg/m³)
+    is less than the density of ethanol (789.4 kg/m³).")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Wikipedia search agent logs
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_wikipedia('birch plywood')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info('density of birch plywood', 'Plywood')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The density of birch plywood is approximately 680 kg/m³.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_wikipedia('density of ethanol')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info('density of ethanol', 'Ethanol (data page)')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The density of ethanol at 20°C is approximately 0.7894 g/cm³.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: Page search agent logs
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("density of birch plywood")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The density of birch plywood is approximately 680 kg/m³.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("density of ethanol")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract the coefficients from the equation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: a = -8.461834e-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: b = 0.8063372
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculate the density at a specific temperature, let's take 20°C as an example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: temperature = 20
+  prefs: []
+  type: TYPE_NORMAL
+- en: density = a * temperature + b
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(density)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer(f"The density of ethanol at 20°C is approximately {round(0.789413532,
+    4)} g/cm³.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: The model correctly identifies density difference as the cause of floating/sinking,
+    breaks up the task into finding the density of both substances, and is able to
+    draw the correct conclusion from the retrieved data despite them being in different
+    units of measurement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The discussed system has impressive capabilities, especially considering the
+    limited size of the engine model used, but of course, it has its own limitations.
+    The bigger one seems to be related to the power of the engine model itself: while
+    it seems able to understand and follow complex and long instructions as well as
+    to use the provided tools correctly, sometimes it fails to comply with simple
+    guidelines and it tends to repeat unfruitful actions without changes. This is
+    particularly prominent when the information the agent is looking for is not present
+    (or not easily extractible using the semantic search tool) from the provided pages.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another drawback, intrinsic to agentic and even more prominent in multi-agentic
+    systems, is the computation time needed for the various agents' execution. In
+    some simple cases where the standard RAG workflow would have been enough to answer
+    the question, this could produce an unnecessary computational overhead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, having multiple agents interacting with each other can amplify the
+    risk of hallucinations, as a hallucination made by one agent could propagate over
+    the execution chain, making it also very difficult to track.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s visualize an example in which the system, while still providing the correct
+    answer, made excessive use of tool calls (with some repeated actions) unnecessarily
+    extending the execution time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Task: Which dynasty was ruling China at the time of the fall of Constantinople?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The task requires a good level of abstraction since the two events are not related
+    and the exact year of the fall of Constantinople may not be reported on the page
+    of the corresponding dynasty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The manager agent execution is still lean and on point, solving the task correctly
+    by first retrieving the date of the fall of Constantinople and then looking for
+    Chinese dynasties in that year. However, we can already see that the search results,
+    while still containing the required information, seem a bit strange.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: wikipedia_search_agent(query="Fall of Constantinople")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: wikipedia_search_agent(query="Chinese dynasties 1453")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The dynasty ruling China when Constantinople fell in 1453 was
+    the Ming dynasty.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s thus inspect the corresponding Wikipedia search agent tasks and their
+    execution. We can see that, possibly due to the broad task “Fall of Constantinople”,
+    the agent looks at other specific information after having found the correct date.
+    The same happens when retrieving information about the Chinese dynasties, with
+    the further problem that some tool calls were repeated identically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE47]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_wikipedia("Fall of Constantinople")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE48]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info("leader of the Ottoman Empire in 1453", "Fall of Constantinople")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE49]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The leader of the Ottoman Empire in 1453, during the fall of Constantinople,
+    was Mehmed II, also known as Mehmed the Conqueror.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE50]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_wikipedia('Chinese dynasties 1453')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE51]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info('1453', 'Ming dynasty')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE52]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info('1453', 'Ming dynasty')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE53]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info('1453', 'Ming dynasty')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE54]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: search_info('1453', 'Ming dynasty')
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE55]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("In 1453, the Ming dynasty was in full control of China. No specific
+    events related to 1453 are mentioned in the information provided.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE56]'
+  prefs: []
+  type: TYPE_PRE
+- en: Diving deeper into the page search agent execution, we see that this also repeated
+    multiple tool calls with the same parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE57]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("leader of the Ottoman Empire in 1453")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE58]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The leader of the Ottoman Empire in 1453 was Mehmed II, also known
+    as Mehmed the Conqueror.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE59]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("1453 Ming dynasty")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE60]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The year 1453 falls within the period of the Ming dynasty, which
+    ruled from 1368 to 1644\. During this time, the Ming dynasty was in full control
+    of China and experienced significant developments such as the construction of
+    the Forbidden City and the expansion of the Great Wall of China.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE61]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("1453 Ming dynasty")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE62]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The year 1453 falls within the period of the Ming dynasty, which
+    ruled from 1368 to 1644\. During this time, the Ming dynasty was in full control
+    of China and experienced significant developments such as the construction of
+    the Forbidden City and the expansion of the Great Wall of China.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE63]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("1453 Ming dynasty")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE64]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The year 1453 falls within the period of the Ming dynasty, which
+    ruled from 1368 to 1644\. During this time, the Ming dynasty was in full control
+    of China and experienced significant developments such as the construction of
+    the Forbidden City and the expansion of the Great Wall of China.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE65]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: result = retrieve_passages("1453 Ming dynasty")
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(result)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE66]py'
+  prefs: []
+  type: TYPE_NORMAL
+- en: final_answer("The year 1453 falls within the period of the Ming dynasty, which
+    ruled from 1368 to 1644\. During this time, the Ming dynasty was in full control
+    of China and experienced significant developments such as the construction of
+    the Forbidden City and the expansion of the Great Wall of China.")
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE67]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this blog post, I explained how to create a multi-agentic RAG system using
+    code agents and a “small” open-source LLM like *Qwen2.5–7B-Instruct*. I have discussed
+    the main architectural features and some specific choices relative to the Hugging
+    Face code agent implementation that I made to improve the result. The full code
+    details are available in the following [GitHub repo](https://github.com/GabrieleSgroi/multiagentic_rag).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The multi-agentic system described, despite being powered by a small model
+    running on consumer-grade hardware, can solve multi-hop question-answering tasks
+    related to complex queries. In particular:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can break down the query into manageable sub-tasks;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can identify the Wikipedia pages containing the necessary information;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can combine information coming from multiple pages;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can search for detailed information on a Wikipedia page;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can determine whether it needs more information and tries to find it;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can successfully fix small bugs in the code it produces and handle tool errors
+    (like Wikipedia disambiguation errors).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I have also outlined some limitations of the system, such as increased computation
+    time, repetitive actions, and the potential propagation of hallucinations. The
+    latter could be mitigated by including in the system a “proofreader” agent that
+    checks that the reported information is in agreement with the retrieved sources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also worth noting that, since the agentic system has a standard RAG approach
+    at its core, all the usual techniques used to improve the efficiency and accuracy
+    of the latter can be implemented in the framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another possible improvement is to use techniques to increase test time computation
+    to give the model more “time to think” similar to OpenAI o1/o3 models. It is however
+    important to note that this modification will further increase execution time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, since the multi-agentic system is made up of agents specialized in
+    a single task, using a different model engine for each of them could improve the
+    performance. In particular, it is possible to fine-tune a different model for
+    each task in the system for further performance gains. This could be particularly
+    beneficial for small models. It is worth mentioning that fine-tuning data can
+    be collected by running the system on a set of predetermined tasks and saving
+    the agents' output when the system produces the correct answer, thus eliminating
+    the need for expensive manual data annotation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you found this tutorial useful, you can find the full code implementation
+    in the [GitHub repo](https://github.com/GabrieleSgroi/multiagentic_rag) and try
+    it yourself in the [Colab notebook](https://colab.research.google.com/drive/1ZxF-Fkv4QV31uo79FagZWFm8tvXgCtBN).
+  prefs: []
+  type: TYPE_NORMAL

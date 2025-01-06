@@ -1,0 +1,877 @@
+- en: Fraud Detection with Generative Adversarial Nets (GANs)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/fraud-detection-with-generative-adversarial-nets-gans-26bea360870d?source=collection_archive---------5-----------------------#2024-01-29](https://towardsdatascience.com/fraud-detection-with-generative-adversarial-nets-gans-26bea360870d?source=collection_archive---------5-----------------------#2024-01-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Application of GANs for data augmentation to adjust an imbalanced dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)[![Michio
+    Suginoo](../Images/15e4a70d17d163889cc902bf4409931a.png)](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------)
+    [Michio Suginoo](https://deeporigami.medium.com/?source=post_page---byline--26bea360870d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--26bea360870d--------------------------------)
+    ·18 min read·Jan 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b701f889a034bd2b3b6ca7bfd994721c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[“Generative Adversarial Nets](https://arxiv.org/abs/1406.2661)” (GANs) demonstrated
+    outstanding performance in generating realistic synthetic data which are indistinguishable
+    from the real data in the past. Unfortunately, GANs caught the public’s attention
+    because of its unethical applications, [deepfakes](https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/)
+    (Knight, 2018).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article illustrates a case with a good motive in the application of GANs
+    in the context of fraud detection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fraud detection is an application of binary classification prediction. Fraud
+    cases, which account for only a small fraction of the transaction universe, constitute
+    a minority class that makes the dataset highly imbalanced. In general, the resulting
+    model tends to be biased towards the majority class and tends to underfit to the
+    minority class. Thus, the less balanced the dataset, the poorer the performance
+    of the classification predictor would be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My motive here is to use GANs as a data augmentation tool in an attempt to address
+    this classical problem of fraud detection associated with the imbalanced dataset.
+    More specifically, GANs can generate realistic synthetic data of the minority
+    fraud class and transform the imbalanced dataset perfectly balanced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And, I am hoping that this sophisticated algorithm could materially contribute
+    to the performance of fraud detection. In other words, my initial expectation
+    is: the better sophisticated algorithm, the better performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A relevant question is if the use of GANs will guarantee a promising improvement
+    in the performance of fraud detection and satisfy my motive. Let’s see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Introduction***'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In principle, fraud detection is an application of binary classification algorithm:
+    to classify each transaction whether it is a fraud case or not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fraud cases account for only a small fraction of the transaction universe. In
+    general, fraud cases constitute the minority class, thus, make the dataset highly
+    imbalanced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fewer fraud cases, the more sound the transaction system would be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Very simple and intuitive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paradoxically, that sound condition was one of the primary reasons that made
+    fraud detection challenging in the past, if not impossible. It is simply because
+    it was difficult for a classification algorithm to learn the probability distribution
+    of the minority class of fraud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, the more balanced the dataset, the better the performance of the
+    classification predictor. In other words, the less balanced (or the more imbalanced)
+    the dataset, the poorer the performance of classifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This paints the classical problem of fraud detection: a binary classification
+    application with highly imbalanced dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this setting, we can use Generative Adversarial Nets (GANs) as a data augmentation
+    tool to generate realistic synthetic data of the minority fraud class to transform
+    the entire dataset more balanced in an attempt to improve the performance of the
+    classifier model of fraud detection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This article is divided into the following sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Section 1: Algorithm Overview: Bi-level Optimization Architecture of GANs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Section 2: Fraud Dataset'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Section 3: Python Code breakdown of GANs for data augmentation'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Section 4: Fraud Detection Overview (Benchmark Scenario vs GANs Scenario)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Section 5: Conclusion'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overall, I will primarily focus on the topic of GANs (both the algorithm and
+    the code). For the remaining topics of the model development other than GANs,
+    such as data preprocessing and classifier algorithm, I will only outline the process
+    and refrain from going into their details. In this context, this article assumes
+    that the readers have a basic knowledge about the binary classifier algorithm
+    (especially, Ensemble Classifier that I selected for fraud detection) as well
+    as general understanding of data cleaning and preprocessing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the detailed code, the readers are welcome to access the following link:
+    [https://github.com/deeporigami/Portfolio/blob/6538fcaad1bf58c5f63d6320ca477fa867edb1df/GAN_FraudDetection_Medium_2.ipynb](https://github.com/deeporigami/Portfolio/blob/6538fcaad1bf58c5f63d6320ca477fa867edb1df/GAN_FraudDetection_Medium_2.ipynb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Section 1: Algorithm Overview: Bi-level Optimization Architecture of GANs***'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'GANs is a special type of generative algorithm. As its name suggests, Generative
+    Adversarial Nets (GANs) is composed of two neural networks: the generative network
+    (the generator) and the adversarial network (the discriminator). GANs pits these
+    two agents against each other to engage in a competition, where the generator
+    attempts to generate realistic synthetic data and the discriminator to distinguish
+    the synthetic data from the real data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The original GANs was introduced in a seminal paper: “[Generative Adversarial
+    Nets](https://arxiv.org/abs/1406.2661)” (Goodfellow, et al., Generative Adversarial
+    Nets, 2014). The co-authors of the original GANs portrayed GANs with a counterfeiter-police
+    analogy: an iterative game, where the generator acts as a counterfeiter and the
+    discriminator plays the role of the police to detect the counterfeit that the
+    generator forged.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The original GANs was innovative in a sense that it addressed and overcame conventional
+    difficulties in training deep generative algorithm in the past. And as its core,
+    it was designed with bi-level optimization framework with an equilibrium seeking
+    objective setting (vs maximum likelihood oriented objective setting).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ever since, many variant architectures of GANs have been explored. As a precaution,
+    this article refers solely to the prototype architecture of the original GANs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Generator and Discriminator***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Repeatedly, in the architecture of GANs, the two neural networks — the generator
+    and the discriminator — compete against each other. In this context, the competition
+    takes place through the iteration of forward propagation and backward propagation
+    (according to the general framework of neural networks).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On one hand, it is straight-forward that the discriminator is a binary classifier
+    by design: it classifies whether each sample is real (label: 1) or fake/synthetic
+    (label:0). And the discriminator is fed with both the real samples and the synthetic
+    samples during the forward propagation. Then, during the backpropagation, it learns
+    to detect the synthetic data from the mixed data feed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, the generator is a noise distribution by design. The generator
+    is fed with the real samples during the forward propagation. Then, during the
+    backward propagation, the generator learns the probability distribution of the
+    real data in order to better simulate its synthetic samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And these two agents are trained alternately via “bi-level optimization” framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Bi-level Training Mechanism (bi-level optimization method)***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the original GAN paper, in order to train these two agents that pursue their
+    diametrically opposite objectives, the co-authors designed a “bi-level optimization
+    (training)” architecture, in which one internal training block (training of the
+    discriminator) is nested within another high-level training block (training of
+    the generator).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image below illustrates the structure of “bi-level optimization” in the
+    nested training loops. The discriminator is trained within the nested inner loop,
+    while the generator is trained in the main loop at the higher level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ee36b648bf82a7b9e95df5ddb35f87b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: And GANs trains these two agents alternately in this bi-level training architecture
+    (Goodfellow, et al., Generative Adversarial Nets, 2014, p. 3). In other words,
+    while training one agent during the alternation, we need to freeze the learning
+    process of the other agent (Goodfellow I. , 2015, p. 3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Mini-Max Optimization Objective***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to the “bi-level optimization” mechanism which enables the alternate
+    training of these two agents, another unique feature that differentiates GANs
+    from the conventional prototype of neural network is its mini-max optimization
+    objective. Simply put, in contrast to the conventional maximum seeking approach
+    (such as maximum-likelihood) , GANs pursues an equilibrium-seeking optimization
+    objective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is an equilibrium-seeking optimization objective?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s break it down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GANs’ two agents have two diametrically opposite objectives. While the discriminator,
+    as a binary classifier, aims at maximizing the probability of correctly classifying
+    the mixture of the real samples and the synthetic samples, the generator’s objective
+    is to minimize the probability that the discriminator correctly classifies the
+    synthetic data: simply because the generator needs to fool the discriminator.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this context, the co-authors of the original GANs called the overall objective
+    a “***minimax game***”. (Goodfellow, et al., 2014, p. 3)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Overall, the ultimate ***mini-max optimization objective*** of GANs is not
+    to search for the global maximum/minimum of either of these objective functions.
+    Instead, it is set to seek an equilibrium point which can be interpreted as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “a saddle point that is a local maximum for the classifier and a local minimum
+    for the generator” (Goodfellow I. , 2015, p. 2)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: where neither of agents can improve their performance any longer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: where the synthetic data that the generator learned to create has become realistic
+    enough to fool the discriminator.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And the equilibrium point could be conceptually represented by the probability
+    of random guessing, 0.5 (50%), for the discriminator: D(z) => 0.5 .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s transcribe the conceptual framework of GANs’ minimax optimization in terms
+    of their objective functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The objective of the discriminator is to maximize the objective function in
+    the following image:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b3ace53f4fcc19374406302839ec188.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to resolve a potential saturation issue, they converted the second
+    term of the original log-likelihood objective function for the generator as follows
+    and recommended to maximize the converted version as the generator’s objective:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1047088989096cf0cee24f1e93409952.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall, the architecture of GANs’ “bi-level optimization” can be translated
+    in to the following algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c7d25fd63b2c1395701db01c688802a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For more details about the algorithmic design of GANs, please read another
+    article of mine: [Mini-Max Optimization Design of Generative Adversarial Nets](/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02)
+    .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s move on to the actual coding with a dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to highlight GANs algorithm, I will primarily focus on the code of
+    GANs here and only outline the rest of the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Section 2: Fraud Dataset'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For fraud detection, I selected the following dataset of credit card transactions
+    from Kaggle: [https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data License: [Database Contents License (DbCL) v1.0](https://opendatacommons.org/licenses/dbcl/1-0/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a summary of the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dataset contains 284,807 transactions. In the dataset, we have only 492
+    fraud cases (including 29 duplicated cases).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the fraud class accounts for only 0.172% of all transactions, it constitutes
+    an extremely small minority class. This dataset is an appropriate one for illustrating
+    the classical problem of fraud detection associated with the imbalanced dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It has the following 30 features:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'V1, V2, … V28: 28 principal components obtained by PCA. The source of the data
+    is not disclosed for the privacy protection purpose.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '‘Time’: the seconds elapsed between each transaction and the first transaction
+    of the dataset.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '‘Amount’: the amount of the transaction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The label is set as ‘Class’.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '‘Class’: 1 in case of fraud; and 0 otherwise.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Data Preprocessing: Feature Selection***'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Since the dataset has already been pretty much, if not perfectly, cleaned,
+    I only had to do few things for the data cleaning: elimination of duplicated data
+    and removal of outliers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thereafter, given 30 features in the dataset, I decided to run the feature selection
+    to reduce the number of the features by eliminating less important features before
+    the training process. I selected the built-in [***feature importance score***](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectFromModel.html#sklearn.feature_selection.SelectFromModel)of
+    the scikit-learn Random Forest Classifier to estimate the scores of all the 30
+    features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following chart displays the summary of the result. If interested in the
+    detailed process, please visit my code listed above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ce0c2fdd9ede86e0b09d75dea23a6e0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Based on the results displayed in the bar chart above, I made my subjective
+    judgement to select the top 6 features for the analysis and remove all the remaining
+    insignificant features from the model building process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is the selected top 6 important features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69b736742bf84f1f6d3608082ba86018.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the model building purpose going forward, I focused on these 6 selected
+    features. After the data preprocessing, we have the working dataframe, df, of
+    the following shape:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: df.shape = (282513, 7)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hopefully, the feature selection would reduce the complexity of the resulting
+    model and stabilize its performance, while retaining critical information for
+    optimizing a binary classifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Scenario 3:*** Code breakdown of GANs for data augmentation'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, it’s time for us to use GANs for data augmentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***So how many synthetic data do we need to create?***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, our interest for the data augmentation is only for the model training.
+    Since the test dataset is out-of-sample data, we want to preserve the original
+    form of the test dataset. Secondly, because our intention is to transform the
+    imbalanced dataset perfectly, we do not want to augment the majority class of
+    non-fraud cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simply put, we want to augment only the train dataset of the minority fraud
+    class, nothing else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s split the working dataframe into the train dataset and the test dataset
+    in 80/20 ratio, using a stratified data split method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a result, the shape of the train dataset is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: train_df.shape = (226010, 7)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s see the composition (the fraud cases and the non-fraud cases) of the train
+    dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This tells us that the train dataset (226,010) is comprised of 225,632 non-fraud
+    data and 378 fraud data. In other words, the difference between them is 225,254\.
+    This number is the number of the synthetic fraud data (*num_synthetic_samples*)
+    that we need to augment in order to perfectly match the numbers of these two classes
+    within the train dataset: as a reminder, we do preserve the original test dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Next, let’s code GANs.***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, let’s create custom functions to determine the two agents: the discriminator
+    and the generator.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the generator, I create a noise distribution function, *build_generator()*,
+    which requires two parameters: *latent_dim* (the dimension of the noise) as the
+    shape of its input; and the shape of its output, *output_dim*, which corresponds
+    to the number of the features.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the discriminator, I create a custom function *build_discriminator()* that
+    takes *input_dim*, which corresponds to the number of the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, we can call these function to create the generator and the discriminator.
+    Here, for the generator I arbitrarily set *latent_dim* to be 32: you can try other
+    value here, if you like.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: At this stage, we need to compile the discriminator, which is going to be nested
+    in the main (higher) optimization loop later. And we can compile the discriminator
+    with the following argument setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the loss function of the discriminator: the generic cross-entropy loss function
+    for a binary classifier'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the evaluation metrics: precision and recall.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the generator, we will compile it when we construct the main (upper) optimization
+    loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At this stage, we can define the custom objective function for the generator
+    as follows. Remember, the recommended objective was to maximize the following
+    formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1047088989096cf0cee24f1e93409952.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Above, the negative sign is required, since the loss function by default is
+    designed to be minimized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we can construct the main (upper) loop, *build_GANs(generator, discriminator),*
+    of the bi-level optimization architecture. In this main loop, we compile the generator
+    implicitly. In this context, we need to use the custom objective function of the
+    generator, *generator_loss_log_d*, when we compile the main loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As aforementioned, we need to freeze the discriminator when we train the generator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: At the last line above, *gan* calls *build_gan()* in order to implement the
+    batch training below, using [Keras’ model*.train_on_batch()* method](https://keras.io/api/models/model_training_apis/)*.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a reminder, while we train the discriminator, we need to freeze the training
+    of the generator; and while we train the generator, we need to freeze the training
+    of the discriminator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is the batch training code incorporating the alternating training process
+    of these two agents under the bi-level optimization framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, I have a quick question for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below we have an excerpt associated with the generator training from the code
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can you explain what this code is doing?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the first line, *noise* generates the synthetic data. In the second line,
+    *valid_labels* assigns the label of the synthetic data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why do we need to label it with 1, which is supposed to be the label for the
+    real data? Didn’t you find the code counter-intuitive?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ladies and gentlemen, welcome to the world of counterfeiters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the labeling magic that trains the generator to create samples that
+    can fool the discriminator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s use the trained generator to create the synthetic data for the minority
+    fraud class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, the synthetic data is created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next section, we can combine this synthetic fraud data with the original
+    train dataset to make the entire train dataset perfectly balanced. I hope that
+    the perfectly balanced training dataset would improve the performance of the fraud
+    detection classification model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Section 4: Fraud Detection Overview (with and without GANs data augmentation)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Repeatedly, the use of GANs in this project is exclusively for data augmentation,
+    but not for classification.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, we would need the benchmark model as the basis of the comparison
+    in order for us to evaluate the improvement made by the GANs based data augmentation
+    on the performance of the fraud detection model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a binary classifier algorithm, I selected Ensemble Method for building the
+    fraud detection model. As the benchmark scenario, I developed a fraud detection
+    model only with the original imbalanced dataset: thus, without data augmentation.
+    Then, for the second scenario with data augmentation by GANs, I can train the
+    same algorithm with the perfectly balanced train dataset, which contains the synthetic
+    fraud data created by GANs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Benchmark Scenario: Ensemble Classifier without data augmentation'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'GANs Scenario: Ensemble Classifier with data augmentation by GANs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Benchmark Scenario: Ensemble without data augmentation***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, let’s define the benchmark scenario (without data augmentation). I decided
+    to select Ensemble Classifier: voting method as the meta learner with the following
+    3 base learners.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gradient Boosting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Decision Tree
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Random Forest
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Since the original dataset is highly imbalanced, rather than accuracy I shall
+    select evaluation metrics from the following 3 options: precision, recall, and
+    F1-Score.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following custom function, *ensemble_training(X_train, y_train)*, defines
+    the training and validation process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next function block, *ensemble_evaluations(meta_learner, X_train, y_train,
+    X_test, y_test)*, calculates the performance evaluation metrics at the meta learner
+    level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below, let’s look at the performance of the benchmark Ensemble Classifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: At the meta-learner level, the benchmark model generated F1-Score at a reasonable
+    level of 0.8372.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, let’s move on to the scenario with data augmentation using GANs . We want
+    to see if the performance of the scenario with GAN can outperform the benchmark
+    scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***GANs Scenario: Fraud Detection with data augmentation by GANs***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we have constructed a perfectly balanced dataset by combining the original
+    imbalanced train dataset (both non-fraud and fraud cases), *train_df*, and the
+    synthetic fraud dataset generated by GANs, *fake_df*. Here, we will preserve the
+    test dataset as original by not involving it in this process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will train the same ensemble method with the mixed balanced dataset to see
+    if it will outperform the benchmark model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we need to split the mixed balanced dataset into the features and the label.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember, when I ran the benchmark scenario earlier, I already defined the necessary
+    custom function blocks to train and evaluate the ensemble classifier. I can use
+    those custom functions here as well to train the same Ensemble algorithm with
+    the combined balanced data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can pass the features and the label (X_mixed, y_mixed) into the custom Ensemble
+    Classifier function ensemble_training().
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we can evaluate the model with the test dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***Conclusion***'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, we can assess whether the data augmentation by GANs improved the performance
+    of the classifier, as I expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s compare the evaluation metrics between the benchmark scenario and GANs
+    scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is the result from the benchmark scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is the result from GANs scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we review the evaluation results on the training dataset, clearly GANs
+    scenario outperformed the benchmark scenario over all the three evaluation metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nevertheless, when we focus on the results on the out-of-sample test data,
+    GANs scenario outperformed the benchmark scenario only for precision (Benchmark:
+    0.935 vs GANs Scenario: 0.9714): it failed do so for recall and F1-Score (Benchmark:
+    0.7579; 0.8372 vs GANs Scenario: 0.7158; 0.8242).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A higher precision means that the model’s prediction of fraud cases did include
+    less proportion of non-fraud cases than the benchmark scenario.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A lower recall means that the model failed to detect certain varieties of the
+    actual fraud cases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These two comparisons indicate: while the data augmentation by GANs was successful
+    in simulating the realistic fraud data within the training dataset, it has failed
+    to capture the diversity of the actual fraud cases included in the out-of-sample
+    test dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GANs was too good in simulating the particular probability distribution of the
+    train data. Ironically, as a result, the use of GANs as the data augmentation
+    tool, accounting for overfitting to the train data, resulted in a poor generalization
+    of the resulting fraud detection (classification) model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paradoxically, this particular example made a counter-intuitive case that a
+    better sophisticated algorithm might not necessarily guarantee a better performance
+    when compared with simpler conventional algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In addition, we could also take into account of another unintended consequence,
+    wasteful carbon footprint: adding energy demanding algorithms into your model
+    development could increase the carbon footprint in the use of the machine learning
+    in our daily life. This case could illustrate an example of an unnecessarily wasteful
+    case which wasted energy unnecessarily without delivering a better performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here I leave you some links regarding energy consumption of machine learning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://spectrum.ieee.org/ai-energy-consumption](https://spectrum.ieee.org/ai-energy-consumption)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://www.cell.com/joule/fulltext/S2542-4351(23)00365-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2542435123003653%3Fshowall%3Dtrue](https://www.cell.com/joule/fulltext/S2542-4351(23)00365-3?_returnURL=https%3A%2F%2Flinkinghub.elsevier.com%2Fretrieve%2Fpii%2FS2542435123003653%3Fshowall%3Dtrue)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Today, we have many variants of GANs. In the future article, I would like to
+    explore other variants of GANs to see if any variant can capture a wider diversity
+    of the original samples so that it can improve the performance of a fraud detector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Michio Suginoo
+  prefs: []
+  type: TYPE_NORMAL
+- en: REFERENCE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Borji, A. (2018, 10 24). *Pros and Cons of GAN Evaluation Measures.* Retrieved
+    from ArXvi: [https://arxiv.org/abs/1802.03446](https://arxiv.org/abs/1802.03446)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Goodfellow, I. (2015, 5 21). *On distinguishability criteria for estimating
+    generative models.* Retrieved from ArXiv: [https://arxiv.org/abs/1412.6515](https://arxiv.org/abs/1412.6515)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D.,
+    Ozairy, S., . . . Bengioz, Y. (2014, 6 10). *Generative Adversarial Nets.* Retrieved
+    from arXiv: [https://arxiv.org/abs/1406.2661](https://arxiv.org/abs/1406.2661)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Goodfellow, I. J., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D.,
+    Ozairy, S., . . . Bengioz, Y. (2014, 6 10). *Generative Adversarial Networks.*
+    Retrieved from arXiv: [https://arxiv.org/abs/1406.2661](https://arxiv.org/abs/1406.2661)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Knight, W. (2018, 8 17). *Fake America great again.* Retrieved from MIT Technology
+    Review: [https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/](https://www.technologyreview.com/2018/08/17/240305/fake-america-great-again/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Suginoo, M. (2024, 1 13). *Mini-Max Optimization Design of Generative Adversarial
+    Networks (GAN).* Retrieved from Towards Data Science: [https://towardsdatascience.com/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02](/mini-max-optimization-design-of-generative-adversarial-networks-gan-dc1b9ea44a02)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,223 @@
+- en: 'Navigating Slowly Changing Dimensions (SCD) and Data Restatement: A Comprehensive
+    Guide'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/navigating-slowly-changing-dimensions-scd-and-data-reinstatement-a-comprehensive-guide-f8b72ff90d98?source=collection_archive---------10-----------------------#2024-02-05](https://towardsdatascience.com/navigating-slowly-changing-dimensions-scd-and-data-reinstatement-a-comprehensive-guide-f8b72ff90d98?source=collection_archive---------10-----------------------#2024-02-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Strategies for efficiently managing dimension changes and data restatement in
+    enterprise data warehousing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)[![Kirsten
+    Jiayi Pan](../Images/d4f661ae3cb34d5cee9df5f201c72eb9.png)](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------)
+    [Kirsten Jiayi Pan](https://medium.com/@jiayipan999?source=post_page---byline--f8b72ff90d98--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f8b72ff90d98--------------------------------)
+    ·6 min read·Feb 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine this, you are a data engineer working for a large retail company that
+    utilizes the incremental load technique in data warehousing. This technique involves
+    selectively updating or loading only the new or modified data since the last update.
+    What could occur when the product R&D department decides to change the name or
+    description of a current product? How would such updates impact your existing
+    data pipeline and data warehouse? How do you plan to address challenges like these?
+    This article provides a comprehensive guide with solutions, utilizing Slowly Changing
+    Dimensions (SCD), to tackle potential issues during data restatement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8cf9a201f783803ed166244371c6450e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image retrieved from: [https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo](https://unsplash.com/photos/macbook-pro-with-images-of-computer-language-codes-fPkvU7RDmCo)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What are Slowly Changing Dimensions (SCD)?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Slowly changing dimensions refer to infrequent changes in dimension values,
+    which occur sporadically and are not tied to a daily or regular time-based schedule,
+    as dimensions typically change less frequently than transaction entries in a system.
+    For example, a jewelry company that has its customers placing a new order on their
+    website will become a new row in the order fact table. On the other hand, the
+    jewelry company rarely changes their product name and their product description
+    but that doesn’t mean it will never happen in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Managing changes in these dimensions requires employing Slowly Changing Dimension
+    (SCD) management techniques, which are categorized into defined SCD types, ranging
+    from Type 0 through Type 6, including some combination or hybrid types. We can
+    employ one of the following methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 0: Ignore**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Changes to dimension values are completely disregarded, and the values of dimensions
+    remain unchanged from the time they were initially created in the data warehouse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 1: Overwrite/ Replace**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach is applicable when the previous value of the dimension attribute
+    is no longer relevant or important. However, historical tracking of changes is
+    not necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 2: Create a New Dimension Row**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach is recommended as the primary technique for addressing changing
+    dimension values, involving the creation of a second row for the dimension with
+    a start date, end date, and potentially a “current/expired” flag. It is suitable
+    for our scenarios like product description or address changes, ensuring a clear
+    partitioning of history. The new dimension row is linked to newly inserted fact
+    rows, with each dimension record linked to a subset of fact rows based on insertion
+    times — those before the change linked to the old dimension row, and those after
+    linked to the new dimension row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/350d87da883d0c7ade45a6f0154d773b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1 (Image by the author): `PRODUCT_KEY` = “cd3004” is the restatement
+    for PRODUCT_KEY = “cd3002”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 3: Create a “PREV” Column**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method is suitable when both the old and new values are relevant, and users
+    may want to conduct historical analysis using either value. However, it is not
+    practical to apply this technique to all dimension attributes, as it would involve
+    providing two columns for each attribute in dimension tables or more if multiple
+    “PREV” values need preservation. It should be selectively used where appropriate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/527709765e8ebf86e0eaf05a1e502ede.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2 (Image by the author): PRODUCT_KEY = “cd3002” is restated with new
+    PRODUCT_NAME, the old PRODUCT_NAME is stored in NAME_PREV column'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 4: Rapidly Changing Large Dimensions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if in a scenario you need to capture every change to every dimension attribute
+    for a very large dimension of retail, say a million plus customers of your huge
+    jewelry company? Using type 2 above will very quickly explode the number of rows
+    in the customer dimension table to tens or even hundreds of millions of rows and
+    using type 3 is not viable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A more effective solution for rapidly changing and large volume dimension tables
+    is to categorize attributes (*e.g.,* *customer age category, gender, purchasing
+    power, birthday, etc.*) and separate them into a secondary dimension, like a customer
+    profile dimension. This table, acting as a “full coverage” dimension table all
+    potential values for every category of dimension attributes preloaded into the
+    table, which can better manage the granularity of changes while avoiding excessive
+    row expansion in the main customer dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if we have 8 age categories, 3 different genders, 6 purchasing
+    power categories, and 366 possible birthdays. Our “full coverage” dimension table
+    for customer profiles that contains all the above combinations will be **8 x 3
+    x 6 x 366 combinations or 52704 rows**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll need to generate `surrogate_key` for this dimension table and establish
+    a connection to a new foreign key in the fact table. When a modification occurs
+    in one of these dimension categories, there’s no necessity to add another row
+    to the customer dimension. Instead, we generate a new fact row and associate it
+    with both the customer dimension and the new customer profile dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d7f8320657b119068b9947cea29eb0c6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3 (Image by the author): Entity relationship diagram for a “Full Coverage
+    Dimension” table'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 5: An Extension to Type 4**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To enhance the Type 4 approach mentioned earlier, we can establish a connection
+    between the customer dimension and the customer profile dimension. This linkage
+    enables the tracking of the “current” customer profile for a specific customer.
+    The key facilitates the connection of the customer with the latest customer profile,
+    which allows seamless traversal from the customer dimension to the most recent
+    customer profile dimension without the need to link through the fact table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/33d30a8b6305cc405e25e7297253ff69.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4 (Image by the author): Entity relationship diagram shows the linkage
+    between the customer_dim to the cust_profile_dimension'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SCD Type 6: A Hybrid Technique**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this approach, you integrate both Type 2 (new row) and Type 3 (“PREV” column).
+    This blended approach offers the advantages of both methodologies. You can retrieve
+    facts using the “ PREV “ column, which provides historical values and presents
+    facts associated with the product category at that specific time. Simultaneously,
+    querying by the “new” column provides all facts for both the current and all preceding
+    values of the product category.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9bce833cad0b17e0b43c81a02e270751.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5 (Image by the author): PRODUCT_ID = “cd3004” is the restatement for
+    PRODUCT_ID = “cd3002”, which PRODUCT_ID = “cd3001” is marked as “EXPIRED” in LAST_ACTION
+    column'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bonus and Conclusion**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normally, data extraction comes in STAR schema, which includes one fact table
+    and multiple dimension tables in an enterprise. While the dimension tables store
+    all the descriptive data and primary keys, the fact table contains numeric and
+    additive data that references the primary keys of each dimension around it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/25762be7003d77ef85342b9e98f48b7d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 6 (Image by the author): Illustration of Star Schema'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if your marketing sales data extract is provided as a single denormalized
+    table without distinct dimension tables and lacks the primary key for its descriptive
+    data, future updates to product names may pose challenges. Handling such scenarios
+    in your existing pipeline can be more complicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The absence of primary keys in the descriptive data can lead to issues during
+    data restatement, especially when you are dealing with large datasets. For instance,
+    if a product name is updated in the restatement extract without a unique `product_key`,
+    the incremental load pipeline may treat it as a new product, impacting the historical
+    data in your consumption layer. To address this, creating `surrogate_key` for
+    the product dimension and a mapping table to link original and restated product
+    names is necessary for maintaining data integrity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, every aspect of data warehouse design should be carefully considered,
+    taking into account potential edge cases.
+  prefs: []
+  type: TYPE_NORMAL

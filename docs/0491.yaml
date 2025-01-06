@@ -1,0 +1,361 @@
+- en: Evaluations with Chat Formats
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/evaluations-with-chat-formats-7604067023c9?source=collection_archive---------6-----------------------#2024-02-21](https://towardsdatascience.com/evaluations-with-chat-formats-7604067023c9?source=collection_archive---------6-----------------------#2024-02-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Applying chat templates to generative LM evaluation tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)[![Daniel
+    Furman](../Images/f7a1b4c6239ede8bb01e50f167931719.png)](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------)
+    [Daniel Furman](https://medium.com/@daniel_furman?source=post_page---byline--7604067023c9--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7604067023c9--------------------------------)
+    ·7 min read·Feb 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8e714bc5984165c0816edc5f138bd2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Google DeepMind](https://unsplash.com/@googledeepmind) on [Unsplash](https://unsplash.com/photos/a-close-up-of-a-metal-structure-made-of-wood-and-metal-pyET8SQTc0A)
+  prefs: []
+  type: TYPE_NORMAL
+- en: “**Building solid evals should be the starting point** for any LLM-based system
+    or product (as well as conventional machine learning systems).” — Eugene Yan,
+    [link](https://eugeneyan.com/writing/llm-patterns/#how-to-apply-evals)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**tl;dr**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Chat models are typically fine-tuned on datasets formatted with a prompt template.
+    These chat templates are programmed recipes that convert a chat conversation into
+    a single string. At prediction time, it’s standard to match an LLM’s expected
+    chat format — not doing so is oft-noted as causing performance degradations [1].
+    However, do we in fact see these degradations on evaluation benchmarks?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**NB**: This blog post is intended for readers with basic familiarity with
+    Python programming and neural language modeling.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you’ve built on top of OpenAI’s chat API, the following code will be recognizable.
+    Under the hood, this input is transformed into one tokenizable string via the
+    [ChatML](https://github.com/MicrosoftDocs/azure-docs/blob/main/articles/ai-services/openai/includes/chat-markup-language.md#working-with-chat-markup-language-chatml)
+    format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It turns out there’s a wide variety of chat templates across the LLM research
+    community. Take an open-source model like `Mixtral-8x7B-Instruct-v0.1`*.* It’s
+    format looks wildly different from `gpt-3.5-turbo` above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why bother with chat templates? Well, it’s strongly advised to match the expected
+    chat template at prediction time (for instance, see the info on “Instruction format”
+    at the [repo](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1) for
+    `Mixtral-8x7B-Instruct-v0.1`). And, with proprietary chat models like `gpt-3.5-turbo`,
+    chat templates are often applied behind the scenes of an endpoint whether you
+    like it or not!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But how do we know whether chat formatting is indeed improving our performance?
+    Enter LM evals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LM evals
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Evaluations are used to measure an AI/ML model’s performance, and they can
+    take many shapes and sizes. Evals include two core components: a dataset curated
+    for a specific task and associated metric(s) measuring the modeling performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generative LM evals carry some additional nuances. For example, different frameworks
+    measure text generation performance in different ways — even varying for the same
+    eval ([reference](https://huggingface.co/blog/evaluating-mmlu-leaderboard)). When
+    comparing scores across studies, it’s therefore very important to confirm that
+    the results were computed with the same code and config to avoid any errant analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The superb Instruction-Following Evaluation ([IFEval](https://arxiv.org/abs/2311.07911))
+    [2] is used for our testing here. This eval includes 541 prompts that measures
+    a language model’s ability to follow verifiable natural language instructions.
+    Examples of these verifiable instructions include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Write 450 to 500 words”, “your entire output should be in JSON output”, “include
+    a title, and put it into two square brackets such as [[ title ]]”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'For a given response and a verifiable instruction, we examine whether the instruction
+    has been followed or not with the following four metrics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1\. **Prompt-level strict-accuracy**: The percentage of prompts that all verifiable
+    instructions in each prompt are followed.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '2\. **Inst-level strict-accuracy**: The percentage of verifiable instructions
+    that are followed.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '3\. **Prompt-level loose-accuracy**: Prompt-level accuracy computed with the
+    loose criterion.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '4\. **Inst-level loose-accuracy**: Instruction-level accuracy computed with
+    a loose criterion.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The average of these four metrics was computed here (Table 1), primarily to
+    use a single metric that captures the most diverse signal available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: IFEval is an ideal test for exploring the impacts of chat templates, since the
+    test is specifically designed to measure instruction-following capabilities on
+    chat data. Another interesting line of questioning is whether chat templating
+    positively impacts evals that aren’t as well suited for chat data — a topic left
+    for future research.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chat templates for IFEval
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Eleuther.AI’s [lm-eval](https://github.com/EleutherAI/lm-evaluation-harness)
+    is the de facto open-source package for LM evaluation. Since chat templating for
+    more models is an oft-requested addition to the library, it was easy to sync up
+    with other developers wanting to work on this feature in the 🤗 model class specifically.
+    At present, development is underway at the `add-chat-templating` branch ([link](https://github.com/EleutherAI/lm-evaluation-harness/tree/add-chat-templating)),
+    spurred by issues #1098 ([link](https://github.com/EleutherAI/lm-evaluation-harness/issues/1098#issuecomment-1947116099))
+    and #1209 ([link](https://github.com/EleutherAI/lm-evaluation-harness/issues/1209#issuecomment-1879966071)).
+    When using this branch, we can apply chat formats to an eval as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The newly introduced triggers `use_chat_template` and `system_prompt` appear
+    to the right of `model_args` and control how the chat template is applied. In
+    the branch’s current experimental form, the code prints the first prompt before
+    and after applying the chat template. Here’s what that looks like for the above
+    code block:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output has taken on the desired chat template!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We are now ready to A/B test the influence of chat templates on the IFEval.
+    A handful of popular LLMs were selected for our experiment— each with its own
+    unique chat template. On the larger end we have the 70B parameter `Llama-2–70b-chat`,
+    two variants of the same 47B parameter model, `Mixtral-8x7B-Instruct-v0.1` and
+    `Nous-Hermes-2-Mixtral-8x7B-DPO`, as well as the 34B parameter `Nous-Hermes-2-Yi-34B`.
+    On the smaller end we have three 7B parameter models: `Mistral-Instruct-7B-v0.2`,
+    `Zephyr-7b-beta`, and `Starling-LM-7B-alpha`. As for the system prompt, a simple
+    “You are a helpful assistant.” was used for compatible models. More details about
+    each of these seven models are included below [3].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And, without further delay, our results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/89bcb4f71233c0c5252237b46374b882.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Table 1**: Results from the A/B test on IFEval, sorted by model size descending
+    ([link](https://docs.google.com/spreadsheets/d/1Tawz9IHH2B-_XWj-JjeVGmu-og60lgSSpMywrGxcj6Q/edit?usp=sharing)).
+    See the “Additional Notes” section below for more details, such as links to the
+    run logs. As per reproducibility, the experiments were executed with models in
+    half precision bfloat16, a workstation equipped with 2x H100 80 GB SXM5 chips,
+    and a fork of the lm-eval package at hash [0c0c314c0df4c10f35bf7c17dc80f745f8027e9b](https://github.com/EleutherAI/lm-evaluation-harness/tree/0c0c314c0df4c10f35bf7c17dc80f745f8027e9b).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🔥 Chat templates caused serious shakeup to IFEval scoring! `Nous-Hermes-2-Mixtral-8x7B-DPO`
+    clocked in as the most performant model tested here, with an average score of
+    ~63%. In contrast, `Zephyr-7b-beta` was the worst performing model yet had the
+    largest boost from chat templating — a whopping +39%! As a reference, the IFEval
+    paper reported `gpt-4` (Nov 2023) at an average score of ~81% and `PaLM 2S`(Aug
+    2023) at ~51% [2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In sum, these results point to a couple key insights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chat templating has a positive impact on instruction-following for open-source
+    LLMs, the extent to which varies by model.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Open-source LLMs are less equipped at following natural language instructions
+    than SOA proprietary models like `gpt-4`.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Chat templates caused a significant uplift in IFEval scores across the board
+    in our experiment, as proven over a variety of formats and models. However, I
+    don’t necessarily expect these effects to generalize to all LM evals. To further
+    explore the impacts of chat templating on benchmarks, next steps include experimentation
+    with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: more instruction-following evals similar to IFEval
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: general-purpose evals such as those in 🤗’ [Open LLM Leaderboard](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: in-context retrieval evals like “[Needle in a Haystack](https://github.com/Arize-ai/LLMTest_NeedleInAHaystack2)”
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and much, much more!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Zooming out to a thirty thousand foot level, it’s a great time to research LM
+    evals — for one, because stronger LLMs require a new generation of tests to effectively
+    evaluate them. Whether you create your own or build on top of existing ones, researching
+    evals is an impactful way to contribute to the open science community.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Citations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Matthew Carrigan (2023), [Chat Templates: An End to the Silent Performance
+    Killer](https://huggingface.co/blog/chat-templates), Hugging Face.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Zhou et al. (2023), [Instruction-Following Evaluation for Large Language
+    Models](https://arxiv.org/pdf/2311.07911.pdf), arXiv.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Dataset licensing**: The IFEval dataset used herein is publicly available
+    to all without restriction ([Apache-2.0 license](https://github.com/google-research/google-research/tree/master#Apache-2.0-1-ov-file)).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[3] Models used here, from largest to smallest (all permissively licensed for
+    research use).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Llama-2–70b-chat` ([link](http://meta-llama/Llama-2-70b-chat-hf)) — Meta'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Mixtral-8x7B-Instruct-v0.1` ([link](https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1))
+    — Mistral.AI'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Nous-Hermes-2-Mixtral-8x7B-DPO` ([link](https://huggingface.co/NousResearch/Nous-Hermes-2-Mixtral-8x7B-DPO))
+    — Nous-Research'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Nous-Hermes-2-Yi-34B` ([link](http://NousResearch/Nous-Hermes-2-Yi-34B)) —
+    Nous-Research'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Starling-LM-7B-alpha` ([link](https://huggingface.co/berkeley-nest/Starling-LM-7B-alpha))
+    — Berkeley NEST'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Zephyr-7B-beta` ([link](https://huggingface.co/HuggingFaceH4/zephyr-7b-beta))
+    — Hugging Face'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Mistral-7B-Instruct-v0.2` ([link](https://huggingface.co/mistralai/Mistral-7B-Instruct-v0.2))
+    — Mistral.AI'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additional Notes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: See the notebooks [here](https://github.com/daniel-furman/evals-with-chat-formats)
+    for the code used to run the experiments.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To audit the results, see outputs for each run [here](https://github.com/daniel-furman/evals-with-chat-formats/tree/main/assets/IFEval_results)
+    as well as Zeno logs [here](https://hub.zenoml.com/project/79b4684d-0f4e-48f4-b739-ba4e0bd63ee8/IFEval-chat-templating-experiments-run-1)
+    and [here](https://hub.zenoml.com/project/548fcb7a-52cf-4c60-aaf7-13d6b03343fd/IFEval-chat-templating-experiments-run-2)
+    (models were ran in 2 total batches). Note that the Zeno logs don’t yet capture
+    the application of chat templates to the prompts — this is a “to do” item in development
+    backlog.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For compute, RunPod ([link](https://www.runpod.io/)) was used for access to
+    workstations with Nvidia GPU chips — in particular, a cluster with 2x H100 80
+    GB SXM5 chips. In total, the experiment included 14 runs of the IFEval, which
+    accumulated ~6 hrs of cluster uptime.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Confidence intervals were taken to estimate statistical uncertainty in our results
+    (the bootstrap resampling method was used). These 95% confidence intervals ranged
+    from roughly +/- 2.75% to 4.25% — small relative to the measured effects of chat
+    templating.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

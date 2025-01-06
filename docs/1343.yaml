@@ -1,0 +1,342 @@
+- en: AI Model Training with JAX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/ai-model-training-with-jax-6e407a7d2dc8?source=collection_archive---------5-----------------------#2024-05-29](https://towardsdatascience.com/ai-model-training-with-jax-6e407a7d2dc8?source=collection_archive---------5-----------------------#2024-05-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Hit the road to super-fast AI/ML development
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--6e407a7d2dc8--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--6e407a7d2dc8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e407a7d2dc8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6e407a7d2dc8--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--6e407a7d2dc8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e407a7d2dc8--------------------------------)
+    ·10 min read·May 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/daf51b59d88858acc3ee4f29b8c04a88.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Matt Foxx](https://unsplash.com/@foxxmd?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/142d8af6812f5b6fa49f682b50bceed6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: By Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most critical decisions you will need to make in the development
+    of AI models is the choice of a machine learning development framework. Over the
+    years, many libraries have vied for the lucrative title of “AI developer’s framework
+    of choice”. (Remember [Caffe](https://caffe.berkeleyvision.org/) and [Theano](https://github.com/Theano/Theano)?)
+    For several years [TensorFlow](https://www.tensorflow.org/) — with its emphasis
+    on high-performing, graph-based computation — appeared to be the runaway leader
+    (as estimated by the author based on mentions in academic papers and the strength
+    of community support). Roughly around the turn of the decade, [PyTorch](https://pytorch.org/)
+    — with its user-friendly Pythonic interface — seemed to have become the unquestionable
+    queen. However, in recent years a new entrant has quickly grown in popularity
+    and can no longer be ignored. With its sights on the coveted crown, [JAX](https://jax.readthedocs.io/en/latest/quickstart.html)
+    aims to maximize the performance of AI model training and inference without compromising
+    the user experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post we will assess this new framework, demonstrate its use, and share
+    some of our own perspectives on its advantages and drawbacks. Importantly, this
+    post is *not* intended to be a JAX tutorial. To learn about JAX you are kindly
+    referred to the [official documentation](https://jax.readthedocs.io/en/latest/quickstart.html)
+    and the many online tutorials on ML development with JAX (e.g., [here](https://github.com/gordicaleksa/get-started-with-JAX)).
+    Although our focus will be on AI model training, it should be noted that JAX has
+    many additional applications in the AI/ML landscape and beyond. There are several
+    high-level ML libraries built on top of JAX. In this post we will use [Flax](https://flax.readthedocs.io/en/latest/quick_start.html)
+    which, as of the time of this writing appears to be the most popular.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks to [Ohad Klein](https://www.linkedin.com/in/ohad-klein-947aaa187/?originalSubdomain=il)
+    and [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/) for their
+    contributions to this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JAX Under the Hood — XLA Compilation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s get this out in the open straight away: No disrespect to JAX, the real
+    power of JAX comes from its use of [XLA](https://openxla.org/xla) compilation.
+    The phenomenal runtime performance demonstrated with JAX, comes from the HW specific
+    optimizations enabled by XLA. And many of the features and functionalities often
+    associated with JAX, such as just-in-time (JIT) compilation and the “functional
+    programming” paradigm, are actually derived from XLA. In fact, XLA compilation
+    is hardly unique to JAX, with both [TensorFlow](https://www.tensorflow.org/api_docs/python/tf/config/optimizer/set_jit)
+    and [PyTorch](https://pytorch.org/xla/release/2.3/index.html) supporting options
+    for using XLA. However, contrary to other popular frameworks, JAX was designed
+    from the bottom up to use XLA. This allows for tight coupling of the design and
+    implementation of their [JIT](https://jax.readthedocs.io/en/latest/_autosummary/jax.jit.html#jax.jit),
+    automatic differentiation ([grad](https://jax.readthedocs.io/en/latest/_autosummary/jax.grad.html#jax.grad)),
+    vectorization ([vmap](https://jax.readthedocs.io/en/latest/_autosummary/jax.vmap.html#jax.vmap)),
+    parallelization ([pmap](https://jax.readthedocs.io/en/latest/_autosummary/jax.pmap.html)),
+    sharding ([shard_map](https://jax.readthedocs.io/en/latest/notebooks/shard_map.html)),
+    and other features (all of which deserve very much respect), with the underlying
+    XLA library. (For contrast, see [this](https://dev-discuss.pytorch.org/t/functionalization-in-pytorch-everything-you-wanted-to-know/965)
+    interesting post for a history on the “functionalization” of PyTorch.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As discussed in [a previous post on the topic](/how-to-accelerate-your-pytorch-training-with-xla-on-aws-3d599bc8f6a9),
+    the XLA JIT compiler performs a full analysis of the computation graph associated
+    with the model, fuses together the successive tensor operations into single kernels,
+    removes redundant graph components, and outputs machine code that is most optimal
+    for the underlying accelerator. This results in a reduced number of overall machine
+    level operations (FLOPS) per training step, reduced host to accelerator communication
+    overhead (e.g., fewer kernels that need to be loaded into the accelerator), reduced
+    memory footprint, increased utilization of the dedicated accelerator engines,
+    and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to the runtime performance optimization, another important feature
+    of XLA is its pluggable infrastructure which enables extending its support to
+    additional AI accelerators. XLA is a part of the OpenXLA project and is being
+    built in collaboration by multiple actors in the field of ML.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the same time, as detailed in our [previous post](/how-to-accelerate-your-pytorch-training-with-xla-on-aws-3d599bc8f6a9),
+    the reliance on XLA also implies some limitations and potential pitfalls. In particular,
+    many AI models, including ones with dynamic tensor shapes, may not run optimally
+    in XLA. Special care needs to be taken to avoid graph breaks and graph recompilations.
+    You should also consider the implications on the debuggability of your code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JAX In Action — Toy Example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this section we will demonstrate how to train a toy AI model in JAX on a
+    (single) GPU and compare it with PyTorch. Nowadays there are a number of high-level
+    ML development platforms that include backends for multiple ML frameworks. This
+    allows for comparing the performance of JAX with other frameworks. In this section
+    we will use [HuggingFace](https://huggingface.co/)’s [Transformers](https://huggingface.co/docs/transformers/en/index)
+    library, which includes PyTorch and JAX implementations of many common Transformer-backed
+    models. More specifically, we will define a [Vision Transformer](https://huggingface.co/docs/transformers/en/model_doc/vit)
+    (ViT) backed classification model using the [ViTForImageClassification](https://huggingface.co/docs/transformers/v4.41.2/en/model_doc/vit#transformers.ViTForImageClassification)
+    and [FlaxViTForImageClassification](https://huggingface.co/docs/transformers/en/model_doc/vit#transformers.FlaxViTForImageClassification)
+    modules for the PyTorch and JAX implementations, respectively. The code block
+    below contains the model definition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note, that we have chosen to disable the use of [flash attention](https://huggingface.co/docs/text-generation-inference/en/conceptual/flash_attention)
+    due to the fact that this optimization is implemented for the PyTorch model only
+    (as of the time of this writing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since our interest in this post is in runtime performance, we will train our
+    model on a randomly generated dataset. We take advantage of the fact that JAX
+    [supports the use of PyTorch dataloaders](https://jax.readthedocs.io/en/latest/notebooks/Neural_Network_and_Data_Loading.html#data-loading-with-pytorch):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we define our PyTorch and JAX training loops. The JAX training loop relies
+    on a [Flax TrainState](https://flax.readthedocs.io/en/latest/api_reference/flax.training.html#train-state)
+    object and its definition follows the [basic tutorial](https://flax.readthedocs.io/en/latest/quick_start.html#training-step)
+    for training ML models in Flax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now put everything together. In the script below we have included controls
+    for using the graph-based JIT compilation options of PyTorch, using [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
+    and [torch_xla](https://pytorch.org/xla/release/2.3/index.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: An Important Note on Benchmark Comparisons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When analyzing benchmark comparisons, it is of the utmost importance that we
+    be extremely meticulous and critical about how they were conducted. This is especially
+    true in the case of AI model development where a decision made based on inaccurate
+    data could have extremely expensive repercussions. When comparing the runtime
+    performance of training models there are a number of factors that can have a dominating
+    effect on our measurements including floating type precision, matrix multiplication
+    (matmul) precision, data loading methods, the use of flash/fused attention, etc.
+    For example, if the default matmul precision is float32 in PyTorch and tensorfloat32
+    in JAX, we cannot learn much from their performance comparison. These settings
+    can be controlled via APIs such as [jax.default_matmul_precision](https://jax.readthedocs.io/en/latest/_autosummary/jax.default_matmul_precision.html)
+    and [torch.set_float32_matmul_precision](https://pytorch.org/docs/stable/generated/torch.set_float32_matmul_precision.html).
+    In our script we have attempted to isolate these kinds of potential issues, but
+    do not offer any guarantee that we have, in fact, succeeded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We ran our training script on two Google Cloud VMs, a [g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)
+    VM (with a single NVIDIA L4 GPU) and an [a2-highgpu-1g](https://cloud.google.com/compute/docs/gpus#a100-gpus)
+    (with a single NVIDIA A100 GPU) , In each case we used a dedicated [deep learning
+    VM image](https://cloud.google.com/deep-learning-vm/docs/release-notes) (common-cu121-v20240514-ubuntu-2204-py310)
+    with installations of PyTorch (2.3.0), PyTorch/XLA (2.3.0), JAX (0.4.28), Flax
+    (0.8.4), Optax (0.2.2), and [HuggingFace](https://huggingface.co/)’s [Transformers](https://huggingface.co/docs/transformers/en/index)
+    library (4.41.1). Please see the official documentation for appropriate installation
+    of [JAX](https://jax.readthedocs.io/en/latest/installation.html) and [PyTorch/XLA](https://github.com/pytorch/xla?tab=readme-ov-file#python-packages)
+    for GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tables below capture the runtime results of a number of experiments. Please
+    keep in mind that the comparative performance is likely to change drastically
+    based on the model architecture and runtime environment. In addition, it is quite
+    possible that a few small tweaks to the code could also have had a measurable
+    impact on the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/701a8ba50a631a6814a29d74ceebcf5f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results on NVIDIA L4 GPU (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0e1ddbccc2699b93c0a3a6b7fec44d24.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results on NVIDIA A100 GPU (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although JAX appears to have demonstrated far superior performance than its
+    alternatives on an L4 GPU, it came out neck-in-neck with PyTorch/XLA on A100\.
+    This is not surprising given the common XLA backend. Any XLA (HLO) graph generated
+    by JAX should (at least in theory) be achievable by PyTorch/XLA as well. The torch.compile
+    option underwhelmed on both platforms. This is somewhat expected given our choice
+    of full precision floats. As noted in a [previous post](/tips-and-tricks-for-upgrading-to-pytorch-2-3127db1d1f3d),
+    the true value of torch.compile is seen when using [Automatic Mixed Precision
+    (AMP)](https://pytorch.org/docs/stable/amp.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For additional information on the performance comparison between JAX and PyTorch,
+    be sure to check out the more comprehensive benchmark reports compiled by [HuggingFace](https://github.com/huggingface/transformers/tree/main/examples/flax/text-classification#runtime-evaluation),
+    [Google](https://github.com/GoogleCloudPlatform/vertex-ai-samples/blob/main/community-content/vertex_model_garden/benchmarking_reports/jax_vit_benchmarking_report.md),
+    or [MLCommons](https://mlcommons.org/benchmarks/training/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So Why Use JAX?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A commonly stated motivation for training in JAX is the potential runtime performance
+    optimization enabled by JIT compilation. But, given the new (PyTorch/XLA) and
+    even newer (torch.compile) JIT compilation options in PyTorch, this claim could
+    easily be challenged. In fact, considering the huge community of PyTorch developers
+    and the numerous features that are natively supported in PyTorch and not in JAX/FLAX
+    (e.g., [automatic mixed precision](https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html),
+    [advanced attention layers](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html#beta-implementing-high-performance-transformers-with-scaled-dot-product-attention-sdpa),
+    as of the time of this writing), one could make a strong argument *not* to take
+    the time to learn JAX. However, it is our opinion that modern-day AI development
+    teams must acquaint themselves with JAX and the opportunities that it offers.
+    This is especially true for teams that are (like us) obsessive about utilizing
+    the very latest and greatest available model training methodologies. On top of
+    the potential performance benefits, here are some additional motivating factors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designed for XLA
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Contrary to PyTorch which underwent after-the-fact “functionalization” in the
+    form of PyTorch/XLA, JAX was designed for XLA from the ground up. This implies
+    that certain sequences that may appear difficult or messy in PyTorch/XLA can be
+    done elegantly in JAX. A good example of this is mixing between JIT and non-JIT
+    functions in your training sequence — totally straightforward in JAX but may require
+    some creativity in PyTorch/XLA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As noted above, PyTorch/XLA and TensorFlow could — in theory — generate an XLA
+    (HLO) graph that is identical to the one created by JAX (and therefore be equally
+    performant). However, in practice the quality of the resulting graph will come
+    down to the manner in which the framework-level implementation is translated into
+    XLA. A more optimal translation will ultimately result in better runtime performance.
+    Given its nativity to XLA, JAX could have the advantage over other frameworks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Support for XLA Devices
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The XLA-friendliness of JAX makes it especially compelling to developers of
+    dedicated-AI accelerators, such as the [Google Cloud TPU](https://lightning.ai/docs/pytorch/stable/accelerators/tpu.html),
+    [Intel](https://developer.habana.ai/) [Gaudi](https://developer.habana.ai/), and
+    [AWS Trainium](https://aws.amazon.com/machine-learning/trainium/) chips, which
+    are often exposed as “XLA devices”. Teams that train on TPU, in particular, are
+    likely to find the support ecosystem for JAX to be more advanced than for PyTorch/XLA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advanced Features
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In recent years, there have been a number of advanced training features that
+    have been released in JAX well before its counterparts. [SPMD](https://jax.readthedocs.io/en/latest/sharded-computation.html),
+    for example, an advanced technique for device parallelism offering state-of-the-art
+    model sharding opportunities, was introduced in JAX a couple of years ago and
+    is only recently being carried over to [PyTorch](https://pytorch.org/blog/pytorch-xla-spmd/).
+    Another example is [Pallas](https://jax.readthedocs.io/en/latest/pallas/index.html)
+    which (at long last) enables building custom kernels for XLA devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open Source Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As a consequence of the increasing popularity of the JAX framework, more and
+    more open-source AI models are being released in JAX. Some classic examples of
+    this are Google’s open-sourced [MaxText](https://github.com/google/maxtext/) (LLM)
+    and [AlphaFold v2](https://github.com/google-deepmind/alphafold) (protein-structure
+    prediction) models. To take full advantage of such models, you will need to either
+    learn JAX, or undertake the non-trivial task of porting it to another language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is our strong belief that these considerations warrant the inclusion of JAX
+    in any ML development toolkit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we have explored the up-and-coming JAX ML development framework.
+    We described its reliance on the XLA compiler and demonstrated its use in a toy
+    example. Although often noted for its speedy runtime execution, the PyTorch JIT
+    compilation APIs ([torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
+    and [PyTorch/XLA](https://pytorch.org/xla/release/2.3/index.html)) support similar
+    potential for performance optimization. The relative performance of each option
+    will depend greatly on the details of the model and the runtime environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, each ML development framework option might have unique features,
+    (such as SPMD auto-sharding in JAX and SDPA attention in PyTorch — as of the time
+    of this writing) that can have a decisive impact on the comparative runtime performance.
+    Thus, the best choice of framework may depend on the degree to which your model
+    can benefit from these features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, as we have emphasized in many of our [previous posts](https://chaimrand.medium.com/),
+    staying relevant in the constantly evolving landscape of ML development requires
+    us to stay abreast of the most up-to-date tools and techniques, including the
+    JAX ML development framework.
+  prefs: []
+  type: TYPE_NORMAL

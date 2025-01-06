@@ -1,0 +1,644 @@
+- en: A Simple Example Using PCA for Outlier Detection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-simple-example-using-pca-for-outlier-detection-ab2773b98e4a?source=collection_archive---------0-----------------------#2024-11-02](https://towardsdatascience.com/a-simple-example-using-pca-for-outlier-detection-ab2773b98e4a?source=collection_archive---------0-----------------------#2024-11-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Improve accuracy, speed, and memory usage by performing PCA transformation before
+    outlier detection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@wkennedy934?source=post_page---byline--ab2773b98e4a--------------------------------)[![W
+    Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--ab2773b98e4a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ab2773b98e4a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ab2773b98e4a--------------------------------)
+    [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--ab2773b98e4a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ab2773b98e4a--------------------------------)
+    ·19 min read·Nov 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This article continues a series related to applications of PCA (principal component
+    analysis) for outlier detection, following [An Introduction to PCA for Outlier
+    Detection](https://medium.com/towards-data-science/using-pca-for-outlier-detection-afecab4d2b78).
+    That article described PCA itself, and introduced the two main ways we can use
+    PCA for outlier detection: evaluating the reconstruction error, and running standard
+    outlier detectors on the PCA-transformed space. It also gave an example of the
+    first approach, using reconstruction error, which is straightforward to do using
+    the PCA and KPCA detectors provided by [PyOD](https://github.com/yzhao062/pyod).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article covers the second approach, where we first transform the data space
+    using PCA and then run standard outlier detection on this. As covered in the previous
+    article, this can in some cases lower interpretability, but it does have some
+    surprising benefits in terms of accuracy, execution time, and memory usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is also part of a larger series on outlier detection, so far covering
+    [FPOF](/interpretable-outlier-detection-frequent-patterns-outlier-factor-fpof-0d9cbf51b17a),
+    [Counts Outlier Detector](/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a),
+    [Distance Metric Learning](/distance-metric-learning-for-outlier-detection-5b4840d01246),
+    [Shared Nearest Neighbors](/shared-nearest-neighbors-a-more-robust-distance-metric-064d7f99ffb7),
+    and [Doping](/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4). This
+    article also includes an excerpt from my book [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re reasonably familiar with PCA itself (as it’s used for dimensionality
+    reduction or visualization), you can probably skip the previous article if you
+    wish, and dive straight into this one. I will, though, very quickly review the
+    main idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PCA is a means to transform data (viewing data records as points in high-dimensional
+    space) from one set of coordinates to another. If we start with a dataset (as
+    shown below in the left pane), with 100 records and two features, then we can
+    view the data as 100 points in 2-dimensional space. With more realistic data,
+    we would have many more records and many more dimensions, but the same idea holds.
+    Using PCA, we move the data to a new set of coordinates, so effectively create
+    a new set of features describing each record. As described in the previous article,
+    this is done by identifying orthogonal lines through the data (shown in the left
+    pane as the blue and orange lines) that fit the data well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, if we start with a dataset, such as is shown in the left pane below, we
+    can apply PCA transformation to transform the data into something like is shown
+    in the right pane. In the right pane, we show the two PCA components the data
+    was mapped to. The components are simply named 0 and 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69421afe0afc9c2b38d05f22f8393014.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Left pane: 100 data points in a dataset with two features. The blue and orange
+    lines show orthogonal lines that may be drawn through the data to capture the
+    location of the points well. These are used to determine the PCA transformation.
+    Right pane: the same data after PCA transformation. We have the same 100 data
+    points, but two new coordinates, called Component 0 and Component 1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing to note about PCA components is that they are completely uncorrelated.
+    This is a result of how they are constructed; they are based on lines, planes,
+    or hyperplanes through the original data that are all strictly orthogonal to each
+    other. We can see in the right pane, there is no relationship between component
+    0 and component 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This has strong implications for outlier detection; in particular it means that
+    outliers tend to be transformed into extreme values in one or more of the components,
+    and so are easier to detect. It also means that more sophisticated outlier tests
+    (that test for unusual associations among the features) are not necessary, and
+    simpler tests can be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Univariate and Multivariate outer detectors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before looking closer at the benefits of PCA for for outlier detection, I’ll
+    quickly go over two types of outlier detectors. There are many ways to classify
+    outlier detection algorithms, but one useful way is to distinguish between what
+    are called *univariate* from *multivariate tests*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Univariate Tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The term *univariate* refers to tests that just check one feature — tests that
+    identify the rare or extreme values in that one feature. Examples are tests based
+    on z-score, interquartile range (IQR), inter-decile range (IDR), median absolute
+    deviation (MAD), histogram tests, KDE tests, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One histogram-based test provided by [PyOD](https://github.com/yzhao062/pyod)
+    (PyOD is probably the most complete and useful tool for outlier detection on tabular
+    data available in Python today) is HBOS (Histogram-based Outlier Score — described
+    in my Medium article on [Counts Outlier Detector](https://medium.com/towards-data-science/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a),
+    and in detail in [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As covered in [Introducing PCA for Outlier Detection](https://medium.com/towards-data-science/using-pca-for-outlier-detection-afecab4d2b78),
+    another univariate test provided by PyOD is [ECOD](https://pyod.readthedocs.io/en/latest/pyod.models.html#module-pyod.models.ecod).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To describe univariate tests, we look at an example of outlier detection for
+    a specific real-world dataset. The following table is a subset of the [baseball](https://www.openml.org/search?type=data&sort=version&status=any&order=asc&exact_name=baseball&id=185)
+    dataset from OpenML (available with a public license), here showing just three
+    rows and five columns (there are several more features in the full dataset). Each
+    row represents one player, with statistics for each, including the number of seasons
+    they played, number of games, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e916e7a6f4ce367cdd789279488994c4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Subset of the baseball dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: To identify unusual players, we can look for those records with unusual single
+    values (for example, players that played in unusually many seasons, had unusually
+    many At bats, and so on). These would be found with univariate tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, using z-score tests to find unusual records, we would actually
+    perform a z-score test on each column, one at a time. We’d first check the Number
+    seasons column (assessing how unusual each value in the column is relative to
+    that column), then the Games played column and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When checking, for example, the Number seasons column, using a z-score test,
+    we would first determine the mean and standard deviation of the column. (Other
+    tests may determine the median and interquartile range for the column, histogram
+    bin counts, etc.).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We would then determine the absolute z-score for each value in the Number seasons
+    column: the number of standard deviations each value is from the mean. The larger
+    the z-score, the more unusual the value. Any values with an absolute z-score over
+    about 4.0 or 5.0 can likely be considered anomalous, though this depends on the
+    size of the data and the distribution.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’d then repeat this for each other column. Once this is done, we have, for
+    each row, a score for how unusual each value in the row is relative to their columns.
+    So, each row would have a set of scores: one score for each value in that row.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then need to determine an overall outlier score for each record. There are
+    different ways to do this, and some nuances associated with each, but two simple
+    methods are to take the average z-score of the values per row, or to take the
+    maximum z-score per row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multivariate Tests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Multivariate* tests consider multiple features at once. In fact, almost all
+    multivariate outlier detectors consider all features at once.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The majority of outlier detectors (including Isolation Forest, Local Outlier
+    Factor (LOF), KNN, and so on) are based on multivariate tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The advantage of these detectors is, we can look for records with unusual combinations
+    of values. For example, some players may have a typical number of Runs and a typical
+    number of At bats, but may have unusually many (or possibly unusually few) Runs
+    given their number of At bats. These would be found with multivariate tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the scatter plot above (considering the original data in the left pane),
+    Point A is extreme in both dimensions, so could be detected by a univariate test.
+    In fact, a univariate test on Feature A would likely flag Point A, and a univariate
+    test on Feature B would likely as well, and so Point A, being anomalous in both
+    features, would be scored highly using univariate tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Point B, though, is typical in both dimensions. Only the combination of values
+    is unusual, and to detect this as an anomaly, we would require a multivariate
+    test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normally, when performing outlier detection on tabular data, we’re looking for
+    unusual rows, as opposed to unusual single values. And, unusual rows will include
+    both those rows with unusual single values, as well as unusual combinations of
+    values. So, both univariate and multivariate tests are typically useful. However,
+    multivariate tests will catch both univariate and multivariate outliers (in the
+    scatter plot, a multivariate test such as Isolation Forest, LOF, or KNN would
+    generally catch both Point A and Point B), and so in practice, multivariate tests
+    tend to be used more often.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless, in outlier detection do we quite often limit analysis to univariate
+    tests. Univariate tests are faster — often much faster (which can be very important
+    in real-time environments, or environments where there are very large volumes
+    of data to assess). Univariate tests also tend to be more interpretable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And they don’t suffer from the curse of dimensionality. This is covered in [Counts
+    Outlier Detector](/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a),
+    [Shared Nearest Neighbors](/shared-nearest-neighbors-a-more-robust-distance-metric-064d7f99ffb7),
+    and [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python),
+    but the general idea is that multivariate tests can break down when working with
+    too many features. This is for a number of reasons, but an important one is that
+    distance calculations (which many outlier detectors, including LOF and KNN, rely
+    on) can become meaningless given enough dimensions. Often working with just 20
+    or more features, and very often with about 50 or more, outlier scores can become
+    unreliable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Univariate tests scale to higher dimensions much better than multivariate tests,
+    as they do not rely on distance calculations between the rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And so, there are some major advantages to using univariate tests. But, also
+    some major disadvantages: these miss outliers that relate to unusual combinations
+    of values, and so can detect only a portion of the relevant outliers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Univariate tests on PCA components
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So, in most contexts, it’s useful (and more common) to run multivariate tests.
+    But, they are slower, less interpretable, and more susceptible to the curse of
+    dimensionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An interesting effect of PCA transformation is that univariate tests become
+    much more practical. Once PCA transformation is done, there are no associations
+    between the features, and so there is no concept of unusual combinations of values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the scatter plot above (right pane — after the PCA transformation), we can
+    see that Points A and B can both be identified simply as extreme values. Point
+    A is extreme in Component 0; Point B is extreme in Component 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which means, we can perform outlier detection effectively using simple statistical
+    tests, such as z-score, IQR, IDR or MAD tests, or using simple tools such as HBOS
+    and ECOD.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having said that, it’s also possible, after transforming the dataspace using
+    PCA, to still use standard multivariate tests such as Isolation Forest, LOF, or
+    any other standard tools. If these are the tools we most commonly use, there is
+    a convenience to continuing to use them, and to simply first transform the data
+    using PCA as a pre-processing step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One advantage they provide over statistical methods (such as z-score, etc.)
+    is that they automatically provide a single outlier score for each record. If
+    we use z-score tests on each record, and the data has, say, 20 features and we
+    convert this to 10 components (it’s possible to not use all components, as described
+    below), then each record will have 10 outlier scores — one related to how unusual
+    it is in each of the 10 components used. It’s then necessary to combine these
+    scores into a single outlier score. As indicated above, there are simple ways
+    to do this (including taking the mean, median, or maximum z-score for each value
+    per row), but there are some complications doing this (as covered in [Outlier
+    Detection in Python](https://www.manning.com/books/outlier-detection-in-python)).
+    This is quite manageable, but having a detector provide a single score is convenient
+    as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example of outlier detection with PCA
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ll now look at an example using PCA to help better identify outliers in a
+    dataset. To make it easier to see how outlier detection works with PCA, for this
+    example we’ll create two quite straightforward synthetic datasets. We’ll create
+    both with 100,000 rows and 10 features. And we add some known outliers, somewhat
+    similar to Points A and B in the scatter plot above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We limit the datasets to ten features for simplicity, but as suggested above
+    and in the previous article, there can be strong benefits to using PCA in high-dimensional
+    space, and so (though it’s not covered in this example), more of an advantage
+    to using PCA with, say, hundreds of features, than ten. The datasets used here,
+    though, are reasonably easy to work with and to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first dataset, data_corr, is created to have strong associations (correlations)
+    between the features. We update the last row to contain some large (but not exceptionally
+    large) values. The main thing is that this row deviates from the normal patterns
+    between the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We create another test dataset called data_extreme, which has no associations
+    between the features. The last row of this is modified to contain extreme values
+    in some features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows us to test with two well-understood data distributions as well as
+    well-understood outlier types (we have one outlier in data_corr that ignores the
+    normal correlations between the features; and we have one outlier in data_extreme
+    that has extreme values in some features).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This example uses several PyOD detectors, which requires first executing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code then starts with creating the first test dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now have the first test dataset, data_corr. When creating this, we set each
+    feature to be the sum of the previous features plus some randomness, so all features
+    are well-correlated. The last row is deliberately set as an outlier. The values
+    are large, though not outside of the existing data. The values in the known outlier,
+    though, do not follow the normal patterns between the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then calculate the PCA transformation of this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We next do this for the other test dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here each feature is created independently, so there are no associations between
+    the features. Each feature simply follows a uniform distribution. The last row
+    is set as an outlier, having extreme values in features 2, 4, 6, and 8, so in
+    four of the ten features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now have both test datasets. We next define a function that, given a dataset
+    and a detector, will train the detector on the full dataset as well as predict
+    on the same data (so will identify the outliers in a single dataset), timing both
+    operations. For the ECOD (empirical cumulative distribution) detector, we add
+    special handling to create a new instance so as not to maintain a memory from
+    previous executions (this is not necessary with the other detectors):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next function defined executes for each dataset, calling the previous method
+    for each. Here we test four cases: using the original data, using the PCA-transformed
+    data, using the first 3 components of the PCA-transformed data, and using the
+    last 3 components. This will tell us how these four cases compare in terms of
+    time and accuracy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: As described below, using just the last three components works well here in
+    terms of accuracy, but in other cases, using the early components (or the middle
+    components) can work well. This is included here as an example, but the remainder
+    of the article will focus just on the option of using the last three components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The final function defined is called for each dataset. It executes the previous
+    function for each detector tested here. For this example, we use six detectors,
+    each from PyOD (Isolation Forest, LOF, ECOD, HBOS, Gaussian Mixture Models (GMM),
+    and Angle-based Outlier Detector (ABOD)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We finally call the evaluate_dataset() method for both test datasets and print
+    out the top outliers (the known outliers are known to be in the last rows of the
+    two test datasets):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: There are several interesting results. We look first at the fit times for the
+    data_corr dataset, shown in table below (the fit and predict times for the other
+    test set were similar, so not shown here). The tests were conducted on Google
+    colab, with the times shown in seconds. We see that different detectors have quite
+    different times. ABOD is significantly slower than the others, and HBOS considerably
+    faster. The other univariate detector included here, ECOD, is also very fast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The times to fit the PCA-transformed data are about the same as the original
+    data, which makes sense given this data is the same size: we converted the 10
+    features to 10 components, which are equivalent, in terms of time, to process.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also test using only the last three PCA components (components 7, 8, and
+    9), and the fit times are drastically reduced in some cases, particularly for
+    local outlier factor (LOF). Compared to using all 10 original features (19.4s),
+    or using all 10 PCA components (16.9s), using 3 components required only 1.4s.
+    In all cases as well, other than Isolation Forest, there is a notable drop in
+    fit time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f791b1b6c8550f23b69b04cba6b1425e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fit times for 6 PyOD detectors on the first test dataset, data_corr.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next table, we see the predict times for the data_corr dataset (the times
+    for the other test set were similar here as well). Again, we see a very sizable
+    drop in prediction times using just three components, especially for LOF. We also
+    see again that the two univariate detectors, HBOS and ECOD were among the fastest,
+    though GMM is as fast or faster in the case of prediction (though slightly slower
+    in terms of fit time).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With Isolation Forest (IF), as we train the same number of trees regardless
+    of the number of features, and pass all records to be evaluated through the same
+    set of trees, the times are unaffected by the number of features. For all other
+    detectors shown here, however, the number of features is very relevant: all others
+    show a significant drop in predict time when using 3 components compared to all
+    10 original features or all 10 components.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71090f8118234923ebff0b322089a10f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Predict times for 6 PyOD detectors on the first dataset, data_corr
+  prefs: []
+  type: TYPE_NORMAL
+- en: In terms of accuracy, all five detectors performed well on the two datasets
+    most of the time, in terms of assigning the highest outlier score to the last
+    row, which, for both test datasets, is the one known outlier. The results are
+    shown in the next table. There are two rows, one for each dataset. For each, we
+    show the rank assigned by each detector to the one known outlier. Ideally, all
+    detectors would assign this rank 1 (the highest outlier score).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In most cases, the last row was, in fact, given the highest or nearly highest
+    rank, with the exception of IF, ECOD, and HBOS on the first dataset. This is a
+    good example where even strong detectors such as IF can occasionally do poorly
+    even for clear outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/23d2232bbf72b0e91ad348856dc06b57.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Rank assigned to the one known outlier in both test datasets using 6 PyOD detectors
+    when executed on the original data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the first dataset, ECOD and HBOS completely miss the outlier, but this is
+    as expected, as it is an outlier based on a combination of values (it ignores
+    the normal linear relationship among the features), which univariate tests are
+    unable to detect. The second dataset’s outlier is based on extreme values, which
+    both univariate and multivariate tests are typically able to detect reliably,
+    and can do so here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We see a drastic improvement in accuracy when using PCA for these datasets and
+    these detectors, shown in the next table. This is not always the case, but it
+    does hold true here. When the detectors execute on the PCA-transformed data, all
+    6 detectors rank the known outlier the highest on both datasets. When data is
+    PCA-transformed, the components are all unassociated with each other; the outliers
+    are the extreme values, which are much easier to identify.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f96745007f69c81ad2309ad048438f51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Rank assigned to the one known outlier in both test datasets using 6 PyOD detectors
+    when executed on the PCA-transformed data, using all 10 components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also interesting is that only the last three components are necessary to rank
+    the known outliers as the top outliers, shown in the table here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f96745007f69c81ad2309ad048438f51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Similar to the previous table, but using only 3 PCA components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And, as we saw above, fit and predict times are substantially shorter in these
+    cases. This is where we can achieve significant performance improvements using
+    PCA: it’s often necessary to use only a small number of the components.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using only a small set of components will also reduce memory requirements. This
+    is not always an issue, but often when working with large datasets, this can be
+    an important consideration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This experiment covered two of the main types of outliers we can have with
+    data: extreme values and values that deviate from a linear pattern, both of which
+    are identifiable in the later components. In these cases, using the last three
+    components worked well.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can vary how many components to use, and which components are best to use,
+    and some experimentation will be needed (likely best discovered using [doped data](https://medium.com/towards-data-science/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4)).
+    In some cases, it may be preferable (in terms of execution time, detecting the
+    relevant outliers reliably, and reducing noise) to use the earlier components,
+    in some cases the middle, and in some cases the later. As we can see in the scatter
+    plot at the beginning of this article, different components can tend to highlight
+    different types of outlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Improving the outlier detection system over time
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Another useful benefit of working with PCA components is that it can make it
+    easier to tune the outlier detection system over time. Often with outlier detection,
+    the system is run not just once on a single dataset, but on an ongoing basis,
+    so constantly assessing new data as it arrives (for example, new financial transactions,
+    sensor readings, web site logs, network logs, etc.), and over time we gain a better
+    sense of what outliers are most relevant to us, and which are being under- and
+    over-reported.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the outliers reported when working with PCA-transformed data all relate to
+    a single component, we can see how many relevant and irrelevant outliers being
+    reported are associated with each component. This can be particularly easy when
+    using simple univariate tests on each component, like z-score, IQR, IDR, MAD-based
+    tests, and similar tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over time, we can learn to weight outliers associated with some components more
+    highly and other components lower (depending on our tolerance for false positive
+    and false negatives).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Dimensionality reduction also has some advantages in that it can help visualize
+    the outliers, particularly where we reduce the data to two or three dimensions.
+    Though, as with the original features, even where there are more than three dimensions,
+    we can view the PCA components one at a time in the form of histograms, or two
+    at a time in scatter plots.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, inspecting the last two components of the first test dataset, data_corr
+    (which contained unusual combinations of values) we can see the known outlier
+    clearly, as shown below. However, it’s somewhat questionable how informative this
+    is, as the components themselves are difficult to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a7e1089037dfa55b4e0f7ee2e89532ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Scatterplot of the last two components (components 8 and 9) of the PCA transformation
+    of the first dataset, which contained an unusual combination of values. Here we
+    see a single point in the top-right of the space. It is clear that the point is
+    a strong outlier, though it is not as clear what components 8 and 9 represent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article covered PCA, but there are other dimensionality reduction tools
+    that can be similarly used, including t-SNE (as with PCA, this is provided in
+    scikit-learn), [UMAP](https://github.com/lmcinnes/umap), and auto-encoders (also
+    covered in [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As well, using PCA, methods based on reconstruction error (measuring how well
+    the values of a record can be approximated using only a subset of the components)
+    can be very effective and is often worth investigating, as covered in the [previous
+    article](https://medium.com/towards-data-science/using-pca-for-outlier-detection-afecab4d2b78)
+    in this series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article covered using standard outlier detectors (though, as demonstrated,
+    this can more readily include simple univariate outlier detectors than is normally
+    possible) for outlier detection, showing the benefits of first transforming the
+    data using PCA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How well this process will work depends on the data (for example, PCA relies
+    on there being strong linear relationships between the features, and can breakdown
+    if the data is heavily clustered) and the types of outliers you’re interested
+    in finding. It’s usually necessary to use [doping](https://medium.com/towards-data-science/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4)
+    or other forms of testing to determine how well this works, and to tune the process
+    — particularly determining which components are used. Where there are no constraints
+    related to execution time or memory limits though, it can be a good starting point
+    to simply use all components and weight them equally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As well, in outlier detection, usually no single outlier detection process will
+    reliably identify all the types of outliers you’re interested in (especially where
+    you’re interested in finding all records that can be reasonably considered statistically
+    unusual in one way or another), and so multiple outlier detection methods generally
+    need to be used. Combining PCA-based outlier detection with other methods can
+    cover a wider range of outliers than can be detected using just PCA-based methods,
+    or just methods without PCA transformations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, where PCA-based methods work well, they can often provide more accurate
+    detection, as the outliers are often better separated and easier to detect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PCA-based methods can also execute more quickly (particularly where they’re
+    sufficient and do not need to be combined with other methods), because: 1) simpler
+    (and faster) detectors such as z-score, IQR, HBOS and ECOD can be used; and 2)
+    fewer components may be used. The PCA transformations themselves are generally
+    extremely fast, with times almost negligible compared to fitting or executing
+    outlier detection.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using PCA, at least where only a subset of the components are necessary, can
+    also reduce memory requirements, which can be an issue when working with particularly
+    large datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images by author
+  prefs: []
+  type: TYPE_NORMAL

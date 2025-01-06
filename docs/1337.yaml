@@ -1,0 +1,358 @@
+- en: 'Streamlining E-commerce: Leveraging Entity Resolution for Product Matching'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/streamlining-e-commerce-leveraging-entity-resolution-for-product-matching-6a507fd5e925?source=collection_archive---------12-----------------------#2024-05-28](https://towardsdatascience.com/streamlining-e-commerce-leveraging-entity-resolution-for-product-matching-6a507fd5e925?source=collection_archive---------12-----------------------#2024-05-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How Google figures out the price of a product across websites
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vjoshi345?source=post_page---byline--6a507fd5e925--------------------------------)[![Varun
+    Joshi](../Images/e71683e268bdd7145555ef9b7d1df404.png)](https://medium.com/@vjoshi345?source=post_page---byline--6a507fd5e925--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a507fd5e925--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a507fd5e925--------------------------------)
+    [Varun Joshi](https://medium.com/@vjoshi345?source=post_page---byline--6a507fd5e925--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a507fd5e925--------------------------------)
+    ·9 min read·May 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Written by* [*Varun Joshi*](https://medium.com/u/73aa01507754?source=post_page---user_mention--6a507fd5e925--------------------------------)
+    *and* [*Gauri Kamat*](https://medium.com/u/59894ece9ffd?source=post_page---user_mention--6a507fd5e925--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/82913d1dabcf38fd01f9f1f58151f133.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from Google Shopping for query “red polo ralph lauren”
+  prefs: []
+  type: TYPE_NORMAL
+- en: As e-commerce continues to dominate the retail space, the challenge of accurately
+    matching products across platforms and databases grows more complex. In this article,
+    we demonstrate that product matching can simply be an instance of the wider statistical
+    framework of entity resolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Product matching (PM) refers to the problem of figuring out if two separate
+    listings actually refer to the same product. There are a variety of situations
+    where this is important. For example, consider the use-cases below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the rapid expansion of online marketplaces, e-commerce platforms (e.g.,
+    Amazon) have thousands of sellers offering their products, and new sellers are
+    regularly on-boarded to the platform. Moreover, these sellers potentially add
+    thousands of new products to the platform every day [1]. However, the same product
+    might already be available on the website from other sellers. Product matching
+    is required to group these different offers into a single listing so that customers
+    can have a clear view of the different offers available for a product
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In e-commerce marketplaces, sellers can also create duplicate listings to acquire
+    more real estate on the search page. In other words, they can list the same product
+    multiple times (with slight variation in title, description, etc.) to increase
+    the probability that their product will be seen by the customer. To improve customer
+    experience, product matching is required to detect and remove such duplicate listings
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Another important use case is competitor analysis. To set competitive prices
+    and make decisions on the inventory, e-commerce companies need to be aware of
+    the offers for the same product across their competition.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Finally, price comparison services e.g., Google shopping [2], need product matching
+    to figure out the price for a product across different platforms.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In this article, we show how the Entity Resolution (ER) framework helps us solve
+    the PM problem. Specifically, we describe a framework widely used in ER, and demonstrate
+    its application on a synthetic PM dataset. We begin by providing relevant background
+    on ER.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is entity resolution?**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Entity Resolution (ER) is a technique that identifies duplicate entities either
+    within, or across data sources. ER within the same database is commonly called
+    *deduplication*, while ER across multiple databases is called *record linkage*.
+    When unique identifiers (like social security numbers) are available, ER is a
+    fairly easy task. However, such identifiers are typically unavailable for reasons
+    owing to data privacy. In these cases, ER becomes considerably more complex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why does ER matter? ER can help augment existing databases with data from additional
+    sources. This allows users to perform new analyses, without the added cost of
+    collecting more data. ER has found applications across multiple domains, including
+    e-commerce, human rights research, and healthcare. A [recent application](https://www.demographic-research.org/articles/volume/41/27)
+    involves counting casualties in the El Salvadoran civil war, by applying ER to
+    retrospective mortality surveys. Another [interesting application](https://www.tandfonline.com/doi/full/10.1080/00031305.2023.2191664)
+    is deduplicating inventor names in a patents database maintained by the U.S. Patents
+    and Trademarks Office.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deterministic and Probabilistic ER**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Deterministic ER methods rely on exact agreement on all attributes of any record
+    pair. For instance, suppose that we have two files A and B. Say we are comparing
+    record *a* from file A and *b* from file B. Further, suppose that the comparison
+    is based on two attributes: product type (for e.g., clothing, electronics) and
+    manufacturing year. A deterministic rule declares (*a, b*) to be a link, if product
+    typeᵃ = product typeᵇ and yearᵃ= yearᵇ. This is workable, as long as all attributes
+    are categorical. If we have a textual attribute like product name, then deterministic
+    linking may produce errors. For example, if nameᵃ = “Sony TV 4” and nameᵇ = “Sony
+    TV4”, then (*a,b*) will be declared a non-link, even though the two names only
+    differ by a space.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What we then need is something that takes into account partial levels of agreement.
+    This is where probabilistic ER can be used. In probabilistic ER, every pair (*a,b*)
+    is assigned a probability of being a link, based on (1) how many attributes agree;
+    and (2) how well they agree. For example, if product typeᵃ = product typeᵇ, yearᵃ=
+    yearᵇ, and nameᵃ and nameᵇ are fairly close, then (*a,b*) will be assigned a high
+    probability of being a link. If product typeᵃ = product typeᵇ, yearᵃ= yearᵇ, but
+    nameᵃ and nameᵇ are poles apart (e.g. “AirPods” and “Sony TV4”), then this probability
+    will be much lower. For textual attributes, probabilistic ER relies on [string
+    distance metrics](https://isr.unm.edu/reports/2019/assessing-record-linkage-matches-using-string-distance-measures.pdf),
+    such as the *Jaro-Winkler* and the *Levenshtein* distances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Fellegi-Sunter model**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Fellegi-Sunter model [3] provides a probabilistic framework, allowing analysts
+    to quantify the likelihood of a match between records, based on the similarity
+    of their attributes. The model operates by calculating a match weight for each
+    record pair from both files. This weight reflects the degree of agreement between
+    their respective attributes. For a given record-pair the match weight is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74afb244d1449d4bf4ef9ed87a7fe226.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: match weight for a record pair
+  prefs: []
+  type: TYPE_NORMAL
+- en: where mᵢ is the the probability that the two records agree on attribute *i*
+    **given that they are a match;** uᵢ is the probability that the two records agree
+    on attribute *i* **given that they are a non-match;** and *lambda* is the prior
+    probability of a match, i.e. the probability of matching given no other information
+    about the record pair. The *m* probability generally reflects the quality of the
+    variables used for linking, while the *u* probability reflects incidental agreement
+    between non matching record pairs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The match weight is converted to a match probability between two records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0c4ff9257377c25834a209a2dec67726.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: match probability
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the match probability is compared to a chosen threshold value to decide
+    whether the record pair is a match, a non-match, or requires further manual review.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Illustration with synthetic product data**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Data Generation**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We generate data to reflect a realistic product matching scenario. Specifically,
+    we generate file A comprising 79 records, and file B comprising 192 records. There
+    are 59 overlapping records between the two files. Both files contain four linking
+    variables, namely the product name, product type, brand, and price. For example,
+    a record in file A representing Apple airpods has the product name “Apple AirPods”,
+    product type “Earbuds”, the recorded brand is “Apple” and the product price is
+    $200\. The product name, type, and brand are string-valued variables, while the
+    price is a continuous-valued numeric variable. We also generate errors in each
+    of the linking variables. In the string valued fields, we introduce deletion errors;
+    for example, a series 6 Apple watch may be recorded as “Apple Watch Series 6”
+    in file A and as “Apple Watch 6” in file B. We also introduce case-change errors
+    in the string fields; for example, the same product may be recorded as “apple
+    watch series 6” in file A and as “Apple Watch 6” in file B. The continuous nature
+    of the price variable may automatically induce errors. For example, a product
+    may be priced at $55 in one file, but $55.2 in the other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For synthetic data generation, we used the free version of ChatGPT (i.e., GPT
+    3.5) [4]. The following three prompts were used for data generation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt 1: to generate the dataset with links**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above prompt generates the dataset with links. The number of rows can be
+    modified to generate a dataset with a different number of links.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To generate more records for each individual dataset (dataset A or dataset B)
+    the following two prompts were used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt 2: to generate more records for dataset A**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Prompt 3: to generate more records for dataset B**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Record Linkage**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our goal is to identify the overlapping records between files A and B using
+    the Fellegi-Sunter (FS) model. We implement the FS model using the ***splink***
+    package [5] in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To compare the product title, product type, and brand, we use the default *name*
+    comparison function available in the *splink* package. Specifically, the comparison
+    function has the following 4 comparison levels:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exact match
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Damerau-Levenshtein Distance <= 1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Jaro Winkler similarity >= 0.9
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Jaro Winkler similarity >= 0.8
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If a pair of products does not fall into any of the 4 levels, a default *Anything
+    Else* level is assigned to the pair.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The *splink* package does not have a function to compare numerical columns.
+    Therefore, for price comparison, we first convert the price into a categorical
+    variable by splitting it up into the following buckets: [<$100, $100–200, $200–300,
+    $300–400, $400–500, $500–600, $600–700, $700–800, $800–900, $900–1000, >=$1000].
+    Then, we check if the price falls into the same bucket for a pair of records.
+    In other words, we use the *Exact Match* comparison level.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the comparisons can be specified through a settings dictionary in the *splink*
+    package
+  prefs: []
+  type: TYPE_NORMAL
+- en: The parameters of the FS model are estimated using the expectation maximization
+    algorithm. In *splink*, there are built-in functions for doing this
+  prefs: []
+  type: TYPE_NORMAL
+- en: To evaluate how the FS model performs, we note the number of linked records,
+    precision, recall, and F1 score of the prediction. Precision is defined as the
+    proportion of linked records that are true links. And Recall is defined as the
+    proportion of true links that are correctly identified. The F1 score is equal
+    to 2*Precision*Recall/(Precision + Recall). s*plink* provides a function to generate
+    all these metrics as shown below
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full code to train and evaluate this model is available here: [https://github.com/vjoshi345/product-matching-article/blob/main/train_synthetic_fellegi_sunter.py](https://github.com/vjoshi345/product-matching-article/blob/main/train_synthetic_fellegi_sunter.py)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We run the FS model on all possible pairs of products from the two datasets.
+    Specifically, there are 15,168 product pairs (79 * 192). The *splink* package
+    has a function to automatically generate predictions (i.e., matching links) for
+    different match probability thresholds. Below we show the confusion matrix for
+    match probability=0.913 (the threshold for which we get the highest F1 score).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b196a424d656dc219cf10c083e84e82b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Confusion matrix for PM prediction
+  prefs: []
+  type: TYPE_NORMAL
+- en: Total number of linked records = 82
+  prefs: []
+  type: TYPE_NORMAL
+- en: Precision = 58/82 = 0.707
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recall = 58/59 = 0.983
+  prefs: []
+  type: TYPE_NORMAL
+- en: F1 = (2 * 0.707 * 0.983)/(0.707 + 0.983) = 0.823
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Conclusion**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The purpose of this article was to show how product matching is a specific instance
+    of the more general Entity Resolution problem. We demonstrated this by utilizing
+    one of the popular models from the ER framework to solve the product matching
+    problem. Since we wanted this to be an introductory article, we created a relatively
+    simple synthetic dataset. In a real-world scenario, the data will be much more
+    complex with dozens of different variables e.g., product description, color, size,
+    etc. For accurate matching, we would need more advanced NLP techniques beyond
+    text distance metrics. For example, we can utilize embeddings derived from Transformer
+    models to semantically match products. This can help us match two products with
+    syntactically different descriptions e.g., two products with Product Type *Jeans*
+    and *Denims* respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further, the number of products for real-world datasets will be in the range
+    of hundreds of millions with potentially hundreds of thousands of links. Such
+    datasets require more efficient methods as well as compute resources for effective
+    product matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1]: [https://medium.com/walmartglobaltech/product-matching-in-ecommerce-4f19b6aebaca](https://medium.com/walmartglobaltech/product-matching-in-ecommerce-4f19b6aebaca)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2]: [https://shopping.google.com/?pli=1](https://shopping.google.com/?pli=1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] I. Fellegi and A.B. Sunter (1969). A theory for record linkage. *Journal
+    of the American Statistical Association*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4]: [https://chat.openai.com/](https://chat.openai.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5]: [https://moj-analytical-services.github.io/splink/index.html](https://moj-analytical-services.github.io/splink/index.html)'
+  prefs: []
+  type: TYPE_NORMAL

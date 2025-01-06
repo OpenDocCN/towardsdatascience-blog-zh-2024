@@ -1,0 +1,317 @@
+- en: Optimizing Instance Type Selection for AI Development in Cloud Spot Markets
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/optimizing-instance-type-selection-for-ai-development-in-cloud-spot-markets-a6e94804e8f3?source=collection_archive---------9-----------------------#2024-01-22](https://towardsdatascience.com/optimizing-instance-type-selection-for-ai-development-in-cloud-spot-markets-a6e94804e8f3?source=collection_archive---------9-----------------------#2024-01-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Instance Selection for Deep Learning — Part 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--a6e94804e8f3--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--a6e94804e8f3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a6e94804e8f3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a6e94804e8f3--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a6e94804e8f3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a6e94804e8f3--------------------------------)
+    ·9 min read·Jan 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c5c97dca0d381a425ea2a55b7f74c2a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Mike Enerio](https://unsplash.com/@mikeenerio?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post was written in collaboration with [Tomer Berkovich](https://www.linkedin.com/in/tomerberkovich/),
+    [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/), and [Max
+    Rabin](https://www.linkedin.com/in/maxrabin/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Appropriate instance selection for machine learning (ML) workloads is an important
+    decision with potentially significant implications on the speed and cost of development.
+    In a [previous post](/instance-selection-for-deep-learning-7463d774cff0) we expanded
+    on this process, proposed a metric for making this important decision, and highlighted
+    some of the many factors you should take into consideration. In this post we will
+    demonstrate the opportunity for reducing AI model training costs by taking [Spot
+    Instance](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc)
+    availability into account when making your cloud-based instance selection decision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reducing Costs Using Spot Instances
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most significant opportunities for cost savings in the cloud is to
+    take advantage of low cost [Amazon EC2 Spot Instances](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc).
+    Spot instances are discounted compute engines from surplus cloud service capacity.
+    In exchange for the discounted price, AWS maintains the right to preempt the instance
+    with little to no warning. Consequently, the relevance of Spot instance utilization
+    is limited to workloads that are fault tolerant. Fortunately, through effective
+    use of [model checkpointing](https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html)
+    ML training workloads can be designed to be fault tolerant and to take advantage
+    of the Spot instance offering. In fact, Amazon SageMaker, AWS’s managed service
+    for developing ML, makes it easy to train on Spot instances by [managing the end-to-end
+    Spot life-cycle](https://docs.aws.amazon.com/sagemaker/latest/dg/model-managed-spot-training.html)
+    for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Challenge of Anticipating Spot Instance Capacity
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unfortunately, *Spot instance capacity*, which measures the availability of
+    Spot instances for use, is subject to constant fluctuations and can be very difficult
+    to predict. Amazon offers partial assistance in assessing the *Spot instance capacity*
+    of an instance type of choice via its [Spot placement score](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html)
+    (SPS) feature which indicates the likelihood that a Spot request will succeed
+    in a given [region or availability zone (AZ)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+    This is especially helpful when you have the freedom to choose to train your model
+    in one of several different locations. However, the SPS feature offers no guarantees.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you choose to train a model on one or more Spot instances, you are taking
+    the risk that your instance type of choice does not have any Spot capacity (i.e.,
+    your training job will not start), or worse, that you will enter an iterative
+    cycle in which your training repeatedly runs for just a small number of training
+    steps and is stopped before you have made any meaningful progress — which can
+    tally up your training costs without any return.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over the past couple of years, the challenges of spot instance utilization have
+    been particularly acute when it comes to multi-GPU [EC2](https://aws.amazon.com/ec2/)
+    instance types such as [g5.12xlarge](https://aws.amazon.com/ec2/instance-types/g5/)
+    and [p4d.24xlarge](https://aws.amazon.com/ec2/instance-types/p4/). A huge increase
+    in demand for powerful training accelerators (driven in part by advances in the
+    field of Generative AI) combined with disruptions in the global supply chain,
+    have made it virtually impossible to reliably depend on multi-GPU Spot instances
+    for ML training. The natural fallback is to use the more costly [On-Demand](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-on-demand-instances.html)
+    (OD) or [reserved instances](https://aws.amazon.com/ec2/pricing/reserved-instances/).
+    However, in our [previous post](/instance-selection-for-deep-learning-7463d774cff0)
+    we emphasized the value of considering many different alternatives for your choice
+    of instance type. In this post we will demonstrate the potential gains of replacing
+    multi-GPU On Demand instances with multiple single-GPU Spot instances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although our demonstration will use Amazon Web Services, similar conclusions
+    can be reached on alternative cloud service platforms (CSPs). Please do not interpret
+    our choice of CSP or services as an endorsement. The best option for you will
+    depend on the unique details of your project. Furthermore, please take into consideration
+    the possibility that the type of cost savings we will demonstrate will not reproduce
+    in the case of your project and/or that the solution we propose will not be applicable
+    (e.g., for some reason beyond the scope of this post). Be sure to conduct a detailed
+    evaluation of the relevance and efficacy of the proposal before adapting it to
+    your use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When Multiple Single-GPU Instances are Better than a Single Multi-GPU Instance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nowadays, training AI models on multiple GPU devices in parallel — a process
+    called *distributed training* — is commonplace. Setting aside instance pricing,
+    when you have the choice between an instance type with multiple GPUs and multiple
+    instance types with the same type of single GPUs, you would typically choose the
+    multi-GPU instance. Distributed training typically requires a considerable amount
+    of data communication (e.g., gradient sharing) between the GPUs. The proximity
+    of the GPUs on a single instance is bound to facilitate higher network bandwidth
+    and lower latency. Moreover, some multi-GPU instances include dedicated GPU-to-GPU
+    inter-connections that can further accelerate the communication (e.g., [NVLink](https://www.nvidia.com/en-eu/data-center/nvlink/)
+    on [p4d.24xlarge](https://aws.amazon.com/ec2/instance-types/p4/)). However, when
+    Spot capacity is limited to single GPU instances, the option of training on multiple
+    single GPU instances at a much lower cost becomes more compelling. At the very
+    least, it warrants evaluation of its opportunity for cost-savings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing Data Communication Between Multiple EC2 Instances
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When distributed training runs on multiple instances, the GPUs communicate with
+    one another via the network between the host machines. To optimize the speed of
+    training and reduce the likelihood and/or impact of a network bottleneck, we need
+    to ensure minimal network latency and maximal data throughput. These can be affected
+    by a number of factors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instance Collocation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Network latency can be greatly impacted by the relative locations of the EC2
+    instances. Ideally, when we request multiple cloud-based instances we would like
+    them to all be collocated on the same physical rack. In practice, without appropriate
+    configuration, they may not even be in the same city. In our demonstration below
+    we will use a [VPC Config](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_VpcConfig.html)
+    object to program an Amazon SageMaker training job to use a single subnet of an
+    [Amazon Virtual Private Cloud (VPC)](https://docs.aws.amazon.com/sagemaker/latest/dg/train-vpc.html).
+    This technique will ensure that all the requested training instances will be in
+    the same [availability zone (AZ)](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html).
+    However, collocation in the same AZ, may not suffice. Furthermore, the method
+    we described involves choosing a subnet associated with one specific AZ (e.g.,
+    the one with the highest [Spot placement score](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-placement-score.html)).
+    A preferred API would fulfill the request in any AZ that has sufficient capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A better way to control the placement of our instances is to launch them inside
+    a [placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html),
+    specifically a [cluster placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster).
+    Not only will this guarantee that all of the instances will be in the same [AZ](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html),
+    but it will also place them on “the same high-bisection bandwidth segment of the
+    network” so as to maximize the performance of the network traffic between them.
+    However, as of the time of this writing SageMaker does *not* provide the option
+    to specify a [placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html).
+    To take advantage of placement groups we would need to use an alternative training
+    service solution (as we will demonstrate below).
+  prefs: []
+  type: TYPE_NORMAL
+- en: EC2 Network **B**andwidth Constraints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Be sure to take into account the maximal [network bandwidth](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ec2-instance-network-bandwidth.html)
+    supported by the EC2 instances that you choose. Note, in particular, that the
+    network bandwidths associated with single-GPU machines are often documented as
+    being “up to” a certain number of Gbps. Make sure to understand what that means
+    and how it can impact the speed of training over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep in mind that the GPU-to-GPU data communication (e.g., gradient sharing)
+    might need to share the limited network bandwidth with other data flowing through
+    the network such as training samples being streamed into the training instances
+    or training artifacts being uploaded to persistent storage. Consider ways of reducing
+    the payload of each of the categories of data to minimize the likelihood of a
+    network bottleneck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Elastic Fabric Adapter (EFA)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A growing number of EC2 instance types support [Elastic Fabric Adapter (EFA)](https://aws.amazon.com/hpc/efa/),
+    a dedicated network interface for optimizing inter-node communication. Using EFA
+    can have a decisive impact on the runtime performance of your training workload.
+    Note that the bandwidth on the EFA network channel is different than the documented
+    bandwidth of the standard network. As of the time of this writing, detailed documentation
+    of the EFA capabilities is hard to come by and it is usually best to evaluate
+    its impact through trial and error. Consider using an [EC2 instance that supports
+    EFA type](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/efa.html#efa-instance-types)
+    when relevant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will now demonstrate the comparative price performance of training on four
+    single-GPU [EC2 g5](https://aws.amazon.com/ec2/instance-types/g5/) Spot instances
+    (ml.g5.2xlarge and ml.g5.4xlarge) vs. a single four-GPU On-Demand instance (ml.g5.12xlarge).
+    We will use the training script below containing a Vision Transformer (ViT) backed
+    classification model (trained on synthetic data).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code block below demonstrates how we used the [SageMaker Python package](https://sagemaker.readthedocs.io/en/stable/)
+    (version 2.203.1) to run our experiments. Note that for the four-instance experiments,
+    we configure the use of a VPC with a single subnet, as explained above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that our code depends on the third-party [*timm*](https://pypi.org/project/timm/)Python
+    package that we point to in a requirements.txt file in the root of the source
+    directory. This assumes that the VPC has been configured to [enable internet access](https://docs.aws.amazon.com/vpc/latest/userguide/VPC_Internet_Gateway.html).
+    Alternatively, you could define a private PyPI server (as described [here](https://aws.amazon.com/blogs/machine-learning/hosting-a-private-pypi-server-for-amazon-sagemaker-studio-notebooks-in-a-vpc/)),
+    or create a custom image with your third party dependencies preinstalled (as described
+    [here](/customizing-your-cloud-based-machine-learning-training-environment-part-2-b65a6cf91812)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We summarize the results of our experiment in the table below. The On-Demand
+    prices were taken from the [SageMaker pricing page](https://aws.amazon.com/sagemaker/pricing/)
+    (as of the time of this writing, January 2024). The Spot saving values were collected
+    from the reported *managed spot training savings* of the completed job. Please
+    see the [EC2 Spot pricing documentation](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-instances-history.html)
+    to get a sense for how the reported Spot savings are calculated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3ad9e651b7ad635f5ad718a84cd2b1e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Experiment Results (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our results clearly demonstrate the potential for considerable savings when
+    using four single-GPU Spot instances rather than a single four-GPU On Demand instance.
+    They further demonstrate that although the cost of an On Demand g5.4xlarge instance
+    type is higher, the increased CPU power and/or network bandwidth combined with
+    higher Spot savings, resulted in much greater savings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, keep in mind that the relative performance results can vary considerably
+    based on the details of your job as well the Spot prices at the time that you
+    run your experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enforcing EC2 Instance Co-location Using a Cluster Placement Group
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a [previous post](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
+    we described how to create a customized managed environment on top of an unmanaged
+    service, such as [Amazon EC2](https://aws.amazon.com/ec2/). One of the motivating
+    factors listed there was the desire to have greater control over device placement
+    in a multi-instance setup, e.g., by using a [cluster placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster),
+    as discussed above. In this section, we demonstrate the creation of a multi-node
+    setup using a cluster placement group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our code assumes the presence of a [default VPC](https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html)
+    as well as the (one-time) creation of a [cluster placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster),
+    demonstrated here using the [AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
+    (version 1.34.23):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the code block below we use the [AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
+    to launch our Spot instances:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Please see our [previous post](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
+    for step-by-step tips on how to extend this to an automated training solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, we have illustrated how demonstrating flexibility in your choice
+    of training instance type can increase your ability to leverage Spot instance
+    capacity and reduce the overall cost of training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the sizes of AI models continue to grow and the costs of AI training accelerators
+    continue to rise, it becomes increasingly important that we explore ways to mitigate
+    training expenses. The technique outlined here is just one among several methods
+    for optimizing cost performance. We encourage you to explore our [previous posts](https://chaimrand.medium.com/)
+    for insights into additional opportunities in this realm.
+  prefs: []
+  type: TYPE_NORMAL

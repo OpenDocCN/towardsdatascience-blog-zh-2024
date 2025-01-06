@@ -1,0 +1,260 @@
+- en: 'Long-form video representation learning (Part 2: Video as sparse transformers)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/long-form-video-representation-learning-part-2-video-as-sparse-transformers-29fbd0ed9e71?source=collection_archive---------9-----------------------#2024-05-14](https://towardsdatascience.com/long-form-video-representation-learning-part-2-video-as-sparse-transformers-29fbd0ed9e71?source=collection_archive---------9-----------------------#2024-05-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We explore novel video representations methods that are equipped with long-form
+    reasoning capability. This is part II focusing on sparse video-text transformers.
+    See [Part I](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-1-video-as-graphs-c55b609d9100)
+    on video as graphs. And [Part III](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-3-latest-and-greatest-in-long-form-video-1b6dee0f5f6e)
+    provides a sneak peek into our latest and greatest explorations.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@subarna.tripathi?source=post_page---byline--29fbd0ed9e71--------------------------------)[![Subarna
+    Tripathi](../Images/0a949764464eeef40a6d3ae0d183873f.png)](https://medium.com/@subarna.tripathi?source=post_page---byline--29fbd0ed9e71--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29fbd0ed9e71--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--29fbd0ed9e71--------------------------------)
+    [Subarna Tripathi](https://medium.com/@subarna.tripathi?source=post_page---byline--29fbd0ed9e71--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29fbd0ed9e71--------------------------------)
+    ·6 min read·May 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [first blog](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-1-video-as-graphs-c55b609d9100)
+    in this series was about learning explicit sparse graph-based video representation
+    methods for “long-form” video representation learning. They are effective methods;
+    however, they were not end-to-end trainable. We needed to rely on other CNN or
+    transformer-based feature extractors to generate the initial node embeddings.
+    In this blog, our focus is to devising an end-to-end methods using transformers,
+    but with the same goal of “long-form” reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sparse Video-Text Transformers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As an end-to-end learnable architecture, we started exploring transformers.
+    The first question we needed an answer for is that do video-text transformers
+    learn to model temporal relationships across frames? We oberved that despite their
+    immense capacity and the abundance of multimodal training data, recent video models
+    show strong tendency towards frame-based spatial representations, while temporal
+    reasoning remains largely unsolved. For example, if we shuffle the order of video
+    frames in the input to the video models, the output do not change much!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d875867bb70309e5fa822c79d2b86874.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upon a closer investigation, we identify a few key challenges to incorporating
+    multi-frame reasoning in video-language models. First, limited model size implies
+    a trade-off between spatial and temporal learning (a classic example being 2D/3D
+    convolutions in video CNNs). For any given dataset, optimal performance requires
+    a careful balance between the two. Second, long-term video models typically have
+    larger model sizes and are more prone to overfitting. Hence, for long-form video
+    models, it becomes more important to carefully allocate parameters and control
+    model growth. Finally, even if extending the clip length improves the results,
+    it is subject to diminishing returns since the amount of information provided
+    by a video clip does not grow linearly with its sampling rate. If the model size
+    is not controlled, the compute increase may not justify the gains in accuracy.
+    This is critical for transformer-based architectures, since self-attention mechanisms
+    have a quadratic memory and time cost with respect to input length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, model complexity should be adjusted adaptively, depending on the
+    input videos, to achieve the best trade-off between spatial representation, temporal
+    representation, overfitting potential, and complexity. Since existing video-text
+    models lack this ability, they either attain a suboptimal balance between spatial
+    and temporal modeling, or do not learn meaningful temporal representations at
+    all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What can be made “sparse” in video transformers ? Nodes and Edges:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We argue that video-text models should learn to allocate modeling resources
+    to the video data. Rather than uniformly extending the model to longer clips,
+    the allocation of these resources to the relevant spatio-temporal locations of
+    the video is crucial for efficient learning from long clips. For transformer models,
+    this allocation is naturally performed by pruning redundant attention connections.
+    We then accomplish these goals by exploring transformer sparsification techniques.
+    This motivates the introduction of a *Sparse Video-Text Transformer* SViTT inspired
+    by graph models. As illustrated in Figure 1, SViTT treats video tokens as graph
+    vertices, and self-attention patterns as edges that connect them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We design SViTT to pursue sparsity for both: **Node** sparsity reduces to identifying
+    informative tokens (e.g., corresponding to moving objects or person in the foreground)
+    and pruning background feature embeddings; **edge** sparsity aims at reducing
+    query-key pairs in attention module while maintaining its global reasoning capability.
+    To address the diminishing returns for longer input clips, we propose to train
+    SViTT with temporal sparse expansion, a curriculum learning strategy that increases
+    clip length and model sparsity, in sync, at each training stage.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/40b9ce2c4091fb450aca4bc948cb1b3b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(image by author) Figure 2: (Image by author) we show the following qualitative'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'results: (1) Left: A training sample includes a description (sentence at the
+    top) and a video clip (the sequence of frames of a video), (2) Middle: video encoder’s
+    layer 10 after visual token pruning; (3) Right: Multimodal encoder’s output after
+    token pruning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applications, Evaluation and Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: SViTT is evaluated on diverse video-text benchmarks from video retrieval to
+    question answering, comparing to prior art and our own dense modeling baselines.
+    First, we perform a series of ablation studies to understand the benefit of sparse
+    modeling in transformers. Interestingly, we find that both nodes (tokens) and
+    edges (attention) can be pruned drastically at inference, with a small impact
+    on test performance. In fact, token selection using cross-modal attention improves
+    retrieval results by 1% without re-training. Figure 2 shows that SViTT isolates
+    informative regions from background patches to facilitate efficient temporal reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We next perform full pre-training with the sparse models and evaluate their
+    downstream performance. We observe that SViTT scales well to longer input clips,
+    where the accuracy of dense transformers drop due to optimization difficulties.
+    On all video-text benchmarks, SViTT reports comparable or better performance than
+    their dense counterparts with lower computational cost, outperforming prior arts
+    including those trained with additional image-text corpora.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/932fd32be2c146ab160a9bb2ffee81aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see from the above tables, with sparsification, immediate temporal context
+    aggregation could be made 2X longer (table 2). Also see how sparsification maintains
+    the final task accuracies (table 1), rather improves them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/069757dbaa4226fcc077a77d3fc1aff5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the above table, we show how our proposed training paradigm helps improve
+    task performance with respect to the different levels of sparsity. In table 4,
+    you can see the zero-shot performance on text-to-video retrieval task on two standard
+    benchmarks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/89554324f077657351b4c0f9fdc161d1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we show the results on different benchmarks on multimodal retrieval
+    and video question-answering. SViTT outperforms all existing methods, and even
+    required less number of pre-training pairs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More details on SViTT can be found [here](http://svcl.ucsd.edu/projects/svitt/)
+    . To summarize, Compared to original transformers, SViTT is 6–7 times more efficient,
+    capable of 2X more context aggregation. Pre-training with SViTT improves accuracy
+    SoTA on 5 benchmarks : retrieval, VideoQ&A.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SViTT-Ego for egocentric videos:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Pretraining egocentric vision-language models has become essential to improving
+    downstream egocentric video-text tasks. These egocentric foundation models commonly
+    use the transformer architecture. The memory footprint of these models during
+    pretraining can be substantial. Therefore, we pre-train our own sparse video-text
+    transformer model, SViTT-Ego, the first sparse egocentric video-text transformer
+    model integrating edge and node sparsification. We pretrain on the [EgoClip](https://proceedings.neurips.cc/paper_files/paper/2022/file/31fb284a0aaaad837d2930a610cd5e50-Paper-Conference.pdf)
+    dataset and incorporate the egocentric-friendly objective EgoNCE, instead of the
+    frequently used InfoNCE. Most notably, SViTT-Ego, obtains a 2.8% gain on EgoMCQ
+    (intra-video) accuracy compared to the current SOTA, with no additional data augmentation
+    techniques other than standard image augmentations, yet pre-trainable on memory-limited
+    devices. One such visual example is shown below. We are preparing to participate
+    in the EgoVis workshop at CVPR with our SViTT-ego.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0445282f443cbf2c2173ededaea88342.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(image by author) Figure 3: Screenshot from the Huggingface demo of EgoMCQ'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1409f52d61ca21cb9911e86979d9947d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(image by author) Table 7: SViTT-Ego outperforms all state-of-the-art models
+    on'
+  prefs: []
+  type: TYPE_NORMAL
+- en: intra-video accuracy. When considering models trained solely on
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.8M samples without narration augmentations, SViTT-Ego out-
+  prefs: []
+  type: TYPE_NORMAL
+- en: performs all models in inter-video and intra-video accuracy
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad2f51266a8530be3c3c5ea54c3ff0d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(Image by author) Figure 4: Given qv = 0.7, we show the following qualitative'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'results with the vision encoder: row 1, shows 4 frame input; row'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2, shows video encoder’s layer 4 after visual token pruning; row 3,
+  prefs: []
+  type: TYPE_NORMAL
+- en: shows video encoder’s layer 7 after visual token pruning; and row
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4, shows video encoder’s layer 10 after visual token pruning. We
+  prefs: []
+  type: TYPE_NORMAL
+- en: follow SViTT to prune visual tokens
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Highlights:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We propose, **SViTT**, a video-text architecture that unifies edge and node
+    sparsity; We show its temporal modeling efficacy on video-language tasks. Compared
+    to original transformers, **SViTT** is 6–7 times more efficient, capable of 2X
+    more context aggregation. Pre-training with SViTT improves accuracy over SoTA
+    on 5 benchmarks : retrieval, VideoQ&A. Our video-text sparse transformer work
+    was first published at [CVPR 2023](https://openaccess.thecvf.com/content/CVPR2023/papers/Li_SViTT_Temporal_Learning_of_Sparse_Video-Text_Transformers_CVPR_2023_paper.pdf).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we show how we are leveraging such sparse transformer for egocentric video
+    understanding applications. We show our **SViTT-Ego** (built atop SViTT) outperforms
+    dense transformer baselines on the EgoMCQ task with significantly lower peak memory
+    and compute requirements thanks to the inherent sparsity. This shows that sparse
+    architectures such as **SViTT-Ego** is a potential foundation model choice, especially
+    for pretraining on memory-bound devices. Watch out for exciting news in the near
+    future!
+  prefs: []
+  type: TYPE_NORMAL

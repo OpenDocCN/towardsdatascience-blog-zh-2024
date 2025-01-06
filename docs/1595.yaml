@@ -1,0 +1,390 @@
+- en: 'Classification Loss Functions: Intuition and Applications'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/classification-loss-functions-intuition-and-applications-cb75a3b03237?source=collection_archive---------3-----------------------#2024-06-27](https://towardsdatascience.com/classification-loss-functions-intuition-and-applications-cb75a3b03237?source=collection_archive---------3-----------------------#2024-06-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A simpler way to understand derivations of loss functions for classification
+    and when/how to apply them in PyTorch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)[![Ryan
+    D''Cunha](../Images/7a39859e2b5e5b09ef2c60aaf6bb75ac.png)](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------)
+    [Ryan D''Cunha](https://medium.com/@rtdcunha?source=post_page---byline--cb75a3b03237--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cb75a3b03237--------------------------------)
+    ·9 min read·Jun 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8799dde9d8c2ba105f0d95e98464eb61.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: GPT4o Generated'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether you are new to exploring neural networks or a seasoned pro, this should
+    be a beneficial read to gain more intuition about loss functions. As someone testing
+    many different loss functions during model training, I would get tripped up on
+    small details between functions. I spent hours researching an intuitive depiction
+    of loss functions from textbooks, research papers, and videos. I wanted to share
+    not only the **derivations** that helped me grasp the concepts, but common pitfalls
+    and use cases for **classification** in PyTorch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Terminology
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we get started, we need to define some basic terms I will be using.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Training dataset: *{xᵢ, yᵢ}*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Loss function: *L[φ]*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Model prediction output *f[xᵢ, φ]* with parameters *φ*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Conditional probability: *Pr(y|x)*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Parametric distribution: *Pr(y|ω)* with *ω* representing network parameters
+    for distribution over *y*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s first go back to the basics. A common thought is that neural networks
+    compute a scalar output from the model *f[xᵢ, φ].* However, most neural networks
+    these days are trained to predict parameters of a distribution *y.* (as oppose
+    to to predicted the value of *y*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In reality, a network will output a conditional probability distribution *Pr(y|x)*
+    over possible outputs *y.* In other words, every input data point will lead to
+    a probability distribution generated for each output. The network wants to learn
+    the parameters for the probability distribution and then use the parameters and
+    distribution to predict the output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The traditional definition of a loss function is a function that compares target
+    and predicted outputs. But we just said a network raw output is a distribution
+    instead of a scalar output, so how is this possible?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thinking about this from the view we just defined, a loss function pushes each
+    *yᵢ* to have a higher probability in the distribution *Pr(yᵢ|xᵢ)*. The key part
+    to remember is that our distribution is being used to predict the true output
+    based on parameters from our model output. Instead of using our input *xᵢ* for
+    the distribution*,* we can think of a parametric distribution *Pr(y|ω)* where
+    *ω* represents probability distribution parameters. We are still considering the
+    input, but there will be a different *ωᵢ = f[xᵢ, φ]* for each *xᵢ.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** To clarify a confusing concept, φrepresents the model parameters
+    and ω represents the probability distribution parameters'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Deriving Negative Log-Likelihood Loss
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*G*oing back to the traditional definition of a loss function, we need to get
+    an output we can use from the model. From our probability distribution, it seems
+    logical to take *φ* that produces the greatest probability for each *xᵢ.* Thus,
+    we need the overall *φ* that produces the greatest probability across all training
+    points *I* (all derivations are adapted from Understanding Deep Learning [1]):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/522fceb7fdc7af4df7531a2c5537250e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Maximizing parameters from output model probability distributions [1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We multiply the generated probabilities from each distribution to find *φ*
+    that produces the maximum probability (called **max likelihood**). In order to
+    do this, we must assume the data is independent and identically distributed. But
+    now we run into a problem: what if the probabilities are very small? Our multiplication
+    output will approach 0 (similar to a vanishing gradient issue). Furthermore, our
+    program may not be able to process such small numbers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fix this, we bring in a logarithmicfunction! Utilizing the properties of
+    logs, we can add together our probabilities instead of multiplying them. We know
+    that the logarithm is a monotonically increasing function, so our original output
+    is preserved and scaled by the log.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9d290f8114504d063ca077dce4382fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Using logarithms to add probabilities [1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The last thing we need to get our traditional negative log-likelihood is to
+    minimize the output. We are currently maximizing the output, so simply multiply
+    by a negative and take the minimum argument (think about some graphical examples
+    to convince yourself of this):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fc1c7cee0ae2ea2d49a9ef2760b133ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Negative Log-Likelihood [1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just by visualizing the model output as a probability distribution, attempting
+    to maximize *φ* that creates the max probability, and applying a log, we have
+    derived negative log-likelihood loss! This can be applied to many tasks by choosing
+    a logical probability distribution. Common classification examples are shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are wondering how a scalar output is generated from the model during
+    **inference**, it’s just the max of the distribution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77d8057be79a86e22f7758dac179cbec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generating an output from inference [1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** This is just a derivation of negative log-likelihood. In practice,
+    there will most likely be regularization present in the loss function too.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Loss for Classification
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Up to this point, we derived negative log-likelihood. Important to know, but
+    it can be found in most textbooks or online resources. Now, let’s apply this to
+    classification to understand it’s application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Side note:** If you are interested in seeing this applied to regression,
+    Understanding Deep Learning [1] has great examples with univariate regression
+    and a Gaussian Distribution to derive Mean Squared Error'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Binary Classification
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The goal of binary classification is to assign an input *x* to one of two class
+    labels *y* ∈ {0, 1}. We are going to use the Bernoulli distribution as our probability
+    distribution of choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/64d8d4c8478ea774fceb1a8d84d5c783.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Mathematical Representation of Bernoulli Distribution. Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is just a fancy way of saying the probability that the output is true,
+    but the equation is necessary to derive our loss function. We need the model *f[x,
+    φ]* to output *p* to generate the predicted output probability*.* However, before
+    we can input *p* into Bernoulli, we need it to be between 0 and 1 (so it’s a probability).
+    The function of choice for this is a sigmoid: σ(*z*)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9716980d8305f8ba0fce144f11ee2f0d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: [https://en.wikipedia.org/wiki/Sigmoid_function](https://en.wikipedia.org/wiki/Sigmoid_function)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A sigmoid will compress the output *p* to between 0 and 1\. Therefore our input
+    to Bernoulli will be *p =* σ(*f[x, φ]).* This makes our probability distribution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/32e05e638cc53e6838db0a7dcaeeb77c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: New Probability Distribution with Sigmoid and Bernoulli. Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Going back to negative log-likehood, we get the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f2e36bf555c46b78ee8cac481211a9c6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Binary Cross Entropy. Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Look familiar? This is the binary cross entropy (BCE) loss function! The main
+    intuition with this is understanding why a sigmoid is used. We have a scalar output
+    and it needs to be scaled to between 0 and 1\. There are other functions capable
+    of this, but the sigmoid is the most commonly used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BCE in PyTorch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When implementing BCE in PyTorch, there are a few tricks to watch out for.
+    There are two different BCE functions in PyTorch: *BCELoss()* and *BCEWithLogitsLoss()*.
+    A common mistake (that I have made) is incorrectly swapping the use cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**BCELoss():** This torch function outputs the loss WITH THE SIGMOID APPLIED.
+    The output will be a **probability**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**BCEWithLogitsLoss():** The torch function outputs logits which are the **raw
+    outputs** of the model. There is NO SIGMOID APPLIED. When using this, you will
+    need to apply a *torch.sigmoid()* to the output.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is especially important for Transfer Learning as the model even if you
+    know the model is trained with BCE, make sure to use the right one. If not, you
+    make accidentally apply a sigmoid after BCELoss() causing the network to not learn…
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Once a probability is calculated using either function, it needs to be interpreted
+    during inference. The probability is the model’s prediction of the likelihood
+    of being true (class label of 1). Thresholding is needed to determine the cutoff
+    probability of a true label. *p = 0.5* is commonly used, but it’s important to
+    test out and optimize different threshold probabilities. A good idea is to plot
+    a histogram of output probabilities to see the confidence of outputs before deciding
+    on a threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiclass Classification
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The goal of multiclass classification is to assign an input *x* to one of *K*
+    > 2 class labels *y* ∈ {1, 2, …, *K*}. We are going to use the categorical distribution
+    as our probability distribution of choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a232fbe9bf6255a4b73db74c8d240e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Categorical Distribution. Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is just assigning a probability for each class for a given output and
+    all probabilities must sum to 1\. We need the model *f[x, φ]* to output *p* to
+    generate the predicted output probability*.* The sum issue arises as in binary
+    classification. Before we can input *p* into Bernoulli, we need it to be a probability
+    between 0 and 1\. A sigmoid will no longer work as it will scale each class score
+    to a probability, but there is no guarantee all probabilities will sum to 1\.
+    This may not immediately be apparent, but an example is shown:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/83affdb6b334591ba290ca2a040054c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sigmoid does not generate probability distribution in multiclass classification.
+    Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need a function that can ensure both constraints. For this, a softmax is
+    chosen. A softmax is an extension of a sigmoid, but it will ensure all the probabilities
+    sum to 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/94e889be5ace748c47a8fb0ce491f38a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Softmax Function. Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This means the probability distribution is a softmax applied to the model output.
+    The likelihood of calculating a label *k*: *Pr*(*y = k|x*) = *S*ₖ(*f[x, φ]*).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To derive the loss function for multiclass classification, we can plug the
+    softmax and model output into the negative log-likelihood loss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bfcc77f988d2af066f4750c5d37ad78d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multiclass Cross Entropy. Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the derivation for multiclass cross entropy. It is important to remember
+    the only term contributing to the loss function is the probability of the true
+    class. If you have seen cross entropy, you are more familiar with a function with
+    a *p(x)* and *q(x).* This is identical to the cross entropy loss equation shown
+    where *p(x) = 1* for the true class and 0 for all other classes. *q(x)* is the
+    softmax of the model output. The other derivation of cross entropy comes from
+    using KL Divergence, and you can reach the same loss function by treating one
+    term as a Dirac-delta function where true outputs exist and the other term as
+    the model output with softmax. It is important to note that both routes lead to
+    the same loss function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross Entropy in PyTorch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Unlike binary cross entropy, there is only one loss function for cross entropy
+    in PyTorch. *nn.CrossEntropyLoss* returns the model output with the softmax already
+    applied. Inference can be performed by taking the largest probability softmax
+    model output (taking the highest probability as would be expected).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: These were two well studied classification examples. For a more complex task,
+    it may take some time to decide on a loss function and probability distribution.
+    There are a lot of charts matching probability distributions with intended tasks,
+    but there is always room to explore.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For certain tasks, it may be helpful to combine loss functions. A common use
+    case for this is in a classification task where it maybe helpful to combine a
+    [binary] cross entropy loss with a modified Dice coefficient loss. Most of the
+    time, the loss functions will be added together and scaled by some hyperparameter
+    to control each individual functions contribution to loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hopefully this derivation of negative log-likelihood loss and its applications
+    proved to be useful!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Prince, Simon J.D., [Understanding Deep Learning](https://mitpress.mit.edu/9780262048644/understanding-deep-learning/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [Stanford CS231n](https://cs231n.github.io/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] P. Bosman, D. Thierens, [Negative Log–Likelihood And Statistical Hypothesis
+    Testing As The Basis Of Model Selection In IDEAs](https://homepages.cwi.nl/~bosman/publications/2000_negativeloglikelihood.pdf)
+    (2000).'
+  prefs: []
+  type: TYPE_NORMAL

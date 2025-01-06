@@ -1,0 +1,577 @@
+- en: Deep Dive into Multithreading, Multiprocessing, and Asyncio
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28](https://towardsdatascience.com/deep-dive-into-multithreading-multiprocessing-and-asyncio-94fdbe0c91f0?source=collection_archive---------0-----------------------#2024-12-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to choose the right concurrency model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Clara
+    Chong](../Images/94c482bc7e35135f104fbfd08a45eef1.png)](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)
+    [Clara Chong](https://medium.com/@clarachong13?source=post_page---byline--94fdbe0c91f0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94fdbe0c91f0--------------------------------)
+    ·8 min read·Dec 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c7943e9ffec1c0fd533c4ffcb697285.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [Paul Esch-Laurent](https://unsplash.com/@pinjasaur) from [Unsplash](https://unsplash.com/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Python provides three main approaches to handle multiple tasks simultaneously:
+    multithreading, multiprocessing, and asyncio.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing the right model is crucial for maximising your program’s performance
+    and efficiently using system resources. (P.S. It is also a common interview question!)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without concurrency, a program processes only one task at a time. During operations
+    like file loading, network requests, or user input, it stays idle, wasting valuable
+    CPU cycles. Concurrency solves this by enabling multiple tasks to run efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But which model should you use? Let’s dive in!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Fundamentals of concurrency
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Concurrency vs parallelism'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Programs'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Processes'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Threads'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- How does the OS manage threads and processes?'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Python’s concurrency models
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Multithreading'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Python’s Global Interpreter Lock (GIL)'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Multiprocessing'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Asyncio'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: When should I use which concurrency model?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Fundamentals of concurrency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before jumping into Python’s concurrency models, let’s recap some foundational
+    concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Concurrency vs Parallelism
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/c82f7d13c46396775ef98ce15aa559c7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visual representation of concurrency vs parallelism (drawn by me)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concurrency is all about managing multiple tasks at the same time, not necessarily
+    simultaneously. Tasks may take turns, creating the illusion of multitasking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parallelism is about running multiple tasks simultaneously, typically by leveraging
+    multiple CPU cores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Programs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now let’s move on to some fundamental OS concepts — programs, processes and
+    threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c3aa191a728825dae828926b5c384a45.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multiple threads can exist simultaneously within the a single process — known
+    as multithreading (drawn by me)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A program is simply a static file, like a Python script or an executable.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A program sits on disk, and is passive until the operating system (OS) loads
+    it into memory to run. Once this happens, the program becomes a **process**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Processes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A process is an independent instance of a running program.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A process has its own memory space, resources, and execution state. Processes
+    are isolated from each other, meaning one process cannot interfere with another
+    unless explicitly designed to do so via mechanisms like ***inter-process communication
+    (IPC)***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Processes can generally be categorised into two types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**I/O-bound processes:**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Spend most of it’s time ***waiting*** for input/output operations to complete,
+    such as file access, network communication, or user input. While waiting, the
+    CPU sits idle.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**CPU-bound processes:**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Spend most of their time ***doing computations*** (e.g video encoding, numerical
+    analysis). These tasks require a lot of CPU time.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Lifecycle of a process:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A process starts in a *new* state when created.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It moves to the *ready* state, waiting for CPU time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the process waits for an event like I/O, it enters the *waiting* state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, it *terminates* after completing its task.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 4\. Threads
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A thread is the smallest unit of execution within a process.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A process acts as a “container” for threads, and multiple threads can be created
+    and destroyed over the process’s lifetime.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Every process has at least one thread — the ***main thread***— but it can also
+    create additional threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Threads share memory and resources within the same process, enabling efficient
+    communication. However, this sharing can lead to synchronisation issues like race
+    conditions or deadlocks if not managed carefully. Unlike processes, multiple threads
+    in a single process are not isolated — one misbehaving thread can crash the entire
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. How does the OS manage threads and processes?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The CPU can execute ***only one task per core at a time***. To handle multiple
+    tasks, the operating system uses ***preemptive context switching***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During a context switch, the OS pauses the current task, saves its state and
+    loads the state of the next task to be executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This rapid switching creates the illusion of simultaneous execution on a single
+    CPU core.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For processes, context switching is more resource-intensive because the OS must
+    save and load separate memory spaces. For threads, switching is faster because
+    threads share the same memory within a process. However, frequent switching introduces
+    overhead, which can slow down performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: True parallel execution of processes can only occur if there are multiple CPU
+    cores available. Each core handles a separate process simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python’s concurrency models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s now explore Python’s specific concurrency models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4aa327a57c30f849fea84547f3f53fb9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary of the different concurrency models (drawn by me)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Multithreading
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Multithreading allows a process to execute multiple threads concurrently, with
+    threads sharing the same memory and resources (see diagrams 2 and 4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, Python’s Global Interpreter Lock (GIL) limits multithreading’s effectiveness
+    for CPU-bound tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python’s Global Interpreter Lock (GIL)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The GIL is a lock that allows only one thread to hold control of the Python
+    interpreter at any time, meaning only one thread can execute Python bytecode at
+    once.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The GIL was introduced to simplify memory management in Python as many internal
+    operations, such as object creation, are not thread safe by default. Without a
+    GIL, multiple threads trying to access the shared resources will require complex
+    locks or synchronisation mechanisms to prevent race conditions and data corruption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***When is GIL a bottleneck?***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For single threaded programs, the GIL is irrelevant as the thread has exclusive
+    access to the Python interpreter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For multithreaded I/O-bound programs, the GIL is less problematic as threads
+    release the GIL when waiting for I/O operations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For multithreaded CPU-bound operations, the GIL becomes a significant bottleneck.
+    Multiple threads competing for the GIL must take turns executing Python bytecode.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An interesting case worth noting is the use of `time.sleep`, which Python effectively
+    treats as an I/O operation. The `time.sleep` function is not CPU-bound because
+    it does not involve active computation or the execution of Python bytecode during
+    the sleep period. Instead, the responsibility of tracking the elapsed time is
+    delegated to the OS. During this time, the thread releases the GIL, allowing other
+    threads to run and utilise the interpreter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Multiprocessing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Multiprocessing enables a system to run multiple processes in parallel, each
+    with its own memory, GIL and resources. Within each process, there may be one
+    or more threads (see diagrams 3 and 4).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiprocessing bypasses the limitations of the GIL. This makes it suitable
+    for CPU bound tasks that require heavy computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, multiprocessing is more resource intensive due to separate memory and
+    process overheads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Asyncio
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unlike threads or processes, asyncio uses a single thread to handle multiple
+    tasks.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When writing asynchronous code with the `asyncio` library, you'll use the `async/await`
+    keywords to manage tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Key concepts***'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Coroutines:** These are functions defined with `async def` . They are the
+    core of asyncio and represent tasks that can be paused and resumed later.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Event loop:** It manages the execution of tasks.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Tasks:** Wrappers around coroutines. When you want a coroutine to actually
+    start running, you turn it into a task — eg. using `asyncio.create_task()`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`**await**` : Pauses execution of a coroutine, giving control back to the event
+    loop.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***How it works***'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Asyncio runs an event loop that schedules tasks. Tasks voluntarily “pause” themselves
+    when waiting for something, like a network response or a file read. While the
+    task is paused, the event loop switches to another task, ensuring no time is wasted
+    waiting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This makes asyncio ideal for scenarios involving **many small tasks that spend
+    a lot of time waiting**, such as handling thousands of web requests or managing
+    database queries. Since everything runs on a single thread, asyncio avoids the
+    overhead and complexity of thread switching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The key difference between asyncio and multithreading lies in how they handle
+    waiting tasks.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Multithreading relies on the OS to switch between threads when one thread is
+    waiting (***preemptive context switching***).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When a thread is waiting, the OS switches to another thread automatically.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Asyncio uses a single thread and depends on tasks to “cooperate” by pausing
+    when they need to wait (***cooperative multitasking***).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '2 ways to write async code:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '`**method 1: await coroutine**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you directly `await` a coroutine, the execution of the ***current coroutine
+    pauses*** at the `await` statement until the awaited coroutine finishes. Tasks
+    are executed ***sequentially*** within the current coroutine***.***
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use this approach when you need the result of the coroutine***immediately***
+    to proceed with the next steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although this might sound like synchronous code, it’s not. In synchronous code,
+    the entire program would block during a pause.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With asyncio, only the current coroutine pauses, while the rest of the program
+    can continue running. This makes asyncio non-blocking at the program level.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Example:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The event loop pauses the current coroutine until `fetch_data` is complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`**method 2: asyncio.create_task(coroutine)**`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The coroutine is scheduled to ***run concurrently in the background***. Unlike
+    `await`, the current coroutine continues executing immediately without waiting
+    for the scheduled task to finish.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***The scheduled coroutine starts running as soon as the event loop finds an
+    opportunity***, without needing to wait for an explicit `await`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No new threads are created; instead, the coroutine runs within the same thread
+    as the event loop, which manages when each task gets execution time.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This approach enables concurrency within the program, allowing multiple tasks
+    to overlap their execution efficiently. You will later need to `await` the task
+    to get it’s result and ensure it’s done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use this approach when you want to run tasks concurrently and don’t need the
+    results immediately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the line `asyncio.create_task()` is reached, the coroutine `fetch_data()`
+    is scheduled to start running ***immediately when the event loop is available***.
+    This can happen even ***before*** you explicitly `await` the task. In contrast,
+    in the first `await` method, the coroutine only starts executing when the `await`
+    statement is reached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall, this makes the program more efficient by overlapping the execution
+    of multiple tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Other important points
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**You can mix synchronous and asynchronous code.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since synchronous code is blocking, it can be offloaded to a separate thread
+    using `asyncio.to_thread()`. This makes your program effectively multithreaded.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: In the example below, the asyncio event loop runs on the main thread, while
+    a separate background thread is used to execute the `sync_task`.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should offload CPU-bound tasks which are computationally intensive to a
+    separate process.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When should I use which concurrency model?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This flow is a good way to decide when to use what.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1cbf5604feb451093217df351ec93878.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Flowchart (drawn by me), referencing this [stackoverflow](https://stackoverflow.com/questions/27435284/multiprocessing-vs-multithreading-vs-asyncio/52498068#52498068)
+    discussion
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multiprocessing**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Best for CPU-bound tasks which are computationally intensive.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- When you need to bypass the GIL — Each process has it’s own Python interpreter,
+    allowing for true parallelism.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Multithreading**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Best for fast I/O-bound tasks as the frequency of context switching is reduced
+    and the Python interpreter sticks to a single thread for longer'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Not ideal for CPU-bound tasks due to GIL.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Asyncio**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Ideal for slow I/O-bound tasks such as long network requests or database
+    queries because it efficiently handles waiting, making it scalable.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Not suitable for CPU-bound tasks without offloading work to other processes.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Wrapping up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: That’s it folks. There’s a lot more that this topic has to cover but I hope
+    I’ve introduced to you the various concepts, and when to use each method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading! I write regularly on Python, software development and the
+    projects I build, so give me a follow to not miss out. See you in the next article
+    :)
+  prefs: []
+  type: TYPE_NORMAL

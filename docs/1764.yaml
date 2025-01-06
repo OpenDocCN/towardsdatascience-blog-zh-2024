@@ -1,0 +1,363 @@
+- en: Constrained Sentence Generation Using Gibbs Sampling and BERT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/constrained-sentence-generation-using-gibbs-sampling-and-bert-8d326b9027b1?source=collection_archive---------6-----------------------#2024-07-19](https://towardsdatascience.com/constrained-sentence-generation-using-gibbs-sampling-and-bert-8d326b9027b1?source=collection_archive---------6-----------------------#2024-07-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A fast and effective approach to generating fluent sentences from given keywords
+    using public pre-trained models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sergeyvilov?source=post_page---byline--8d326b9027b1--------------------------------)[![Sergey
+    Vilov](../Images/42efe223e2aa575250e050cf3660cf20.png)](https://medium.com/@sergeyvilov?source=post_page---byline--8d326b9027b1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8d326b9027b1--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8d326b9027b1--------------------------------)
+    [Sergey Vilov](https://medium.com/@sergeyvilov?source=post_page---byline--8d326b9027b1--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8d326b9027b1--------------------------------)
+    ·10 min read·Jul 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c688d373215ed1941eb26ed02e66cb5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Large language models](https://en.wikipedia.org/wiki/Large_language_model),
+    like [GPT](https://en.wikipedia.org/wiki/Generative_pre-trained_transformer),
+    have achieved unprecedented results in *free-form* text generation. They’re widely
+    used for writing e-mails, copyrighting, or storytelling. However, their success
+    in *constrained* text generation remains limited [1].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constrained text generation involves producing sentences with specific attributes
+    like sentiment, tense, template, or style. We will consider one specific kind
+    of constrained text generation, namely keyword-based generation. In this task,
+    it is required that the model generate sentences that include given keywords.
+    Depending on the application, these sentences should (a) contain all the keywords
+    (i.e. assure high coverage) (b) be grammatically correct (c) respect common sense
+    (d) exhibit lexical and grammatical diversity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For auto-regressive forward generation models, like GPT, constrained generation
+    is particularly challenging. These models yield tokens sequentially from left
+    to right, one at a time. By design, they lack precise control over the generated
+    sequence and struggle to support constraints at arbitrary positions in the output
+    or constraints involving multiple keywords. As a result, these models usually
+    exhibit poor coverage (a) and diversity (d), while providing fluent sentences
+    (b,c). Although some sampling strategies, like dynamic beam allocation [2], were
+    specifically designed to improve constrained text generation with forward models,
+    they demonstrated inferior results in independent testing [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative approach [4], known as CGMH, consists in constructing the sentence
+    iteratively by executing elementary operations on the existing sequence, such
+    as word deletion, insertion, or replacement. The initial sequence is usually an
+    ordered sequence of given keywords. Because of the vast search space, such methods
+    often struggle to produce a meaningful sentence within a reasonable time frame.
+    Therefore, although these models may ensure good coverage (a) and diversity (d),
+    they might fail to satisfy fluency requirements (b,c). To overcome these problems,
+    it was suggested to restrict the search space by including a differentiable loss
+    function [5] or a pre-trained neural network [6] to guide the sampler. However,
+    these adjustments did not lead to any practically significant improvement compared
+    to CGMH.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following, we will propose a new approach to generating sentences with
+    given keywords. The idea is to limit the search space by starting from a correct
+    sentence and reducing the set of possible operations. It turns out that when only
+    the replacement operation is considered, the BERT model provides a convenient
+    way to generate desired sentences via Gibbs sampling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gibbs sampling from BERT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Sampling sentences via [Gibbs sampling](https://en.wikipedia.org/wiki/Gibbs_sampling)
+    from [BERT](https://en.wikipedia.org/wiki/BERT_(language_model)) was first proposed
+    in [7]. Here, we adapt this idea for constrained sentence generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To simplify theoretical introduction, we will start by explaining the grounds
+    of the CGMH approach [4], which uses the [Metropolis-Hastings algorithm](https://en.wikipedia.org/wiki/Metropolis–Hastings_algorithm)
+    to sample from a sentence distribution satisfying the given constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The sampler starts from a given sequence of keywords. At each step, a random
+    position in the current sentence is selected and one of the three possible actions
+    (chosen with probability *p*=1/3) is executed: insertion, deletion, or word replacement.
+    After that, a candidate sentence is sampled from the corresponding proposal distribution.
+    In particular, the proposal distribution for replacement takes up the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/463f34fa318c22f5a9d63318be308e7d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'where *x* is the current sentence, *x’* is a candidate sentence, *w_1*…*w_n*
+    are the words in the sentence, *w^c* is the proposed word, *V* is the dictionary
+    size, and π is the sampled distribution. The candidate sentence can then be either
+    accepted or rejected using the acceptance rate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c3776efb5b375b1a1f94b2ee4cab722.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get a sentence probability, the authors propose to use a simple seq2seq
+    LSTM-based network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d2180dc7f1fd9c9400ad22d542596b12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (Image by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: where *p_LM(x)* is the sentence probability given by a language model and *χ(x)*
+    is an indicator function, which is 1 when all of the keyword words are included
+    in the sentence and 0 otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When keyword constraints are imposed, the generation starts from a given sequence
+    of keywords. These words are then excluded from deletion and replacement operations.
+    After a certain time ([the burn-in period](https://en.wikipedia.org/wiki/Gibbs_sampling)),
+    generation converges to a stationary distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As noted above, a weak point of such methods is the large search space that
+    prevents them from generating meaningful sentences within a reasonable time. We
+    will now reduce the search space by completely eliminating insertions and deletions
+    from sentence generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ok, but what does this have to do with Gibbs sampling and BERT?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Citing Wikipedia](https://en.wikipedia.org/wiki/Gibbs_sampling), Gibbs sampling
+    is used when the joint distribution is not known explicitly or is difficult to
+    sample from directly, but the conditional distribution of each variable is known
+    and is easy (or at least, easier) to sample from.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BERT is a transformer-based model designed to pre-train deep bidirectional
+    representations by jointly conditioning on both left and right context, enabling
+    it to understand the context of a word based on its surroundings. For us, it is
+    particularly important that BERT is trained in a masked language model fashion,
+    i.e. it predicts masked words (tokens) given all other words (tokens) in the sentence.
+    If only a single word is masked, then the model directly provides the conditional
+    probability *p(w_c|w_1,…,w_{m-1},w_{m+1},…,w_n)*. Note that it is only possible
+    due to the bidirectional nature of BERT, since it provides access to tokens on
+    the left as well as on the right from the masked word. On the other hand, the
+    joint probability *p(w_1,…w_n)* is not readily available from the BERT output.
+    Looks like a Gibbs sampling use case, doesn’t it? Rewriting *g(x’|x)*, one obtains:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0854eb2db1eb0f84989372d7a7ab27b6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that as far as only the replacement action is considered, the acceptance
+    rate is always 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1392aaaf6018fb4b4216bc21cfda36dd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, replacement is, in fact, a Gibbs sampling step, with the proposal distribution
+    directly provided by the BERT model!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experiment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To illustrate the method, we will use a pre-trained BERT model from [Hugging
+    Face](https://huggingface.co). To have an independent assessment of sentence fluency,
+    we will also compute sentence [perplexity](https://en.wikipedia.org/wiki/Perplexity)
+    using the [GPT2](https://huggingface.co/openai-community/gpt2) model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us start by loading all the required modules and models into memory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then need to define some important constants:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we will use only the replacement action, we need to select an initial
+    sentences containing the desired keywords. Let it be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*I often dream about a spacious villa by the sea*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Everybody must have dreamt about this at some time… As keywords we will fix,
+    quite arbitrary, *dream* and *sea*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we are ready to sample:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now have a look at the perplexity plot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e35e69a4a91a0732947a87e3e45c1d85.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GPT2 perplexity for the sampled sentences (image by the author).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two things to note here. First, the perplexity starts from a relatively
+    small value (*perplexity*=147). This is just because we initialized the sampler
+    with a valid sentence that doesn’t look awkward to GPT2\. Basically, the sentences
+    whose perplexity does not exceed the starting value (dashed red line) can be considered
+    passing the external check. Second, subsequent samples are correlated. This is
+    a [known property](https://en.wikipedia.org/wiki/Gibbs_sampling) of the Gibbs
+    sampler and the reason why it is often recommended to take every *k*th sample.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In fact, out of 2000 generated sentences we got 822 unique. Their perplexity
+    ranges from 60 to 1261 with 341 samples having perplexity below that of the initial
+    sentence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd5c75df96c63cba4241ac6768dfb5cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GPT2 perplexity distribution across unique sentences (image by the author).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How do these sentences look like? Let’s take a random subset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/013a1614f64dceeb9eafd2650bf0a2cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A random subset of generated sentences with perplexity below the starting value
+    (image by the author).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These sentences look indeed quite fluent. Note that the chosen keywords (*dream*
+    and *sea*) appear in each sentence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is also tempting to see what happens if we don’t set any keywords. Let’s
+    take a random subset of sentences generated with an empty keywords set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/acf141780fcff6e0c5b418ea748a3808.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A random subset of sentences generated without fixing keywords (image by the
+    author).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, these sentence also look quite fluent and diverse! In fact, using an empty
+    keyword set simply turns BERT into a random sentence generator. Note, however,
+    that all these sentences have 10 words, as the initial sentence. The reason is
+    that the BERT model can’t change the sentence length arbitrary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, why do we need to run the sampler N_GIBBS_RUNS=4 times, wouldn’t just
+    a single run be enough? In fact, running several times is necessary since a Gibbs
+    sampler can get stuck in a local minimum [7]. To illustrate this case, we computed
+    the accumulated vocabulary size (number of distinct words used so far in the generated
+    sentences) when running the sampler once for 2000 iterations and when re-initializing
+    the sampler with the initial sentence every 500 iterations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f14bcdd41d6bdc70405c95a3a23ca9ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Accumulated vocabulary size when running Gibbs samplig for 2000 iterations in
+    a single run and in 4 runs, 500 iterations each (image by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can be clearly seen that a single run gets stuck at about 1500 iterations
+    and the sampler is not able to generate sentences with new words after this point.
+    In contrast, re-initializing the sampler every 500 iterations helps to get out
+    of this local minimum and improves lexically diversity of the generated sentences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In sum, the proposed method generates realistic sentences starting from a sentence
+    containing given keywords. The resulting sentences ensure 100% coverage (a), sound
+    grammatically correct (b), respect common sense (c), and provide lexical diversity
+    (d). Additionally, the method is incredibly simple and can be used with publicly
+    available pre-trained models. The main weaknesses of the method, is, of course,
+    its dependence of a starting sentence satisfying the given constraints. First,
+    the starting sentence should be somehow provided from an expert or any other external
+    source. Second, while ensuring grammatically correct sentence generation, it also
+    limits the grammatical diversity of the output. A possible solution would be to
+    provide several input sentences by mining a reliable sentence database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Garbacea, Cristina, and Qiaozhu Mei. “Why is constrained neural language
+    generation particularly challenging?.” *arXiv preprint arXiv:2206.05395* (2022).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Post, Matt, and David Vilar. “Fast lexically constrained decoding with
+    dynamic beam allocation for neural machine translation.” *arXiv preprint arXiv:1804.06609*
+    (2018).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Lin, Bill Yuchen, et al. “CommonGen: A constrained text generation challenge
+    for generative commonsense reasoning.” *arXiv preprint arXiv:1911.03705* (2019).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Miao, Ning, et al. “Cgmh: Constrained sentence generation by metropolis-hastings
+    sampling.” *Proceedings of the AAAI Conference on Artificial Intelligence*. Vol.
+    33\. №01\. 2019.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Sha, Lei. “Gradient-guided unsupervised lexically constrained text generation.”
+    *Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing
+    (EMNLP)*. 2020.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] He, Xingwei, and Victor OK Li. “Show me how to revise: Improving lexically
+    constrained sentence generation with xlnet.” *Proceedings of the AAAI Conference
+    on Artificial Intelligence*. Vol. 35\. №14\. 2021.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Wang, Alex, and Kyunghyun Cho. “BERT has a mouth, and it must speak: BERT
+    as a Markov random field language model.” *arXiv preprint arXiv:1902.04094* (2019).'
+  prefs: []
+  type: TYPE_NORMAL

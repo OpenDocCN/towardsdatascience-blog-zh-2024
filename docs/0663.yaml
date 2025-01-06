@@ -1,0 +1,312 @@
+- en: 'Supercharged Pandas: Tracing Dependencies with a Novel Approach'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/supercharged-pandas-tracing-dependencies-with-a-novel-approach-120b9567f098?source=collection_archive---------5-----------------------#2024-03-11](https://towardsdatascience.com/supercharged-pandas-tracing-dependencies-with-a-novel-approach-120b9567f098?source=collection_archive---------5-----------------------#2024-03-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An object-oriented approach to manage multiple files and dataframes, and tracing
+    dependencies.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)[![Ji
+    Wei Liew](../Images/f1b7267530b9a97106e6464b7b45ed85.png)](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------)
+    [Ji Wei Liew](https://jiweiliew.medium.com/?source=post_page---byline--120b9567f098--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--120b9567f098--------------------------------)
+    ·7 min read·Mar 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ffb40d7bb751829cffac88c7ba2def2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Sibel Yıldırım](https://unsplash.com/@sibelle?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/red-maple-leaf-and-eyeglasses-with-black-frames-on-white-bookpage-J6YInqMXD6c?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How will this benefit you:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This article describes an object-oriented approach for data analysis. It outlines
+    2 novel approaches: (a) reduce repetitive file reads by assigning dataframes to
+    the attributes of the `Reports` object, and (b) trace dependent methods recursively
+    to construct attributes. These approaches have allowed me to be highly productive
+    in what I do and I hope that you will reap similar benefits.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Who should read this:*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You have to analyze the same data set over a long period of time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You need to build reports by combining data from different sources and prepare
+    statistics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have co-workers who tend to ask you, “How did you arrive at this data?”
+    and you cannot recall the N steps in Excel that you took to prepare the report.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You have been using pandas for a while and you suspect that there is a more
+    efficient way of doing things.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What’s in this article?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Monolithic script: how it begins'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Reusable functions: how it progresses'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Objects, methods and attributes: how it evolves'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Tracing upstream dependencies: a novel approach'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Preamble
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is rather difficult to explain what I am trying to do, so please bear with
+    me if the first half of this article doesn’t make sense. I promise that towards
+    the end, it will be all worth it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Monolithic script: how it begins'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Suppose you have 3 csv files: `file1.csv`, `file2.csv`, `file3.csv`. You write
+    some code to read each one of them, and then merge them in a particular order.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This works perfect, and you get on with life. Next, your boss gives you `file4.csv`
+    which is supposed to be merged with `file1.csv` to build a separate report. No
+    issues, you know the drill, you update the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code runs smoothly and you get the desired output. Boss pats you on the
+    back and jokingly says, “That’s quick, can you be even faster?”
+  prefs: []
+  type: TYPE_NORMAL
+- en: You look up at your boss, but all you can see is a train of expletives flashing
+    across your eyes. You fight the visceral urge to pick one to be processed by your
+    biological audio output device. You triumphed in doing so and summoned all the
+    hypocritical chakra to fake a smile and respond cheerfully, “Sure, let me give
+    it a shot.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As the train of expletives fades into the horizon and as you exhaust all your
+    chakra, you noticed a glimmer of hope: there is no need to read `file2.csv` and
+    `file3.csv` if you are only interested in `df1_4`. It dawn upon you that this
+    flagrant expenditure of precious time and computing power, contradicts with your
+    commitment towards sustainability and you begin to contemplate how to make the
+    code more efficient by reading only what is necessary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reusable functions: how it progresses'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'You recall the programming classes that you took N years ago and proceeded
+    to write some functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You are pleased with yourself. Although the number of lines of code has more
+    than doubled, you take comfort in the fact that it will be more manageable in
+    the long run. Also, you justify this approach because you can get specific output
+    dataframes and each one of them will only read the required tables and nothing
+    else. You feel a chill down your spine, as an inner voice challenges your conscious
+    thoughts. “Are you sure?” he barked in a commanding tone, reminiscent of a drill
+    sergeant. Silence hung densely in the air, and all you can hear is the spinning
+    of the imaginary cogs in your mind… Suddenly, your eyes lit up and noticed that
+    if you need `df1_2` and `df1_4`, then `file1.csv` will be read twice! Roar!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Objects, methods and attributes: how it evolves'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once again, you recall the programming lessons in college and remembered that
+    you can resolve this by creating a `Reports` object. After a dataframe has been
+    read, it can be set as an attribute of the `Reports` object so that it can be
+    accessed later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Voila! You have solved the problem of reading the same file several times.
+    But there is yet another problem: `get_df1_2_3` can get very complicated if it
+    has to go through many steps, e.g. filtering, selecting, boolean-masking, removal
+    of duplicates, etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tracing upstream dependencies: a novel approach'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You take a deep breath and wonder… is there a way for the code to figure out
+    that if `self.df1_2` has not been set, then it should call `self.get_df1_2()`?
+    More generally, when an attribute being accessed is not present, can we identify
+    which method is responsible for setting it, and then call the method? If this
+    can be achieved, then one can use `x=Reports(); x.df1_2_3` to get to the required
+    dataframe in one command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Isn’t that worth fighting for? Isn’t that worth dying? — Morpheus, The Matrix
+    Reloaded, 2003
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Like a mad scientist at work, you begin hammering away at your keyboard, occasionally
+    looking up to make imaginary drawings of programming abstractions and connecting
+    them with your fingers. From your peripheral, you notice the look of bewilderment
+    — or perhaps disgust, but you couldn’t tell — from a co-worker you never knew.
+    You channel all your focus to enter flow state, oblivious to what is happening
+    around you. The building could have caught fire, but you wouldn’t know as long
+    as your trusty Notepad++ continues to display every key you enter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: You take a moment to admire your creation, its elegance and simplicity. For
+    a split second, you dream about how this will benefit coders and data analysts.
+    As you ride the hot-air balloon of euphoria, the inner voice descends upon you
+    like shackles on a prisoner. “Stay grounded,” he said, “as you may not be the
+    first to come up with such an idea.” You buckle down and begin documenting your
+    work, consciously aware that you may not understand what you have written a few
+    days later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`__init__()` does not read files. It merely calls `build_shortcuts()`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`_build_shortcuts()` & `__getattr__` work hand-in-hand to simplify the code
+    in subsequent methods.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`_build_shortcuts()` takes a dictionary with methods as keys and list of attributes
+    as values, then inverts it to form a dictionary with attributes as keys and methods
+    which sets the attributes as values.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`__getattr__` does quite a bit of magic. When one calls `self.<attr>`, if `attr`
+    is not present in `self.__dict__` but is in `self._shortcuts`, then it identifies
+    the method that is responsible for creating `self.<attr>` and calls the method.
+    Whenever you create a new method, if it sets a new attribute, then all you have
+    to do is to update `dict0` in `self._build_shortcuts()`. If it is in the keys
+    of the `files` dictionary, then it reads the corresponding file and sets the key
+    as the attribute of the `Reports` object.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Without explicitly writing a loop or recursion, `__getattr__` and `self._shortcuts`
+    work together to trace the upstream dependencies!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For now, this is a superior approach for the following reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Files are read only when absolutely required, minimal time wasted.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When files are read, they are read only once, and data written to the attribute.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When calling an attribute, if it is not created, it will find the method responsible
+    for setting the attribute, and then set it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additional benefit
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Besides being able to access the desired dataframes in one command, you can
+    also add other attributes[1] to the values of `dict0` in `_build_shortcuts()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, you may be interested in the list of unique values of column `a`
+    in `df1_2`. Simply add it to the list, and you can use `x = Reports(); x.unique_values_in_a`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What does it mean for you?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I highly encourage you to try this approach the next time you are required to
+    analyze data which involving multiple dataframes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For python novices, you can just copy-and-paste the `Reports` class, `__init__`,
+    `__getattr__` and `_build_shortcuts` method. Obviously, you will need to write
+    your own methods and update`dict0` in `_build_shortcuts`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For python experts, I would love to hear your view on my approach and if you
+    are doing something similar, or better.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Disclaimer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This narrative is merely for illustrative purposes and does not in any way shape
+    or form represent my or my firm’s views or reflect in any way experiences in my
+    firm or with my clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the first time that I’ve used such a writing style, if you like it,
+    do show your appreciation by clapping, following and subscribing. Thank you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Many thanks to Tongwei for proofreading and suggesting this.'
+  prefs: []
+  type: TYPE_NORMAL

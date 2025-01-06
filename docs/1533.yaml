@@ -1,0 +1,573 @@
+- en: How I Dockerized Apache Flink, Kafka, and PostgreSQL for Real-Time Data Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-i-dockerized-apache-flink-kafka-and-postgresql-for-real-time-data-streaming-c4ce38598336?source=collection_archive---------1-----------------------#2024-06-19](https://towardsdatascience.com/how-i-dockerized-apache-flink-kafka-and-postgresql-for-real-time-data-streaming-c4ce38598336?source=collection_archive---------1-----------------------#2024-06-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Integrating pyFlink, Kafka, and PostgreSQL using Docker
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)[![Augusto
+    de Nevrezé](../Images/bd7d6509149ddb447dd7e5af9f09e4b1.png)](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------)
+    [Augusto de Nevrezé](https://adenevreze.medium.com/?source=post_page---byline--c4ce38598336--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4ce38598336--------------------------------)
+    ·10 min read·Jun 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/11d218990f84e7153933c512352bd704.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Get your pyFlink applications ready using docker — author generated image using
+    [https://www.dall-efree.com/](https://www.dall-efree.com/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Read This?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Real-World Insights**: Get practical tips from my personal journey of overcoming
+    integration hurdles.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Complete Setup**: Learn how to integrate Flink, Kafka, and PostgreSQL seamlessly
+    using Docker-Compose.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Step-by-Step Guide**: Perfect for both beginners and experienced developers
+    looking to streamline their data streaming stack.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting Up the Scene
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I embarked on a mission to integrate Apache Flink with Kafka and PostgreSQL
+    using Docker. What makes this endeavor particularly exciting is the use of pyFlink
+    — the Python flavor of Flink — which is both powerful and relatively rare. This
+    setup aims to handle real-time data processing and storage efficiently. In the
+    following sections, I’ll demonstrate how I achieved this, discussing the challenges
+    encountered and how I overcame them. I’ll conclude with a step-by-step guide so
+    you can build and experiment with this streaming pipeline yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The infrastructure we’ll build is illustrated below. Externally, there’s a publisher
+    module that simulates IoT sensor messages, similar to what was discussed in a
+    [previous post](https://medium.com/dev-genius/detecting-iot-alerts-with-apache-flink-7a2be19ad9dd).
+    Inside the Docker container, we will create two Kafka topics. The first topic,
+    *sensors*, will store incoming messages from IoT devices in real-time. A Flink
+    application will then consume messages from this topic, filter those with temperatures
+    above 30°C, and publish them to a second topic, *alerts*. Additionally, the Flink
+    application will insert the consumed messages into a PostgreSQL table created
+    specifically for this purpose. This setup allows us to persist sensor data in
+    a structured, tabular format, providing opportunities for further transformation
+    and analysis. Visualization tools like Tableau or Power BI can be connected to
+    this data for real-time plotting and dashboards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, the alerts topic can be consumed by other clients to initiate actions
+    based on the messages it holds, such as activating air conditioning systems or
+    triggering fire safety protocols.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a1ad055bc5105bf1c170c1d526b9702c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Services included in the docker container — image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to follow up the tutorial, you can clone the following [repo](https://github.com/augustodn/pyflink-docker).
+    A docker-compose.yml is placed in the root of the project so you can initialize
+    the multi-container application. Furthermore, you can find detailed instructions
+    in the README file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Issues With Kafka Ports in docker-compose.yml
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Initially, I encountered problems with Kafka’s port configuration when using
+    the confluentinc Kafka Docker image, a popular choice for such setups. This issue
+    became apparent through the logs, emphasizing the importance of not running docker-compose
+    up in detached mode (-d) during initial setup and troubleshooting phases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason for the failure was that the internal and external hosts were using
+    the same port, which led to connectivity problems. I fixed this by changing the
+    internal port to 19092\. I’ve found [this](https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/)
+    blog post pretty clarifying.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Configuring Flink in Session Mode
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To run Flink in [session mode](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode)
+    (allowing multiple jobs in a single cluster), I’m using the following directives
+    in the docker-compose.yml.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom Docker Image for PyFlink
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Given the limitations of the default Apache Flink Docker image, which doesn’t
+    include Python support, I created a [custom Docker image](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker)
+    for pyFlink. This custom image ensures that Flink can run Python jobs and includes
+    the necessary dependencies for integration with Kafka and PostgreSQL. The Dockerfile
+    used for this is located in the pyflink subdirectory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Base Image**: We start with the official Flink image.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Python Installation**: Python and pip are installed, upgrading pip to the
+    latest version.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Dependency Management**: Dependencies are installed via requirements.txt.
+    Alternatively, lines are commented to demonstrate how to manually install dependencies
+    from local files, useful for deployment in environments without internet access.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Connector Libraries**: Connectors for Kafka and PostgreSQL are downloaded
+    directly into the Flink lib directory. This enables Flink to interact with Kafka
+    and PostgreSQL during job execution.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Script Copying**: Scripts from the repository are copied into the /opt/flink
+    directory to be executed by the Flink task manager.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With this custom Docker image, we ensure pyFlink can run properly within the
+    Docker container, equipped with the necessary libraries to interact with Kafka
+    and PostgreSQL seamlessly. This approach provides flexibility and is suitable
+    for both development and production environments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** Ensure that any network or security considerations for downloading
+    connectors and other dependencies are addressed according to your deployment environment’s
+    policies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integrating PostgreSQL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To connect Apache Flink to the PostgreSQL database, a proper JDBC connector
+    is required. The custom Docker image for pyFlink downloads the JDBC connector
+    for PostgreSQL, which is compatible with PostgreSQL 16.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To simplify this process, a download_libs.sh script is included in the repository,
+    mirroring the actions performed in the Flink Docker container. This script automates
+    the download of the necessary libraries, ensuring consistency between the Docker
+    and local environments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** Connectors usually have two versions. In this particular case, since
+    I’m using Flink 1.18, the latest stable version available, I’ve downloaded 3.1.2–1.18\.
+    My guess is that the first version tracks JDBC implementation for several databases.
+    They’re available in the [maven directory](https://mvnrepository.com/artifact/org.apache.flink/flink-connector-jdbc/3.1.2-1.18).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Defining JDBC Sink**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our Flink task, there’s a crucial function named configure_postgre_sink located
+    in the usr_jobs/postgres_sink.py file. This function is responsible for configuring
+    a generic PostgreSQL sink. To use it effectively, you need to provide the SQL
+    Data Manipulation Language (DML) statement and the corresponding value types.
+    The types used in the streaming data are defined as TYPE_INFO … it took me a while
+    to come up with the correct declaration 😅.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice also that the JdbcSink has an optional parameter to define the ExecutionOptions.
+    For this particular case, I’ll use an update interval of 1 second and limit the
+    amount of rows to 200\. You can find more information in the [official documentation](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/#jdbc-execution-options).
+    Yes, you guessed it, since I’m defining an interval, this can be considered a
+    micro-batch ETL. However, due to Flink parallelism you can handle multiple streams
+    at once in a simple script which is at the same time, easy to follow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** Don’t forget to create the raw_sensors_data table in Postgres, where
+    raw data coming from the IoT sensors will be received. This is covered in the
+    step-by-step guide in the sections below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sinking Data to Kafka
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I’ve covered how to consume data from a Kafka topic in [a previous discussion](https://medium.com/dev-genius/detecting-iot-alerts-with-apache-flink-7a2be19ad9dd).
+    However, I haven’t configured a sink yet and that’s what we’ll do. The configuration
+    has some intricacies and it’s defined in a function, similarly to the Postgres
+    sink. Additionally, you have to define the type for the data stream before sinking
+    it to Kafka. Notice that the alarms_data stream is properly casted as a string
+    with output_type=Types.STRING() before sinking it to Kafka, since I’ve declared
+    the serializer as SimpleStringSchema().
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll show you how to fetch data from the alerts topic in the following steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Local or Containerized configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the greatest things about this docker configuration is that you can run
+    Flink from local or inside the container as a managed task. The local Flink setup
+    is depicted in the following figure, where you can see our Flink application detached
+    from the docker container. This may help to troubleshoot Flink, which doesn’t
+    have a good suite of native observability tools. Actually, we would like to give
+    a try to [datorios](https://datorios.com/) tools for Flink, they are very promising
+    for monitoring purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d8993906980fe9862badc9ecdcad799.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Runing Flink applications in local with other services running inside the container
+    — image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you want to try the Flink application locally, you have to correctly define
+    the hosts and ports used by the script which actually are two constants in the
+    usr_jobs/postgres_sink.py file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For container run, use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For local run, use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: By default the repo sets up the Flink application to run inside the container.
+    You can monitor the jobs running using the web UI, accessing from [http://localhost:8081](http://localhost:8081).
+    You won’t be able to see it if you choose to run the job locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/add4733c451e9d50906584d638693caf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot of the Flink web UI with the running job — image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note**: If you run the job locally, you need to install the Flink dependencies
+    located in the requirements.txt. Also a pyproject.toml file is provided if you
+    like to set up the environment with poetry.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step-by-Step Guide to Run the Streaming Pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Step 1: Launch the multi-container application'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Launch the containers by running docker-compose. I preferred to do it without
+    detached mode to see the logs while the containers are spinning up and then running.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Check for the logs to see if the services are running properly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Create the Kafka topics'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we’re going to create the topics to receive data from the IoT sensors
+    and store the alerts filtered by the Flink application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: To check if the topics were created correctly you can execute the following
+    command
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 3: Create Postgres table'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Login to the postgres console
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Enter the password flinkpassword to log into the postgres console, remember
+    this is a local configuration so default access has been configured in the docker-compose.yml.
+    Then create the table
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can check if the table is properly created by doing the following
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This will show you a result similar to the following one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d60419e34e6e3d6595fb7dabb57d16ff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Step 4: Launching the Kafka producer'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Create a local environment with conda or poetry and install python kafka package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then execute the kafka producer, which mimics IoT sensor messages and publishes
+    messages to the sensors topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Leave it running for the rest of the tutorial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 5: Initializing the Flink task'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We’re going to launch the Flink application from within the container, so you
+    can monitor it from the web UI through localhost:8081\. Run the following command
+    from the repository root:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: You’ll see some logging information, additionally alerts will also be displayed
+    in the flink-jobmanager container logs. Also, you can check if the job is running
+    from the Flink web UI [http://localhost:8081/#/job/running](http://localhost:8081/#/job/running).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/61e46067d510dfa78e078de834b3ad0a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Details of running job — image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apparently the monitoring tells that there are no messages going through the
+    Flink job, which is not true, since alerts can be seen in the docker log.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a76525be2f6b2ec01ef7e1d6d89b2518.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We’ll check the messages using the Postgres table and read the alerts topic,
+    which were created for this purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 6: Read Alerts in Kafka Topic'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To read data in the alerts topic, you can execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: That will bring all the messages that the topic has received so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 7: Read raw data from Postgres table'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Additionally you can query the raw messages from the IoT sensor and even parse
+    the JSON data in PostgreSQL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 8: Stopping Services'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You can easily stop everything by doing ctrl-c on the docker terminal. If you
+    prefer, to make proper shutdown, proceed with the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cancel the Flink job by clicking in the top right corner of job details in the
+    web UI.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Stop the kafka_producer.py script which was running locally.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ctrl-c on the docker terminal to stop the services
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The information exchanged in the session, while the services were running, is
+    permanently stored. So in the case you want to query the Postgres table or the
+    Kafka topics, the data is going to be there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Insights on Using Multiple Sinks in a PyFlink Job
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the Flink job used for demonstration, I’m managing 2 data streams simultaneously,
+    in the same task. The one that writes raw data coming from the sensors topic (IoT
+    devices) and the filtered alerts which are set to another topic. This has some
+    advantages and drawbacks, as a simple summary, here are the pros and cons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros of Single Job with Multiple Sinks:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Simplicity in resource management.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Consistency in data flow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cons of Single Job:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Can become complex as logic grows.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Scalability might be an issue.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros of Multiple Jobs:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Better fault isolation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Focused optimization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cons of Multiple Jobs:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Resource overhead.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Coordination complexity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This setup offers a robust solution for real-time data streaming and processing,
+    integrating Flink, Kafka, and PostgreSQL effectively. The main purpose of using
+    Postgres in the loop is to check the raw messages coming from the IoT devices
+    without relying on queries to the topic itself. It also helped to demonstrate
+    how to sink data using a JDBC connector, which might be pretty standard. The message
+    transformations were done using the DataStream API. I would like to dive further
+    into the SQL API which introduces a friendlier interface. Finally, regarding how
+    to manage data streams, choose between single or multiple jobs based on your specific
+    requirements ensuring scalability and maintainability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 1\. Use SQL API to make transformations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Optimize resource usage based on job complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Explore advanced Flink features for complex data processing tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Happy streaming! 🚀
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Stay tuned for more tutorials on integrating and scaling data engineering
+    solutions with Docker!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Feel free to reach out for any questions or suggestions in the comments below!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ready to Optimize Your Streaming Data Applications?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unlock the full potential of your data with our [expert consulting services](https://www.squadralabs.com/),
+    tailored for streaming data applications. Whether you’re looking to enhance real-time
+    analytics, streamline data pipelines, or optimize performance, we’re here to help.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/](https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://mvnrepository.com/](https://mvnrepository.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/](https://nightlies.apache.org/flink/flink-docs-master/docs/connectors/datastream/jdbc/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/overview/#session-mode)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker](https://nightlies.apache.org/flink/flink-docs-master/docs/deployment/resource-providers/standalone/docker/#using-flink-python-on-docker)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://medium.com/@sant1/flink-docker-kafka-faee9c0f1580](https://medium.com/@sant1/flink-docker-kafka-faee9c0f1580)'
+  prefs: []
+  type: TYPE_NORMAL

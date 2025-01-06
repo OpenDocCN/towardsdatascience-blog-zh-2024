@@ -1,0 +1,339 @@
+- en: Find Unusual Segments in Your Data with Subgroup Discovery
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/find-unusual-segments-in-your-data-with-subgroup-discovery-2661a586e60c?source=collection_archive---------8-----------------------#2024-02-02](https://towardsdatascience.com/find-unusual-segments-in-your-data-with-subgroup-discovery-2661a586e60c?source=collection_archive---------8-----------------------#2024-02-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Patient rule induction method finds 35% better segments than previously reported
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vadim.arzamasov?source=post_page---byline--2661a586e60c--------------------------------)[![Vadim
+    Arzamasov](../Images/70ced2eafa6fc926052979875a0a4265.png)](https://medium.com/@vadim.arzamasov?source=post_page---byline--2661a586e60c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2661a586e60c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2661a586e60c--------------------------------)
+    [Vadim Arzamasov](https://medium.com/@vadim.arzamasov?source=post_page---byline--2661a586e60c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2661a586e60c--------------------------------)
+    ·8 min read·Feb 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c58998cb8355e53823acdd3947bda6e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author with recraft.ai
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inspired by an in-depth [Medium article](https://medium.com/towards-data-science/figuring-out-the-most-unusual-segments-in-data-af5fbeacb2b2)
+    [1] with a case study on identifying bank customer segments with high churn reduction
+    potential, this story explores a similar challenge through the lens of subgroup
+    discovery methods [2]. Intrigued by the parallels, I applied a subgroup discovery
+    approach to the same dataset and uncovered a segment with a 35% higher churn reduction
+    potential — a significant improvement over what was previously reported. This
+    story will take you through each step of the process, including building the methodology
+    from the ground up. At the end of this journey, you’ll gain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A clear understanding of the Patient Rule Induction Method (PRIM), a mature
+    yet powerful subgroup discovery technique.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The skills to apply PRIM to your datasets and tailor it to your specific needs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The complete code for PRIM and the experiment is on [GitHub](https://github.com/Arzik1987/medium/tree/main/prim_segments)
+    [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Patient Rule Induction Method
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For the experiment, I’ve chosen my favorite subgroup discovery method: PRIM
+    [4]. Despite its long presence in the field, PRIM has a unique mix of properties
+    that make it very versatile:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Numerical data handling**: PRIM easily handles numerical data without the
+    need for binning. Unlike typical methods that discretize variables (e.g., categorizing
+    age into predefined groups such as `45–54 years`), PRIM overcomes this limitation.
+    For example, it can identify more nuanced criteria such as `age > 37`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Intelligent categorical data processing**: PRIM can discover complex segments
+    within categorical data. It can go beyond simple classifications such as `country
+    = Germany` to more complex definitions such as `country not in {France}`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Simplicity**: While traditional subgroup discovery methods are often burdened
+    with multiple parameters, PRIM is refreshingly simple. It relies primarily on
+    a single, unambiguous `peeling parameter`: the proportion of points removed from
+    a candidate segment in each iteration.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Efficiency**: Being a heuristic approach, PRIM is remarkably fast. Despite
+    its large search space, segment identification is typically resolved in milliseconds.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Interactivity and control**: PRIM enables interactive analysis. Users can
+    balance segment size against potential impact by examining a series of “nested”
+    segments and selecting the most appropriate one. It also supports incremental
+    segment discovery by removing already segmented data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Flexibility**: The flexibility of the method extends to the optimization
+    function it is designed to enhance. This function isn’t limited to a single variable.
+    For example, PRIM can identify segments where the correlation between two variables
+    is significantly different from their correlation in the entire data set.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In summary, PRIM’s straightforward logic not only makes it easy to implement,
+    but also allows for customization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRIM algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'PRIM works through two distinct phases: peeling and pasting. Peeling starts
+    from a segment encompassing the entire dataset and gradually shrinks it while
+    optimizing its quality. Pasting works similarly, but in the opposite direction
+    — it tries to expand the selected candidate segment without quality loss. In our
+    previous experiments [5], we observed that the pasting phase typically contributes
+    minimally to the output quality. Therefore, I will focus on the peeling phase.
+    The underlying logic of the peeling phase is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this pseudo-code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`box` refers to the current segment of the data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `target quality function` is typically some statistic of the response variable
+    (mean, median, etc) that we want to maximize or minimize.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `peeling parameter` determines the proportion of data points to be removed
+    in each iteration. It is usually set to a small value, such as 0.05, hence the
+    word “patient” in the method’s name.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `stopping criterion` ensures that enough data points remain for analysis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Consider simple examples of how PRIM handles numeric and categorical variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Numeric variables:** Imagine you have a numeric variable such as age. In
+    each step of the peeling phase, PRIM looks at the range of that variable (say,
+    age from 18 to 80). PRIM then “peels off” a portion of that range from either
+    end, as defined by the `peeling parameter`. For example, it might remove ages
+    75 to 80 because doing so improves the `target quality function` in the remaining
+    data (e.g., increasing the churn reduction potential). The animation below shows
+    PRIM finding an interesting segment (with a high proportion of orange squares)
+    in a 2D numeric dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b490dcc06d4384cccf544002f220f0f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: PRIM at work on a 2D numerical data set. Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Categorical nominal variables:** Now consider a categorical nominal variable
+    such as country, with categories such as Germany, France, and Spain. In the peeling
+    phase, PRIM evaluates each category based on how well it improves the `target
+    quality function`. It then removes the least promising category. For example,
+    if removing “Germany” results in a subset where the `target quality function`
+    is improved (such as a higher potential churn reduction), then all data points
+    with “Germany” are “peeled”. Note that the `peeling parameter` has no effect on
+    the processing of categorical data, which can cause undesired effects in some
+    cases, as I will discuss and provide a simple remedy (in section “Better segments
+    via enforced ‘patience’”).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Categorical ordinal variables:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For ordinal variables, disjoint intervals in segment descriptions can sometimes
+    be less intuitive. Consider an education variable with levels such as primary,
+    secondary, vocational, bachelor, and graduate. Finding a rule like `education
+    in {primary, bachelor}` may not fit well with the ordinal nature of the data because
+    it combines non-adjacent categories. For those looking for a more coherent segmentation,
+    such as `education > secondary`, that respects the natural order of the variable,
+    using an ordinal encoding can be a useful workaround. For more insight into categorical
+    encoding, you may find my [earlier post](https://medium.com/@vadim.arzamasov/navigating-categorical-encoder-maze-c04e49b165fe)
+    [6] helpful, as it navigates you to the necessary information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Experiment: Churn for bank customers'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now everything is ready to start the experiment. Following the Medium article
+    on identifying unique data segments [1], I will apply the PRIM method to the [Churn
+    for Bank Customers](https://www.kaggle.com/datasets/mathchi/churn-for-bank-customers)
+    [7] dataset from Kaggle, available under the CC0: Public Domain license. I will
+    also adopt the `target quality function` from the article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/24f1b331624a6e6cc65d360d7fb1ec59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: That is, I will look for the segments with many customers where the churn rate
+    is much higher than the baseline, which is the average churn rate in the entire
+    dataset. So I use PRIM, which gives me a set of nested candidate segments, and
+    plot the `churn_est_reduction` against the number of clients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f2f6519be48b38e624fb8716ef89341d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The highest quality, `churn_est_reduction = 457` is achieved for the 11th candidate
+    segment with the description `num_of_products < 2, is_active_member < 1, age >
+    37`. This is quite an improvement over the previously reported maximum `churn_est_reduction
+    = 410` in [1]. Comparing the segment descriptions, I suspect that the main reason
+    for this improvement is PRIM’s ability to handle numeric variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Better segments via enforced ‘patience’
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Something suspicious is going on in the previous plot. By its nature, PRIM is
+    expected to be “patient”, i.e. to reduce the segment size only a little bit at
+    each iteration. However, the second candidate segment is twice as small as the
+    previous one — PRIM has cut off half the data at once. The reason for this is
+    the low cardinality of some features, which is often the case with categorical
+    or indicator variables. For example, `is_active_member` only takes the values
+    0 or 1\. PRIM can only cut off large chunks of data for such variables, giving
+    them an unfair advantage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this issue, I’ve added an additional parameter called `patience`
+    to give more weight to smaller cuts. Specifically, for the task at hand, I prioritize
+    cuts by multiplying the churn rate reduction by the segment size raised to the
+    power of `patience`. This approach helps to fine-tune the selection of segments
+    based on their size, making it more tailored to our analysis needs. Applying PRIM
+    with `patience = 2` to the data yields the following candidate segments
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a1434019563bc9df4066f3424e5c1032.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now the best candidate segment is `num_of_products < 2, 37 < age < 64` with
+    `churn_est_reduction = 548`, much better than any previous result!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finding multiple segments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let us say we have selected the just discovered segment and ask one of two
+    responsible teams to focus on it. Can PRIM find a job for another team, i.e.,
+    find another group of clients, not in the first segment, with a high potential
+    churn rate reduction? Yes it can, with so-called “covering” approach [4]. This
+    means that one simply drops the clients belonging to the previously selected segment(s)
+    from the dataset and apply PRIM once again. So I removed data with `num_of_products
+    < 2, 37 < age < 64` and applied PRIM to the rest:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/829eaac3357952969256d1bf7521d29d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here the best candidate segment is `gender != ‘Male’, num_of_products > 2, balance
+    > 0.0` with `chirn_est_reduction = 93.`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To wrap things up, I illustrated PRIM’s strong performance on a Customer Churn
+    Dataset for a task to find unusual segments. Points to note:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRIM has identified highly insightful segments with 35% higher quality than
+    previously reported.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I shared the code [3] for practical application and further experimentation.
+    It is very concise and, unlike to other existing implementations [8–9], allows
+    one to easily replace the target quality function tailored to a specific need.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I endorse PRIM for its robust features, such as effective handling of both numeric
+    and categorical data, flexible segment definition, and fast execution, and recommend
+    it for similar analytical challenges.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] [Figuring out the most unusual segments in data](https://medium.com/towards-data-science/figuring-out-the-most-unusual-segments-in-data-af5fbeacb2b2)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Atzmueller, Martin. “[Subgroup discovery](https://www.kde.cs.uni-kassel.de/wp-content/uploads/atzmueller/paper/2005-SDSchlagwortKI_AtzmuellerM.pdf).”
+    *Wiley Interdisciplinary Reviews: Data Mining and Knowledge Discovery* 5.1 (2015):
+    35–49.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [My code for PRIM and the experiment](https://github.com/Arzik1987/medium/tree/main/prim_segments)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Friedman, Jerome H., and Nicholas I. Fisher. “[Bump hunting in high-dimensional
+    data](https://www.researchgate.net/profile/Nicholas-Fisher-10/publication/283550136_Bump_hunting_in_high-dimensional_data-Discussion/links/5a4350980f7e9ba868a54cd9/Bump-hunting-in-high-dimensional-data-Discussion.pdf).”
+    *Statistics and computing* 9.2 (1999): 123–143.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Arzamasov, Vadim, and Klemens Böhm. “[REDS: rule extraction for discovering
+    scenarios](https://dl.acm.org/doi/abs/10.1145/3448016.3457301?casa_token=MK5vsUGKNz8AAAAA%3ASdp6s_axuda7ZPTNtz6ajP9_pAIIeMFu4VTPUbbQhuLlGmajVgVBmuIgShjGln2FlwebBuv5JwJS2w).”
+    *Proceedings of the 2021 International Conference on Management of Data*. 2021.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] [Categorical Encoding: Key Insights](https://medium.com/@vadim.arzamasov/navigating-categorical-encoder-maze-c04e49b165fe)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] [Churn for Bank Customers dataset](https://www.kaggle.com/datasets/mathchi/churn-for-bank-customers)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] [Patient Rule Induction Method for Python](https://pypi.org/project/PRIM/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] [Patient Rule Induction Method for R](https://cran.r-project.org/web/packages/prim/index.html)'
+  prefs: []
+  type: TYPE_NORMAL

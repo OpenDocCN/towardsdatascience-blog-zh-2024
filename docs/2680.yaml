@@ -1,0 +1,913 @@
+- en: 'GraphRAG in Action: From Commercial Contracts to a Dynamic Q&A Agent'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/graphrag-in-action-from-commercial-contracts-to-a-dynamic-q-a-agent-7d4a6caa6eb5?source=collection_archive---------0-----------------------#2024-11-04](https://towardsdatascience.com/graphrag-in-action-from-commercial-contracts-to-a-dynamic-q-a-agent-7d4a6caa6eb5?source=collection_archive---------0-----------------------#2024-11-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A question-based extraction approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)[![Ed
+    Sandoval](../Images/2bdc5126db03add63b2ee251db2c3e0b.png)](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------)
+    [Ed Sandoval](https://medium.com/@edward.sandoval.2000?source=post_page---byline--7d4a6caa6eb5--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7d4a6caa6eb5--------------------------------)
+    ·23 min read·Nov 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, we introduce an approach that leverages a Graph Retrieval
+    Augmented Generation (GraphRAG) method — to streamline the process of ingesting
+    commercial contract data and building a Q&A Agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach diverges from traditional RAG (Retrieval-Augmented Generation)
+    by emphasizing efficiency in data extraction, rather than breaking down and vectorizing
+    entire documents indiscriminately, which is the predominant RAG approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conventional RAG, every document is split into chunks and vectorized for
+    retrieval, which can result in a large volume of unnecessary data being split,
+    chunked and stored in vector indexes. Here, however, the focus is on extracting
+    only the most relevant information from every contract for a specifc use case,
+    Commercial Contract Review. The data is then structured into a knowledge graph,
+    which organizes key entities and relationships, allowing for more precise graph
+    data retrieval through Cypher queries and vector search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By minimizing the amount of vectorized content and focusing on highly relevant
+    knowledge extracted, this method enhances the accuracy and performance of the
+    Q&A agent, making it suitable to handle complex and domain-specific questions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The 4-stage approach includes: targeted information extraction (LLM + Prompt)
+    to create a knowledge graph (LLM + Neo4J) and simple set of graph data retrieval
+    functions (Cypher, Text to Cypher, Vector Search). Finally, a Q&A agent leveraging
+    the data retrieval functions is built with ([Microsoft Semantic Kernel](https://learn.microsoft.com/en-us/semantic-kernel/overview/))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The diagram below illustrates the approach
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c97973ee81561dc36141cd7bcad3a15d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The 4-stage GraphRAG approach: From question-based extraction -> knowledge
+    graph model-> GraphRAG retrieval -> Q&A Agent. Image by Sebastian Nilsson @ Neo4J,
+    reproduced here with permission from its author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But first, for those of us not familiar with commercial law, let’s start with
+    a brief intro to the contract review problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contract Review and Large Language Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Commercial contract review is a labor-intensive process involving paralegals
+    and junior lawyers meticulously identifying critical information in a contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Contract review is the process of thoroughly reading a contract to understand
+    the rights and obligations of an individual or company signing it and assess the
+    associated impact”.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Hendrycks, Burns et al, NeurIPS 2021, in [CUAD an Expert-Annotated NLP Dataset
+    for Legal Contract Review](https://arxiv.org/pdf/2103.06268)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The first stage of contract review involves reviewing hundreds of pages of contracts
+    to find the relevant clauses or obligations. Contract reviewers must identify
+    whether relevant clauses exist, what they say if they do exist, and keep track
+    of where they are described.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, They must determine whether the contract is a 3-year contract or
+    a 1-year contract. They must determine the end date of a contract. They must determine
+    whether a clause is, say, an Anti-assignment or an Exclusivity clause…”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Hendrycks, Burns et al, NeurIPS 2021, in [CUAD an Expert-Annotated NLP Dataset
+    for Legal Contract Review](https://arxiv.org/pdf/2103.06268)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It’s a task that demands thoroughness but often suffers from inefficiencies
+    but it is suitable for a Large Language Model!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the first stage is completed, senior law practitioners can start to examine
+    contracts for weaknesses and risks. This is an area where a Q&A agent powered
+    by an LLM and grounded by information stored in Knowledge Graph is a perfect Copilot
+    for a legal expert.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A 4-Step Approach to Build a Commercial Contract Review Agent with LLMs, Function
+    Calling & GraphRAG
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The remainder of this blog will describe each of the steps in this process.
+    Along the way, I will use code snippets to illustrate the main ideas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The four steps are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Extracting Relevant Information from Contracts (LLM + Contract)**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Storing information extracted into a Knowledge Graph (Neo4j)**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Developing simple KG Data Retrieval Functions (Python)**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Building a Q&A Agent handling complex questions (Semantic Kernel, LLM, Neo4j)**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The Dataset:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [CUAD (Contract Understanding Atticus Dataset)](https://www.atticusprojectai.org/cuad)
+    is a CC BY 4.0 licensed and publicly available dataset of over 13,000 expert-labeled
+    clauses across 510 legal contracts, designed to help build AI models for contract
+    review. It covers a wide range of important legal clauses, such as confidentiality,
+    termination, and indemnity, which are critical for contract analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use three contracts from this dataset to showcase how our approach to
+    effectively extract and analyze key legal information, building a knowledge graph
+    and leveraging it for precise, complex question answering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The three contracts combined contain a total of 95 pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Extracting Relevant Information from Contracts'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is relatively straightforward to prompt an LLM to extract precise information
+    from contracts and generate a JSON output, representing the relevant information
+    from the contract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In commercial review, a prompt can be drafted to to locate each of the critical
+    elements mentioned above — parties, dates, clauses — and summarize them neatly
+    in a machine-readable (JSON) file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Extraction Prompt (simplified)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Answer the following questions using information exclusively on this contract
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[Contract.pdf]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 1) What type of contract is this?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 2) Who are the parties and their roles? Where are they incorporated? Name state
+    and country (use ISO 3166 Country name)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 3) What is the Agreement Date?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 4) What is the Effective date?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'For each of the following types of contract clauses, extract two pieces of
+    information:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: a) A Yes/No that indicates if you think the clause is found in this contract
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: b) A list of excerpts that indicates this clause type exists.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Contract Clause types: Competitive Restriction Exception, Non-Compete Clause,
+    Exclusivity, No-Solicit Of Customers, No-Solicit Of Employees, Non-Disparagement,
+    Termination For Convenience, Rofr/Rofo/Rofn, Change Of Control, Anti-Assignment,
+    Uncapped Liability, Cap On Liability'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Provide your final answer in a JSON document.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Please note that the above section shows a simplified version of the extraction
+    prompt. A full version can be [seen here](https://github.com/neo4j-product-examples/graphrag-contract-review/blob/main/prompts/contract_extraction_prompt.txt).
+    You will find that the the last part of the prompt specifies the desired format
+    of the JSON document. This is useful in ensuring a consistent JSON schema output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This task is relatively simple in Python. The `main()`function below is designed
+    to process a set of PDF contract files by extracting relevant legal information
+    (extraction_prompt), using **OpenAI gpt-4o** and saving the results in JSON format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The “***process_pdf***” function uses “**OpenAI gpt-4o**” to perform knowledge
+    extraction from the contract with an “extraction prompt”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each contract, the message returned by **“process_pdf”** looks like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 2: Creating a Knowledge Graph'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With each contract now as a JSON file, the next step is to create a Knowledge
+    Graph in Neo4J.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At this point is useful to spend some time designing the data model. You need
+    to consider some key questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What do nodes and relationships in this graph represent?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the main properties for each node and relationship?,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Should there be any properties indexed?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Which properties need vector embeddings to enable semantic similarity search
+    on them?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In our case, a suitable design (schema) includes the main entities: Agreements
+    (contracts), their clauses, the organizations who are parties to the agreement
+    and the relationships amongst them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A visual representation of the schema is shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28f50df8abdbf7e7816523de25b5bfaf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Only the “Excerpts” — the short text pieces identified by the LLM in Step 1
+    — require text embeddings. This approach dramatically reduces the number of vectors
+    and the size of the vector index needed to represent each contract, making the
+    process more efficient and scalable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simplified version of a python script loading each JSON into a Knowledge Graph
+    with the above schema looks like
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here the “**CREATE_GRAPH_STATEMENT**” is the only “complex” piece. It is a CYPHER
+    statement that maps the Contract (JSON) into the nodes and relationships in the
+    Knowledge Graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The full Cypher statement is below
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here’s a breakdown of what the statement does:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Binding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`$data` is the input data being passed into the query in JSON format. It contains
+    information about an agreement (contract).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second line assigns `data.agreement` to the alias `a`, so the contract details
+    can be referenced in the subsequent query.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Upsert the Agreement Node**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`MERGE` attempts to find an existing `Agreement` node with the specified `contract_id`.
+    If no such node exists, it creates one.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ON CREATE SET` clause sets various properties on the newly created `Agreement`
+    node, such as `contract_id`, `agreement_name`, `effective_date`, and other agreement-related
+    fields from the JSON input.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Create Governing Law Relationship**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This creates or merges a `Country` node for the governing law country associated
+    with the agreement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then, it creates or merges a relationship `GOVERNED_BY_LAW` between the `Agreement`
+    and `Country`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It also sets the `state` property of the `GOVERNED_BY_LAW` relationship
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Create Party and Incorporation Relationships**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For each party in the contract (`a.parties`), it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upserts (Merge) an `Organization` node for the party.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creates an `IS_PARTY_TO` relationship between the `Organization` and the `Agreement`,
+    setting the `role` of the party (e.g., buyer, seller).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Merges a `Country` node for the country in which the organization is incorporated.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creates an `INCORPORATED_IN` relationship between the organization and the incorporation
+    country, and sets the `state` where the organization is incorporated
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Create Contract Clauses and Excerpts**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This part first filters the list of clauses (`a.clauses`) to include only those
+    where `clause.exists = true` (i.e., clauses with excerpts identified by the LLM
+    in Step 1)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For each clause:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It creates a `ContractClause` node with a `name` and `type` corresponding to
+    the clause type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `HAS_CLAUSE` relationship is established between the `Agreement` and the `ContractClause`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For each `excerpt` associated with the clause, it creates an `Excerpt` node
+    and links it to the `ContractClause` using a `HAS_EXCERPT` relationship.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, a `ClauseType` node is created (or merged) for the type of the clause,
+    and the `ContractClause` is linked to the `ClauseType` using a `HAS_TYPE` relationship.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once the import script runs, a single contract can be visualized in Neo4J as
+    a Knowledge Graph
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3dd8827f94f0b3130da91d1104f56b0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A Knowledge Graph representation of a single Contract: Parties (organizations)
+    in green, Contract Clauses in blue, Excerpts in light brown, Countries in orange.
+    Image by the Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The three contracts in the knowledge graph required only a small graph (under
+    100 nodes and less than 200 relationships). Most importantly, only 40–50 vector
+    embeddings for the Excerpts are needed. This knowledge graph with a small number
+    of vectors can now be used to power a reasonably powerful Q&A agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Developing data retrieval functions for GraphRAG'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the contracts now structured in a Knowledge Graph, the next step involves
+    creating a small set of graph data retrieval functions. These functions serve
+    as the core building blocks, allowing us to develop a Q&A agent in step 4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s define a few basic data retrieval functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieve basic details about a contract (given a contract ID)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find contracts involving a specific organization (given a partial organization
+    name)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find contracts that **DO NOT** contain a particular clause type
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find contracts contain a specific type of clause
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find contracts based on the semantic similarity with the text (Excerpt) in a
+    clause (e.g., contracts mentioning the use of “prohibited items”)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Run a natural language query against all contracts in the database. For example,
+    an aggregation query that counts “how many contracts meet certain conditions”.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In step 4, we will build a Q&A using the [Microsoft Semantic Kernel library](https://learn.microsoft.com/en-us/semantic-kernel/overview/).
+    This library simplifies the agent building process. It allows developers to define
+    the functions and tools that an Agent will have at its disposal to answer a question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to simplify the integration between Neo4J and the Semantic Kernel library,
+    let’s define a `ContractPlugin` that defines the “signature” of each our data
+    retrieval functions. Note the `@kernel_function` decorator for each of the functions
+    and also the type information and description provided for each function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Semantic Kernel uses the concept of a “**Plugin**” class to encapsulate a group
+    of functions available to an Agent. It will use the decorated functions, type
+    information and documentation to inform the LLM function calling capabilities
+    about functions available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: I would recommend exploring the [“ContractService”](https://github.com/neo4j-product-examples/graphrag-contract-review/blob/main/ContractService.py)
+    class that contains the implementations of each of the above functions. Each function
+    exercises a a different data retrieval technique.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s walk through the implementation of some of these functions as they showcase
+    different GraphRAG data retrieval techniques / patterns
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get Contract (from contract ID) — A Cypher-based retrieval function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The `get_contract(self, contract_id: int)`, is an asynchronous method designed
+    to retrieve details about a specific contract (`Agreement`) from a Neo4J database
+    using a Cypher query. The function returns an `Agreement` object populated with
+    information about the agreement, clauses, parties, and their relationships.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s the implementation of this function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The most important component is the The Cypher query in `**GET_CONTRACT_BY_ID_QUERY**`
+    This query is executed using **contract_id** supplied as input parameter. The
+    output is the matching Agreement, its clauses and parties involved (each party
+    has a role and country/state of incorporation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data is then passed to an utility function `_get_agreement`which simply
+    maps the data to an “Agreement”. The agreement is a TypedDict defined as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Get Contracts WITHOUT a Clause type — Another Cypher retrieval function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This function illustrate a powerful feature of a knowledge graph, which is to
+    test for the absence of a relationship.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `get_contracts_without_clause()` function retrieves all contracts (`Agreements`)
+    from the Neo4J database that **do not** contain a specific type of clause. The
+    function takes a `ClauseType` as input and returns a list of `Agreement` objects
+    that match the condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type of data retrieval information can’t be easily implemented with vector
+    search. The full implementation follows
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once again, the format is similar to the previous function. A Cypher query,`**GET_CONTRACTS_WITHOUT_CLAUSE_TYPE_QUERY**`
+    , defines the nodes and relationship patterns to be matched. It performs an **optional
+    match** to filters out contracts that do contain a clause type, and collects related
+    data about the agreement, such as the involved parties and their details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function then constructs and returns a list of `Agreement` objects, which
+    encapsulate all the relevant information for each matching agreement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get Contract with Semantically Similar Text — A Vector-Search + Graph data retrieval
+    function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `get_contracts_similar_text()` function is designed to find agreements (contracts)
+    that contain clauses with text similar to a provided `clause_text`. It uses semantic
+    vector search to identify related Excerpts and then traverses the graph to return
+    information about the corresponding agreements and clauses, where those excerpts
+    came from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This function leverages a vector index defined on the “text” property of each
+    Excerpt. It uses the recently released [Neo4J GraphRAG package](https://neo4j.com/blog/graphrag-python-package/)
+    to simplify the Cypher code needed to run semantic search + Graph traversal code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s go over the main components of this data retrieval function
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Neo4j GraphRAG **VectorCypherRetriever** allows a developer to perform semantic
+    similarity on a vector index. In our case, for each semantically similar Excerpt
+    “node” found, an additional Cypher expression is used to fetch additional nodes
+    in the graph related to the node.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The parameters of the **VectorCypherRetriever are** straightforward. The `index_name`
+    is the vector index on which to run semantic similarity. The `embedder` generates
+    a vector embedding for a piece of text. The `driver` is just an instance of a
+    Neo4j Python driver. The `retrieval_query` specify the additional nodes and relationships
+    connected with ever “Excerpt” node identified by semantic similarity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `EXCERPT_TO_AGREEMENT_TRAVERSAL_QUERY`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: specifies the additional nodes to be retrieved. In this case, for every Excerpt,
+    we are retrieving its related Contract Clause and corresponding Agreement
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run a Natural Language Query — A Text 2Cypher data retrieval function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The `answer_aggregation_question()` function leverages Neo4j GraphRAG package
+    “Text2CypherRetriever” to answer a question in natural language. The Text2CypherRetriever
+    uses an LLM to turn the user question into a Cypher query and runs it against
+    the Neo4j database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function leverages **OpenAI gpt-4o** to generate the required Cypher query.
+    Let’s walk through the main components of this data retrieval function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function leverages Neo4j GraphRAG package “**Text2CypherRetriever**”. It
+    uses an LLM, in this case OpenAI LLM is used to turn a user question (natural
+    language) into a Cypher query that is executed against the database. The result
+    of this query is returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A key element to ensure that the LLM generates a query that uses the nodes,
+    relationships and properties defined in the database is to provide the LLM with
+    a text description of the schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our case, we used the following representation of the data model is sufficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 4: Building a Q&A Agent'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Armed with our Knowledge Graph data retrieval functions, we are ready to build
+    an agent grounded by GraphRAG :-)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s sets up a chatbot agent capable of answering user queries about contracts
+    using a combination of OpenAI’s **gpt-4o** model, our data retrieval functions
+    and a Neo4j-powered knowledge graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use Microsoft **Semantic Kernel, a framework that** allows developers
+    to integrate LLM function calling with existing APIs and data retrieval functions
+  prefs: []
+  type: TYPE_NORMAL
+- en: The framework uses a concept called **Plugins** to represent specific functionality
+    that the kernel can perform. In our case, all of our data retrieval functions
+    defined in the “ContractPlugin” can be used by the LLM to answer the question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The framework uses the concept of **Memory** to keep all interactions between
+    user and agent, as well as functions executed and data retrieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A extremely simple Terminal-based agent can be implemented with a few lines
+    of code. The snippet below shows the main parts of the agent (imports and environment
+    vars removed).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let ask our agent some non-trivial questions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**1\. Find me contracts with Price Restrictions but no insurance clauses**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, The Semantic Agent planner has reviewed the available functions in the
+    Kernel and determined that answering this question requires invoking two functions
+    that, on their own, won’t provide the complete answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, it executes the **“Get Contracts with [Price Restriction] Clauses”**
+    function, followed by the **“Get Contracts WITHOUT [Insurance] Clauses”** function.
+    The planner then combines the results from both functions to identify the intersection,
+    ultimately arriving at the correct answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you look at the debugging information, you can confirm the sequence of calls
+    performed by the LLM, along with information on the number of tokens consumed
+    by the call. Notice the calls with the 2 data retrieval functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fab333a8a824e1d0ce2c3367bcfa10ce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**2\. Yes, please. Provide more details**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, behind the scenes, the LLM used the **“Find Contract by ID”**.
+    You may have noticed that the output shown to the user did not include the id
+    of the contract. However, the Semantic Kernel stored all information returned
+    from the functions from previous calls in the conversation memory!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This powerful combination of having the agent decide which function(s) to call,
+    the use of memory and the automatic marshalling of the user queries into function
+    calls with the right parameters explain the **“Magic”** behind an agent built
+    with Semantic Kernel!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3\. Does any contract mention the ability to make price changes from time
+    to time**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Company reserves the right to change its process and/or fees, from time to time,
+    in its sole and absolute discretion. In the event of a price and/or fee change
+    for Technology, Company shall notify MA in writing ninety (90) days prior to the
+    effective date of any such change. All other prices and/or fees may be adjusted
+    without prior notice to MA.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: In order to answer this question, Semantic Kernel is executing the **get_contract_similar_text
+    data** retrieval function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Company reserves the right to change its process and/or fees, from time to time,
+    in its sole and absolute discretion. In the event of a price and/or fee change
+    for Technology, Company shall notify MA in writing ninety (90) days prior to the
+    effective date of any such change. All other prices and/or fees may be adjusted
+    without prior notice to MA.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs:
+  - PREF_IND
+  type: TYPE_PRE
+- en: As explained earlier, this function uses vector search and a Cypher query to
+    retrieve not just semantically similar excerpts but also the related contract
+    and clauses that includes them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, let’s ask how many contracts are there on the database
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. How many contracts are there in the database?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This questions requires the LLM to use the Text2Cypher data retriever
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: The debug information confirms that Semantic Kernel ran the Text2Cypher data
+    retrieval function with “user_question” = “How many contracts are there in the
+    database’?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Try it Yourself**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [github repo](https://github.com/neo4j-product-examples/graphrag-contract-review)
+    contains a Streamlit app that provides a more elegant Agent UI. You are encouraged
+    to interact with the agent and make changes to the ContractPlugin so your agent’s
+    ability to handle more questions!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this blog, we explored a Graph Retrieval Augmented Generation (GraphRAG)
+    approach to transform labor-intensive tasks of commercial contract review into
+    a more efficient, AI-driven process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By focusing on targeted information extraction using LLMs and prompts, building
+    a structured knowledge graph with Neo4j, implementing simple data retrieval functions,
+    and ultimately developing a Q&A agent, we created an intelligent solution that
+    handles complex questions effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach minimizes inefficiencies found in traditional vector search based
+    RAG, focusing instead on extracting only relevant information, reducing the need
+    for unnecessary vector embeddings, and simplifying the overall process. We hope
+    this journey from contract ingestion to an interactive Q&A agent inspires you
+    to leverage GraphRAG in your own projects for improved efficiency and smarter
+    AI-driven decision-making.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start building your own commercial contract review agent today and experience
+    the power of GraphRAG firsthand!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For those eager to take a deeper dive, please check out the resources linked
+    below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[GitHub repository with the code and detailed instructions](https://github.com/neo4j-product-examples/graphrag-contract-review)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Contract Understanding Atticus Dataset (CUAD) for Legal Contracts](https://github.com/TheAtticusProject/cuad)
+    (Github)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[CUAD: An Expert-Annotated NLP Dataset for Legal Contract Review. Hendrycks,
+    Burns, Chen, Ball. NeurIPS 2021](https://arxiv.org/pdf/2103.06268)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Neo4j GraphRAG package launch blog post](https://neo4j.com/blog/graphrag-python-package/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Microsoft Semantic Kernel library](https://learn.microsoft.com/en-us/semantic-kernel/overview/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,530 @@
+- en: 'From Retrieval to Intelligence: Exploring RAG, Agent+RAG, and Evaluation with
+    TruLens'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/from-retrieval-to-intelligence-exploring-rag-agent-rag-and-evaluation-with-trulens-3c518af836ce?source=collection_archive---------3-----------------------#2024-12-03](https://towardsdatascience.com/from-retrieval-to-intelligence-exploring-rag-agent-rag-and-evaluation-with-trulens-3c518af836ce?source=collection_archive---------3-----------------------#2024-12-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Unlocking the Power of GPT-Generated Private Corpora
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)[![Vladyslav
+    Fliahin](../Images/9ef0a1bc4adaf23c887fa8a9a8563384.png)](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------)
+    [Vladyslav Fliahin](https://medium.com/@vladyslav.fliahin_1709?source=post_page---byline--3c518af836ce--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c518af836ce--------------------------------)
+    ·21 min read·Dec 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Nowadays the world has a lot of good foundation models to start your custom
+    application with (gpt-4o, Sonnet, Gemini, Llama3.2, Gemma, Ministral, etc.). These
+    models know everything about history, geography, and Wikipedia articles but still
+    have weaknesses. Mostly there are two of them: level of details (e.g., the model
+    knows about BMW, what it does, model names, and some more general info; but the
+    model fails in case you ask about number of sales for Europe or details of the
+    specific engine part) and the recent knowledge (e.g., Llama3.2 model or Ministral
+    release; foundation models are trained at a certain point in time and have some
+    knowledge cutoff date, after which the model doesn’t know anything).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2c6dbbf6a87facdbce8a1d9d85528df.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Jaredd Craig](https://unsplash.com/@jaredd?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is focused on both issues, describing the situation of imaginary
+    companies that were founded before the knowledge cutoff, while some information
+    was changed recently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address both issues we will use the RAG technique and the LlamaIndex framework.
+    The idea behind the Retrieval Augmented Generation is to supply the model with
+    the most relevant information during the answer generation. This way we can have
+    a DB with custom data, which the model will be able to utilize. To further assess
+    the system performance we will incorporate the TruLens library and the RAG Triad
+    metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mentioning the knowledge cutoff, this issue is addressed via google-search
+    tools. Nevertheless, we can’t completely substitute the knowledge cutoff with
+    the search tool. To understand this, imagine 2 ML specialists: first knows everything
+    about the current GenAI state, and the second switched from the GenAI to the classic
+    computer vision 6 month ago. If you ask them both the same question about how
+    to use the recent GenAI models, it will take significantly different amount of
+    search requests. The first one will know all about this, but maybe will double-check
+    some specific commands. And the second will have to read a whole bunch of detailed
+    articles to understand what’s going on first, what this model is doing, what is
+    under the hood, and only after that he will be able to answer.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Basically it is like comparison of the field-expert and some general specialists,
+    when one can answer quickly, and the second should go googling because he doesn’t
+    know all the details the first does.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The main point here is that a lot of googling provides comparable answer within
+    a significantly longer timeframe. For in chat-like applications users won’t wait
+    minutes for the model to google smth. In addition, not all the information is
+    open and can be googled.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Right now it may be hard to find a dataset, that is not previously used in the
+    training data of the foundation model. Almost all the data is indexed and used
+    during the large models' pretraining stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7ef81bd855098bc93007f6790f622f9d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image generated by the author using AI (Bing)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That’s why I decided to generate the one myself. For this purpose, I used the
+    *chatgpt-4o-latest* via the OpenAI UI and several continuous prompts (all of them
+    are similar to the ones below):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a result, I generated a private corpus for 4 different companies. Below are
+    the calculations of the tokens to better embrace the dataset size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Below you can read the beginning of the Ukraine Boats Inc. description:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The complete private corpus can be found on [GitHub](https://github.com/Vlad-Fliahin/rag-llamaindex).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the purpose of the evaluation dataset, I have also asked the model to generate
+    10 questions (about Ukraine Boats Inc. only) based on the given corpus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the dataset obtained:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, when we have the private corpus and the dataset of Q&A pairs, we can insert
+    our data into some suitable storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data propagation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can utilize a variety of databases for the RAG use case, but for this project
+    and the possible handling of future relations, I integrated the Neo4j DB into
+    our solution. Moreover, Neo4j provides a free instance after registration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s start preparing nodes. First, we instantiate an embedding model.
+    We used the 256 vector dimensions because some recent tests showed that bigger
+    vector dimensions led to scores with less variance (and that’s not what we need).
+    As an embedding model, we used the *text-embedding-3-small* model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After that, we read the corpus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Furthermore, we utilize the SentenceSplitter to convert documents into separate
+    nodes. These nodes will be stored in the Neo4j database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hybrid search is turned off for now. This is done deliberately to outline the
+    performance of the vector-search algorithm.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We are all set, and now we are ready to go to the querying pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bc8ff5e24813361091f8339a8bdf89fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image created by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The RAG technique may be implemented as a standalone solution or as a part of
+    an agent. The agent is supposed to handle all the chat history, tools handling,
+    reasoning, and output generation. Below we will have a walkthrough on how to implement
+    the query engines (standalone RAG) and the agent approach (the agent will be able
+    to call the RAG as one of its tools).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Often when we talk about the chat models, the majority will pick the OpenAI
+    models without considering the alternatives. We will outline the usage of RAG
+    on OpenAI models and the Meta Llama 3.2 models. Let’s benchmark which one performs
+    better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the configuration parameters are moved to the pyproject.toml file.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The common step for both models is connecting to the existing vector index inside
+    the neo4j.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: OpenAI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Firstly we should initialize the OpenAI models needed. We will use the *gpt-4o-mini*
+    as a language model and the same embedding model. We specify the LLM and embedding
+    model for the Settings object. This way we don’t have to pass these models further.
+    The LlamaIndex will try to parse the LLM from the Settings if it’s needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: QueryEngine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'After that, we can create a default query engine from the existing vector index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Furthermore, we can obtain the RAG logic using simply a query() method. In addition,
+    we printed the list of the source nodes, retrieved from the DB, and the final
+    LLM response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the sample output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As you can see, we created custom node ids, so that we can understand the file
+    from which it was taken and the ordinal id of the chunk. We can be much more specific
+    with the query engine attitude using the low-level LlamaIndex API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we specified custom retriever, similarity postprocessor, and refinement
+    stage actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For further customization, you can create custom wrappers around any of the
+    LlamaIndex components to make them more specific and aligned with your needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Agent
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To implement a RAG-based agent inside the LlamaIndex, we need to use one of
+    the predefined AgentWorkers. We will stick to the OpenAIAgentWorker, which uses
+    OpenAI’s LLM as its brain. Moreover, we wrapped our query engine from the previous
+    part into the QueryEngineTool, which the agent may pick based on the tool’s description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: To further use the agent, we need an AgentRunner. The runner is more like an
+    orchestrator, handling top-level interactions and state, while the worker performs
+    concrete actions, like tool and LLM usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/04e3fcb64f2ec18ce7919ec1e2cf1c71.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image taken from the [LlamaIndex docs](https://docs.llamaindex.ai/en/stable/module_guides/deploying/agents/agent_runner/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To test the user-agent interactions efficiently, I implemented a simple chat-like
+    interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is a sample of the chat:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: What we can see, is that for the correct vector search you need to specify the
+    input questions with more details, that can be semantically matched.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Open source
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As an open source model, we have utilized the *meta-llama/Llama-3.2–3B-Instruct.*
+    This choice was based on the model latency & performance trade-off. First things
+    first we need to authenticate our HuggingFace account via an access token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: To use the Llama as an LLM inside the LlamaIndex, we need to create a model
+    wrapper. We will use a single NVIDIA GeForce RTX 3090 to serve our Llama 3.2 model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: QueryEngine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The interfaces are the same. Example output is below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Agent
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For the OpenAI models, LlamaIndex has a special agent wrapper designed, but
+    for the open-source models we should use another wrapper. We selected ReActAgent,
+    which iteratively does reasoning and acting until the final response is ready.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Below is the same discussion but with a different Agent under the hood:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we can see, the agents reason differently. Given the same questions, the
+    two models decided to query the tool differently. The second agent failed with
+    the tool once, but it’s more an issue of the tool description than the agent itself.
+    Both of them provided the user with valuable answers, which is the final goal
+    of the RAG approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, there are a lof of different agent wrappers that you can apply
+    on top of your LLM. They may significantly change a way the model interacts with
+    the world.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Evaluation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To evaluate the RAG, nowadays there are a lot of frameworks available. One of
+    them is the TruLens. Overall RAG performance is assessed using the so-called RAG
+    Triad (answer relevance, context relevance, and groundedness).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To estimate relevances and groundedness we are going to utilize the LLMs. The
+    LLMs will act as judges, which will score the answers based on the information
+    given.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TruLens itself is a convenient tool to measure system performance on a metric
+    level and analyze the specific record’s assessments. Here is the leaderboard UI
+    view:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2e1c68ce16e4ac9f4241f8c34976dc31.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image created by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is the per-record table of assessments, where you can review all the internal
+    processes being invoked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ea278b031342962a1ef3402002cab0d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image created by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get even more details, you can review the execution process for a specific
+    record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1cb2793fe322a2f00f79e0d864937cb5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image created by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To implement the RAG Triad evaluation, first of all, we have to define the experiment
+    name and the model provider. We will utilize the *gpt-4o-mini* model for the evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: After that, we define the Triad itself (answer relevance, context relevance,
+    groundedness). For each metric, we should specify inputs and outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Furthermore, we instantiate the TruLlama object that will handle the feedback
+    calculation during the agent calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we are ready to execute the evaluation pipeline on our dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have conducted experiments using the 2 models, default/custom query engines,
+    and extra tool input parameters description (ReAct agent struggled without the
+    explicit tool input params description, trying to call non-existing tools to refactor
+    the input). We can review the results as a DataFrame using a get_leaderboard()
+    method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f70a0571918030d447d1cf343023d50c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image created by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/3388eb9d59dc0de70d7834da343d89e5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image generate by the author using AI (Bing)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We obtained a private corpus, incorporating GPT models for the custom dataset
+    generation. The actual corpus content is pretty interesting and diverse. That’s
+    the reason why a lot of models are successfully fine-tuned using the GPT-generated
+    samples right now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neo4j DB provides convenient interfaces for a lot of frameworks while having
+    one of the best UI capabilities (Aura). In real projects, we often have relations
+    between the data, and GraphDB is a perfect choice for such use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On top of the private corpus, we implemented different RAG approaches (standalone
+    and as a part of the agent). Based on the RAG Triad metrics, we observed that
+    an OpenAI-based agent works perfectly, while a well-prompted ReAct agent performs
+    relatively the same. A big difference was in the usage of a custom query engine.
+    That’s reasonable because we configured some specific procedures and thresholds
+    that align with our data. In addition, both solutions have high groundedness,
+    which is very important for RAG applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another interesting takeaway is that the Agent call latency of the Llama3.2
+    3B and gpt-4o-mini API was pretty much the same (of course the most time took
+    the DB call, but the difference is still not that big).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Though our system works pretty well, there are a lot of improvements to be done,
+    such as keyword search, rerankers, neighbor chunking selection, and the ground
+    truth labels comparison. These topics will be discussed in the next articles on
+    the RAG applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Private corpus, alongside the code and prompts, can be found on [GitHub](https://github.com/Vlad-Fliahin/rag-llamaindex).
+  prefs: []
+  type: TYPE_NORMAL
+- en: P.S.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I want to thank my colleagues: [Alex Simkiv](https://medium.com/u/831f45a955ff),
+    [Andy Bosyi](https://medium.com/u/8bc8d2a62041), and [Nazar Savchenko](https://www.linkedin.com/in/nazar-savchenko/)
+    for productive conversations, collaboration, and valuable advice as well as the
+    entire MindCraft.ai team for their constant support.'
+  prefs: []
+  type: TYPE_NORMAL

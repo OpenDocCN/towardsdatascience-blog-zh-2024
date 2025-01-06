@@ -1,0 +1,249 @@
+- en: PyTorch Native FP8 Data Types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/pytorch-native-fp8-fedc06f1c9f7?source=collection_archive---------2-----------------------#2024-05-21](https://towardsdatascience.com/pytorch-native-fp8-fedc06f1c9f7?source=collection_archive---------2-----------------------#2024-05-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Accelerating PyTorch Training Workloads with FP8 — Part 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fedc06f1c9f7--------------------------------)
+    ·8 min read·May 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ae1023a0975006e7a589c7b4963d87b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Alex Lion](https://unsplash.com/@alexandrelion?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the presence of AI-based applications becomes more and more ubiquitous in
+    our daily lives, the challenge of optimizing their runtime performance increases.
+    Reducing the number of bits that are used to represent floating-point types is
+    a common technique that can accelerate AI applications and reduce their memory
+    footprint. And indeed, many modern-day AI hardware accelerators include dedicated
+    support for 8-bit floating point representations. In a [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7),
+    we discussed the potential (and risks) of training with FP8 and demonstrated it
+    in practice on an H100-based training instance using PyTorch and [Transformer
+    Engine](https://github.com/NVIDIA/TransformerEngine) (TE), a dedicated library
+    for accelerating Transformer models on NVIDIA GPUs. Naturally, it was only a matter
+    of time until PyTorch introduced native support for FP8 data types. In this post
+    we will review the current capabilities and demonstrate their use on another FP8-supporting
+    AI chip, the [NVIDIA L4 GPU](https://www.nvidia.com/en-us/data-center/l4/). More
+    specifically, we will run our experiments on a Google Cloud [g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)
+    VM (with a single L4 GPU), a dedicated [deep learning VM image](https://cloud.google.com/deep-learning-vm/docs/release-notes),
+    and PyTorch 2.3.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, as of the time of this writing the PyTorch-native FP8 support is
+    *highly* experimental. Its use is *not* recommended for the faint-of-heart or
+    *fault-intolerant*. This post is intended primarily for early adopters — anybody
+    who (like us) is obsessed with AI model performance optimization and the potential
+    goodness of this new technology. Keep in mind that the APIs we refer may undergo
+    revision by the time you read this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our focus will be on the potential impact that using FP8 can have on the runtime
+    performance of AI applications. To learn about the algorithmic implications, we
+    refer the reader to dedicated tutorials on the topic (such as [here](https://arxiv.org/pdf/2209.05433)
+    and [here](https://www.nvidia.com/en-us/on-demand/session/gtcspring23-s52166/)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many thanks to [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/)
+    for his contributions to this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PyTorch Native Float8 Types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As of version 2.2, PyTorch includes “[limited support](https://pytorch.org/docs/stable/tensors.html#id13)”
+    for the `torch.float8_e4m3fn` and `torch.float8_e5m2` data types (with 3 and 2
+    mantissa bits, respectively) both of which are implementations of types specified
+    in the [FP8 Formats for Deep Learning](https://arxiv.org/pdf/2209.05433) paper.
+    In the snippet of code below we display the properties and dynamic range of the
+    new types compared to the legacy floating bit types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can create FP8 tensors by specifying the *dtype* in the tensor initialization
+    function as demonstrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also cast legacy types to FP8\. In the code block below we generate
+    a random tensor of floats and compare the results of casting them into four different
+    floating-point types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Although creating FP8 tensors is easy enough, you may quickly find that performing
+    some basic arithmetic operations on FP8 tensors is not supported (in PyTorch 2.3.0,
+    as of the time of this writing). The one (arguably most important) exception is
+    FP8 matrix multiplication, which is supported via the dedicated torch._scaled_mm
+    function. Demonstrated in the code block below, this function receives two FP8
+    tensors (of identical type) and their associated scaling factors, as well as an
+    optional bias tensor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: To get a better feel for the current API capabilities and usage modes, you can
+    take a look at the [API test script](https://github.com/pytorch/pytorch/blob/v2.3.0/test/test_matmul_cuda.py)
+    in the PyTorch repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contrary to the FP8 support in the [Transformer Engine](https://github.com/NVIDIA/TransformerEngine)
+    library that we demonstrated in our [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7),
+    the PyTorch natives enable the explicit definition and use of FP8 data types.
+    This provides advanced developers with much greater flexibility in designing and
+    implementing custom FP8 algorithms. However, as discussed in our previous post,
+    successful FP8 ML model training often requires some creative acrobatics; many
+    users will desire a high-level API that automatically applies battle-tested scaling
+    and type conversion schemes to their existing AI model training algorithms. While
+    not (as of the time of this writing) part of the official PyTorch library, such
+    functionality is offered via the [float8_experimental library](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training with in Native PyTorch with FP8
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will demonstrate the use of the [float8_experimental library](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7)
+    on a simple [Vision Transformer](https://en.wikipedia.org/wiki/Vision_transformer)
+    (ViT-Huge) backed classification model with 632 million parameters (using version
+    1.0.3 of the popular [timm](https://pypi.org/project/timm/) Python package). Please
+    see the documentation for [instructions](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7?tab=readme-ov-file#installation)
+    on installing the [float8_experimental library](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7).
+    We set the ViT backbone to use *average global pooling* to avoid some kinks in
+    the current offering (e.g., see [here](https://github.com/pytorch/pytorch/issues/123761)).
+    In the code block below, we demonstrate FP8 training with the [delayed scaling
+    strategy](https://github.com/pytorch-labs/float8_experimental/tree/cb55df259cfb22a856ca92107a778343edea5fc7?tab=readme-ov-file#float8-linear-with-delayed-scaling)
+    on a randomly generated dataset. We include controls for toggling the floating
+    point type, using [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)
+    mode, and setting the batch size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first thing we note is that the use of the lower precision data type frees
+    up GPU memory which enables us to double the batch size. The table below summarizes
+    the performance results (as measured by the average step time) when training with
+    a variety of configuration settings. As suggested in the documentation, the [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)
+    FP8 experiment was run using a nightly version of PyTorch (specifically version
+    torch-2.4.0.dev20240520+cu121).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6914ffc764ae0e4cf074631ed38b15d0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Experiment Results (By Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the results demonstrate, the use of FP8 linear layers increases the performance
+    of our toy model by 47%(!!) over our baseline experiment, but *only* when it is
+    combined with the use of [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html).
+    Naturally, the results will vary based on the definition and size of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison to Transformer Engine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For the sake of comparison, we implement the same training sequence using the
+    [Transformer Engine (TE)](https://github.com/NVIDIA/TransformerEngine) library
+    (version 1.6). Although TE includes its own optimized [TransformerLayer](https://github.com/NVIDIA/TransformerEngine/blob/67bc399d7ba7e49bf540746c1ef6a7e43eaed8f7/transformer_engine/pytorch/transformer.py#L70)
+    (as demonstrated in our [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7)),
+    we manually overwrite the [torch.nn.Linear](https://pytorch.org/docs/stable/generated/torch.nn.Linear.html#linear)
+    layer with the [TE Linear](https://github.com/NVIDIA/TransformerEngine/blob/release_v0.12/transformer_engine/pytorch/module/linear.py#L442)
+    layer in order to limit our comparative evaluation to just the FP8 linear support.
+    In the code block below, we implement a simple linear layer swapping utility (use
+    at your own risk!!) and apply it to our ViT model. We also include the training
+    step function required for FP8 training using TE:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results of the TE experiments are captured below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d76a672e9da89ed29140d37f80038e24.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: While the uncompiled TE FP8 model performs significantly better than our previous
+    FP8 model, the compiled PyTorch FP8 model still provides the best results. Importantly,
+    as of the time of this writing, TE FP8 modules do not support [model compilation](https://pytorch.org/docs/stable/generated/torch.compile.html).
+    Thus, applying [torch.compile](https://pytorch.org/docs/stable/generated/torch.compile.html)
+    will result in “partial compilation”, i.e. it will include multiple graph breaks
+    (every time FP8 is used).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We intentionally limited our tests to just the linear layers of our toy model.
+    Unsurprisingly, applying the full power of TE to our model, as demonstrated in
+    our [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7),
+    would have resulted in a 72% boost (compared to our baseline experiment).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a more detailed comparison between the TE and PyTorch-native FP8 operators,
+    covering a wide range of matrix sizes, we recommend following [this github issue](https://github.com/pytorch/pytorch/issues/123761).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although still in its early days with clear room for improvement both in terms
+    of API coverage and performance, we have succeeded in demonstrating some of the
+    potential advantages of the PyTorch native FP8 support. First, the ability to
+    explicitly declare and operate on FP8 tensors will enable developers much greater
+    freedom in customizing FP8-based algorithms. Second, the built-in support for
+    JIT-compilation facilitates greater potential for runtime optimization. A third
+    advantage (not demonstrated here) is the ability to support a greater range of
+    FP8-supporting devices. This is contrary to TE which is developed by NVIDIA and
+    heavily tailored to their GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The ever-increasing size of AI models necessitates advanced techniques and algorithms
+    for both reducing memory footprint and boosting runtime performance. Using the
+    FP8 data type on dedicated HW accelerators offers the ability to achieve both.
+    Although our focus has been on model training, the implications are no less important
+    on model inference, where the time that it takes to load a large model into memory
+    and run it, can have a decisive impact on a user’s experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The newly defined PyTorch-native FP8 data types and operators that we experimented
+    with in this post, are certain to facilitate and accelerate the adoption of this
+    important technology. We look forward to seeing how this native support evolves
+    and matures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more tools and techniques for AI model optimization, be sure to check out
+    some of our [other posts](https://chaimrand.medium.com/).
+  prefs: []
+  type: TYPE_NORMAL

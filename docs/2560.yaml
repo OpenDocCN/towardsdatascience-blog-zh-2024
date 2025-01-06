@@ -1,0 +1,373 @@
+- en: AI Model Optimization on AWS Inferentia and Trainium
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/ai-model-optimization-on-aws-inferentia-and-trainium-cfd48e85d5ac?source=collection_archive---------3-----------------------#2024-10-20](https://towardsdatascience.com/ai-model-optimization-on-aws-inferentia-and-trainium-cfd48e85d5ac?source=collection_archive---------3-----------------------#2024-10-20)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Tips for accelerating ML with AWS Neuron SDK
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--cfd48e85d5ac--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--cfd48e85d5ac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cfd48e85d5ac--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cfd48e85d5ac--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--cfd48e85d5ac--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cfd48e85d5ac--------------------------------)
+    ·9 min read·Oct 20, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6cf33bb6d494f40d4338317fda1b9fb6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [julien Tromeur](https://unsplash.com/@julientromeur?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are in a golden age of AI, with cutting-edge models disrupting industries
+    and poised to transform life as we know it. Powering these advancements are increasingly
+    powerful AI accelerators, such as [NVIDIA H100 GPUs](https://www.nvidia.com/en-eu/data-center/h100/),
+    [Google Cloud TPUs](https://cloud.google.com/tpu), [AWS’s Trainium](https://aws.amazon.com/machine-learning/trainium/)
+    and [Inferentia](https://aws.amazon.com/machine-learning/inferentia/) chips, and
+    more. With the growing number of options comes the challenge of [selecting the
+    most optimal platform](/instance-selection-for-deep-learning-7463d774cff0) for
+    our machine learning (ML) workloads — a crucial decision considering the high
+    costs associated with AI computation. Importantly, a comprehensive assessment
+    of each option necessitates ensuring that we are maximizing its utilization to
+    fully leverage its capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we will review several techniques for optimizing an ML workload
+    on AWS’s custom-built AI chips using the [AWS Neuron SDK](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/index.html).
+    This continues our ongoing series of posts focused on ML model performance analysis
+    and optimization across various platforms and environments (e.g., see [here](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)
+    and [here](/training-ai-models-on-cpu-3903adc9f388)). While our primary focus
+    will be on an ML training workload and AWS Inferentia2, the techniques discussed
+    are also applicable to AWS Trainium. (Recall that although AWS Inferentia is primarily
+    designed as an AI inference chip, we have [previously demonstrated](/dl-training-on-aws-inferentia-53e103597a03)
+    its effectiveness in training tasks as well.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generally speaking, performance optimization is an iterative process that includes
+    a performance analysis step to appropriately identify performance bottlenecks
+    and resource under-utilization (e.g., see [here](/cloud-ml-performance-checklist-caa51e798002)).
+    However, since the techniques we will discuss are general purpose (i.e., they
+    are potentially applicable to any model, regardless of their performance profile),
+    we defer the discussion on [performance analysis with the Neuron SDK](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/torch-neuronx/programming-guide/torch-neuronx-profiling-dev-guide.html)
+    to a future post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disclaimers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The code we will share is intended for demonstrative purposes only — we make
+    no claims regarding its accuracy, optimality, or robustness. Please do not view
+    this post as a substitute for the official [Neuron SDK documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/index.html).
+    Please do not interpret our mention of any platforms, libraries, or optimization
+    techniques as an endorsement for their use. The best options for you will depend
+    greatly on the specifics of your use-case and will require your own in-depth investigation
+    and analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The experiments described below were run on an [Amazon EC2 inf2.xlarge](https://aws.amazon.com/ec2/instance-types/inf2/)
+    instance (containing two [Neuron cores](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/arch/neuron-hardware/neuron-core-v2.html#neuroncores-v2-arch)
+    and four vCPUs). We used the most recent version of the [Deep Learning AMI for
+    Neuron](https://aws.amazon.com/releasenotes/aws-deep-learning-ami-neuron-ubuntu-22-04/)
+    available at the time of this writing, “Deep Learning AMI Neuron (Ubuntu 22.04)
+    20240927”, with [AWS Neuron 2.20](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/index.html)
+    and [PyTorch 2.1](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/torch-neuronx/introducing-pytorch-2-1.html).
+    See the [SDK documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/setup/neuron-setup/multiframework/multi-framework-ubuntu22-neuron-dlami.html#setup-ubuntu22-multi-framework-dlami)
+    for more details on setup and installation. Keep in mind that the Neuron SDK is
+    under active development and that the APIs we refer to, as well as the runtime
+    measurements we report, may become outdated by the time you read this. Please
+    be sure to stay up-to-date with the latest SDK and documentation available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To facilitate our discussion, we introduce the following simple [Vision Transformer](https://en.wikipedia.org/wiki/Vision_transformer)
+    (ViT)-backed classification model (based on [timm](https://pypi.org/project/timm/)
+    version 1.0.10):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running our baseline model on the two cores of our AWS Inferentia instance,
+    results in a training speed of 251.98 samples per second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the next sections, we will iteratively apply a number of potential optimization
+    techniques and assess their impact on step time performance. While we won’t go
+    into the full details of each method, we will provide references for further reading
+    (e.g., [here](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)).
+    Importantly, the list we will present is not all-inclusive — there are many techniques
+    beyond what we will cover. We will organize the methods into three categories:
+    PyTorch optimizations, OpenXLA optimizations, and Neuron-specific optimizations.
+    However, the order of presentation is not binding. In fact, some of the techniques
+    are interdependent — for example, applying the mixed precision optimization may
+    free up enough device memory to enable increasing the batch size.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PyTorch Performance Optimizations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In previous posts (e.g., [here](/pytorch-model-performance-analysis-and-optimization-10c3c5822869))
+    we have covered the topic of PyTorch model performance analysis and optimization
+    on GPU, extensively. Many of the techniques we discussed are relevant to other
+    AI accelerators. In this section we will revisit few of these techniques and apply
+    them to AWS Inferentia.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-process Data Loading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In [multi process data loading](https://pytorch.org/docs/stable/data.html#single-and-multi-process-data-loading)
+    the input data is prepared in one or more dedicated CPU processes rather than
+    in the same process that runs the training step. This allows for overlapping the
+    data loading and training which can increase system utilization and lead to a
+    significant speed-up. The number of processes is controlled by the *num_workers*
+    parameter of the [PyTorch DataLoader](https://pytorch.org/docs/stable/data.html#torch.utils.data.DataLoader).
+    In the following block we run our script with *num_workers* set to one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This change results in a training speed of 253.56 samples per second for a boost
+    of less than 1%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Batch Size Optimization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another important hyperparameter that can influence training speed is the training
+    batch size. Often, we have found that increasing the batch size improves system
+    utilization and results in better performance. However, the effects can vary based
+    on the model and platform. In the case of our toy model on AWS Inferentia, we
+    find that running with a batch size of 8 samples per neuron core results in a
+    speed of 265.68 samples per second — roughly 5% faster than a batch size of 16
+    samples per core.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: PyTorch Automatic Mixed Precision
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another common method for boosting performance is to use lower precision floats
+    such as the 16-bit BFloat16\. Importantly, some model components might not be
+    compatible with reduced precision floats. PyTorch’s [Automatic Mixed Precision
+    (AMP)](https://pytorch.org/tutorials/recipes/recipes/amp_recipe.html) mode attempts
+    to match the most appropriate floating point type to each model operation automatically.
+    Although, the Neuron compiler offers different options for employing [mixed precision](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/neuronx-cc/neuronx-cc-training-mixed-precision.html#mixed-precision-and-performance-accuracy-tuning-neuronx-cc),
+    it also [supports the option of using PyTorch AMP](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/torch-neuronx/programming-guide/training/pytorch-neuron-programming-guide.html#automatic-mixed-precision).
+    In the code block below we include the modifications required to use PyTorch AMP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant training speed is 196.64 samples per second, about 26% lower than
+    the [default mixed precision](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/neuronx-cc/neuronx-cc-training-mixed-precision.html#neuronx-cc-training-mixed-precision)
+    setting of the Neuron compiler. It’s important to note that while this post focuses
+    on performance, in real-world scenarios, we would also need to evaluate the effect
+    of the mixed precision policy we choose on [model accuracy](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/neuronx-cc/neuronx-cc-training-mixed-precision.html#performance-accuracy-tradeoffs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenXLA Optimizations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As discussed in a [previous post](/a-first-look-at-aws-trainium-1e0605071970),
+    Neuron Cores are treated as [XLA devices](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/torch-neuronx/programming-guide/training/pytorch-neuron-programming-guide.html#neuron-xla-device)
+    and the [torch-neuronx](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/quick-start/torch-neuron.html)
+    Python package implements the [PyTorch/XLA](https://github.com/pytorch/xla/) API.
+    Consequently, any optimization opportunities provided by the OpenXLA framework,
+    and specifically those offered by the PyTorch/XLA API, can be leveraged on AWS
+    Inferentia and Trainium. In this section we consider a few of these opportunities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BFloat16 Precision
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'OpenXLA supports the option of [casting all floats to BFloat16](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/frameworks/torch/torch-neuronx/programming-guide/training/pytorch-neuron-programming-guide.html#automatic-casting-of-float-tensors-to-bfloat16)
+    via the XLA_USE_BF16 environment variable, as shown in the code block below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant training speed is 394.51 samples per second, nearly 50% faster
+    than the speed of the [default mixed precision](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/neuronx-cc/neuronx-cc-training-mixed-precision.html#neuronx-cc-training-mixed-precision)
+    option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-process Device Loading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The PyTorch/XLA [MpDeviceLoader](https://pytorch.org/xla/master/_modules/torch_xla/distributed/parallel_loader.html#MpDeviceLoader)
+    and its internal [ParallelLoader](https://pytorch.org/xla/master/_modules/torch_xla/distributed/parallel_loader.html),
+    which are responsible for loading input data on to the accelerator, include a
+    number of parameters for controlling the transfer of data from the host to the
+    device. In the code block below we tune [*batches_per_execution*](https://github.com/pytorch/xla/blob/v2.1.0/torch_xla/distributed/parallel_loader.py#L86)
+    setting which determines the number of batches copied to the device for each execution
+    cycle of the [ParallelLoader](https://pytorch.org/xla/master/_modules/torch_xla/distributed/parallel_loader.html).
+    By increasing this setting, we aim to reduce the overhead of the host-to-device
+    communication:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a result of this optimization, the training speed increased to 1,027.39 samples
+    per second, representing an additional 260% speed-up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Torch Compilation with OpenXLA Backend
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In previous posts (e.g., [here](/tips-and-tricks-for-upgrading-to-pytorch-2-3127db1d1f3d)),
+    we have demonstrated the potential performance gains from using [PyTorch’s graph
+    compilation](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
+    offering. Although [OpenXLA](https://openxla.org/xla) includes its own graph creation
+    and Just-In-Time (JIT) compilation mechanisms, [torch.compile](https://pytorch.org/xla/master/torch_compile.html)
+    can provide additional acceleration by eliminating the need for tracing the model
+    operations at every step. The following code snippet demonstrates the use of the
+    dedicated *openxla* backend for compiling the model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Although torch.compile is currently [not yet supported](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/torch/torch-neuronx/index.html#known-limitations)
+    by the Neuron SDK, we include its mention in anticipation of its future release.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neuron SDK Optimizations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section we consider some of the optimization opportunities offered by
+    the AWS Neuron SDK and, more specifically, by the Neuron compiler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mixed Precision
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Neuron SDK supports a variety of [mixed precision](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/neuronx-cc/neuronx-cc-training-mixed-precision.html#mixed-precision-and-performance-accuracy-tuning-neuronx-cc)
+    settings. In the code block below we program the compiler to cast all floats to
+    BFloat16 via the *NEURON_CC_FLAGS* environment variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This results (unsurprisingly) in a similar training speed to the OpenXLA BFloat16
+    experiment described above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FP8
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One of the unique features of NeuronCoreV2 is its support of the eight-bit
+    floating point type, fp8_e4m3\. The code block below demonstrates how to configure
+    the Neuron compiler to automatically cast all floating-point operations to FP8:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: While FP8 can accelerate training in some cases, maintaining stable convergence
+    can be more challenging than when using BFloat16 due its reduced precision and
+    dynamic range. Please see our [previous post](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7)
+    for more on the potential benefits and challenges of FP8 training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of our model, using FP8 actually harms runtime performance compared
+    to BFloat16, reducing the training speed to 940.36 samples per second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiler Optimizations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The [Neuron compiler](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/compiler/neuronx-cc/api-reference-guide/neuron-compiler-cli-reference-guide.html)
+    includes a number of controls for optimizing the runtime performance of the compiled
+    graph. Two key settings are *model-type* and *opt-level*. The *model-type* setting
+    applies optimizations tailored to specific model architectures, such as transformers,
+    while the *opt-level* setting allows for balancing compilation time against runtime
+    performance. In the code block below, we program the *model-type* setting to *tranformer*
+    and the *opt-level* setting to the highest performance option. We further specify
+    the *target* runtime device, *inf2*, to ensure that the model is optimized for
+    the target device.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above configuration resulted in a training speed of 1093.25 samples per
+    second, amounting to a modest 6% improvement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We summarize the results of our experiments in the table below. Keep in mind
+    that the effect of each of the optimization methods we discussed will depend greatly
+    on the model and the runtime environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd373857d4f25e1c26fe23f03a8ce4d0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Experiment Results (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The techniques we employed resulted in a 435% performance boost compared to
+    our baseline experiment. It is likely that additional acceleration could be achieved
+    by revisiting and fine-tuning some of the methods we discussed, or by applying
+    other optimization techniques not covered in this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our goal has been to demonstrate some of the available optimization strategies
+    and demonstrate their potential impact on runtime performance. However, in a real-world
+    scenario, we would need to assess the manner in which each of these optimizations
+    impact our model convergence. In some cases, adjustments to the model configuration
+    may be necessary to ensure optimal performance without sacrificing accuracy. Additionally,
+    using a performance profiler to identify bottlenecks and measure system resource
+    utilization is essential for guiding and informing our optimization activities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nowadays, we are fortunate to have a wide variety of systems on which to run
+    our ML workloads. No matter which platform we choose, our goal is to maximize
+    its capabilities. In this post, we focused on AWS Inferentia and reviewed several
+    techniques for accelerating ML workloads running on it. Be sure to check out our
+    [other posts](https://chaimrand.medium.com/) for more optimization strategies
+    across various AI accelerators.
+  prefs: []
+  type: TYPE_NORMAL

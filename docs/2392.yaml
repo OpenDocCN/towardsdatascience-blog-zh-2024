@@ -1,0 +1,429 @@
+- en: How to Calculate a Moving Average Over Multiple Periods in DAX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-calculate-a-moving-average-over-multiple-periods-in-dax-2a6a8105850a?source=collection_archive---------13-----------------------#2024-10-01](https://towardsdatascience.com/how-to-calculate-a-moving-average-over-multiple-periods-in-dax-2a6a8105850a?source=collection_archive---------13-----------------------#2024-10-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Calculating a moving Aggregation is easy in DAX. However, there are some pitfalls
+    when calculating the moving average over time. As some of these pitfalls are a
+    question of definition, we must be careful not to choose the wrong method. Let’s
+    look at the details.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--2a6a8105850a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2a6a8105850a--------------------------------)
+    ·8 min read·Oct 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7302237dcc3ebd4223716fd99aa0982c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Antoine Dautry](https://unsplash.com/@antoine1003?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, some math
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Calculating the Average is easy: Divide the sum of a value by the number of
+    instances.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the sum of a value is easy, the number of instances is not as straightforward
+    as you might think.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, let’s look at the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e823e254f4774c82fcf9f9152255ce0b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — List of Numbers (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The calculation of the Average of the Value column is easy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <Sum of Value> / <No of Rows> = 534.68 / 10 = 53.47
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s delete one value, and this changes the picture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f55fc4390557dacc0c69ebcf2253745.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — List of numbers with a gap (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suddenly, I have two ways of calculating the Average:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <Sum of Value> / <No of Values> = 547.23 / 9 = 60.8
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or
+  prefs: []
+  type: TYPE_NORMAL
+- en: <Sum of Value> / <No of Rows> = 547.23 / 10 = 54.72
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second way of doing it is only a different definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, suppose the first column is a Customer ID, and I want to calculate
+    the Average Sales for all Customers or the number of active Customers, etc. In
+    that case, the second way of calculating the Average might be the better approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s translate this into DAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving Aggregation — The starting point
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, let’s build the typical case of Moving Aggregation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to get the Moving Sales over the last four months.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For now, I use the [SUM()](https://dax.guide/sum/) of Sales as it’s much easier
+    to validate the result over four months than by calculating the average.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, I get the last Date for the Current Filter Context (e. g. the current
+    month)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Second, I use [DATEADD()](https://dax.guide/dateadd/) to move back three Months.
+    I only move back for three months because I include the current month.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If I want to exclude the current month, I must do it differently. In this case,
+    I must get the first date and go back one day to get the last date of the previous
+    month (Or use [EOMONTH(MAX(‘Date’[Date), -1) )](https://dax.guide/eomonth/). Then,
+    use DATEADD() to go back four months).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Third, I use [DATESBETWEEN()](https://dax.guide/datesbetween/) to get a list
+    of dates between the two Variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, I pass the list of dates on to [CALCULATE()](https://dax.guide/calculate/)
+    to return the final result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f74e57bca2c2fb4c51a08e5621c5e4a6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Table with the moving sum over four months (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I can simplify the Measure by removing the DATESBETWEEN() function and passing
+    the two Variable directly to CALCULATE():'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The results are identical, but the performance is marginally better with DATESBETWEEN()
+    (I have 17 million rows in the Fact table).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As several factors can influence performance, I encourage you to try both variants
+    with your data and use cases and check the differences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can read more about measuring performance in Power BI here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----2a6a8105850a--------------------------------)
+    [## How to get performance data from Power BI with DAX Studio'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes we have a slow Report, and we need to figure out why. We will see
+    how to collect performance data and the…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/how-to-get-performance-data-from-power-bi-with-dax-studio-b7f11b9dd9f9?source=post_page-----2a6a8105850a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s do Average
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now, finally, I will start calculating the average.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I use the same logic as in my Sum Online Sales Measure and use AVERAGEX() to
+    calculate the average Sales Amount:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, I copy the Measure above to calculate the Sales Moving Average, and this
+    is the Result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68a11c25a254d6ac8343512c4a3dcd29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Results for the basic Average and Moving Average (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I could end here and write, “Mission accomplished.” But stop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the start, I mentioned different ways to calculate an average.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, I started writing Measures to test them out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I wrote the following Measures, which I used as a denominator, while I used
+    the [Sum Online Sales] and the Nominator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Count Online Sales = COUNTROWS(‘Online Sales’)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Customer Count = DISTINCTCOUNT(‘Online Sales’[CustomerKey])
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Online Order Count = DISTINCTCOUNT(‘Online Sales’[SalesOrderNumber])
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The code for the Result Variable is the following (Using [Count Online Sales]
+    as an example):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: I can think of more variants (e.g., average overall customers, even those without
+    an order during that period). But I decided to stop here so as not to avoid confusion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unsurprisingly, each of them delivered a different result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/813bde70d788d62be9a52ccab2bd4a81.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Results with all variants for the Average (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference between the results is very drastic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You might encounter other ways to calculate the Average.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, I urge you to define clearly how the average must be calculated.
+    Otherwise, you might deliver unexpected or even incorrect results to your Audience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Average over Monthly Sales
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There is one more variance in calculating the Average: As an Average over Monthly
+    Sales.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s look again at the result with the monthly Sales:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/32643cadbfedf8807b3a6c869a8ece00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 — Monthly Sales only (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to calculate the average monthly sales over four months.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, in September, I want to calculate the Average of the monthly sales
+    in June, July, August, and September:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (275’061’552.33 + 303’302’950.82 + 273’004’268.56 + 262’971’889.59) / 4 = ~278’585’165.3
+  prefs: []
+  type: TYPE_NORMAL
+- en: (~ because we might get a slightly different result because of rounding differences)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fulfill this requirement, I must think about how to do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I need to calculate the Sales Amount for each month in advance. Then consider
+    only the four months required for each row. At the end, calculate the Average
+    for these four values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This would mean I must first generate a table with all monthly results and use
+    only the value needed to calculate the Average, which is inefficient. Power BI
+    would then calculate this for each row in the table to visualize the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When I look at it from the perspective of the Filter Context per row, I can
+    do it much better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why not calculate the sum of sales only for those months relevant to each row
+    in the visualization?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Based on this approach, I wrote the following Measure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This time, I added inline comments to explain what was happening there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The result is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c43bd7dbe2d5df7b7757915109037d8b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Results for the Average per Month (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I checked the results in Excel, and they are correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re thinking about creating a pre-calculated table per month, think about
+    it again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You would be forced to add references to all Dimensions and increase the granularity
+    of the data to the point that you need to write this Measure anyway to fulfill
+    your audience’s need to filter the data by all Dimensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This solution is very efficient, as it took less than 0.4 seconds to calculate
+    the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even when expanding all Months, the results didn’t need more time to calculate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the way, this approach is also suitable when calculating an average of averages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Average is not equal to the Average. I think this is clear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But more than this, it’s essential to understand what should be calculated and
+    how.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding why a number must be calculated can help you choose the correct
+    calculation logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the logic is clear, the Approach to writing the DAX code should be defined.
+    Remember to do it from the perspective of the Filter Context. Sometimes, this
+    is counterintuitive, but it will help develop efficient code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope that you learned something new today.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See you next time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c8f7f0a0de78dae8db3e34fce94e1731.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Tim Mossholder](https://unsplash.com/@timmossholder?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like in my previous articles, I use the Contoso sample dataset. You can download
+    the ContosoRetailDW Dataset for free from Microsoft [here](https://www.microsoft.com/en-us/download/details.aspx?id=18279).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Contoso Data can be freely used under the MIT License, as described [here](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I changed the dataset to shift the data to contemporary dates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----2a6a8105850a--------------------------------)
+    [## Get an email whenever Salvatore Cagliari publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
+    create a Medium account if you don't…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----2a6a8105850a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I make my articles accessible to everyone, even though Medium has a paywall.
+    This allows me to earn a little for each reader, but I turn it off so you can
+    read my pieces without cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I write these pieces in the evenings and at the weekends, which is a lot of
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

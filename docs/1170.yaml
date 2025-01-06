@@ -1,0 +1,491 @@
+- en: Feature Selection with Optuna
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/feature-selection-with-optuna-0ddf3e0f7d8c?source=collection_archive---------3-----------------------#2024-05-09](https://towardsdatascience.com/feature-selection-with-optuna-0ddf3e0f7d8c?source=collection_archive---------3-----------------------#2024-05-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A versatile and promising approach for the feature selection task
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[![Nicolas
+    Lupi](../Images/7f0735890a77b9ef601dc6cd54a9a861.png)](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------)
+    [Nicolas Lupi](https://medium.com/@nicolupi.2?source=post_page---byline--0ddf3e0f7d8c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0ddf3e0f7d8c--------------------------------)
+    ·13 min read·May 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd461c48cbc1fb8dfe671c1403a9486e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Edu Grande](https://unsplash.com/@edgr?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Feature selection is a critical step in many machine learning pipelines. In
+    practice, we generally have a wide range of variables available as predictors
+    for our models, but only a few of them are related to our target. Feature selection
+    consists of finding a reduced set of these features, mainly for:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Improved generalization** — using a reduced number of features minimizes
+    the risk of overfitting.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Better inference** — by removing redundant features (for example, two features
+    very correlated with each other), we can retain only one of them and better capture
+    its effect.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Efficient training** — having less features means shorter training times.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Better interpretation** — reducing the number of features produces more parsimonious
+    models which are easier to understand.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are many techniques available to perform feature selection, each with
+    varying complexity. In this article, I want to share a way of using a powerful
+    open source optimization tool, Optuna, to perform the feature selection task in
+    an innovative way. The main idea is to have a flexible tool that can handle feature
+    selection for a wide range of tasks, by efficiently testing different feature
+    combinations (e.g., not trying them all one by one). Below, we’ll go through a
+    hands-on example implementing this approach, and also comparing it to other common
+    feature selection strategies. To experiment with the feature selection techniques
+    discussed, you can follow along with this [Colab Notebook](https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, we’ll focus on a classification task based on the [Mobile
+    Price Classification](https://www.kaggle.com/datasets/iabhishekofficial/mobile-price-classification)
+    dataset from Kaggle. We have 20 features, including ‘*battery_power’*, ‘*clock_speed’*
+    and ‘*ram’*, to predict the ‘*price_range’* feature, which can belong to four
+    different bands: 0, 1, 2 and 3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We first split our dataset into train and test sets, and we also prepare a 5-fold
+    validation split within the train set — this will be useful later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The model we’ll use throughout the example is the [Random Forest Classifier](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html),
+    using the scikit-learn implementation and default parameters. We first train the
+    model using all features to set our benchmark. The metric we’ll measure is the
+    F1 score weighted for all four price ranges. After fitting the model over the
+    train set, we evaluate it on the test set, obtaining an F1 score of around 0.87.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/06ba109e36469ca2e01826c3e7150bc1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal now is to improve these metrics by selecting a reduced feature set.
+    We will first outline how our Optuna-based approach works, and then test and compare
+    it with other common feature selection strategies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optuna
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Optuna](https://optuna.org/) is an optimization framework mainly used for
+    hyperparameter tuning. One of the key features of the framework is its use of
+    Bayesian optimization techniques to search the parameter space. The main idea
+    is that Optuna tries different combinations of parameters and evaluates how the
+    objective function changes with each configuration. From these trials, it builds
+    a probabilistic model used to estimate which parameter values are likely to yield
+    better outcomes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This strategy is much more efficient compared to grid or random search. For
+    example, if we had *n* features, and attempted to try each possible feature subset,
+    we would have to perform 2^*n* trials. With 20 features these would be more than
+    a million trials. Instead, with Optuna, we can explore the search space with much
+    fewer trials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optuna offers various samplers to try. For our case, we’ll use the default one,
+    the *TPESampler*, based on the Tree-structured Parzen Estimator algorithm (TPE).
+    This sampler is the most commonly used, and it’s recommended for searching categorical
+    parameters, which is our case as we’ll see below. According to the documentation,
+    this algorithm “fits one Gaussian Mixture Model (GMM) *l(x)* to the set of parameter
+    values associated with the best objective values, and another GMM *g(x)* to the
+    remaining parameter values. It chooses the parameter value x that maximizes the
+    ratio *l(x)/g(x)*.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned earlier, Optuna is typically used for hyperparameter tuning. This
+    is usually done by training the model repeatedly on the same data using a fixed
+    set of features, and in each trial testing a new set of hyperparameters determined
+    by the sampler. The parameter set that minimizes the given objective function
+    is then returned as the best trial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our case, however, we’ll use a fixed model with predetermined parameters,
+    and in each trial, we’ll allow Optuna to select which features to try. The process
+    aims to find the set of features that minimizes the loss function. In our case,
+    we’ll guide the algorithm to maximize the F1 score (or minimize the negative of
+    the F1). Additionally, we’ll add a small penalty for each feature used, to encourage
+    smaller feature sets (if two feature sets yield similar results, we’ll prefer
+    the one with fewer features).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data we’ll use is the train dataset, split into five folds. In each trial,
+    we’ll fit the classifier five times using four of the five folds for training
+    and the remaining fold for validation. We’ll then average the validation metrics
+    and add the penalty term to calculate the trial’s loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below is the implemented class to perform the feature selection search:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The key part is where we define which features to use. We treat each feature
+    as one parameter, which can take the values True or False. These values indicate
+    whether the feature should be included in the model. We use the *suggest_categorical*
+    method so that Optuna selects one of the two possible values for each feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now initialize our Optuna study and perform the search for 100 trials. Notice
+    that we enqueue a first trial using all features, as a starting point for the
+    search, allowing Optuna to compare subsequent trials against a fully-featured
+    model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After completing the 100 trials, we retrieve the best one from the study and
+    the features used in it. These are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*‘battery_power’, ‘blue’, ‘dual_sim’, ‘fc’, ‘mobile_wt’, ‘px_height’, ‘px_width’,
+    ‘ram’, ‘sc_w’*]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that from the original 20 features, the search concluded with only 9
+    of them, which is a significant reduction. These features yielded a minimum validation
+    loss of around -0.9117, which means they achieved an average F1 score of around
+    0.9108 across all folds (after adjusting for the penalty term).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next step is to train the model on the entire train set using these selected
+    features and evaluate it on the test set. This results in an F1 score of around
+    0.882:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3efce9ccee6e54966260ab9e0c568dc8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By selecting the right features, we were able to reduce our feature set by
+    more than half, while still achieving a higher F1 score than with the full set.
+    Below we will discuss some pros and cons of using Optuna for feature selection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Searches across feature sets efficiently, taking into account which feature
+    combinations are most likely to produce good results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Adaptable for many scenarios: As long as there is a model and a loss function,
+    we can use it for any feature selection task.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Sees the whole picture: Unlike methods that evaluate features individually,
+    Optuna takes into account which features tend to go well with each other, and
+    which don’t.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dynamically determines the number of features as part of the optimization process.
+    This can be tuned with the penalty term.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Cons**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s not as straightforward as simpler methods, and for smaller and simpler
+    datasets it might not be worth it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although it requires much fewer trials than other methods (like exhaustive search),
+    it still typically requires around 100 to 1000 trials. Depending on the model
+    and dataset, this can be time-consuming and computationally expensive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, we’ll compare our approach to other common feature selection strategies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other Methods
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Filter Methods — Chi-Squared
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the simplest alternatives is to evaluate each feature individually using
+    a statistial test and retain the top *k* features based on their scores. Notice
+    that this approach doesn’t require any machine learning model. For example, for
+    the classification task, we can choose the chi-squared test, which determines
+    whether there is a statistically significant association between each feature
+    and the target variable. We’ll use the [SelectKBest](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html)
+    class from scikit-learn, which applies the score function (chi-squared) to each
+    feature and returns the top *k* scoring variables. Unlike the Optuna method, the
+    number of features isn’t determined in the selection process, but must be set
+    beforehand. In this case, we’ll set this number at ten. These methods fall within
+    the filter methods class. They tend to be the easiest and fastest to compute since
+    they don’t require any model behind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c5caab606183aa19ef91c6caf5dfd41b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, *ram* scored the highest by far in the chi-squared test, followed
+    by *px_height* and *battery_power*. Notice that these features were also selected
+    by our Optuna method above, along with *px_width*, *mobile_wt* and *sc_w*. However,
+    there are some new additions like *int_memory* and *talk_time* — these weren’t
+    picked by the Optuna study. After training the random forest with these 10 features
+    and evaluating it on the test set, we achieved an F1 score slightly higher than
+    our previous best, at approximately 0.888:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d68dc4ce15b284ad414bbc2ead91a35.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Model agnostic: doesn’t require a machine learning model.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Easy and fast to implement and run.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Cons**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It has to be adapted for each task. For instance, some score functions are only
+    applicable for classification tasks, and others only for regression tasks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Greedy: depending on the alternative used, it usually looks at features one
+    by one, without taking into account which are already included in the set.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Requires the number of features to select to be set beforehand.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrapper Methods — Forward Search
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Wrapper methods are another class of feature selection strategies. These are
+    iterative methods; they involve training the model with a set of features, evaluating
+    its performance, and then deciding whether to add or remove features. Our Optuna
+    strategy falls within these methods. However, most common examples include forward
+    selection or backward selection. With forward selection, we begin with no features
+    and, at each step, we greedily add the feature that provides the highest performance
+    gain, until a stop criterion is met (number of features or performance decline).
+    Conversely, backward selection starts with all features and iteratively removes
+    the least significant ones at each step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below, we try the [SequentialFeatureSelector](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SequentialFeatureSelector.html)
+    class from scikit-learn, performing a forward selection until we find the top
+    10 features. This method will also make use of the 5-fold split we performed above,
+    averaging performance across the validation splits at each step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This method ends up selecting the following features:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*‘battery_power’, ‘blue’, ‘fc’, ‘mobile_wt’, ‘px_height’, ‘px_width’, ‘ram’,
+    ‘talk_time’, ‘three_g’, ‘touch_screen’*]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, some are common to the previous methods, and some are new (e.g., *three_g*
+    and *touch_screen*. Using these features, the Random Forest achieves a lower test
+    F1 score, slightly below 0.88.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e201b5306398514db1b2d9345d072136.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Easy to implement in just a few lines of code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can also be used to determine the number of features to use (using the tolerance
+    parameter).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Cons**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Time consuming: Starting with zero features, it trains the model each time
+    using a different variable, and retains the best one. For the next step, it again
+    tries out all features (now including the previous one), and again selects the
+    best one. This is repeated until the desired number of features is reached.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Greedy: Once a feature is included, it stays. This may lead to suboptimal results,
+    as the feature providing the highest individual gain in early rounds might not
+    be the best choice in the context of other feature interactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Feature Importance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, we’ll explore another straightforward selection strategy, which involves
+    using the feature importances the model learns (if available). Certain models,
+    like Random Forests, provide a measure of which features are most important for
+    prediction. We can use these rankings to filter out those features that, according
+    to the model, have the least importance. In this case, we train the model on the
+    entire train dataset, and retain the 10 most important features:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/331f3e642958ee301da7619b9775d6e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how, once again, *ram* is ranked highest, far above the second most important
+    feature. Training with these 10 features, we obtain a test F1 score of almost
+    0.883, similar to the ones we’ve been seeing. Also, note how the features selected
+    through feature importance are the same as those selected using the chi-squared
+    test, although they are ranked differently. This difference in ranking results
+    in a slightly different outcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/723f66b75c094da32fcf5cc1c88cef56.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Easy and fast to implement: it requires a single training of the model and
+    directly uses the derived feature importances.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It can be adapted into a recursive version, in which at each step the least
+    important feature is removed and the model is then trained again (see [Recursive
+    Feature Elimination](https://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.RFE.html)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Contained within the model: If the model we are using provides feature importances,
+    we already have a feature selection alternative available at no additional cost.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Cons**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feature importance might not be aligned with our end goal. For instance, a feature
+    might appear unimportant on its own but could be critical due to its interaction
+    with other features. Also, an important feature might be counterproductive overall,
+    by affecting the performance of other useful predictors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not all models offer feature importance estimation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Requires the number of features to select to be predefined.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Closing Remarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To conclude, we’ve seen how to use Optuna, a powerful optimization tool, for
+    the feature selection task. By efficiently navigating the search space, it is
+    able to find good feature subsets with relatively few trials. Not only that, but
+    it is also flexible and can be adapted to many scenarios as long as we have a
+    model and a loss function defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Throughout our examples, we observed that all techniques yielded similar feature
+    sets and results. This is mainly because the dataset we used is rather simple.
+    In these cases, simpler methods already produce a good feature selection, so it
+    wouldn’t make much sense to go with the Optuna approach. However, for more complex
+    datasets, with more features and intricate relationships between them, using Optuna
+    might be a good idea. So, all in all, given its relative ease of implementation
+    and ability to deliver good results, using Optuna for feature selection is a worthwhile
+    addition to the data scientist’s toolkit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Colab Notebook: [https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing](https://colab.research.google.com/drive/193Jwb0xXWh_UkvwIiFgufKEYer-86RNA?usp=sharing)'
+  prefs: []
+  type: TYPE_NORMAL

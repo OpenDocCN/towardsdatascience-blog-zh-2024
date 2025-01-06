@@ -1,0 +1,223 @@
+- en: LOESS in Rust
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12](https://towardsdatascience.com/loess-in-rust-2e22f58c81d4?source=collection_archive---------7-----------------------#2024-08-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It’s time to port the Python LOESS code to Rust.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[![João
+    Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)
+    [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--2e22f58c81d4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2e22f58c81d4--------------------------------)
+    ·5 min read·Aug 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/199267c891b0dc1dd794f992bbc5a653.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Matt Foxx](https://unsplash.com/@foxxmd?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over five years ago, counting from this writing, I published my most successful
+    article here on Medium. That article grew from the need to filter a particularly
+    noisy sensor’s data from a telematics data stream. Concretely, it was a torque
+    sensor connected to a truck’s drive shaft and the noise needed to go. LOESS was
+    the answer, hence that article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
+    [## LOESS'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Smoothing data using local regression
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/loess-373d43b03564?source=post_page-----2e22f58c81d4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: By then, I was neck-deep in Python, and the project required Spark, so implementing
+    the algorithm in Python was a no-brainer. Times change, though, and now I use
+    Rust more frequently and decided to have a go at translating the old code. This
+    article describes the porting process and my choices when rewriting the code.
+    You should read the original article and the reference material to learn more
+    about the algorithm. Here, we will focus on the intricacies of writing matrix
+    code in Rust, replacing the earlier [NumPy](https://numpy.org/) implementation
+    as closely as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust Numerical Computing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Being a firm believer in not reinventing the wheel, I searched for the recommended
+    Rust crates to replace my use of [NumPy](https://numpy.org/) in the original Python
+    code, and it didn’t take long to find [**nalgebra**](https://nalgebra.org/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**nalgebra** is meant to be a general-purpose, low-dimensional, linear algebra
+    library, with an optimized set of tools for computer graphics and physics.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Although we will not do any physics or computer graphics, we fit the low dimensionality
+    requirement like a glove.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Differences
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When converting the Python code to Rust, I met some difficulties that took me
+    a while to sort out. When using NumPy in Python, we use all the features that
+    both language and library provide to improve the code’s expressiveness and readability.
+    Rust is more verbose than Python, and, at the time of this writing (version 0.33.0),
+    the **nalgebra** crate still misses some features that help improve its expressiveness.
+    Terseness is a challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My first hurdle was indexing arrays using other arrays. With NumPy, you can
+    index an array using another array of integers or booleans. In the first case,
+    each element of the indexing array is an index into the source array, and the
+    indexer may have a dimension equal to or smaller than the data array. In the case
+    of boolean indexing, the indexer must have the same size as the data, and each
+    element must state whether to include the corresponding data element. This feature
+    is handy when using boolean expressions to select data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Handy as it is, I used this feature throughout the Python code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the `min_range` variable in an integer array containing the subset of
+    indices to retrieve from the `self.n_xx` array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try as I might, I could not find a solution in the Rust crate that mimics the
+    NumPy indexing, so I had to implement one. After a couple of tries and benchmarks,
+    I reached the final version. This solution was straightforward and effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The map expression is quite simple, but using the function name is more expressive,
+    so I replaced the Python code above with the corresponding Rust one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There is also no built-in method to create a vector from a range of integers.
+    Although easy to do with **nalgebra**, the code becomes a bit long:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can avoid much of this ceremony if we fix the vector and array sizes during
+    compilation, but we have no such luck here as the dimensions are unknown. The
+    corresponding Python code is more terse:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This terseness also extends to other areas, such as when filling a matrix row-wise.
+    In Python, we can do something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As of this writing, I found no better way of doing the same thing with **nalgebra**
+    than this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Maybe something hidden in the package is waiting to be discovered that will
+    help here in terms of conciseness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, I found the **nalgebra** documentation relatively sparse. We can expect
+    this from a relatively young Rust crate that holds much promise for the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Upside
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The best comes at the end—the raw performance. I invite you to try running both
+    versions of the same code (the GitHub repository links are below) and compare
+    their performances. On my 2019 MacBook Pro 2.6 GHz 6-Core Intel Core i7, the *release*
+    version of the Rust code runs in under 200 *microseconds*, while the Python code
+    runs in under 5 *milliseconds*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This project was another exciting and educative Python-to-Rust port of my old
+    code. While converting from the well-known Python control structures to Rust gets
+    more accessible by the day, the **NumPy** conversion to **nalgebra** was more
+    of a challenge. The Rust package shows much promise but needs more documentation
+    and online support. I would warmly welcome a more thorough user guide.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rust is more ceremonious than Python but performs much better when properly
+    used. I will keep using Python for my daily work when building prototypes and
+    in discovery mode, but I will turn to Rust for performance and memory safety when
+    moving to production. We can even mix and match both using crates like [PyO3](https://pyo3.rs/v0.15.1/),
+    so this is a win-win scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Rust rocks!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[joaofig/loess-rs: An implementation of the LOESS / LOWESS algorithm in Rust.
+    (github.com)](https://github.com/joaofig/loess-rs)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[joaofig/pyloess: A simple implementation of the LOESS algorithm using numpy
+    (github.com)](https://github.com/joaofig/pyloess)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Credits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I used [Grammarly](https://app.grammarly.com/) to review the writing and accepted
+    several of its rewriting suggestions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[JetBrains’ AI](https://www.jetbrains.com/ai/) assistant helped me write some
+    of the code, and I also used it to learn Rust. It has become a staple of my everyday
+    work with both Rust and Python. Unfortunately, support for **nalgebra** is still
+    short.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: João Paulo Figueira is a Data Scientist at [tb.lx by Daimler Truck](https://tblx.io/)
+    in Lisbon, Portugal.
+  prefs: []
+  type: TYPE_NORMAL

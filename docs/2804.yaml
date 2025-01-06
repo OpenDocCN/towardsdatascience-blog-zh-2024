@@ -1,0 +1,223 @@
+- en: 'Dance Between Dense and Sparse Embeddings: Enabling Hybrid Search in LangChain-Milvus'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/dance-between-dense-and-sparse-embeddings-enabling-hybrid-search-in-langchain-milvus-7c8de54dda24?source=collection_archive---------8-----------------------#2024-11-19](https://towardsdatascience.com/dance-between-dense-and-sparse-embeddings-enabling-hybrid-search-in-langchain-milvus-7c8de54dda24?source=collection_archive---------8-----------------------#2024-11-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to create and search multi-vector-store in langchain-milvus
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)[![Ohad
+    Eytan](../Images/46074702c9543b68bf761d51d6a6ac2c.png)](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------)
+    [Ohad Eytan](https://ohadeytan.medium.com/?source=post_page---byline--7c8de54dda24--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7c8de54dda24--------------------------------)
+    ·6 min read·Nov 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This blog post was co-authored by* [***Omri Levy***](https://www.linkedin.com/in/levyomri/)*and*
+    ***Ohad Eytan****, as part of the work we have done in* [*IBM Research Israel*](https://research.ibm.com/labs/israel)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intro
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Recently, we — at IBM Research — needed to use hybrid search in the [*Milvus*](https://milvus.io/)vector
+    store. Since we were already using the [*LangChain*](https://www.langchain.com/)
+    framework, we decided to roll up our sleeves and contribute what was needed to
+    enable it in [*langchain-milvus*](https://github.com/langchain-ai/langchain-milvus).
+    That included support for **sparse embeddings** ([PR](https://github.com/langchain-ai/langchain/pull/25284))
+    and **multi-vector search** ([PR](https://github.com/langchain-ai/langchain-milvus/pull/11))
+    through the *langchain* interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, we will briefly introduce the difference between dense and
+    sparse embeddings, and how you can leverage both using hybrid search. We’ll also
+    provide a code walk-through to demonstrate how to use these new features in *langchain-milvus*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use the code in this blog post, you should install some packages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and import these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can also see and clone the whole code in [this gist](https://gist.github.com/omriel1/3b8ea57cc14b896237c47d5417eaec8f).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dense Embeddings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The most common way to use vector stores is with dense embeddings. Here we use
+    a pre-trained model to embed the data (usually text, but could be other media
+    like images etc.) into high dimensional vectors, and store it in the vector database.
+    The vectors have a couple of hundred (or even thousands of) dimensions, and each
+    entry is a floating-point number. Typically, all of the entries in the vectors
+    are occupied with non-zero values, hence the term “dense”. Given a query, we embed
+    it using the same model, and the vector store retrieves similar, relevant data
+    based on vector similarity. Using *langchain-milvus*, it’s just a couple lines
+    of code. Let’s see how it’s done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we define the vector store using [a model from HuggingFace](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Second, we insert our data into the vector store:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Behind the scenes, each document is embedded into a vector using the model we
+    supplied, and is stored alongside the original text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, we can search for a query and print the result we got:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, the query is embedded, and the vector store does the (usually approximated)
+    similarity search and returns the closest content it found.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dense embeddings models are trained to capture the **semantic meaning** of the
+    data and represent it in the multidimensional space. The advantage is clear —
+    it enables semantic search, which means the results are based on the query’s meaning.
+    But sometimes that’s not enough. If you look for specific keywords, or even words
+    without broader meaning (like names), the semantic search will misguide you and
+    this approach will fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sparse embeddings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Ages before LLMs became a thing, and learned models weren’t so popular, search
+    engines used traditional methods such as [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
+    or its modern enhancement, [BM25](https://en.wikipedia.org/wiki/Okapi_BM25) (known
+    for it’s use in [Elastic](https://www.elastic.co/blog/practical-bm25-part-1-how-shards-affect-relevance-scoring-in-elasticsearch)),
+    to search relevant data. With these methods, the number of dimensions is the vocabulary
+    size (typically tens of thousands, much larger than the dense vector space), and
+    each entry represents the relevance of a keyword to a document, while taking into
+    consideration the frequency of the term and its rarity across the corpus of documents.
+    For each data point, most of the entries are zeros (for words that don’t appear),
+    hence the term “sparse”. Although under the hood the implementation is different,
+    with *langchain-milvus* interface it becomes very similar. Let’s see it in action:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: BM25 is effective for exact keyword matching, which is useful for terms or names
+    that lack clear semantic meaning. However, it will not capture the intent of the
+    query, and will yield poor results in many cases where semantic understanding
+    is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: the term “Sparse embeddings” also refers to advanced methods like SPLADE
+    or Elastic Elser. These methods can also be used with Milvus and can be integrated
+    into hybrid search!'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/1ae4c985d8d5a4981502aa1df9fbc7e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hybrid Search
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you swap the queries between the two examples above, and use each one with
+    the other’s embedding, both will produce the wrong result. This demonstrates the
+    fact that each method has its strengths but also its weaknesses. Hybrid search
+    combines the two, aiming to leverage the best from both worlds. By indexing data
+    with both dense and sparse embeddings, we can perform searches that consider both
+    semantic relevance and keyword matching, balancing results based on custom weights.
+    Again, the internal implementation is more complicated, but *langchain-milvus*
+    makes it pretty simple to use. Let’s look at how this works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this setup, both sparse and dense embeddings are applied. Let’s test the
+    hybrid search with equal weighting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This searches for similar results using each embedding function, gives each
+    score a weight, and returns the result with the best weighted score. We can see
+    that with slightly more weight to the dense embeddings, we get the result we desired.
+    This is true for the second query as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we give more weight to the dense embeddings, we will once again get non-relevant
+    results, as with the dense embeddings alone:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finding the right balance between dense and sparse is not a trivial task, and
+    can be seen as part of a wider hyper-parameter optimization problem. There is
+    an ongoing research and tools that trying to solve such issues in this area, for
+    example [IBM’s AutoAI for RAG](https://dataplatform.cloud.ibm.com/docs/content/wsj/analyze-data/autoai-programming-rag.html?context=wx&audience=wdp#autorag-implement).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many more ways you can adapt and use the hybrid search approach. For
+    instance, if each document has an associated title, you could use two dense embedding
+    functions (possibly with different models) — one for the title and another for
+    the document content — and perform a hybrid search on both indices. Milvus currently
+    supports up to 10 different vector fields, providing flexibility for complex applications.
+    There are also additional configurations for indexing and reranking methods. You
+    can see [Milvus documentation](https://milvus.io/docs/multi-vector-search.md)
+    about the available params and options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing words
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With Milvus’s multi-vector search capabilities now accessible through LangChain,
+    you can integrate hybrid search into your applications easily. This opens up new
+    possibilities to apply different search strategies in your application, making
+    it easy to tailor search logic to fit specific use cases. For us, it was a good
+    opportunity to contribute to an open source project. Many of the libraries and
+    tools we use on a daily basis are open source, and it’s nice to give back to the
+    community. Hopefully it will be useful for others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, a big shout-out to [Erick Friis](https://github.com/efriis) and [Cheng
+    Zi](https://github.com/zc277584121) for all the effort they put on *langchain-milvus*,
+    and in these PRs particularly. This work couldn’t have happened without them.
+  prefs: []
+  type: TYPE_NORMAL

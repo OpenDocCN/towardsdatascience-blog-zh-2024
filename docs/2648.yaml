@@ -1,0 +1,325 @@
+- en: Demystifying Azure Storage Account Network Access
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/demystifying-azure-storage-account-network-access-9e024d2f02c6?source=collection_archive---------7-----------------------#2024-10-30](https://towardsdatascience.com/demystifying-azure-storage-account-network-access-9e024d2f02c6?source=collection_archive---------7-----------------------#2024-10-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Service endpoints and private endpoints hands-on: including Azure Backbone,
+    storage account firewall, DNS, VNET and NSGs'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[![René
+    Bremer](../Images/e422c4b84e225d2a949251ebc24dbd2c.png)](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------)
+    [René Bremer](https://rebremer.medium.com/?source=post_page---byline--9e024d2f02c6--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9e024d2f02c6--------------------------------)
+    ·7 min read·Oct 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1ba562f56240d9aa0bbdb6586c4bcf49.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Connected Network — image by [Nastya Dulhiier on Unsplash](https://unsplash.com/@dulhiier)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Storage accounts play a vital role in a medallion architecture for establishing
+    an enterprise data lake. They act as a centralized repository, enabling seamless
+    data exchange between producers and consumers. This setup empowers consumers to
+    perform data science tasks and build machine learning (ML) models. Furthermore,
+    consumers can use the data for Retrieval Augmented Generation (RAG), facilitating
+    interaction with company data through Large Language Models (LLMs) like ChatGPT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Highly sensitive data is typically stored in the storage account. Defense in
+    depth measures must be in place before data scientists and ML pipelines can access
+    the data. To do defense in depth, multiple measurement shall be in place such
+    as 1) advanced threat protection to detect malware, 2) authentication using Microsoft
+    Entra, 3) authorization to do fine grained access control, 4) audit trail to monitor
+    access, 5) data exfiltration prevention, 6) encryption, and last but not least
+    7) [network access control](https://learn.microsoft.com/en-us/azure/storage/common/storage-network-security?tabs=azure-portal)
+    using service endpoint or private endpoints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article focuses on network access control of the storage account. In the
+    next chapter, the different concepts are explained (demystified) on storage account
+    network access. Following that, a hands-on comparison is done between service
+    endpoint and private endpoints. Finally, a conclusion is drawn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Discuss network access possibilities
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A typical scenario is that a virtual machine needs to have network access to
+    a storage account. This virtual machine often acts as a Spark cluster to analyze
+    data from the storage account. The image below provides an overview of the available
+    network access controls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/14d6f97aadd4649a3bea18d53eac1c62.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 2.1 Overview of networking between virtual machine and storage account — image
+    by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The components in the image can be described as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Azure global network — backbone:** Traffic always goes over Azure backbone
+    between two regions (unless customer forces to not do it), see also [Microsoft
+    global network — Azure | Microsoft Learn](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network).
+    This is regardless of what firewall rule is used in the storage account and regardless
+    whether service endpoints or private endpoints are used.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Azure storage firewalls:** Firewall rules can restrict or disable public
+    access. Common rules include whitelisting VNET/subnet, public IP addresses, system-assigned
+    managed identities as resource instances, or allowing trusted services. When a
+    VNET/subnet is whitelisted, the Azure Storage account identifies the traffic’s
+    origin and its private IP address. However, the storage account itself is not
+    integrated into the VNET/subnet — private endpoints are needed for that purpose.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Public DNS storage account:** Storage accounts will always have a public
+    DNS that can be access via network tooling, see also [Azure Storage Account —
+    Public Access Disabled — but still some level of connectivity — Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/1920977/azure-storage-account-public-access-disabled-but-s?form=MG0AV3).
+    That is, even when public access is disabled in the storage account firewall,
+    the public DNS will remain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Virtual Network (VNET):** Network in which virtual machines are deployed.
+    While a storage account is never deployed within a VNET, the VNET can be whitelisted
+    in the Azure storage firewall. Alternatively, the VNET can create a private endpoint
+    for secure, private connectivity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Service endpoints:** When whitelisting a VNET/subnet in the Storage account
+    firewall, the service endpoint must be turned on for the VNET/subnet. The service
+    endpoint should beMicrosoft.Storage when the VNET and storage account are in the
+    same region or Microsoft.Storage.Global when the VNET and storage are in different
+    regions. Note that service endpoints is also used as an overarching term, encompassing
+    both the whitelisting of a VNET/subnet on the Azure Storage Firewall and the enabling
+    of the service endpoint on the VNET/subnet.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Private endpoints:** Integrating a Network Interface Card (NIC) of a Storage
+    Account within the VNET where the virtual machine operates. This integration assigns
+    the storage account a private IP address, making it part of the VNET.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Private DNS storage account:** Within a VNET, a private DNS zone can be created
+    in which the storage account DNS resolves to the private endpoint. This is to
+    make sure that virtual machine can still connect to the URL of the storage account
+    and the URL of the storage account resolves to a private IP address rather than
+    a public address.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Network Security Group (NSG):** Deploy an NSG to limit inbound and outbound
+    access of the VNET where the virtual machine runs. This can prevent data exfiltration.
+    However, an NSG works only with IP addresses or tags, not with URLs. For more
+    advanced data exfiltration protection, use an Azure Firewall. For simplicity,
+    the article omits this and uses NSG to block outbound traffic.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next chapter, service endpoints and private endpoints are discussed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Hands-on Service endpoint and private endpoints
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The chapter begins by exploring the scenario of unrestricted network access.
+    Then the details of service endpoints and private endpoints are discussed with
+    practical examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 Not limiting network access — public access enabled
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Suppose the following scenario in which a virtual machine and a storage account
+    is created. The firewall of the storage account has public access enabled, see
+    image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1a057d9dbc94295d8495995be9ac1f82.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.1.1 virtual machine and storage account with public access created
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using this configuration, the virtual machine can access the storage account
+    over the network. Since the virtual machine is also deployed in Azure, traffic
+    will go over Azure Backbone and will be accepted, see image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/231aa5fcc1b03505d777c43bffd6efe2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.1.2 Traffic not blocked — public network access enabled
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enterprises typically establish firewall rules to limit network access. This
+    involves disabling public access or allowing only selected networks and whitelisting
+    specific ones. The image below illustrates public access being disabled and traffic
+    being blocked by the firewall.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/838f16578b761f5fb196e24bb1c29936.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.1.3 Traffic blocked — blocking traffic in storage account firewall
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next paragraph, service endpoints and selected network firewall rules
+    are used to grant network access to storage account again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Limiting network access via Service endpoints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To enable virtual machine VNET access to the storage account, activate the service
+    endpoint on the VNET. Use Microsoft.Storage for within the regions or Microsoft.Storage.Global
+    for cross region. Next, whitelist the VNET/subnet in the storage account firewall.
+    Traffic is allowed again, see also image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c079cf5b6378888d1396a69cfd6b06fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.2.1 Traffic not blocked — service endpoint enabled and added to in storage
+    account firewall
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traffic is now accepted. When VNET/subnet is removed from Azure storage account
+    firewall or public access is disabled, then traffic is blocked again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In case an NSG is used to block public outbound IPs in the VNET of the virtual
+    machine, then traffic is also blocked again. This is because the public DNS of
+    the storage account is used, see also image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8dee05c9e264753c886ec18f8b55fb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.2.2 Traffic blocked — NSG of virtual machine blocking public outbound traffic
+  prefs: []
+  type: TYPE_NORMAL
+- en: In that case, private endpoints shall be used to make sure that traffic does
+    not leave VNET. This is discussed in the next chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Limiting access via Private endpoints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To reestablish network access for the virtual machine to the storage account,
+    use a private endpoint. This action creates a network interface card (NIC) for
+    the storage account within the VNET of the virtual machine, ensuring that traffic
+    remains within the VNET. The image below provides further illustration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/55e3c7454a5f70d276cf02ecd4632363.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.3.1 Traffic not blocked — Private endpoint created to Storage account, public
+    access disabled
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, an NSG can be used again to block all traffic, see image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2d529e46de9ce76339446d51c7ff5ac6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3.3.2 Traffic blocked — NSG of virtual machine blocking all outbound traffic
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is however counterintuitive, since first a private endpoint is created
+    in the VNET and then traffic is blocked by an NSG in the same VNET.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Enterprise always requires network rules in place to limit network access to
+    their storage account. In this blog post, both service endpoints and private endpoint
+    are considered to limit access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Both is true for service endpoints and private endpoints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traffic always goes over Azure backbone between two regions (unless customer
+    forces to not do it), see also [Microsoft global network — Azure | Microsoft Learn](https://learn.microsoft.com/en-us/azure/networking/microsoft-global-network).
+    This is regardless of what firewall rule is used in the storage account. Also,
+    it is independent whether service endpoints or private endpoints are used.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Storage account will always have a public DNS that can be accessed via Network
+    tooling, see also [Azure Storage Account — Public Access Disabled — but still
+    some level of connectivity — Microsoft Q&A](https://learn.microsoft.com/en-us/answers/questions/1920977/azure-storage-account-public-access-disabled-but-s?form=MG0AV3).
+    That is, even when public access is disabled in the storage account firewall,
+    the DNS will remain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For service endpoints, the following hold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Requires to enable service endpoints on VNET/subnet and whitelisting of VNET/subnet
+    in Azure storage account firewall.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Requires that traffic leaves the VNET of the virtual machine that is connecting
+    to the storage account. See above, the traffic stays on the Azure backbone.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For private endpoints, the following hold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Public access can be disabled in the Azure Storage firewall. See above, public
+    DNS entry of storage account will remain.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Traffic does not leave the VNET in which the virtual machine also runs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are a lot of other things to consider whether to use service endpoints
+    or private endpoints (costs, migration effort since service endpoints have been
+    out there longer than private endpoints, networking complexity when using private
+    endpoints, limited service endpoint support of newer Azure services, hard limit
+    of number private endpoints in storage account of 200).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, in case it is required (“must have”) that 1) traffic shall never leave
+    VNET/subnet of virtual machine or 2) it is not allowed to create firewall rules
+    in Azure storage firewall and must be locked down, then service endpoint is not
+    feasible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other scenarios, it’s possible to consider both solutions, and the best fit
+    should be determined based on the specific requirements of each scenario.
+  prefs: []
+  type: TYPE_NORMAL

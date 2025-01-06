@@ -1,0 +1,550 @@
+- en: Using Self-Organizing Map To Bolster Retrieval-Augmented Generation In Large
+    Language Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/using-self-organizing-map-to-bolster-retrieval-augmented-generation-in-large-language-models-5d739ce21e9c?source=collection_archive---------3-----------------------#2024-03-16](https://towardsdatascience.com/using-self-organizing-map-to-bolster-retrieval-augmented-generation-in-large-language-models-5d739ce21e9c?source=collection_archive---------3-----------------------#2024-03-16)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*SOM is proposed to bolster efficient retrieval of LLM context for RAG…*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://murali-kashaboina.medium.com/?source=post_page---byline--5d739ce21e9c--------------------------------)[![Murali
+    Kashaboina](../Images/ff1118f3c317dab87fe4b625a614fb93.png)](https://murali-kashaboina.medium.com/?source=post_page---byline--5d739ce21e9c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5d739ce21e9c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5d739ce21e9c--------------------------------)
+    [Murali Kashaboina](https://murali-kashaboina.medium.com/?source=post_page---byline--5d739ce21e9c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5d739ce21e9c--------------------------------)
+    ·17 min read·Mar 16, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77f2ba7f54a07f0a727c5ac6340c1a4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Werclive 👹](https://unsplash.com/@werclive?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Large volumes of data are used to train Large Language Models (LLM) containing
+    millions and billions of model parameters with the goal of text generation, such
+    as text completion, text summarization, language translations, and answering questions.
+    While LLMs develop a knowledge base per se from the training data sources, there
+    is always a cut-off training date post which LLM will not know any newly generated
+    data. For example, the cut-off date for training OpenAI’s GPT-3.5-turbo-instruct
+    LLM is September 2021 (Ref: [https://platform.openai.com/docs/models/gpt-3-5-turbo](https://platform.openai.com/docs/models/gpt-3-5-turbo)),
+    and as such, GPT-3.5-turbo-instruct LLM may not answer questions on 2022, 2023,
+    or 2024 events accurately. Such data not part of the LLM’s original training data
+    is called external data. Retrieval-Augmented Generation (RAG) is a technique meant
+    to help in such cases by retrieving appropriate information contextual to the
+    input prompt from authorized external sources and augmenting input so that LLM
+    can generate accurate and relevant responses. Effectively, RAG forms the gateway
+    between the LLM and the external data. Such augmentation eliminates the need to
+    retrain or further fine-tune the LLM model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM’s Typical M.O.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'LLMs are auto-regressive, generating a new token based on the input prompt
+    tokenized into a sequence of tokens. The generation of the next best token is
+    probability-based and can be expressed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Essentially, the probability of the newly generated nth token, Yn, is conditioned
+    on the probability of the occurrence of the sequence of n-1 previous tokens X
+    and the learned model parameters θ. It should be noted here that the tokenized
+    input sequence X plays a crucial role in generating the next token. In addition,
+    self-attention mechanisms complement effective auto-regression, where each input
+    token in the sequence computes its representation by attending to and weighing
+    the importance of other tokens in the sequence. Such intricate relationships and
+    dependencies among the tokens in the sequence also enable the LLM to decipher
+    the most probable next-best token that ‘gels well’ with the tokens in the input
+    sequence. The LLM appends the new token to the previous tokens to form a new input
+    sequence and repeats the auto-regressive process until a completion condition
+    is met, such as reaching the maximum token count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Such a self-attention-driven auto-regression implies that the LLM relies predominantly
+    on the input sequence to generate the next best token. As long as the input sequence
+    helps determine the next-best token through self-attention, the LLM continues
+    in a ‘virtuous’ loop, generating coherent, comprehensible, and relevant outputs.
+    On the contrary, the LLM will start relying on the model parameters if the prompt
+    inputs do not help determine the next best token. In such a case, the model may
+    succeed in generating the next best token if the model has been trained to contain
+    sufficient ‘knowledge’ contextual to the input prompt. Conversely, the model may
+    go into a ‘vicious’ loop, generating non-coherent, incomprehensible, and possibly
+    irrelevant outputs if the prompt inputs pertain to ‘external data’ that the LLM
+    has never been trained on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Various techniques tackle this issue. Prompt engineering is one of them, where
+    the goal is to address the ‘missing context’ by adjusting the prompt to enhance
+    the context so that the LLM can generate relevant output. RAG is another technique
+    where the goal is to specifically address the ‘missing context due to external
+    data’ by retrieving the most appropriate information contextual to the input prompt
+    from external data sources in an automated manner and augmenting the prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAG’s Challenge
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The primary responsibility of RAG is to search and retrieve data that is contextually
+    related to the input prompt from external data sources such as informational databases,
+    APIs, and other document repositories like Wikipedia. A simple keyword search
+    would not cut it. Instead, RAG requires a semantic search. To facilitate semantic
+    search, the textual information retrieved from external sources is transformed
+    into numerical representations or vectors, commonly called text embeddings, and
+    stored in vector databases. There are various models or algorithms for creating
+    these embeddings from text. The prompt is first transformed into its vector representation
+    to search and retrieve closest matching external data vectors. Vector similarities
+    (or vector distances) are then computed between the prompt vector and the previously
+    stored external data vectors. The most similar or nearest vectors are sorted and
+    filtered using a threshold, and their corresponding textual information is retrieved
+    to augment the prompt’s context. The following conceptual diagram captures the
+    typical interactions between different components for enabling RAG:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2ae4ffe86cb15e19dafd2de1bbfbf70.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conceptual View of Primary System Component Interactions for Enabling RAG —
+    Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAG’s challenge is that conducting a vector-driven semantic search is non-trivial
+    and requires significant computational resources because it involves calculating
+    vector similarities or distances against potentially a vast number of vectors
+    within the database. Computing similarity or distance measures for each stored
+    vector from a vast vector database for every input prompt will become infeasible.
+    Besides, the lower the semantic match quality, the lower the LLM’s generative
+    output quality. Therefore, finding a way to conduct the semantic search efficiently
+    becomes crucial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Several algorithmic solutions are employed to conduct efficient semantic searches.
+    The typical approach of such algorithms is to group or cluster external data vectors
+    as nearest neighbors and index them by mapping to such clusters. Such indexing
+    is offered as a built-in capability by most vector databases. The matched clusters
+    are first evaluated for the input prompt vector during semantic search. For each
+    evaluated cluster, indexed vectors are selected. Similarities between the input
+    prompt vector and the selected vectors are then computed. The expectation here
+    is that finding the ‘nearest neighbors’ as an intermediate step reduces the number
+    of similarity computations significantly. Finally, the textual information is
+    retrieved corresponding to the most similar or nearest vectors filtered through
+    thresholding. Algorithms such as k-Nearest Neighbors, Ball-of-Radius-R, Locality-Sensitive-Hashing,
+    DBSCAN-Clustering, Tree-Like hierarchies, and Graph-Like hierarchies are typically
+    implemented by vector databases to facilitate semantic searches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no one-size-fits-all solution because different families of algorithms
+    have different trade-offs in terms of memory efficiency, compute efficiency, latency,
+    accuracy, vector dimensionality, dataset sizing, etc. For example, clustering
+    methods enable speed by narrowing the vector space for semantic search, while
+    tree-like or graph-like methods offer improved accuracy for low-dimensional vector
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Self-Organizing Maps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A Self-Organizing Map (SOM) is a neural network-based dimensionality reduction
+    algorithm developed by Teuvo Kohonen in the 1980s. It is typically used to reduce
+    high-dimensional feature vectors to low-dimensional (typically two-dimensional)
+    feature vectors. The core idea behind SOM is to represent high-dimensional data
+    vectors as specific nodes in a low-dimensional space while retaining the vectors’
+    topology in the original space. The number of nodes in the low-dimensional space
+    (SOM Nodes) is fixed (hyper-parameter). The exact locations of SOM nodes are evaluated
+    through multiple training epochs. The goal of the iterative training is to adjust
+    the locations of the SOM nodes in the low-dimensional space so that they get mapped
+    to the nearest neighboring vectors in the high-dimensional feature space. In other
+    words, the goal is to map nearest-neighbor vectors in the high-dimensional space
+    to SOM nodes that are also nearest neighbors in the low-dimensional space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SOM for RAG
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this write-up, I wanted to share notes and findings from my experiments
+    with SOM as a possible algorithm to propel RAG’s semantic search. There are three
+    crucial reasons SOM could be ideal compared to other algorithms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vectors’ high dimensionality can become a bottleneck for most other algorithms,
+    such as Trees and Graphs—the so-called curse of dimensionality. On the contrary,
+    SOM is built for dimensionality reduction, and therefore, it can be effectively
+    applied in both high-dimensional and low-dimensional scenarios.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: SOM is less sensitive to random variations that may trickle into the original
+    high-dimensional vector space, resulting in noise. Other algorithms can be sensitive
+    to such noise, impacting the way they cluster or group high-dimensional vectors
+    as nearest neighbors. Since SOM employs intermediate SOM nodes in a lower-dimensional
+    vector space which get evaluated as local averages of the mapped vectors from
+    the higher-dimensional space, it effectively reduces noise.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The large size of the external dataset may constrain other algorithms to create
+    semantic vector spaces, which can impact semantic matching's latency and accuracy.
+    On the other hand, SOM can tackle massive datasets because the number of SOM nodes
+    in the low-dimensional space can be fine-tuned through a hyper-parameter proportional
+    to the underlying dataset size. While training a SOM using a large dataset may
+    take longer, query time mapping remains quicker once training is done.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'I demonstrate a simple example of using SOM to conduct RAG’s semantic search
+    to augment the context for question/answer using OpenAI’s GPT-3.5-turbo-instruct
+    LLM. The primary reason for using OpenAI’s GPT-3.5-turbo-instruct LLM is because
+    the cut-off date for training OpenAI’s GPT-3.5-turbo-instruct LLM is September
+    2021 (Ref: [https://platform.openai.com/docs/models/gpt-3-5-turbo](https://platform.openai.com/docs/models/gpt-3-5-turbo)),
+    and as such, GPT-3.5-turbo-instruct LLM may not answer questions on 2022, 2023,
+    or 2024 events accurately. Therefore, information about 2022, 2023, 0r 2024 events
+    can become ‘external data’ for OpenAI’s GPT-3.5-turbo-instruct LLM. I used Wikipedia
+    API as the source for such ‘external data’ to fetch events’ information. The following
+    are the steps I used to develop and train the example, along with the sample code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: PyTorch-Based Kohonen’s SOM implementation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I utilized PyTorch Tensors to represent vectors and implemented Kohonen’s SOM
+    using PyTorch. This algorithm uses a two-dimensional lattice whose size becomes
+    a hyper-parameter. The algorithm’s mathematical aspects were derived from a well-crafted
+    perspective with lucid explanations mentioned in the following article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](http://www.ai-junkie.com/ann/som/som1.html?source=post_page-----5d739ce21e9c--------------------------------)
+    [## SOM tutorial part 1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: neural network tutorial in plain english
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.ai-junkie.com](http://www.ai-junkie.com/ann/som/som1.html?source=post_page-----5d739ce21e9c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following code snippet shows the Python class for Kohonen’s SOM. The complete
+    code is available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/kohonen_som.py).
+    It’s worth noting that this implementation is standalone, so it can be used outside
+    of RAG example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 2: SOM-Based Vector Indexer Implementation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The vector indexer is a utility that uses Kohonen’s SOM to train SOM nodes with
+    data vectors from an external dataset. Its primary purpose is to map each data
+    vector to the closest top-k SOM nodes, enabling efficient indexing of the data
+    vectors. The following code snippet shows the train and indexing function of the
+    vector indexer Python class. Its complete code is available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/vector_indexer.py).
+    Although its implementation is currently limited to the example’s needs, it can
+    be extended to meet other requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 3: OpenAI Embeddings-Based Text-To-Vector Encoder'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The encoder’s primary function is to convert text into vector representations
+    using OpenAI’s text embedding API. It is worth noting that an OpenAI account and
+    API key are required to use the embedding API. Upon opening an account for the
+    first time, OpenAI provides complementary credit grants, which are more than enough
+    to access the API for testing purposes. Below is a code snippet showcasing the
+    batch encode function of the OpenAI encoder Python class. The complete code is
+    available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/openai_vector_encoder.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the OpenAI vector encoder class extends a generic parent class, ‘VectorEncoder,’
+    that defines abstract encoding functions to be implemented through inheritance.
+    It is possible to implement other types of vector encoders by inheriting from
+    this parent class for the pluggability of other encoding schemes. The complete
+    code for the parent vector encoder class can be found at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/vector_encoder_parent.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Wikipedia API-Driven DataSource Implementation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This utility class is designed to encapsulate the data retrieval logic that
+    integrates with Wikipedia API. Its main function is to fetch events for a specified
+    array of calendar years, format the retrieved events, and load them into a Pandas
+    dataframe. The code snippet below captures the primary function of the utility
+    class, while the complete code is available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/wiki_datasource.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 5: SOM-Based RAG Utility Implementation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The SOM-based RAG utility is a crucial element of the example implementation.
+    It utilizes the vector encoder, indexer, and data source to implement the core
+    logic for the underlying semantic search. The complete code for the SOM-based
+    RAG utility is available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/som_based_rag.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The utility implements three primary functions. The first function is to load
+    data from an external data source and encode it into vectors, as shown in the
+    following code snippet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The second function is to train the SOM-based indexer to construct Kohonen’s
+    SOM nodes and then index the data vectors, as shown in the following code snippet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The third function is to find similar information from the previously stored
+    external dataset based on a query text. This function uses the encoder to convert
+    the query text into a vector and then searches through the SOM-based indexer for
+    the most likely matches. This function then calculates the similarity between
+    the query vector and the discovered data vectors using Cosine similarity or another
+    specified similarity evaluator. Finally, this function filters the data vectors
+    whose similarities are greater than or equal to the specified similarity threshold.
+    The following code snippet captures the function implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An example output from a semantic search by SOM-based RAG utility function
+    is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0495dc8a7325e42a26216f4edea1b957.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An Example Semantic Search Output — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 6: Abstract Question/Answer ChatBot And Its OpenAI-Based Implementation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An abstract ‘QuestionAnswerChatBot’ Python class is developed to facilitate
+    chatbot-like implementations. It augments the prompted question by using a standard
+    instruction template and populating it with contextually similar information retrieved
+    from the RAG utility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The specified maximum number of new tokens limits the text size for context
+    augmentation, while token counting is deferred to underlying implementations.
+    In LLM economics, tokens are like currency. Each token the model processes requires
+    computational resources — memory, processing power, and time. Thus, the more tokens
+    an LLM has to process, the greater the computational cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, this class delegates prompting of the LLM model to the underlying implementation
+    once the QA instruction has been populated. The following code snippet captures
+    the primary function; the complete code is available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/qa_chatbot.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Python class ‘OpenAIQuestionAnswerChatBot’ extends the abstract ‘QuestionAnswerChatBot’
+    and implements the chatbot functionality using the OpenAI LLM API. The following
+    code snippet shows the class’s primary function. The complete code is available
+    at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/openai_qa_chatbot.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following is an example of how a prompted question gets augmented with
+    context using similar information retrieved through semantic search:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77dd0ecb2e734bb5bb300ed137e03cf6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An Example Context Augmented Question Prompt — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 7: Sample Questions for Testing'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following are sample questions for testing the RAG using OpenAI’s GPT-3.5-turbo-instruct
+    LLM. They were developed to ensure that their answers pertain to events that occurred
+    in 2022, 2023, and 2024.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 8: Putting Everything Together'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The complete Jupyter notebook that brings all the components together can be
+    found at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/OpenAI_Based_SOM_GPT2_Bot.ipynb).
+    The following code snippet shows the initiation of the main OpenAI-based QA chatbot.
+    Note that OpenAI’s text embedding algorithm, “text-embedding-ada-002,” is used
+    for vector encoding. Likewise, the chatbot uses OpenAI’s tokenizer, “cl100k_base,”
+    to count the tokens to limit the contextual text to augment the question prompt
+    by leveraging the inbuilt functions of the TikToken Python library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The following sequence diagrams help visualize all the component interactions
+    during the initialization and actual question/answering phases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/acffe90601416d6f17621a9d2d29cddb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Interactions of Various Components During Initialization — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/320862ead248a3bb9360d7ac2eea63bc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Interactions of Various Components During Question/Answering — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Findings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following image captures the question/answers from OpenAI’s GPT-3.5-turbo-instruct
+    LLM with and without context augmentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e55fe942772a20c25c4906ad9d6d3a5b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: OpenAI’s GPT-3.5-turbo-instruct LLM’s Answers With and Without Context Augmentation
+    — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understandably, the LLM finds it challenging to answer questions about events
+    that occurred after its September 2021 cut-off date. In most cases, it clearly
+    responds that the questions are from a future time relative to its training cut-off
+    date. On the contrary, the same LLM answers all the questions accurately to perfection
+    when the context of the prompted questions is augmented with relevant information
+    from years 2022, 2023, and 2024 retrieved from Wikipedia. The real credit here
+    goes to the SOM that formed the basis for RAG’s semantic search to retrieve and
+    augment the prompted question’s context with relevant information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suggested Next Steps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While the above example served as a proof-of-concept to assess the suitability
+    of a Self-Organizing Map to enable Retrieval-Augmented Generation of text by an
+    LLM, a more comprehensive benchmarking is suggested to evaluate its performance
+    in comparison to other algorithms using a much larger external dataset, where
+    performance is measured in terms of the quality of LLM outputs (something like
+    perplexity + accuracy). In addition, since the current example enables a pluggable
+    framework, it is suggested that other open-source and free QA LLMs be used to
+    conduct such benchmarking to minimize the LLM usage expenses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To help run the example in local environments, I included the ‘requirements.txt’
+    file, which contains various versions of Python libraries I used in my environment
+    to run and test the above example. This file is available at [this GitHub location](https://github.com/kbmurali/som-driven-qa-rag/blob/main/requirements.txt).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I conclude by promising to share my findings in a separate write-up if I conduct
+    any such benchmarks. Please stay tuned!!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](http://www.ai-junkie.com/ann/som/som1.html?source=post_page-----5d739ce21e9c--------------------------------)
+    [## SOM tutorial part 1'
+  prefs: []
+  type: TYPE_NORMAL
+- en: neural network tutorial in plain english
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.ai-junkie.com](http://www.ai-junkie.com/ann/som/som1.html?source=post_page-----5d739ce21e9c--------------------------------)
+    [](/understanding-self-organising-map-neural-network-with-python-code-7a77f501e985?source=post_page-----5d739ce21e9c--------------------------------)
+    [## Understanding Self-Organising Map Neural Network with Python Code
+  prefs: []
+  type: TYPE_NORMAL
+- en: Brain-inspired unsupervised machine learning through competition, cooperation
+    and adaptation
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/understanding-self-organising-map-neural-network-with-python-code-7a77f501e985?source=post_page-----5d739ce21e9c--------------------------------)
+    [](https://arxiv.org/abs/2005.11401?source=post_page-----5d739ce21e9c--------------------------------)
+    [## Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks
+  prefs: []
+  type: TYPE_NORMAL
+- en: Large pre-trained language models have been shown to store factual knowledge
+    in their parameters, and achieve…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: arxiv.org](https://arxiv.org/abs/2005.11401?source=post_page-----5d739ce21e9c--------------------------------)
+    [](https://blogs.nvidia.com/blog/what-is-retrieval-augmented-generation/?source=post_page-----5d739ce21e9c--------------------------------)
+    [## What Is Retrieval-Augmented Generation aka RAG?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieval-augmented generation (RAG) is a technique for enhancing the accuracy
+    and reliability of generative AI models…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: blogs.nvidia.com](https://blogs.nvidia.com/blog/what-is-retrieval-augmented-generation/?source=post_page-----5d739ce21e9c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://www.sciencedirect.com/topics/engineering/self-organizing-map](https://www.sciencedirect.com/topics/engineering/self-organizing-map)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://platform.openai.com/docs/models/gpt-3-5-turbo](https://platform.openai.com/docs/models/gpt-3-5-turbo)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://platform.openai.com/docs/guides/text-generation/chat-completions-api](https://platform.openai.com/docs/guides/text-generation/chat-completions-api)'
+  prefs: []
+  type: TYPE_NORMAL

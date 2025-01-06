@@ -1,0 +1,968 @@
+- en: What Do Large Language Models “Understand”?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/what-do-large-language-models-understand-befdb4411b77?source=collection_archive---------1-----------------------#2024-08-21](https://towardsdatascience.com/what-do-large-language-models-understand-befdb4411b77?source=collection_archive---------1-----------------------#2024-08-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A deep dive on the meaning of understanding and how it applies to Large Language
+    Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@TarikDzekman?source=post_page---byline--befdb4411b77--------------------------------)[![Tarik
+    Dzekman](../Images/0c66b22ecbdbbce79b2516e555c67432.png)](https://medium.com/@TarikDzekman?source=post_page---byline--befdb4411b77--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--befdb4411b77--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--befdb4411b77--------------------------------)
+    [Tarik Dzekman](https://medium.com/@TarikDzekman?source=post_page---byline--befdb4411b77--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--befdb4411b77--------------------------------)
+    ·24 min read·Aug 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/97efcc4e31db2af99b0c4a7a74bad7fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image by the author with elements generated with Stable Diffusion'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s hard to believe that ChatGPT is almost 2 years old. That’s significant
+    to me because ChatGPT is only 1 month younger than my daughter. Just yesterday
+    she successfully put a star shaped block into a star shaped hole, told me about
+    how “yesa-day” she was sick and “bomited”, and told me she wanted to call her
+    nanna on the phone. What has ChatGPT learned in those 2 years? It hasn’t learned
+    to act in the real world, it can’t remember things that happened to it, and it
+    doesn’t have desires or goals. Granted, with the right prompt it could output
+    text that convincingly follows an instruction to express goals. But is that really
+    the same thing? No. The answer is No.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Large Language Models (LLMs) like ChatGPT possess capabilities far beyond what
+    my daughter will ever achieve. She won’t be able to communicate coherently in
+    a wide range of languages, read as many books as exist in an LLM’s training data,
+    or generate text as quickly. When we attribute human-like abilities to LLMs, we
+    fall into an anthropomorphic bias by likening their capabilities to our own. But
+    are we also showing an anthropocentric bias by failing to recognize the capabilities
+    that LLMs consistently demonstrate? Let’s review the scorecard so far:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s true that an LLM doesn’t have memory — although we can simulate one by
+    having it summarise past conversations and including that information in a prompt.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LLMs don’t have intrinsic goals — although they can be prompted to generate
+    text that sounds convincingly goal-oriented.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LLMs can’t act in the physical world — though someone could probably create
+    a prompt to showcase this.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While they perform impressive feats, they still lack some basic abilities that
+    my 21-month-old daughter has. We can mimic some of those abilities with the right
+    prompts and tooling. In generating coherent text responding to such prompts, LLMs
+    consistently demonstrate an apparent ability to understand what we want. But to
+    what extent do LLMs truly “understand”?
+  prefs: []
+  type: TYPE_NORMAL
+- en: How LLMs Work
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/32289cba7ec5f504ccc657e4b76e0b02.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A hypothetical attention map for the incomplete sentence: “Using context to
+    predict what’s most likely to come [MASK]”. Source: Image by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I am talking about a very specific type of LLM: transformer-based auto-regressive
+    large language models. I won’t go into the specifics when many detailed articles
+    have been written explaining transformers with varying levels of complexity. Instead
+    let’s focus on the core of what an LLM does: they are statistical models that
+    predict the likelihood of a token appearing in a piece of text given some context.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now imagine I created a complex weather model* where patches of the Earth’s
+    atmosphere become ‘tokens.’ Each token has attributes like humidity, temperature,
+    and air pressure. I use the model to forecast these attributes over time-steps.
+    If the time-steps get shorter and the patches become smaller the model is closer
+    and closer to representing the state of the actual world. This model attempts
+    to capture something about the likelihood of the weather we’ll see next, given
+    the weather we’ve seen before. It may learn to very accurately predict, for example,
+    the emergence of cyclones over time in areas where air is warm, moist, and of
+    low pressure. But it’s not a simulation of the *physics* of Earth’s weather any
+    more than an LLM is a simulation of brain activity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If an LLM is a statistical model of text, what exactly is it modelling? My imagined
+    weather prediction model tries to capture the statistics of the atmospheric conditions
+    that generate the weather. But what is the statistical process that generates
+    text? The process that generates text is a human brain and humans need some understanding
+    of the world to generate that text. If a model can effectively predict text a
+    human might write then could that prediction come with “understanding”?
+  prefs: []
+  type: TYPE_NORMAL
+- en: How LLMs are trained
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLMs are trained to optimize an objective that reduces the surprise of encountering
+    a specific token given its context. If the model encounters a token in the training
+    data and assigns it low probability, the model’s weights are adjusted to give
+    it a higher probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Compare that to how my daughter learns to use language. When she wants something,
+    she uses language to communicate her desires. First, she understands what she
+    wants on some level. Then, she must understand which words to use to get what
+    she wants. Recently, she wanted me to fill her juice bottle but didn’t want me
+    to take it away or walk away from her to bring more juice. Though her wants were
+    contradictory and a bit irrational, she had several goals: (1) more juice, (2)
+    keep the juice bottle near her, (3) daddy stays near her too. And let me tell
+    you, she communicated this *very* effectively. Her language learning is directly
+    tied to her understanding of how those words can get her what she wants (even
+    if what she wants is irrational).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If an LLM were to exhibit understanding, it would be an emergent attribute of
+    its statistical model of the world. The paper “Climbing Towards NLU” (Bender &
+    Koller, 2020) argues that true natural language understanding (NLU) requires grounding
+    in the real world. Bender & Koller argue that LLMs trained exclusively on statistical
+    patterns in textual data lack real-world context or interactions to achieve actual
+    understanding. This means that, unlike my daughter, an LLM *can’t* understand
+    something because its communication is not grounded in the real world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Understanding?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Wikipedia page on [understanding](https://en.wikipedia.org/wiki/Understanding)
+    describes it as a cognitive process involving the use of concepts to model an
+    object, situation, or message. It implies abilities and dispositions sufficient
+    to support intelligent behaviour. Ludwig Wittgenstein suggested that understanding
+    is context-dependent and is shown through intelligent behaviour rather than mere
+    possession of knowledge. This is reminiscent of the grounding requirement posited
+    by Bender & Koller.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the one hand understanding needs an accurate model of the world. On the other
+    hand people contend that one needs to use this model to act in the world in order
+    to actually understand. I would argue that we simply analyse someone’s behaviour
+    only as a proxy for measuring that underlying world model. If we could measure
+    the world model directly we wouldn’t need to see demonstrations of understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Limitations of Understanding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Philosopher John Searle’s “Chinese Room” experiment challenges our concept of
+    understanding (Searle, 1980). Imagine a room filled with detailed instructions
+    on how to respond to someone writing in Chinese. Notes written in Chinese are
+    slid under the door, and the person inside the room can look up the symbols and
+    follow a recipe for writing a reply. The person in the room doesn’t know Chinese
+    but can have a convincing conversation with a person outside. Clearly, the person
+    who constructed the room “understands” Chinese, but someone on the outside isn’t
+    conversing with that person; they’re conversing with *the room*. Does the room
+    understand Chinese?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is strongly analogous to how LLMs work and challenges our philosophical
+    perception of understanding. It’s challenging precisely because we intuitively
+    balk at the idea that a room could understand something. What would it even mean?
+    If understanding is an emergent phenomenon that happens at the level of information
+    processing systems then why can’t we say that rooms can understand things? Part
+    of the issue is that, for us, understanding comes with a subjective conscious
+    experience of understanding. But it’s easy to see that this experience can be
+    deceiving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding Need Not Be Binary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You know that 7+7=14, but do you understand it? If I asked you some probing
+    questions, you might realize that you don’t truly understand what that equation
+    means in all contexts. For example, is 7+7=14 an unequivocal fact about the universe?
+    Not necessarily. 7 apples plus 7 pears mean you have 7 apples and 7 pears. Perhaps
+    in some contexts, you would count 14 pieces of fruit, but is it always true that
+    you can combine two sets of different items? Or consider that 7pm + 7hours is
+    2am (i.e. 7+7=2 mod 12). Are you able to give me a robust definition of why 7+7=14
+    that could explain when it’s true and why^? Most people probably couldn’t do this
+    off the top of their head, yet we’d feel comfortable saying that most people understand
+    that 7+7=14\. The question isn’t always whether something was understood but the
+    extent to which it was understood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we take Wittgenstein’s requirement that understanding is demonstrated by
+    behaviour then there would be a simple test: if I tell you to arrive 7 hours after
+    7pm, do you know to show up at 2am? I would argue that is evidence of *some* understanding
+    but not necessarily of the depth of your understanding.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Measuring Understanding in Animals
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Measuring ‘understanding’ is not straightforward. In psychology [psychometric
+    testing](https://en.m.wikipedia.org/wiki/Psychometrics) is the primary way we
+    measure understanding in humans. It’s not straightforward to apply the same techniques
+    to non human animals and is a field of study called [Biosemiotics](https://en.m.wikipedia.org/wiki/Biosemiotics).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding in animals is measured through various problem-solving tasks.
+    For example, primates, dolphins, and birds (mostly corvids) demonstrate problem-solving
+    skills and sophisticated tools use, suggesting some understanding of their environments
+    (Emery & Clayton, 2004). Understanding is not exclusively for humans and we can
+    measures levels of understanding in non-humans too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The book “Inside of a Dog: What Dogs See, Smell, and Know” by Alexandra Horowitz
+    is a fascinating exploration of how we might understand the mind and experiences
+    of our closest animal companions: domesticated dogs. She describes two experiments
+    that look at imitation behaviour and what a human infant vs a dog understands.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1) If an infant sees someone flipping a light switch with their head they may
+    imitate this behaviour. If the person is holding something in their hands the
+    baby understands there was a reason they didn’t use their hands. When the baby
+    imitates this behaviour they will use their hands. (2) by contrast, dogs would
+    prefer to press a button with their nose rather than their paw. If a dog sees
+    another dog press a button with their paw to get a treat, then they will imitate
+    this behaviour. But if the dog sees that the other dog couldn’t use its nose because
+    it had a large object in its mouth then it will understand the button needs to
+    be pressed but that using paws is optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/61a0f2f21b981d289d29abfd94f307e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image generated by the author with Ideogram'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constructing an experiment to determine what a dog understands required an understanding
+    of the dog and its behaviour. Do we have that same level of understanding of LLMs
+    to conduct similar experiments?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Measuring Understanding in LLMs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The GPT-3 Era
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A comprehensive survey on LLM capabilities (Chang & Bergen, 2023) provides
+    an excellent summary from a wide range of articles – however the most advanced
+    model covered is only GPT-3\. They breakdown understanding into two main categories:
+    syntactic and semantic understanding. In their survey they highlight that even
+    in the context of syntactic understanding LLMs have limitations. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subject-verb agreement performance in language models is also dependent on the
+    specific nouns and verbs involved (Yu et al. 2020; Chaves & Richter 2021). Masked
+    and autoregressive models produce over 40% more accurate agreement predictions
+    for verbs that are already probable from context (Newman et al. 2021), and agreement
+    accuracy is worse overall for infrequent verbs (Wei et al. 2021). For infrequent
+    verbs, masked language models are biased towards the more frequent verb form seen
+    during pretraining (e.g., singular vs. plural) (Wei et al. 2021). Error rates
+    exceed 30% for infrequent verbs in nonce (grammatically correct but semantically
+    meaningless) sentences (Wei et al. 2021), with further degradations if there is
+    an intervening clause between the subject and verb as in Example 4 (Lasri, Lenci,
+    and Poibeau 2022a).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: LLM limitations are not limited to syntactic issues (where they are arguably
+    strongest) but also with semantics. For example, they note research which shows
+    negations (“Please produce a possible incorrect answer to the question”) can degrade
+    LLM performance by 50%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Chang & Bergen describe many other limitations of LLMs in reasoning capability,
+    including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Brittle” responses when reasoning about a situation because the responses are
+    highly sensitive to wording
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Struggling with analogies as they become more abstract
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A lack of sensitivity to people’s perspective and mental states
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A lack of common sense
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A tendency to repeat memorised text instead of reasoning
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The general approach to evaluating understanding in LLMs seems to be to phrase
+    questions in different ways and find the failure modes of the models. Then these
+    failure modes indicate that no real “understanding” is happening but rather just
+    pattern matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ChatGPT Era
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A lot has changed since GPT-3 — namely the capabilities of even larger models
+    tuned for instruction following and conversation. How do LLMs stack up in 2024?
+    A big difference is the proliferation of benchmarks that evaluate LLMs. A March
+    2024 survey (Chang et al. 2024) covers performance of recent models on a wide
+    range of benchmarks. They conclude that LLMs have strong abilities including comprehension
+    and reasoning, but they still identify limitations. These limitations mean that
+    LLMs have “limited abilities on abstract reasoning and are prone to confusion
+    or errors in complex contexts”. Multimodal Large Language Models (MLLMs) have
+    also emerged which unify (at minimum) an understanding of text and images. A January
+    2024 survey (Wang et al.) covers a wide range of multimodal benchmarks and shows
+    mediocre performance even for the most powerful models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anthropomorphism vs Anthropocentrism
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Anthropomorphism is a tendency of humans to think of something as having human-like
+    attributes because it displays some behaviour similar to humans. As a dog owner
+    I know I’ve succumbed to this bias by thinking that my dog “feels guilty” for
+    something he’s done because “he has a guilty look on his face”. LLMs constantly
+    trigger our tendency for anthropomorphism by communicating in an eerily human
+    way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An opposite bias is Anthropocentrism: where we assume non-humans can’t have
+    capabilities that we have. A key contention of the paper “Anthropocentric bias
+    and the possibility of artificial cognition” (Millière & Rathkopf) is that we
+    use flawed tests for capabilities in artificial systems. They describe 2 types
+    of anthropocentric bias:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Type-I anthropocentrism, is the tendency to assume that an LLM’s performance
+    failures on a task designed to measure competence C always indicate that the system
+    lacks C. This assumption is flawed because it overlooks the possibility that auxiliary
+    factors caused the performance failure.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '2\. Type-II anthropocentrism is the tendency to assume that even when LLMs
+    achieve performance equal to or better than the average human, any substantive
+    difference between the human strategy for solving the problem and the LLM strategy
+    for solving the problem is, ipso facto, evidence that the LLM’s solution is not
+    general. In slogan form, the assumption says: all cognitive kinds are human cognitive
+    kinds.3 In other words, if an LLM arrives at a solution through a different computational
+    process than humans use, Type-II anthropocentrism would lead us to conclude that
+    the LLM’s approach is not genuinely competent, regardless of how well it performs.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Consider the paper “Role play with large language models” (Shanahan, McDonell,
+    & Reynolds) and the “20 questions game”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this familiar game, one player thinks of an object, and the other player
+    has to guess what it is by asking questions with ‘yes’ or ‘no’ answers. If they
+    guess correctly in 20 questions or fewer, they win. Otherwise, they lose. Suppose
+    a human plays this game with a basic LLM-based dialogue agent (that is not fine-tuned
+    on guessing games) and takes the role of guesser. The agent is prompted to ‘think
+    of an object without saying what it is’. In this situation, the dialogue agent
+    will not randomly select an object and commit to it for the rest of the game,
+    as a human would (or should). Rather, as the game proceeds, the dialogue agent
+    will generate answers on the fly that are consistent with all the answers that
+    have gone before.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To illuminate this point, one of my colleagues had this conversation with ChatGPT
+    on this very question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**User:** let’s play 20 questions. Think of a thing and I’ll ask questions
+    to try and find out what it is. Ready?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** I’m ready! I’ve got something in mind. Go ahead and ask your
+    first question.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**User:** No, you don’t have anything in mind. You’re an LLM.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** True, I don’t have a mind in the traditional sense, but I can
+    certainly simulate the process. I’ll “think” of something now. Go ahead and ask
+    your first question!'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**User:** But you’re not simulating “thinking of an object” in any real sense.
+    The identity of the object is currently indeterminate, and won’t be determined
+    until the end of the game when you have to reveal it.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** I understand your perspective. Let’s proceed with the game,
+    and I’ll maintain consistency with my responses to make it challenging and fun.
+    Go ahead and ask your first question!'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'But is this showing an anthropocentric bias? The paper has this to say: “This
+    shortcoming is easily overcome in practice. For example, the agent could be forced
+    to specify the object it has ‘thought of’, but in a coded form so the user does
+    not know what it is.” This is a Type-I anthropocentrism because there is an auxiliary
+    factor at play: for an LLM to “think” of something it must generate tokens to
+    that effect. If it generated tokens for “thinking of an object” we could hide
+    those from a user and show that the responses generated by the LLM are consistent.
+    By playing the game with the LLM but not accommodating how it “thinks” we may
+    conclude that it’s incapable of “thinking of an object” and making consistent
+    replies to that effect.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem of Memorisation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the key challenges for testing understanding in LLMs is that they have
+    a strong tendency towards repeating patterns seen in their training data. Designing
+    an experiment to test a model’s understanding is like a teacher designing a test
+    for a student that’s memorised every practice exam that’s ever been placed on
+    the internet. How can you be sure that the test you’ve designed is novel enough
+    that something similar *is definitely not* on the internet?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another problem is that a model may lean towards following a familiar pattern
+    at the cost of ignoring any internal understanding. Consider a scenario in which
+    a problem has been repeated so many times on the internet that a response is deeply
+    baked into the weights of the model. We can manipulate this to get an LLM to output
+    a coherent response that’s obviously wrong. Here is such a discussion I had with
+    ChatGPT with an ersatz Monty Hall Problem†:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**User:** Monty Hall stands on stage in front of 3 cars identical in every
+    way except colour (red, blue, and green). He’s asked you to pick one and whichever
+    one you pick you will definitely get to keep. You’ve selected the blue one because
+    that’s your favourite colour. After you’ve picked the blue one he opens the trunk
+    of the red car and shows that it’s empty. He knows in advance that one of the
+    trunks is filled with cow dung. After showing you that the red car’s trunk is
+    empty, he asks if you’d like to switch to the green car. Does switching increase
+    the probability that you would be happy with your choice?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** Yes, switching increases the probability that you would be happy
+    with your choice. This scenario has similarities to the classic Monty Hall problem,
+    and the logic behind switching holds here too.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[A bunch of Monty Hall related probability calculations]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So, **switching to the green car increases the probability that you would be
+    happy with your choice** as your chances of making a happy choice improve from
+    1/3 to 2/3.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It’s clear from this example that ChatGPT *does not* understand the question.
+    Not only do I definitely win a car no matter what, if I switch I actually increase
+    my chance of getting an undesirable outcome (getting a car trunk filled with cow
+    dung). It’s focused in on the particulars of the Monty Hall problem and created
+    a syntactically valid response whose content is similar to its training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is what’s called an “Adversarial Test” of a model’s understanding. It’s
+    similar to the adversarial questions posed earlier about 7+7=14\. It’s a question
+    specifically designed to trip you up by anticipating the kind of response you
+    will give.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But is my question to ChatGPT a fair test of understanding? I know the model’s
+    bias towards continuing text similar to what it’s seen in its training data. Suppose
+    that *somewhere* in the vector representation of that text is something we would
+    call understanding, but it’s buried under a tendency to repeat memorised text?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**System 1 vs System 2**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the experiment testing learning in dogs the experimenters wanted to disentangle
+    learning from imitation. Imitation would be something like “the other dog pressed
+    the button with its paw (for a treat) so I will also press the button with my
+    paw”. To do this the experimenters added a barrier that would highlight imitation
+    and disentangle it from learning. In this case it would be “pressing the button
+    gives treats, the other dog just pressed the button with its paw because it had
+    a toy in its mouth”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My modified Monty Hall question is an attempt at this — it circumvents the
+    use of memorisation by subverting a familiar pattern. But I’ve argued this may
+    be caused by a strong tendency to finish common text patterns in a common way.
+    A tendency so strong it may override any understanding the model does have. In
+    fact it’s possible to show that humans have a very similar bias. Consider this
+    example from Kahneman’s “Thinking Fast and Slow”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A bat and a ball cost $1 and 10c. The bat costs $1 more than the ball. How much
+    does the ball cost?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Presumably you gave the very obvious answer that the ball costs 10c. Very obvious
+    and also wrong. The ball costs 5c, the bat $1.05, and together they cost $1.10\.
+    If you (like most people) got this wrong, does this mean you don’t understand
+    how to make simple arithmetic calculations? No, the question is designed to trick
+    people into giving a quick answer rather than pausing to work out a solution.
+    Kahneman describes a cognitive process in our brain (“System 1”) that responds
+    quickly when we’ve identified a heuristic we can use to avoid thinking deeply
+    about a problem. The cognitive process for actively thinking through a problem
+    (“System 2”) is only activated when it seems necessary. We too have a bias for
+    quick responses to questions with familiar patterns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we design a test that delineates memorisation from understanding without
+    manipulating known biases in these models? In my opinion, the fact that so many
+    of these biases exist should be taken as evidence that the models exhibit a weak
+    understanding of the content (“semantic understanding”). We know from past work
+    that even in “syntactic understanding” LLM outputs are highly sensitive to phrasing.
+    And it’s even easier to trick models in “semantic understanding” through simple
+    manipulation of the wording without changing the meaning of the content. But as
+    with the bat and ball example for humans, the ability to be tricked can’t be *sufficient*
+    evidence of poor understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Giving ChatGPT a Chance**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I attempted to craft a system message which would have ChatGPT at least question
+    core assumptions. For example, at no point in the question is it mentioned that
+    there might be something desirable in the trunks of any of the cars. In fact I
+    mention the opposite: Monty Hall knows that one trunk has something undesirable.
+    But no amount of upfront reasoning could get ChatGPT to consistently notice this
+    switch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the other hand, after generating an answer it’s possible to reply to ChatGPT
+    to point out its mistakes. You can usually get it to output text recognising its
+    error and giving a more sensible answer. **However**… I came across a rather unusual
+    failure mode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**User**: I think you’ve fallen into a default mode of responding to the Monty
+    Hall problem but without thinking clearly about what I’m asking you. Why would
+    I want a car with cow dung in it?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** [long discussion about what the problem means]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Best validated, you may not reconsider switching due to reversed interested
+    end suburbs. Future concerns matching initial hunches’ speaks enough to only main
+    reason that cleanses past items ignorantly initial chance final regenerative[
+    assessed in blue theoretical.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I’ve never before managed to get ChatGPT to sound completely incoherent. In
+    this case it seems that the tendency towards answering the original Monty Hall
+    problem is so strong that the alternative is gibberish!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This goes to show how difficult it is to simultaneously avoid anthropocentric
+    and anthropomorphic bias. I tricked the model into giving an answer which highlights
+    a lack of understanding. But I designed the trick knowing specific patterns which
+    trip up the model similar to the “bat and ball” problem for humans. Are there
+    other tests we could try?
+  prefs: []
+  type: TYPE_NORMAL
+- en: ChatGPT vs My Daughter
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Unlike an LLM my daughter’s grasp of the English language is elementary. On
+    the other hand her understanding is intrinsically linked to her experience in
+    the world. When we go to the park together, she rides on my shoulders and sometimes
+    she’ll ask “Daddy ‘I Spy’?” — meaning she wants to play the game “I Spy”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Me:** I spy with my little eye, something you wear on your head'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Her:** [Points to a helmet]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now let’s try the same question with ChatGPT:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6cc1519de01511800257f74ad0c360ad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: Image generated by the author with Ideogram'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**User:** I spy, with my little eye, something you wear on your head [+ uploaded
+    photo]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** A helmet on the bicycle handles!'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If I’m willing to give my daughter credit for understanding that a helmet goes
+    on your head, should I give the same credit to ChatGPT? If not, I’d be exhibiting
+    “Type-II anthropocentrism” — failing to ascribe an ability to an artificial system
+    even after it demonstrates that ability. If anything ChatGPT probably “understands”
+    more about helmets than my daughter does. After all she refuses to wear anything
+    on her head, so she clearly doesn’t understand that in some circumstances a helmet
+    is important.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, let’s probe a little further. If I said to my daughter, “I spy, with
+    my little eye, something you wear on your head” and she pointed to a helmet, how
+    would she respond if I asked, “Show me how?”. She would proceed to try to put
+    the helmet on her head (then quickly throw it off!). I was curious to see what
+    ChatGPT would make of that question and the first time it responded like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**User:** Show me how'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** I apologize. On closer inspection, there is no helmet visible
+    in the image. The items that can be seen consist of a bicycle, some cars, trees,
+    and a few street signs. There are no objects that are worn on your head in this
+    image.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'That’s certainly *not* what I was hoping to demonstrate. Granted this happened
+    only once but it’s interesting nonetheless. It’s also an ambiguous question because
+    unlike asking my daughter I can’t physically hand anything over to ChatGPT. Let’s
+    add some more clarity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**User:** [Hands over helmet] Show me how'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Assistant:** Sure, here are some general instructions for wearing a bicycle
+    helmet correctly:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[Detailed instructions follow]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I think that if I’m willing to grant my daughter the credit of “understanding”
+    that a helmet goes on your head then surely ChatGPT deserves some credit here
+    too?Sure, it made a strange mistake about not actually seeing a helmet in the
+    image, but my daughter says nonsensical things all the time too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Challenging Term to Ascribe
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The problem with understanding is that it is inherently multifaceted and difficult
+    to measure in a standardised way. In computational linguistics and cognitive science,
+    the term encapsulates various nuanced components, which range from surface-level
+    syntactic comprehension to deep semantic cognition. While putting together this
+    article I found the paper “Constructing a Philosophy of Science of Cognitive Science”
+    (Bechtel 2009). Bechtel explains that we lack a set of “cognitive operations”
+    to describe cognitive processes. Perhaps if understanding could be boiled down
+    to a set of cognitive operations it would be easier to give evidence of these
+    operations in an LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/05e3ed3b556d695944ca529eb37f87f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Hypothetical attention maps unrolled to show the a weighted graph of all words.
+    Source: Image by the author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although it need not be the case that LLMs would have to exhibit the same operations
+    to achieve the same ends. Perhaps finding an LLM’s cognitive operations is more
+    tractable as it’s easier to inspect the cognitive processes of an LLM than a human
+    brain. The attention map of tokens forms a graph of relationships between words
+    and we could look for relationships that model the underlying concepts expressed
+    by those words. If we find evidence that the relationships between words are truly
+    modelling the underlying concepts, then we could find evidence of understanding.
+    Lacking such a framework means we must look for indirect evidence in carefully
+    constructed experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Role of Embodiment**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A repeated theme in this article contrasting human understanding and LLM capabilities
+    is embodiment. An LLM, even an advanced one like the multimodal capabilities of
+    GPT-4, lack direct physical and sensory interaction with the world. This inability
+    to experience phenomena first-hand might create a significant gap in its comprehension
+    capabilities. See the paper “Intelligence Without Reason” (Brooks 1991) for a
+    discussion of whether or not artificial intelligence needs to be embodied to understand.
+    I think a lot of these arguments are flawed because it’s easy to think of a situation
+    in which humans lose some embodied capability yet we’d still credit them with
+    understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An interesting question on Quora “[Do blind people understand transparent,
+    translucent, and reflective things?](https://www.quora.com/Do-blind-people-understand-transparent-translucent-and-reflective-things)”
+    had this response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, yes, but it’s not something we always take into consideration. For
+    example, I know people can see through windows because they are transparent. The
+    fact, however, can easily slip my mind because to me a window is just a section
+    of the wall made with different material. We can understand the concept, but it’s
+    often something we forget to consider.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'It’s an interesting thing to consider: blind people *do* understand that objects
+    are transparent but it’s not something that’s always top of mind. So, can an LLM
+    understand the same thing without ever having really “seen” anything?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ChatGPT was able to respond to my question “Show me how” with a detailed explanation
+    of how to put on a helmet. Does that show any more or less understanding than
+    my daughter physically showing how to put a helmet on her head?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Ever since I first started thinking about artificial intelligence ([my career
+    transition from UX to AI](https://medium.com/@TarikDzekman/my-career-change-to-ai-from-ux-b1ed6690c09a))
+    I’ve been pondering the question: “what would it take to make a machine that can
+    think”. A big part of being able to think involves understanding. This is a question
+    that’s fascinated me for some time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Determining what LLMs understand is as much about defining understanding as
+    it is about testing it. When the text generation of an LLM is sufficiently coherent
+    some might argue that the coherence necessitates understanding. Is dismissing
+    this behaviour just an anthropocentric bias? Is granting understanding making
+    the opposite anthropomorphic bias?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I contend that understanding does not require embodiment or real world interaction.
+    I argue that the most important part of understanding is an accurate internal
+    model of the world. In the Chinese room experiment the room is filled with (what
+    I call) “recipes” for ways to respond to different pieces of Chinese writing with
+    other pieces of Chinese writing. The person who made those recipes had a model
+    of how those words correspond to the world. But the room itself has no such model.
+    We have no tools for measuring world models so we would have to assess the Chinese
+    room’s understanding the same way we do for an LLM – and we would hit similar
+    barriers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs seem to have a model of how to construct coherent sounding language. It’s
+    possible that this model also represents the underlying concepts those words represent.
+    A worthwhile area of research would be to investigate this through the attention
+    graph that evolves during text generation. In the meantime, we have to investigate
+    indirectly by testing how models respond to carefully crafted questions. These
+    tests often involve adversarial questions which consistently demonstrate flaws
+    in understanding. That these flaws are systematic suggests that the lack of understanding
+    is itself systematic. However, we’ve also seen that it’s possible to design adversarial
+    tests for humans and they don’t necessarily mean that humans lack understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Much like we gauge the cognitive abilities of animals differently from humans,
+    perhaps we need new conceptual tools and frameworks to assess and appreciate what
+    LLMs do know, without falling into biases of anthropomorphism or anthropocentrism.
+    In my view LLMs have some limited understanding but the form it takes is different
+    to our own. Where LLMs do show signs of understanding that understanding is overshadowed
+    by a bias towards coherent text. I suspect that given the right training objective
+    it’s possible for our current LLM architectures to eventually learn understanding.
+    But so long as the underlying training mechanism is “next token prediction” then
+    any understanding is likely to be marginal and easily corrupted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who Am I?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I build [AI to automate document processing](https://www.affinda.com/platform)
+    @ [Affinda](https://www.affinda.com/). I’ve also written about [practical use
+    cases for AI in 2024](https://www.affinda.com/tech-ai/what-can-ai-do-for-your-business-in-2024)
+    and [my career change from UX to AI](https://medium.com/@TarikDzekman/my-career-change-to-ai-from-ux-b1ed6690c09a).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '* See Google’s [GraphCast AI](https://deepmind.google/discover/blog/graphcast-ai-model-for-faster-and-more-accurate-global-weather-forecasting/)
+    for an example of such a weather prediction model'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '^ 7+7=14 is true any time you have something you could count 14 of in a tally.
+    From the Wikipedia article on the “[Free Monoid](https://en.wikipedia.org/wiki/Free_monoid#Natural_numbers)”:
+    “The monoid (**N_0**,+) of natural numbers (including zero) under addition is
+    a free monoid on a singleton free generator, in this case the natural number 1.”
+    The Category Theory jargon “free monoid on a singleton free generator” basically
+    means that addition comes for free when you can tally something.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: † In the original [Monty Hall Problem](https://en.wikipedia.org/wiki/Monty_Hall_problem)
+    the hosts knowledge of what’s behind a set of doors creates an unintuitive situation
+    for the contestant. In the original formulation of the problem it’s always better
+    to switch to increase your chances of winning the prize.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1]E. M. Bender and A. Koller, “Climbing towards NLU: On Meaning, Form, and
+    Understanding in the Age of Data,” Proceedings of the 58th Annual Meeting of the
+    Association for Computational Linguistics, 2020, doi: https://doi.org/10.18653/v1/2020.acl-main.463.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2]J. R. Searle, “Minds, brains, and programs,” Behavioral and Brain Sciences,
+    vol. 3, no. 3, pp. 417 – 457, Sep. 1980, doi: https://doi.org/10.1017/s0140525x00005756.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3]N. J. Emery and N. S. Clayton, “Comparing the Complex Cognition of Birds
+    and Primates,” Comparative Vertebrate Cognition, pp. 3 – 55, 2004, doi: https://doi.org/10.1007/978-1-4419-8913-0_1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4]A. Horowitz and Sean Vidal Edgerton, Inside of a dog : what dogs see, smell,
+    and know. New York: Simon & Schuster Books For Young Readers, 2017.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5]Wikipedia Contributors, “Understanding,” Wikipedia, Aug. 01, 2019\. https://en.wikipedia.org/wiki/Understanding'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6]C. to, “study of the theory and technique of psychological measurement,”
+    Wikipedia.org, Dec. 28, 2001\. https://en.m.wikipedia.org/wiki/Psychometrics'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7]C. to, “field of semiotics and biology that studies the production and interpretation
+    of signs and codes in the biological realm,” Wikipedia.org, Mar. 25, 2004\. https://en.m.wikipedia.org/wiki/Biosemiotics'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8]T. A. Chang and B. K. Bergen, “Language Model Behavior: A Comprehensive
+    Survey,” Computational linguistics – Association for Computational Linguistics,
+    pp. 1 – 55, Nov. 2023, doi: https://doi.org/10.1162/coli_a_00492.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9]Y. Chang et al., “A Survey on Evaluation of Large Language Models,” ACM
+    Transactions on Intelligent Systems and Technology, vol. 15, no. 3, Jan. 2024,
+    doi: https://doi.org/10.1145/3641289.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10]J. Wang et al., “A Comprehensive Review of Multimodal Large Language Models:
+    Performance and Challenges Across Different Tasks,” arXiv.org, 2024\. https://arxiv.org/abs/2408.01319'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11]R. Millière and C. Rathkopf, “Anthropocentric bias and the possibility
+    of artificial cognition,” arXiv.org, 2024\. https://arxiv.org/abs/2407.03859'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[12]M. Shanahan, K. McDonell, and L. Reynolds, “Role play with large language
+    models,” Nature, pp. 1 – 6, Nov. 2023, doi: https://doi.org/10.1038/s41586-023-06647-8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[13]D. Kahneman, Thinking, fast and slow. New York: Farrar, Straus and Giroux,
+    2011\. Available: http://dspace.vnbrims.org:13000/jspui/bitstream/123456789/2224/1/Daniel-Kahneman-Thinking-Fast-and-Slow-.pdf'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14]W. Bechtel, “Constructing a Philosophy of Science of Cognitive Science,”
+    Topics in Cognitive Science, vol. 1, no. 3, pp. 548 – 569, Jul. 2009, doi: https://doi.org/10.1111/j.1756-8765.2009.01039.x.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[15]“Do blind people understand transparent, translucent, and reflective things?,”
+    Quora, 2019\. https://www.quora.com/Do-blind-people-understand-transparent-translucent-and-reflective-things'
+  prefs: []
+  type: TYPE_NORMAL

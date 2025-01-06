@@ -1,0 +1,592 @@
+- en: Can LLMs Replace Data Analysts? Learning to Collaborate
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/can-llms-replace-data-analysts-learning-to-collaborate-9d42488dc327?source=collection_archive---------2-----------------------#2024-01-09](https://towardsdatascience.com/can-llms-replace-data-analysts-learning-to-collaborate-9d42488dc327?source=collection_archive---------2-----------------------#2024-01-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Part 3: Teaching the LLM agent to pose and address clarifying questions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)[![Mariya
+    Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------)
+    [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--9d42488dc327--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9d42488dc327--------------------------------)
+    ·20 min read·Jan 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fa7743b2c33135033008e395f36e9ffd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by DALL-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Collaboration** is a core aspect of analysts’ day-to-day jobs. Frequently,
+    we encounter high-level requests such as, “What will be the impact of the new
+    feature?” or “What is going on with retention?". Before jumping to writing queries
+    and pulling data, we usually need to define tasks more clearly: talk to stakeholders,
+    understand their needs thoroughly, and determine how we can provide the best assistance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, for an LLM-powered analyst, mastering the art of posing and addressing follow-up
+    questions is essential since I can’t imagine an analyst working in isolation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will teach our LLM analyst to ask clarifying questions and
+    follow long conversations. We will talk in detail about different memory implementations
+    in LangChain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve already discussed many aspects of LLM agents in the previous articles.
+    So, let me quickly summarise them. Also, since our last implementation, LangChain
+    has been updated, and it’s time to catch up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM agents recap
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s quickly recap what we’ve already learned about LLM agents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve [discussed](/can-llms-replace-data-analysts-building-an-llm-powered-analyst-851578fa10ce)
+    how to empower LLMs with external tools. It helps them overcome limitations (i.e.,
+    poor performance on maths tasks) and get access to the world (i.e., your database
+    or internet).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The core idea of the LLM agents is to use LLM as a reasoning engine to define
+    the set of actions to take and leverage tools. So, in this approach, you don’t
+    need to hardcode the logic and just let LLM make decisions on the following steps
+    to achieve the final goal.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We’ve [implemented](/can-llms-replace-data-analysts-getting-answers-using-sql-8cf7da132259)
+    an LLM-powered agent that can work with SQL databases and answer user requests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since our last iteration, LangChain has been [updated](https://github.com/langchain-ai/langchain/releases)
+    from 0.0.350 to 0.1.0 version. The documentation and best practices for LLM agents
+    have changed. This domain is developing quickly, so it’s no surprise the tools
+    are evolving, too. Let’s quickly recap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, LangChain has significantly improved [the documentation](https://python.langchain.com/docs/modules/agents/agent_types/),
+    and now you can find a clear, structured view of the supported agent types and
+    the differences between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s easier for models to work with tools with just one input parameter, so
+    some agents have such limitations. However, in most real-life cases, tools have
+    several arguments. So, let’s focus on the agents capable of working with multiple
+    inputs. It leaves us just three possible options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**OpenAI tools**](https://python.langchain.com/docs/modules/agents/agent_types/openai_tools)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It’s the most cutting-edge type of agent since it supports chat history, tools
+    with multiple inputs and even parallel function calling.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can use it with the recent OpenAI models (after `1106`) since they were
+    fine-tuned for tool calling.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2\. [**OpenAI functions**](https://python.langchain.com/docs/modules/agents/agent_types/openai_functions_agent)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenAI functions agents are close to OpenAI tools but are slightly different
+    under the hood.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Such agents don’t support parallel function calling.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can use recent OpenAI models that were fine-tuned to work with functions
+    (the complete list is [here](https://platform.openai.com/docs/guides/function-calling/supported-models))
+    or compatible open-source LLMs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.[**Structured chat**](https://python.langchain.com/docs/modules/agents/agent_types/structured_chat)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach is similar to ReAct. It instructs an agent to follow the Thought
+    -> Action -> Observation framework.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It doesn’t support parallel function calling, just as OpenAI functions approach.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can use it with any model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also, you can notice that the experimental agent types we tried in [the previous
+    article](/can-llms-replace-data-analysts-getting-answers-using-sql-8cf7da132259),
+    such as BabyAGI, Plan-and-execute and AutoGPT, are still not part of the suggested
+    options. They might be included later (I hope), but for now I wouldn’t recommend
+    using them in production.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: After reading the new documentation, I’ve finally realised the difference between
+    OpenAI tools and OpenAI functions agents. With the OpenAI tools approach, an agent
+    can call multiple tools at the same iterations, while other agent types don’t
+    support such functionality. Let’s see how it works and why it matters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s create two agents — OpenAI tools and OpenAI functions. We will empower
+    them with two tools:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`get_monthly_active_users` returns the number of active customers for city
+    and month. To simplify debugging, we will be using a dummy function for it. In
+    practice, we would go to our database to retrieve this data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`percentage_difference` calculates the difference between two metrics.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s create tools from Python functions and specify schemas using Pydantic.
+    If you want to recap this topic, you can find a detailed explanation in [the first
+    article](/can-llms-replace-data-analysts-building-an-llm-powered-analyst-851578fa10ce)
+    of this series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: To test a tool, you can execute it using the following commands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s create a prompt template that we will be using for the agents. It will
+    consist of a system message, a user request and a placeholder for tools’ observations.
+    Our prompt has two variables — `input` and `agent_scratchpad`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s use new LangChain functions to create agents — `create_openai_functions_agent`
+    and `create_openai_tools_agent`. To create an agent, we need to specify parameters
+    — an LLM model, a list of tools and a prompt template. On top of the agents, we
+    also need to create agent executors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: I used the ChatGPT 4 Turbo model since it’s capable of working with OpenAI tools.
+    We will need some complex reasoning, thus ChatGPT 3.5 will likely be insufficient
+    in our use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve created two agent executors, and it’s time to try them in practice and
+    compare results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Interestingly, the agents returned the same correct result. It’s not so surprising
+    since we used low temperatures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both agents performed well, but let’s compare how they work under the hood.
+    We can switch on debug mode (execute `langchain.debug = True` for it) and see
+    the number of LLM calls and tokens used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the scheme depicting the calls for two agents below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a63a4a9fcfd1c6bd41445b50fd5d422c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Scheme by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The OpenAI functions agent did 4 LLM calls, while the OpenAI tools agent made
+    just 3 ones because it could get MAUs for London and Berlin in one iteration.
+    Overall, it leads to a lower number of used tokens and, hence, lower price:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenAI tools agent — 1 537 tokens
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OpenAI functions agent — 1 874 tokens (*+21.9%*).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, I would recommend you consider using OpenAI tools agents. You can use it
+    with both ChatGPT 4 Turbo and ChatGPT 3.5 Turbo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve revised our previous implementation of an LLM-powered analyst. So, it’s
+    time to move on and teach our agent to pose follow-up questions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Asking clarifying questions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We would like to teach our agent to ask the user clarifying questions. The most
+    reasonable way to teach LLM agents something new is to give them a tool. So, LangChain
+    has a handy tool — [Human](https://python.langchain.com/docs/integrations/tools/human_tools).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There’s no rocket science in it. You can see the implementation [here](https://api.python.langchain.com/en/latest/_modules/langchain_community/tools/human/tool.html#).
+    We can easily implement it ourselves, but it’s a good practice to use tools provided
+    by the framework.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let’s initiate such a tool. We don’t need to specify any arguments unless we
+    want to customise something, for example, a tool’s description or input function.
+    See more details in [the documentation](https://api.python.langchain.com/en/latest/tools/langchain_community.tools.human.tool.HumanInputRun.html#).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can look at the default tool’s description and arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s add this new tool to our agent’s toolkit and reinitialise the agent. I’ve
+    also tweaked the system message to encourage the model to ask follow-up questions
+    when it doesn’t have enough details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, it’s time to try it out. The agent just returned the output, asking for
+    a specific time period. It doesn’t work as we expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The agent didn’t understand that it needed to use this tool. Let’s try to fix
+    it and change the Human tool’s description so that it is more evident for the
+    agent when it should use this tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: After the change, the agent used the Human tool and asked for a specific time
+    period. I provided an answer, and we got the correct result — 4 286 active customers
+    in December 2023 for London.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/76aae445324f1a27b903fd3c4f1eafa6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, as usual, tweaking the prompt helps. Now, it works pretty well. Remember
+    that creating a good prompt is an iterative process, and it’s worth trying several
+    options and evaluating results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve taught our LLM agent to ask for details and take them into account while
+    working on data requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it’s only part of the collaboration. In real life, analysts often get
+    follow-up questions after providing any research. Now, our agent can’t keep up
+    the conversation and address the new questions from the user since it doesn’t
+    have any memory. It’s time to learn more about the tools we have to implement
+    memory in LangChain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Actually, we already have a concept of memory in the current agent implementation.
+    Our agent stores the story of its interactions with tools in the `agent_scratchpad`
+    variable. We need to remember not only interactions with tools but also the conversation
+    with the user.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Memory in LangChain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By default, LLMs are stateless and don’t remember previous conversations. If
+    we want our agent to be able to have long discussions, we need to store the chat
+    history somehow. LangChain provides a bunch of different memory implementations.
+    Let’s learn more about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ConversationBufferMemory` is the most straightforward approach. It just saves
+    all the context you pushed to it. Let’s try it out: initialise a memory object
+    and add a couple of conversation exchanges.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This approach works well. However, in many cases, it’s not feasible to pass
+    the whole previous conversation to LLM on each iteration because:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: we might hit the context length limit,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LLMs are not so good at dealing with long texts,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we are paying for tokens, and such an approach might become quite expensive.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So there’s another implementation, `ConversationBufferWindowMemory`, that can
+    store a limited number of conversation exchanges. So, it will store only the last
+    k iterations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ve used `k = 1` just to show how it works. In real-life use cases, you will
+    likely use much higher thresholds.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This approach can help you to keep chat history size manageable. However, it
+    has a drawback: you can still hit the context size limit since you don’t control
+    the chat history size in tokens.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this challenge, we can use `ConversationTokenBufferMemory`. It won’t
+    split statements, so don’t worry about incomplete sentences in the context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, we need to pass an LLM model to initialise a memory object because
+    LangChain needs to know the model to calculate the number of tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In all approaches we’ve discussed above, we stored the exact conversation or
+    at least parts of it. However, we don’t need to do it. For example, people usually
+    don’t remember their conversations exactly. I can’t reproduce yesterday’s meeting’s
+    content word by word, but I remember the main ideas and action items — a summary.
+    Since humans are GI (General Intelligence), it sounds reasonable to leverage this
+    strategy for LLMs as well. LangChain implemented it in `ConversationSummaryBufferMemory`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s try it in practice: initiate the memory and save the first conversation
+    exchange. We got the whole conversation since our current context hasn’t hit the
+    threshold.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s add one more conversation exchange. Now, we’ve hit the limit: the whole
+    chat history exceeds 100 tokens, the specified threshold. So, only the last AI
+    response is stored (it’s within the 100 tokens limit). For earlier messages, the
+    summary has been generated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The summary is stored with the prefix `System:` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As usual, it’s interesting to see how it works under the hood, and we can understand
+    it in a debug mode. When the conversation exceeded the limit on the memory size,
+    the LLM call was made with the following prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: It implements the progressive update of the summary. So, it uses fewer tokens,
+    not passing the whole chat history every time to get an updated summary. That’s
+    reasonable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, LangChain has more advanced memory types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector data memory — storing texts’ embeddings in vector stores (similar to
+    what we did in RAG — Retrieval Augmented Generation), then we could retrieve the
+    most relevant bits of information and include them into the conversation. This
+    memory type would be the most useful for long-term conversations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Entity memories to remember details about specific entities (i.e. people).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can even combine different memory types. For example, you can use conversation
+    memory + entity memory to keep details about the tables in the database. To learn
+    more about combined memory, consult [the documentation](https://python.langchain.com/docs/modules/memory/multiple_memory).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We won’t discuss these more advanced approaches in this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve got an understanding of how we can implement memory in LangChain. Now,
+    it’s time to use this knowledge for our agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding memory to the agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s try to see how the current agent implementation works with the follow-up
+    questions from the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For this call, the agent executed a tool and returned the correct answer: `The
+    number of active customers in London in December 2023 was 4,286.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know the number of users for London. It would be interesting to learn about
+    Berlin as well. Let’s ask our agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Surprisingly, the agent was able to handle this question correctly. However,
+    it had to clarify the questions using the Human tool, and the user had to provide
+    the same information (not the best customer experience).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9031d4e99965bb6760a04deb221449a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s start holding the chart history for the agent. I will use a simple
+    buffer that stores the complete previous conversation, but you could use a more
+    complex strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to add a placeholder for the chat history to the prompt template.
+    I’ve marked it as optional.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, let’s initialise a memory and save a small talk (it’s impossible to have
+    a chat without a small talk, you know). Note that we’ve specified the same `memory_key
+    = 'chat_history’` as in the prompt template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s try the previous use case once again and ask the LLM analyst about the
+    number of users in London.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: After answering the question, `"Could you please specify the time period for
+    which you would like to know the number of customers in London?"`, we got the
+    correct answer and the conversation history between the agent and the user with
+    all the previous statements, including the small talk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we ask the follow-up question about Berlin now, the agent will just return
+    the number for December 2023 without asking for details because it already has
+    it in the context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s look at the prompt for the first LLM call. We can see that all chat history
+    was actually passed to the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, we’ve added the chat history to our LLM-powered analyst, and now it can
+    handle somewhat long conversations and answer follow-up questions. That’s a significant
+    achievement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the complete code on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/analyst_agent/agent_prototype_collaboration.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we’ve taught our LLM-powered analyst how to collaborate with
+    users. Now, it can ask clarifying questions if there’s not enough information
+    in the initial request and even answer the follow-up question from the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ve achieved such a significant improvement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: by adding a tool — Human input that allows to ask the user,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: by adding a memory to the agent that can store the chat history.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our agent has mastered collaboration now. In one of the following articles,
+    we will try to take the next step and combine LLM agents with RAG (Retrieval Augmented
+    Generation). We’ve understood how to query databases and communicate with the
+    users. The next step is to start using knowledge bases. Stay tuned!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot for reading this article. I hope it was insightful to you. If
+    you have any follow-up questions or comments, please leave them in the comments
+    section.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL

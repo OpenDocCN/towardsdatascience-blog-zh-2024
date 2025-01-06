@@ -1,0 +1,239 @@
+- en: Generate 3D Images with Nvidia’s LLaMa-Mesh
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/generate-3d-images-with-nvidias-llama-mesh-69a6929a4580?source=collection_archive---------10-----------------------#2024-11-19](https://towardsdatascience.com/generate-3d-images-with-nvidias-llama-mesh-69a6929a4580?source=collection_archive---------10-----------------------#2024-11-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: DEEP LEARNING PAPERS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 5-Minute Deep Dive into the Paper
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)[![Dr.
+    Varshita Sher](../Images/a3f2e9bf1dc1d8cbe018e54f9341f608.png)](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------)
+    [Dr. Varshita Sher](https://varshitasher.medium.com/?source=post_page---byline--69a6929a4580--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--69a6929a4580--------------------------------)
+    ·5 min read·Nov 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/54a94d7a83e9d4615209cfcd3b48eefe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Taken from the paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Last week, NVIDIA published a fascinating paper ([LLaMA-Mesh: Unifying 3D Mesh
+    Generation with Language Models](https://arxiv.org/abs/2411.09595)) that allows
+    the generation of 3D mesh objects using natural language.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In simple words, if you can say, *"Tell me a joke*," now you can say, *"Give
+    me the 3D mesh for a car,"* and it can give the output in the OBJ format (more
+    on this shortly) containing the output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’d like to try out few examples, you can do so here — [https://huggingface.co/spaces/Zhengyi/LLaMA-Mesh](https://huggingface.co/spaces/Zhengyi/LLaMA-Mesh)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The most amazing part for me was that it did so without extending the vocabulary
+    or introducing new tokens as is typical for most fine-tuning tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***But first, what is a 3D mesh?***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A 3D mesh is a digital representation of a 3D object that consists of vertices,
+    edges, and faces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, consider a cube. It has 8 vertices (the corners), 12 edges (the
+    lines connecting the corners), and 6 faces (the square sides). This is a basic
+    3D mesh representation of a cube. The cube’s vertices (`v`) define its corners,
+    and the faces (`f`) describe how those corners connect to form the surfaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is an example of OBJ file that represents the geometry of the 3D object
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: These numbers are then interpreted by software that will render the final image
+    i.e. 3D cube. (or you can use HuggingFace spaces like [this](https://huggingface.co/spaces/Zhengyi/LLaMA-Mesh)
+    to render the object)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As objects increase in complexity (compared to the simple cube above), they
+    will have thousands or even millions of vertices, edges, and faces to create detailed
+    shapes and textures. Additionally, they will have more dimensions to capture things
+    like texture, direction it is facing, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Realistically speaking, this is what the obj file for an everyday object (a
+    bench) would look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/17e377768d383fdca3851d49b2b687f3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Examples of obj file for different objects (Taken from paper)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you may have noticed from the image above, LLMs like GPT4o and LLama3.1 are
+    capable, to some extent, of producing the obj file out-of-the-box. However, if
+    you look at the rendered mesh image of the bench in both cases, you can see why
+    fine-tuning is necessary from a quality standpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How is an LLM able to work with 3D mesh?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is common knowledge that LLMs understand text by converting tokens (like
+    `cat`) into token ids (like `456`). Similarly, in order to work with the standard
+    OBJ format, we must somehow convert the vertices coordinates which are typically
+    decimals into integers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They use vertex quantization to achieve this in the paper and split a single
+    coordinate into multiple tokens (similar to how a long word like `operational`
+    would be split into two tokens — `oper` and `ational` as per [GPT4o tokenizer).](https://platform.openai.com/tokenizer)
+    As expected, reducing the number of tokens to represent the decimal has a normal
+    precision-cost tradeoff.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5fb1a7ee1d43422858e1fc7445211069.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To achieve vertex quantization, they scale all three axes in the mesh to the
+    range (0, 64) and quantize the coordinates to the nearest integer, i.e. each of
+    the 3 axes can take a value between 0 and 64 (in this case 39, 19 and 35). Finally,
+    by reading and generating such a format, the LLM is able to work with 3D objects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What was the training procedure for LlaMa-Mesh?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLama-Mesh was created by fine-tuning LLama3.1–8B instruct model using the SFT
+    (Supervised Fine Tuning) method to improve its mesh understanding and generation
+    capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since it is an SFT, we need to provide it with input-output examples of Text-3D
+    instructions. Here’s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In addition to generating the 3D mesh, LLama-Mesh is also capable of interpreting
+    the 3d mesh. To this end, its training data also contained several examples for
+    mesh understanding and mesh generation as part of a conversation-style format.
+    Here are a few examples from the dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dfc043eef6d5b257e2f48c7a48e81bec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training dataset curated for LLama-Mesh
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most interesting bits from the paper
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LlaMa-Mesh can communicate with both text and 3D objects **without** needing
+    special tokenizers or extending the LLM’s vocabulary (thanks to the use of OBJ
+    format and the vertex quantization discussed above which can effectively tokenize
+    3D mesh data into discrete tokens that LLMs can process seamlessly).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/9c9d63bf68147f6a8d5ca8cbf283a39d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image taken from paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: LlaMa-Mesh can generate diverse shapes from the same input text.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/9765acd06efa01af4b7afca377607486.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Taken from paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though the fine-tuning process slightly degraded the model’s underlying
+    language understanding and reasoning capabilities (they call it out as a limitation
+    imposed by the choice of instruction dataset, and size of the smaller 8B model),
+    it is offset by the fact that the fine-tuned model can generate high-quality OBJ
+    files for 3D mesh generation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/a9f3f98035525faf5b3b6f84f0f917ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison of the base model and fine tuned version on metrics which assess
+    the model’s general knowledge, common sense reasoning, and mathematical problem-solving
+    abilities (Image taken from paper)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why should you care about this paper?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I am already amazed by the capabilities of large language models to generate
+    human-like text, code, and reason with visual content. Adding 3D mesh to this
+    list is just brilliant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs like LLaMa-Mesh have the potential to revolutionize various industries
+    including gaming, education, and healthcare.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can be useful for generating realistic assets like characters, environments,
+    and objects directly from text descriptions for video games.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, it can speed up the product development and ideation process as any
+    company will require a design so they know what to create.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can also be useful for architectural designs for buildings, machinery, bridges,
+    and other infrastructure projects. Finally, in the edtech space, it can be used
+    for embedding interactive 3D simulations within the training material.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The paper is a straightforward and quick read, and I highly encourage you to
+    do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Paper page** — [https://arxiv.org/pdf/2411.09595](https://arxiv.org/pdf/2411.09595)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Code** — [https://github.com/nv-tlabs/LLaMA-Mesh](https://github.com/nv-tlabs/LLaMA-Mesh)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Nvidia’s Blog** — [https://research.nvidia.com/labs/toronto-ai/LLaMA-Mesh/](https://research.nvidia.com/labs/toronto-ai/LLaMA-Mesh/)'
+  prefs: []
+  type: TYPE_NORMAL

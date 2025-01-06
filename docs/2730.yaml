@@ -1,0 +1,380 @@
+- en: Reranking Using Huggingface Transformers for Optimizing Retrieval in RAG Pipelines
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/reranking-using-huggingface-transformers-for-optimizing-retrieval-in-rag-pipelines-fbfc6288c91f?source=collection_archive---------5-----------------------#2024-11-08](https://towardsdatascience.com/reranking-using-huggingface-transformers-for-optimizing-retrieval-in-rag-pipelines-fbfc6288c91f?source=collection_archive---------5-----------------------#2024-11-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding when reranking makes a difference
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@daniel-klitzke?source=post_page---byline--fbfc6288c91f--------------------------------)[![Daniel
+    Klitzke](../Images/4471634e1a0f0546402d582dcc36c7c4.png)](https://medium.com/@daniel-klitzke?source=post_page---byline--fbfc6288c91f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fbfc6288c91f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fbfc6288c91f--------------------------------)
+    [Daniel Klitzke](https://medium.com/@daniel-klitzke?source=post_page---byline--fbfc6288c91f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fbfc6288c91f--------------------------------)
+    ·8 min read·Nov 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/359bc87027b4ad46eb508e67dcf91b20.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of the reranking results for the user query “What is rigid motion?”.
+    Original ranks on the left, new ranks on the right. (image create by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this article I will show you how you can use the [**Huggingface Transformers**](https://github.com/huggingface/transformers)
+    and [**Sentence Transformers**](https://github.com/UKPLab/sentence-transformers)
+    libraries to boost you RAG pipelines using **reranking** models. Concretely we
+    will do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Establish a **baseline** with a simple vanilla RAG pipeline.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Integrate a simple **reranking model** using the Huggingface Transformers library.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Evaluate in which cases the **reranking model** is significantly improving context
+    quality to gain a better understanding on the benefits.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For all of this, I will link to the corresponding code on [Github](https://github.com/Renumics/reranking-blogpost/blob/main/reranker_test.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Reranking?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we dive right into our evaluation I want to say few words on **what
+    rerankers are**. Rerankers are usually applied as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple embedding-based retrieval approach is used to retrieve an **initial
+    set of candidates** in the retrieval step of a RAG pipeline.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A Reranker is used to **reorder the results** to provide a new result order
+    that betters suits the user queries.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: But why should the reranker model yield something different than my already
+    quite powerful embedding model, and why do I not leverage the semantic understanding
+    of a reranker in an earlier stage you may ask yourself? This is quite multi-faceted
+    but some key points are that e.g. the bge-reranker we use here is inherently **processing
+    queries and documents together** in a cross-encoding approach and can thus explicitely
+    model query-document interactions. Another major difference is that the reranking
+    model is **trained in a supervised manner** on predicting **relevance scores**
+    that are obtained through human annotation. What that means in practice will also
+    be shown in the evaluation section later-on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our Baseline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For our baseline we choose the simplest possible RAG pipeline possible and
+    focus solely on the retrieval part. Concretely, we:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choose one large PDF document. I went for my Master’s Thesis, but you can choose
+    what ever you like.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Extract the text from the PDF and split it into equal chunks of about 10 sentences
+    each.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create embedding for our chunks and insert them in a vector database, in this
+    case LanceDB.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*For details, about this part, check our the notebook on* [*Github*](https://github.com/Renumics/reranking-blogpost/blob/main/reranker_test.ipynb)*.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'After following this, a simple **semantic search** would be possible in two
+    lines of code, namely:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here query would be the query provided by the user, e.g., the question “What
+    is shape completion about?”. Limit, in this case, is the number of results to
+    retrieve. In a normal RAG pipeline, the retrieved results would now just be directly
+    be provided as **context to the LLM** that will synthesize the answer. In many
+    cases, this is also perfectly valid, however for this post we want to explore
+    the benefits of reranking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing Reranking
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'With libraries such as [Huggingface Transformers](https://github.com/huggingface/transformers),
+    using **reranker models** is a piece of cake. To use reranking to improve our
+    “RAG pipeline” we extend our approach as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As previously, simply retrieve an **initial number of results** through a standard
+    embedding model. However we increase the count of the results from 10 to around
+    50.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After retrieving this larger number of initial sources, we apply a reranker
+    model to **reorder the sources**. This is done by computing relevance scores for
+    each query-source pair.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For **answer generation**, we then would normally use the new top x results.
+    (In our case we use the top 10)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'In code this is also looking fairly simple and can be implemented in few lines
+    of code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, for seeing the full code for context check [Github](https://github.com/Renumics/reranking-blogpost/blob/main/reranker_test.ipynb)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As you can see, the main mechanism is simply to provide the model with **pairs
+    of query and potentially relevant text**. It outputs a **relevance score** which
+    we then can use to reorder our result list. But is this worth it? In which cases
+    is it worth the extra inference time?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating The Reranker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For evaluating our system we need to define some test queries. In my case I
+    chose to use the following question categories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Factoid Questions** such as “What is rigid motion?”'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Those should usually have one specific source in the document and are worded
+    such that they could probably even found by text search.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Paraphrased Factoid Questions** such as “What is the mechanism in the architecture
+    of some point cloud classification methods that is making them invariant to the
+    order of the points?”'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As you can see, those are less specific in mentioning certain terms and require
+    e.g. recognizing the relation of point cloud classification and the PointNet architecture.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Multi Source Questions** such as “How does the Co-Fusion approach work, compared
+    to the approach presented in the thesis. What are similarities and differences?”'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Those Questions need the retrieval of multiple source that should either be
+    listed or be compared with each other.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Questions for Summaries or Table** such as “”What were the networks and parameter
+    sizes used for hand segmentation experiments?”'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Those questions target summaries in text and table form, such as a comparison
+    table for model results. They are here to test wether rerankers recognize better
+    that it can be useful to retrieve a summarization part in the document.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'As I was quite lazy I only defined 5 questions per category to get a rough
+    impression and evaluated the retrieved context with and without reranking. The
+    criteria I chose for evaluation were for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Did the reranking **add important information** to the context.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Did the reranking **reduce redundancy** to the context.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Did the reranking give the most relevant result a higher position in the list
+    (**better prioritization**).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: …
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: So what about the results?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8ddc309a63790552d1924690bfe2ebbb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overview of mean average rank change and initially neglected results (that were
+    not in the top 10). (image create by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even in the overview, we can see, that there is a **significant difference between
+    the categories** of questions, specifically there seems to be a lot of reranking
+    going on for the multi_source_question category. When we look closer on the distributions
+    of the metrics this is additionally confirmed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d2257ce34fbe71765343dc27f0fd6766.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Distribution of neglected results metric by question category. (image create
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifically for 3 of our 5 questions in this category nearly all results in
+    the final top 10 end up there through the reranking step. Now it is about finding
+    out why that is the case. We therefore look at the two queries that are most significantly
+    (positively) influenced by the reranking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question1: “How does the Co-Fusion approach work, compare to the approach presented
+    in the thesis. What are similarities and differences?”'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/978aba73199c4ab60565c09617db49f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Reranking result for the top 10 sources and their former positions. (image create
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first impression here is that the reranker for this query definitely had
+    two major effects. It prioritized the chunk from position 6 as the top result.
+    Also, it pulled several really low-ranking results into the top 10\. When inspecting
+    these chunks further we see the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reranker managed to bring up a chunk that is highly related and describes
+    SLAM approaches **as opposed to** the approach in the thesis.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The reranker also managed to include a chunk that **mentions Co-Fusion** as
+    one example for a SLAM approach that can deal with dynamic objects and includes
+    discussion about the limitations.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'In general, the main pattern that emerges here is, that the reranker is able
+    to **capture nuances in the tone of the speech**. Concretely formulations such
+    as “SLAM approaches are closely related to the method presented in the thesis,
+    however” paired with potential sparse mentions of Co-Fusion will be ranked way
+    higher than by using a standard embedding model. That probably is because an Embedding
+    model does most likely **not capture** that Co-Fusion is a SLAM approach and the
+    predominant pattern in the text is general Information about SLAM. So, the reranker
+    can give us two things here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Focusing on details** in the respective chunk rather than going for the average
+    semantic content.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Focusing more on the user intent** to compare some method with the thesis’
+    approach.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Question 2: “Provide a summary of the fulfilment of the objectives set out
+    in the introduction based on the results of each experiment”'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/736859d43cabb618a80cb8236fb1bcec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Reranking result for the top 10 sources and their former positions. (image create
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, here we realize that a lot of low-ranking sources are pulled into the
+    top 10 sources through the reranking step. So let’s investigate why this is the
+    case once more:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reranker again managed to capture **nuanced intent** of the question and
+    reranks e.g. a chunk that contains the formulation “it was thus suscpected… ”
+    as highly relevant, which it truly is because what follows is then describing
+    wether the assumptions were valid and if the approach could make use of that.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The reranker gives as a lot of cryptically formulated experimental results that
+    include also a bunch of tabular overviews on results of the ML-trainings, potentially
+    **understanding the summarizing character** of these sections.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Implementing reranking is not a hard task with packages such as Huggingface
+    Transformers providing **easy to use interfaces** to integrate them into your
+    RAG pipeline and the major RAG frameworks like [llama-index](https://github.com/run-llama/llama_index)
+    and [langchain](https://github.com/langchain-ai/langchain) supporting them out
+    of the box. Also, there are **API-based rerankers** such as the one from [Cohere](https://cohere.com/rerank)
+    you could use in your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From our evaluation we also see, that rerankers are most useful for things
+    such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Capturing nuanced semantics** hidden in a chunk with either different or
+    cryptic content. E.g., a single mention of a method that is only once related
+    to a concept within the chunk (SLAM and Co-Fusion)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Capturing user intent**, e.g. comparing some approach to the thesis approach.
+    The reranker can then focus on formulations that imply that there is a comparison
+    going on instead of the other semantics.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I’m sure there are a lot more cases, but for this data and our test questions
+    these were the dominant patterns and I feel they outline clearly what a supervisedly
+    trained reranker can add over using only an an embedding model.
+  prefs: []
+  type: TYPE_NORMAL

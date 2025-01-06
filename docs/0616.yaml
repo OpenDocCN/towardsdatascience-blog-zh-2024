@@ -1,0 +1,193 @@
+- en: Setting up a Pypi mirror in an AWS private environment with Terraform
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06](https://towardsdatascience.com/set-up-a-pypi-mirror-in-an-aws-private-environment-with-terraform-f0fcc1b67cc0?source=collection_archive---------7-----------------------#2024-03-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Florent
+    Pajot](../Images/ff375f53bcfdec60e84a24068431361d.png)](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)
+    [Florent Pajot](https://medium.com/@florentpajot?source=post_page---byline--f0fcc1b67cc0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f0fcc1b67cc0--------------------------------)
+    ·5 min read·Mar 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do you install a Python package in your environment if you don’t have any
+    internet access? I recently came across this issue when creating an AWS Sagemaker
+    Studio environment for my team on AWS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building an AWS private environment for Sagemaker
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this particular project, I set up Sagemaker in VPC Only mode with the constraint
+    of keeping the architecture private, which means creating a VPC and private subnets,
+    but no access to the internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So all network communications, including application communication with AWS
+    APIs, must go through VPC Endpoint interfaces. This allows for keeping connection
+    secured as data sent and received will never go through the internet using the
+    AWS network backbone instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is particularly suited for limiting exposure to security risks, more particularly
+    when you’re processing personal information, or must comply with some security
+    standards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/980cca82296b30632ecaa6058b1111f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Nadir sYzYgY](https://unsplash.com/@nadir_syzygy?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accessing the Pypi package repository from AWS Sagemaker
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In my team, Data Scientists use Python as a primary language and sometimes need
+    Python packages that are not provided in [Sagemaker’s pre-built Python images](https://docs.aws.amazon.com/sagemaker/latest/dg/docker-containers-prebuilt.html),
+    so I’ll focus on this use case. Fortunately, the solution is also working for
+    other languages and repositories like npm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your users will typically try to install whatever package they need via pip
+    command. But, as no internet access is allowed, this command will fail because
+    pip won’t be able to contact Pypi.org servers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Opening internet**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One option is to open access to the internet and allow outbound HTTP connections
+    to Fastly CDN IPs used by Pypi.org servers. But, this is not viable in our case
+    as we don’t want any internet connection in the architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using a dedicated Pypi server**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[AWS blog also provides an example of using a Python package named Bandersnatch](https://aws.amazon.com/fr/blogs/machine-learning/hosting-a-private-pypi-server-for-amazon-sagemaker-studio-notebooks-in-a-vpc/).
+    This article describes how to set up a server, acting like a bastion host, which
+    will mirror Pypi and will be accessible only to your private subnets.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is not a viable option as you’ve to know in advance which Python packages
+    you need to provide, and you’ll somehow have to create public subnets and give
+    the Pypi server mirror access to the internet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using AWS Cordeartifact**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is ultimately the solution I came up with and which works in my case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[AWS Codeartifact](https://aws.amazon.com/fr/codeartifact/) is the artifact
+    management solution provided by AWS. It is compatible with other AWS services
+    like AWS Service Catalog to control access to resources within an organization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To use it, you’ll have to create a “domain” which serves as an umbrella to manage
+    access and apply policies across your organization. Then, you’ll have to create
+    a repository that will serve your artifacts to your different applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, one repository can have upstream repositories. So, if a Python package
+    is not available in the target repository, the demand will be transmitted to the
+    upstream repository to be fulfilled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More precisely, this workflow takes into account package versions. Official
+    documentation provides a detailed workflow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If `my_repo` contains the requested package version, it is returned to the client.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If `my_repo` does not contain the requested package version, CodeArtifact looks
+    for it in `my_repo`'s upstream repositories. If the package version is found,
+    a reference to it is copied to `my_repo`, and the package version is returned
+    to the client.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If neither `my_repo` nor its upstream repositories contain the package version,
+    an HTTP 404 `Not Found` response is returned to the client.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Cool right? It will even cache the package version for future requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is precisely the strategy we are going to use, as AWS Codeartifact allows
+    us to define a repository that has an external connection like Pypi as an upstream
+    repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating AWS Codeartifact resources with Terraform
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As AWS Codeartifact is an AWS service, you can easily create a VPC endpoint
+    in your environment VPC to connect to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: I’m using Terraform v1.6.4 and aws provider v5.38.0'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, you’ll have to create the different resources needed for Codeartifact
+    to handle your requests for new Python packages by mirroring Pypi: a domain, a
+    Pypi repository with an external connection, and a repository that defines Pypi
+    as an upstream repository.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here it is! You can now set up a Pypi mirror for your private environment easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To make things usable, you’ll also have to tell pip commands to direct requests
+    to a specific index. Fortunately, AWS created an API to do the heavy lifting for
+    you. Just add this to your code to make it work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Last but not least, add a VPC Endpoint for AWS Codeartifact in your VPC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you would like to receive notifications for my upcoming posts regarding AWS
+    and more, [please subscribe here](https://medium.com/@florentpajot/subscribe).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Did you know you can clap multiple times?*'
+  prefs: []
+  type: TYPE_NORMAL

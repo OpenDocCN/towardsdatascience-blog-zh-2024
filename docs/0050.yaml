@@ -1,0 +1,529 @@
+- en: Practical Guide to Topic Modeling with Latent Dirichlet Allocation (LDA)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/practical-guide-to-topic-modeling-with-lda-05cd6b027bdf?source=collection_archive---------3-----------------------#2024-01-06](https://towardsdatascience.com/practical-guide-to-topic-modeling-with-lda-05cd6b027bdf?source=collection_archive---------3-----------------------#2024-01-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Get better results in up to 99% less training time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@wwijono?source=post_page---byline--05cd6b027bdf--------------------------------)[![Wicaksono
+    Wijono](../Images/1de0ffaab559212405648c1cc62a8450.png)](https://medium.com/@wwijono?source=post_page---byline--05cd6b027bdf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05cd6b027bdf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--05cd6b027bdf--------------------------------)
+    [Wicaksono Wijono](https://medium.com/@wwijono?source=post_page---byline--05cd6b027bdf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05cd6b027bdf--------------------------------)
+    ·14 min read·Jan 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Latent Dirichlet Allocation (LDA for short) is a mixed-membership (“soft clustering”)
+    model that’s classically used to infer what a document is talking about. When
+    you read this article, you can easily infer that it’s about machine learning,
+    data science, topic modeling, etc. But when you have a million documents, you
+    can’t possibly read and label each one manually to extract the patterns and trends.
+    You’ll need help from a machine learning model like LDA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LDA can be useful even if you don’t work with text data.** Text is the *classical*
+    use case, but it’s not the only one. If you work at an online shop, you can infer
+    soft categories of products using LDA. In a classification setting, “chocolate”
+    would have to fall under one category such as “snack”, whereas LDA allows “chocolate”
+    to fall under multiple categories such as “snack”, “baking”, “beverage”, and “sauce”.
+    You can also apply LDA on clickstream data to group and categorize pages based
+    on observed user behavior.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because LDA is a probabilistic model, it plugs nicely into other probabilistic
+    models like Poisson Factorization. You can embed the items using LDA and then
+    **learn user preferences** using PF. In the context of news articles, this can
+    serve “cold start” recommendations when an article is just published (perhaps
+    for a push notification?), before the news becomes stale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My qualifications? I spent an entire semester focusing on Bayesian inference
+    algorithms and coded up LDA from scratch to understand its inner workings. Then
+    I’ve worked at a news conglomerate to create an LDA pipeline that had to scale
+    up to millions of articles. At this scale, many small choices can be the difference
+    between model runtime of a few days or a year. Safe to say, I know more about
+    LDA than the vast majority of data scientists.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'During all that time, I have never come across a single resource that explains
+    how to use LDA *well*, especially at a large scale. This article might be the
+    first. Hopefully it’s useful to you, whoever’s reading. In short:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tokenize with spaCy instead of NLTK
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use specifically scikit-learn’s implementation of LDA
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Set learning_mode to “online”
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Know what hyperparameter ranges make sense
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select hyperparameters through random search, using validation entropy as the
+    criterion
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: I will assume the reader is familiar with how LDA works and what it does. Many
+    articles already explain it. I’m not going to repeat easily found information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Disclaimer: the content of this article might be outdated by a year or two
+    as I have not used LDA in a good while, but I believe everything should still
+    be accurate.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Latent Dirichlet Allocation (LDA)?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'LDA and its kin ([NMF](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.NMF.html),
+    [PF](https://poismf.readthedocs.io/en/latest/), [truncated SVD](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.TruncatedSVD.html),
+    etc.) are simply fancy [PCA](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.PCA.html)
+    modified for count data. (On an unrelated note, have you seen this amazing [explanation
+    of PCA](https://stats.stackexchange.com/questions/2691/making-sense-of-principal-component-analysis-eigenvectors-eigenvalues)?)
+    LDA differs from the others by creating human-interpretable embeddings in the
+    form of topics with these properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nonnegative. Obviously, counts cannot be negative, but the true importance is
+    that **nonnegativity forces the model to learn parts**. One of my [favorite short
+    papers](http://belohlavek.inf.upol.cz/vyuka/Lee-Seung-NMF-1999-p.pdf) illustrates
+    how nonnegativity forces a model to learn parts of a face, such as the nose, the
+    eyes, the mouth, etc. In contrast, PCA loading vectors are abstract, as you can
+    subtract one part from another.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/1922c431362b92d01cc9bd63db51b345.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Facial parts learned from nonnegative matrix factorization. Source: [Gillis
+    (2014)](https://arxiv.org/pdf/1401.5226.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sums to 1\. The embeddings in LDA are proportions. The model assumes mixed membership
+    because text is complex and is rarely about a single topic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sparse. The embeddings will be mostly zero. Each document is expected to talk
+    about a small handful of topics. Nobody writes a 100-topic article.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Human-interpretable loading vectors. In PCA and other embedding algorithms,
+    it’s not clear what each dimension means. In LDA, you can see the highest probability
+    tokens (“top n words”) to understand the dimension (“topic”).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A common misconception is that LDA is an NLP algorithm. In reality, **you can
+    use LDA on any count data as long as it’s not too sparse**. All LDA does is create
+    a low-dimensional interpretable embedding of counts. You can fit LDA on users’
+    purchase history or browsing history to infer the different types of shopping
+    habits. I’ve used it that way in the past and it worked surprisingly well. Prof.
+    Blei once mentioned in a seminar that an economics researcher was experimenting
+    with using LDA precisely like that; I felt vindicated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LDA’s output is often misinterpreted. People treat it as a classification algorithm
+    instead of a mixed-membership model. When LDA says a document is 60% politics
+    and 40% economics, it’s saying that the document is BOTH politics and economics
+    in those proportions. Some people misinterpret it as “the document is classified
+    as politics, but the model’s not too sure”. The model might be *very* sure that
+    the document’s about politics AND economics if it’s a long-form article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Alternatives exist, such as [top2vec](https://github.com/ddangelov/Top2Vec),
+    which is conceptually similar to [word2vec](https://en.wikipedia.org/wiki/Word2vec).
+    It’s really cool! However, I’d argue LDA is better than top2vec for several reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LDA is a multiple-membership model, while top2vec assumes each document only
+    belongs to one topic. top2vec can make sense if your corpus is simple and each
+    document doesn’t stray away from one topic.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'top2vec uses distances to infer topics, which doesn’t make intuitive sense.
+    The concept of distance is nebulous in higher dimensions because of the [curse
+    of dimensionality](https://en.wikipedia.org/wiki/Curse_of_dimensionality). And
+    what do the distances mean? As an oversimplified example, pretend three topics
+    are on a number line: food — sports — science. If a document talks about food
+    science, it would be smack dab in the middle and it… becomes a sports document?
+    In reality, distances don’t work this way in higher dimensions, but my reservations
+    should be clear.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Tip #1: use spaCy instead of NLTK to tokenize and lemmatize'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A corpus needs to be processed before it can be fed into LDA. How? [spaCy](https://spacy.io/)
+    is popular in industry while [NLTK](https://www.nltk.org/) is popular in academia.
+    They have different strengths and weaknesses. In a work setting, NLTK isn’t really
+    acceptable— don’t use it just because you got comfortable using it in school.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NLTK is notoriously slow. I haven’t run my own comparisons, but [this person](/hands-on-implementation-of-basic-nlp-techniques-nltk-or-spacy-687099e02816)
+    reports a 20× speedup in tokenizing using spaCy instead of NLTK.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Surprisingly, it’s not clear if LDA even benefits from stemming or lemmatization.
+    I’ve seen arguments and experiments go both ways. [This paper](https://www.cs.cornell.edu/~xanda/winlp2017.pdf)
+    claims that stemming makes the topics worse. The main reason to lemmatize is to
+    make the topics more interpretable by collapsing lexemes into one token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll provide no opinion on whether you should lemmatize, but if you do decide
+    to lemmatize, spaCy lemmatizes faster and better than NLTK. In NLTK, we need to
+    set up a part-of-speech tagging pipeline and then pass that to the WordNet lemmatizer,
+    which looks up words in a lexical database. spaCy uses word2vec to automatically
+    infer the part of speech for us so it can lemmatize properly — much easier to
+    use and faster, too.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using spaCy, make sure to use the word2vec-based **en_core_web_lg** instead
+    of the transformer-based en_core_web_trf language model. The transformer is ever
+    so slightly more accurate (maybe by 1%), but it runs about 15× slower per [spaCy’s
+    speed benchmark](https://spacy.io/usage/facts-figures#benchmarks-speed). I’ve
+    also observed the 15× difference in my own work. The transformer was way too slow
+    for millions of articles as it’d take multiple months to lemmatize and tokenize
+    everything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip #2: use scikit-learn and do not touch other packages for LDA'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This is perhaps the most important and most surprising advice: use [sklearn’s
+    LDA implementation](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.LatentDirichletAllocation.html),
+    without exception. The performance difference isn’t even close. Let’s compare
+    it against two popular packages for fitting an LDA model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[mallet](https://mimno.github.io/Mallet/topics.html) uses collapsed Gibbs sampling,
+    an MCMC algorithm. (If you’d like to learn more about MCMC, check out [my article](https://medium.com/towards-data-science/bayesian-inference-algorithms-mcmc-and-vi-a8dad51ad5f5).)
+    MCMC is notoriously slow and not scalable. Even worse, Gibbs sampling often gets
+    stuck on a local mode; most NLP problems are highly multimodal. This disqualifies
+    mallet from real-world applications.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[gensim](https://radimrehurek.com/gensim/) uses stochastic variational inference
+    (SVI), the Bayesian analog of stochastic gradient descent. As part of LDA’s updating
+    rules, gensim chose to compute the [digamma function](https://en.wikipedia.org/wiki/Digamma_function)
+    exactly, an extremely expensive operation. sklearn chose to approximate it, resulting
+    in a 10–20x speedup. Even worse, **gensim’s implementation of SVI is incorrect**
+    with no function arguments that can fix it. To be precise: if you input the entire
+    corpus in one go, gensim will run SVI just fine; but if you supply a sample at
+    each iteration, gensim’s LDA will never converge.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This point about gensim surprised me. It’s a highly popular package (over 3M
+    downloads a month!) especially made for topic modeling — there’s no way it can
+    be worse than sklearn, an all-purpose package? At work, I spent many days troubleshooting
+    it. I dug deep into the source code. And, lo and behold, the source code had an
+    error in its updating equations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I coded LDA trained using SVI from scratch while in school. It ran extremely
+    inefficiently (I’m a data scientist, not an ML engineer!) but it produced the
+    correct output. I know how the model is supposed to update at each iteration.
+    gensim’s implementation is incorrect. The results were so off after just the first
+    iteration, I had to compare manual calculations against gensim’s output to figure
+    out what went wrong. If you sample 100 documents to feed into an iteration of
+    SVI, gensim thinks your entire corpus is 100 documents long, even if you sampled
+    it from a body of a million documents. You can’t tell gensim the size of your
+    corpus in the update() method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: gensim runs fine if you supply the entire corpus at once. However, at work,
+    I dealt with millions of news articles. There was no way to fit everything in
+    memory. With large corpora, gensim fails entirely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: sklearn’s version is implemented correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip #3: train using the stochastic variational inference (SVI) algorithm'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Since we’ve established that we should not use anything other than sklearn,
+    we’ll refer to [sklearn’s LDA function](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.LatentDirichletAllocation.html).
+    We’ll discuss specifically the learning_method argument: “batch” vs “online” ([SVI](https://medium.com/towards-data-science/bayesian-inference-algorithms-mcmc-and-vi-a8dad51ad5f5))
+    is analogous to “[IRLS](https://en.wikipedia.org/wiki/Iteratively_reweighted_least_squares)”
+    vs “[SGD](https://en.wikipedia.org/wiki/Stochastic_gradient_descent)” in linear
+    regression.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linear regression runs in O(n³). IRLS requires the entire dataset all at once.
+    If we have a million data points, IRLS takes 10¹⁸ units of time. Using SGD, we
+    can sample 1,000 data points in each iteration and run it for 1,000 iterations
+    to approximate the exact IRLS solution, which takes up 10⁹ x 10³ = 10¹² units
+    of time. In this scenario, SGD runs a million times faster! SGD is expected to
+    be imperfect as it merely approximates the optimal IRLS solution, but it usually
+    gets close enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With SVI, that intuition goes out the window: **“online” provides a better
+    fit than “batch” AND runs much faster**. It is strictly better. There is no single
+    justification to use “batch”. The [SVI paper](https://www.jmlr.org/papers/volume14/hoffman13a/hoffman13a.pdf)
+    goes in depth:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9878749700c20561c2781f9193cfd340.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: [Hoffman et al. (2013)](https://arxiv.org/pdf/1206.7051.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a rule of thumb, “online” only requires 10% the training time of “batch”
+    to get equally good results. **To properly use the “online” mode for large corpora,
+    you MUST set total_samples to the total number of documents in your corpus**;
+    otherwise, if your sample size is a small proportion of your corpus, the LDA model
+    will not converge in any reasonable time. You’ll also want to use the partial_fit()
+    method, feeding your data one tiny batch at a time. I’ll talk about the other
+    settings in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip #4: know the reasonable search space for hyperparameters'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Going by sklearn’s arguments, LDA has six tune-able hyperparameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**n_components** (default = 10): the number of topics. Self-explanatory.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**doc_topic_prior** (default = 1/n_components): the prior for local parameters.
+    Bayesian priors is equivalent regularization is equivalent to padding with fake
+    data. **doc_topic_prior × n_components** is the number of fake words you add to
+    each document. If you’re analyzing tweets, 1–2 fake words might make sense, but
+    1,000 fake words makes zero sense. If you’re analyzing short stories, 1–2 fake
+    words is virtually zero, while 1,000 fake words can be reasonable. Use your judgment.
+    Values are usually set below 1 unless each document is really long. Make your
+    search space look something like {0.001, 0.01, 0.1, 1}.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**topic_word_prior** (default = 1/n_components): the prior for global parameters.
+    Again, Bayesian priors is equivalent regularization is equivalent to padding with
+    fake data. **topic_word_prior × n_components × n_features** is how many fake words
+    are added to the model before any training. n_features is the number of tokens
+    in the model / corpus. If the product is 1,000 and you’re analyzing tweets that
+    average 10 words each, you’re adding 100 fake tweets into the corpus. Use your
+    judgment.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**learning_decay** (default = 0.7): determines how much the step size shrinks
+    with each iteration. A lower value of learning_decay makes the step size shrink
+    more slowly— the model can explore more modes in the multimodal objective function,
+    but it converges more slowly. **You MUST set 0.5 < learning_decay ≤ 1 for LDA
+    to converge** (this is true of any SGD algorithm, which must satisfy the [Robbins-Monro
+    condition](https://www.columbia.edu/~ww2040/8100F16/RM51.pdf)). Interestingly,
+    gensim’s default value is 0.5, which tricks clueless users into training a model
+    that doesn’t converge. Empirically, a value in the 0.7–0.8 range yields the best
+    results.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**learning_offset** (default = 10): determines the initial step size. A higher
+    value results in a smaller initial step size. From experience, when the batch_size
+    is small relative to the number of documents in the corpus, the model benefits
+    from higher learning_offset, somewhere above 100\. You want to take large strides.
+    Searching over {1, 2, 3, 4} is not as effective as searching over {1, 10, 100,
+    1000}.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**batch_size** (default = 128): the number of documents seen at each iteration
+    of SVI. Think of it as an inaccurate compass. The higher the batch_size, the more
+    certain you are of taking a step in the right direction, but the longer it takes
+    to compute. From my experience, 128 is too low as the steps go in the wrong direction
+    too often, making it much harder for the model to converge. I recommend a batch
+    size around 2–10 thousand, which is easily handled by SVI. A higher batch size
+    is almost always better if computation time were no issue. I typically have a
+    fixed number of sampled (with replacement) documents in mind during hyperparameter
+    tuning, such as 500k, and set it to run for 50 iterations of batch_size 10,000
+    or 250 iterations of batch_size 2,000 to compare which one gets me the most bang
+    for the computation. Then I’ll keep these settings when training for many many
+    more iterations. You will need to supply the partial_fit() method with a random
+    sample of documents of size batch_size.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Tip #5: tune hyperparameters using random search and entropy loss'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**In this day and age, random search should be the default algorithm for hyperparameter
+    tuning.** In as few as 60 iterations, random search has >95% probability of finding
+    hyperparameters that are in the best 5% within the search space ([proof](https://stats.stackexchange.com/questions/496098/does-random-search-depend-on-the-number-of-dimensions-searched/496125)).
+    Of course, if your search space completely misses the optimal regions, you’ll
+    never attain good performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[This paper](https://www.jmlr.org/papers/volume13/bergstra12a/bergstra12a.pdf)
+    by Bergstra and Bengio illustrates that random search can beat grid search reasonably
+    well. Grid search places too much importance on hyperparameters that don’t matter
+    for the specific use case. If only one of two hyperparameters meaningfully affect
+    the objective, a 3x3 grid only tries three values of that hyperparameter; whereas
+    a 9-point random search should try nine different values of that hyperparameter,
+    giving you more chances to find a great value. Grid search also often skips over
+    narrow regions of good performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LDA fitted using SVI has six tune-able hyperparameters (three if you go full-batch).
+    If we want to try as few as three values for each hyperparameter, our grid search
+    will go through 3⁶ = 729 iterations. Going down to 60 using random search to (usually)
+    get better results is a no-brainer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Random search should be configured to sample “smartly”. n_components can be
+    sampled from a discrete uniform, but other hyperparameters like doc_topic_prior
+    should be sampled from a lognormal or log-uniform, i.e. rather than {1, 2, 3,
+    4} it’s smarter to sample evenly along {0.01, 0.1, 1, 10}.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to do slightly better than random search, you can use TPE through
+    the [hyperopt package](https://github.com/hyperopt/hyperopt/wiki/FMin). Unlike
+    Bayesian Optimization using Gaussian Processes, TPE is designed to work well with
+    a mix of continuous and discrete (n_components) hyperparameters. However, the
+    improvement is so minimal for so much work that it’s not worth doing in most cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Okay, now that we have established random search is better than grid search…
+    how do we know which hyperparameter combination performs the best?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Topic modeling has a metric specific to it: [topic coherence](https://fse.studenttheses.ub.rug.nl/28618/1/s2863685_alfiuddin_hadiat_CCS_thesis.pdf).
+    It comes in several flavors such as UMass and UCI. In my experience, coherence
+    is not a good metric in practice as it often cannot be computed on the validation
+    set. When a token does not appear in the validation set, the metric attempts to
+    divide by zero. Topic coherence is useless for hyperparameter tuning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traditionally, language models were evaluated using [perplexity](https://en.wikipedia.org/wiki/Perplexity),
+    defined as 2^entropy. However, this number can be exceedingly large with bad hyperparameters,
+    resulting in numerical overflow errors. sklearn’s LDA has the [score](https://scikit-learn.org/stable/modules/generated/sklearn.decomposition.LatentDirichletAllocation.html#sklearn.decomposition.LatentDirichletAllocation.score)
+    method, an approximation of what should be proportional to the negative entropy.
+    **Use sklearn’s score**. Higher score is better. (If the score method still runs
+    into overflow issues, you’ll have to create the log-perplexity method yourself.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bonus tip: you can create priors for topics'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LDA’s output can be very inconsistent and random. This is the nature of any
+    NLP problem. The objective function is multimodal while SVI LDA only fits to a
+    single mode. Rerunning LDA with the exact same settings can yield different topics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes, we need more control over the topics LDA learns. For instance, a
+    business stakeholder might need ten specific topics to be present. You *can* try
+    rerunning LDA over and over again until the ten topics show up, but you’ll have
+    better luck playing roulette.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution? **Even though the sklearn documentation says topic_word_prior
+    takes a single float, it can accept a matrix!** I dug into the source code and
+    found that sklearn just creates a matrix where all elements are the inputted float
+    value. However, if you supply topic_word_prior with a matrix in the correct dimensions,
+    LDA will use the supplied matrix instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90a35101293a873fc4896ac200ba1c75.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A good prior color-codes some words in each document before model training
+    even begins. Source: [rawpixel](https://www.rawpixel.com/image/5921950/photo-image-public-domain-hand-kid)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose you need a basketball topic and a golf topic. You can populate the prior
+    of one topic with high probabilities of basketball-related words. Do the same
+    for golf, and then fill the other topic priors with a uniform distribution. When
+    you train the model, LDA becomes *more likely* to create these two topics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note I said *more likely*. LDA is fit stochastically. We have no idea where
+    it’ll end up based on the initial settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, we can boost the chances of these topics appearing with a few tweaks
+    in settings: a higher learning_offset and a higher learning_decay that’s run for
+    more iterations (because the model becomes slower to converge). Conversely, low
+    values in these two hyperparameters will immediately erase whatever prior you
+    put in.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In closing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Hopefully this article makes it clear that the 99% training time reduction
+    is not clickbait. Someone who knows little about LDA would reasonably tokenize
+    using NLTK, use gensim’s stochastic variational inference algorithm, and then
+    grid search over an inefficient search space. Switching from NLTK to spaCy gives
+    a speedup of 8–20×, but that’s a separate and relatively small component of the
+    model pipeline. We’ll focus on the model training aspect. Following all the recommendations
+    in this article yields the following improvements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Someone inexperienced in LDA might use gensim. sklearn’s implementation of the
+    objective function alone cuts down training time by 10–20×. Let’s be conservative
+    and say it gets training time down to 10%.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Alternatively, someone inexperienced in LDA might start in sklearn but use the
+    ‘batch’ mode. Going from full-batch variational inference to stochastic variational
+    inference cuts the time down by a factor of 10×. This also gets us down to 10%.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We have six hyperparameters to tune. If we want to try 3 different values of
+    each parameter and grid search, it’d take 729 iterations. Random search only needs
+    60 iterations to perform well, and it will likely outperform grid search. That’s
+    a reduction by a factor of 10×, getting us down to 1% of the original training
+    time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reducing model training time by 100× is not the only outcome. If you follow
+    the tips in this article, the model should yield better topics that make more
+    sense.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Much of data science is a surface-level understanding of the algorithms and
+    throwing random things at a wall to see what sticks. Specialized knowledge is
+    often labeled as overly pedantic (in a “science” field!). However, a deeper understanding
+    lets us use our tools much more efficiently, and I urge everyone to dig deeper
+    into the tools we choose to use.
+  prefs: []
+  type: TYPE_NORMAL

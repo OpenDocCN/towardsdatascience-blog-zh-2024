@@ -1,0 +1,611 @@
+- en: How to Apply RLS Based on Multiple Columns in Power BI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-apply-rls-based-on-multiple-columns-in-power-bi-2c67f980983f?source=collection_archive---------10-----------------------#2024-05-23](https://towardsdatascience.com/how-to-apply-rls-based-on-multiple-columns-in-power-bi-2c67f980983f?source=collection_archive---------10-----------------------#2024-05-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Usually, Data Access with RLS is based on Data from one column. But sometimes,
+    data access must be controlled by multiple columns. How can we do it?*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--2c67f980983f--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--2c67f980983f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2c67f980983f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2c67f980983f--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--2c67f980983f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2c67f980983f--------------------------------)
+    ·10 min read·May 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/868453421bb3d279cd880b302dec21af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Patrick Robert Doyle](https://unsplash.com/@teapowered?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In previous articles, I covered much ground on Data Access in Power BI using
+    Row-Level Security (RLS). I explored the basics and delved into advanced techniques,
+    and now I want to tackle RLS based on multiple columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In “normal” circumstances, I can control access to my data based on the data
+    in one column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In such cases, the RLS role can be relatively easy, as described in my previous
+    article about RLS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/explore-all-ways-to-implement-rls-rules-ee4a402db39a?source=post_page-----2c67f980983f--------------------------------)
+    [## Explore all ways to implement RLS Rules'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing row-level security in Power BI is a recurring task for developers.
+    Let’s look at the techniques for…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/explore-all-ways-to-implement-rls-rules-ee4a402db39a?source=post_page-----2c67f980983f--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even when we need to check multiple columns in the RLS role, we can create an
+    RLS expression to handle this with the [LOOKUPVALUE()](https://dax.guide/lookupvalue/)
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, I want to go one step further in this piece by adding a modeling technique
+    to simplify the DAX expression in the RLS role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The target is how to prepare the data to reduce the RLS role to the bare minimum:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But first, I must show you the data and the challenge with it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scenario and Our Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, let’s look at my data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My company, Evergreen Products, has a list of Employees with their respective
+    positions within the organizational hierarchy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74c4919794043e9bd63e3cf83397e8f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Extract of my Data with some managers at different levels in the
+    hierarchy (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Look at the three marked managers. All three are responsible for a branch in
+    the hierarchy, starting from different levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Andrea Adams is responsible for the entire Sales Team.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Andrea Madson is responsible for the Sales in the Central region.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: John Carter is responsible for the production of large products.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each manager must have access to the entire branch within the organization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge here is to do it efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I could author a nice DAX expression with much magic to implement this within
+    the RLS role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But every time a user accesses this data model, this magic but complex DAX expression
+    is executed and can massively slow down the report.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to avoid this issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preparing the Data model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: OK, how can I solve this challenge?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I must add calculated tables and columns to map each manager to his and all
+    subordinated organizational units in the hierarchy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logical target Data model is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31a6e37a4afbe44f11f3efc6f2073093.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Logical target Data model (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The RLS-Access table is where I will apply the DAX expression of my RLS role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I wrote “logical target data model” as the final data model will include one
+    more table. But more on this later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will create the tables with Power Query instead of DAX, as this approach will
+    lead to more efficient data storage in the Data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, I need a Key column that contains each level of the hierarchy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this, I will concatenate every hierarchy level into one key column. The
+    columns for each level are separated by an underscore using the following M expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: I must add the multiple “if” statements to cover the empty cells.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is because I get the Data from a SQL Server database, and the expression
+    is translated into SQL and sent to the source database (see [Query folding](https://medium.com/towards-data-science/exploring-query-folding-in-power-query-8288fb3c9c2f)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concatenating data with empty data (NULLs) in SQL will lead to an empty result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, I will create a new table by referencing the Employee table, but only
+    with the necessary columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/df7222dd356c81fc801d8ede02ce1cbf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Extract of the RLS-Access table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, I filter this table to include only the Managers by filtering the IsManager
+    column to equal True.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, this is not enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I still cannot control the data access based on multiple hierarchy levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve this issue, I need a mapping table between the RLS-Access table and
+    the Employee table, which maps every hierarchy level to every combination of roles
+    below each level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I do this by multiplying the RLS-Access table and appending each variant to
+    form one large mapping table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This mapping table is why I called the data model above “logical,” as it is
+    only a technical necessity rather than a business-relevant table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The complete technical Data model is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/91b18d1905178fd198bfac80dbc50a7a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Complete technical Data model (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the mapping table
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What I need to do is to create a table with one set of rows for each level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, I will have one set for the entire hierarchy mapped to the top
+    level of the CEO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, I will have one set for the managers below the CEO, and so forth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I create a new reference from the Employee table called CEOLevel in Power Query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, I remove the columns “ID”, “FirstName”, “LastName”, “Name” and “EMail”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, I add a new calculated column, called RLS-Key, with the following M-Expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, I remove all columns except the Hierarchy Key and the new RLS-Key columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The table looks like this now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c14bef2e9e056f05771b9e0016f4cf63.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Extract from the table for the CEO Level (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The table contains one row for each existing organizational unit to allow the
+    CEO to access all of them. I will explain the mechanism later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This table is set not to be loaded into Power BI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/95f7add36551a9abe29ce9b61efa71b3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 — Disabled the load for the CEOLevel table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is because it is an intermediary table, which will be used as a building
+    block for the final “RLS-Mapping” table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, I repeat the steps to create another intermediary table named OrgLevel2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the expression to create the RLS-Key column is different:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As you can see in the result, I include the second level of the Organisation
+    with this expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0093ddd263d5a81e4d640361e0bb73d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Extract of the OrgLevel2 table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Based on these steps, I duplicate the CEOLevel table and repeat these steps
+    to create three more intermediary tables for OrgLevel3–5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For each table, I change the expressions for the RLS-Key column to include
+    one more level from the hierarchy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For OrgLevel3, I use this expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Please note that I remove one underscore from the last line in the code each
+    time, as it is included in the previous part of the expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here for OrgLevel4:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And, finally, for OrgLevel5, which will not have a final underscore, as the
+    fifth is the final level in the hierarchy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, I can create the final RLS-mapping table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I click on the CEOLevel table and click on Append Queries to create a new table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da6ab529b9980c3bf37de0f0d8defac2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8 — Call the “Append Queries” function to create the RLS-mapping table
+    (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I will combine all five tables into a new table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/049dfa12b9cc3f45fefbe3bf6a5c2f1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9 — Add all intermediary tables to the new table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new table is called “Append1”, and I rename it to RLS-Mapping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lastly, I will remove all Duplicates from this table by selecting both columns
+    and executing “Remove Duplicates”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c2eb7ac30acc5d7195f47ee1d922c10.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10 — Remove Duplicates from the RLS-Mapping table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make it all clean and tidy, I change the data types of the two columns to
+    Text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, I can integrate this table into my Data model and implement the RLS role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing RLS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After loading the new table into Power BI, I must add it to the Data model as
+    described above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I remove the relationship between the table “RLS-Access” and “Employees” and
+    add two new relationships:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: RLS-Mapping[RLS-Key] to RLS-Access[HierarchyKey]. Many to One
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Employees[HierarchyKey] to RLS-Mapping[HierarchyKey]. Many to Many. RLS-Mapping
+    filtering Employees
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Next, I can add a new RLS role to the Data model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6fb1cdfb7c00790468dbbced1279de6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 11 — Add the new RLS role to the Data model (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I can test the functionality for Andrea Madson:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/546a2670fbf630d0218653858358c770.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 12 — Testing the RLS role (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the result (Remember that Andrea Madson is responsible for the Sales
+    in the Central region):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/45a1d014c931adfbdd0676cee806e4c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 13 — The result of testing the RLS role for Andrea Madson (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The issue with the empty levels can be solved by filling them with the content
+    of the level above. Some visuals can collapse repeating levels in hierarchies
+    (Like Zebra BI).
+  prefs: []
+  type: TYPE_NORMAL
+- en: But the standard Matrix Visual cannot do that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, we have to live with this effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How does it work?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So, how does it work?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at the example of Andrea Madson.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the Employees table, her row has the HierarchyKey “Evergreen Products_Sales_Sales
+    Central__”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the same value in the RLS-Access table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we apply the RLS role to the RLS-Access table, this filter is applied
+    over the relationship to the RLS-Mapping table on the RLS-Key column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This filter results in the following rows remaining in the RLS-Mapping table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4fd63f6c3c43f1c2ec6ad2224a3ee47e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 14 — Remaining rows after applying the filter on the RLS-Key column for
+    Andrea Madson (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The remaining values in the HierarchyKey column are then passed through the
+    Relationship to the Employees table, and the remaining rows are part of the Sales
+    Central unit in the organization:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/df0c27d35f351c7605885f0eff32048b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 15 — Filtered rows for the Organizational Unit of Andrea Madson (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This mechanism works for all other Units, as I have multiplied the rows for
+    the RLS-Mapping table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This approach allows me to implement a very simple DAX expression in the RLS
+    role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As explained in my last article about RLS (the last article in the list of links
+    in the References section below), it’s important to simplify the DAX expressions
+    in the RLS role as much as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason is that these DAX expressions are added to each DAX query sent to
+    the Data model. Complicated DAX expressions can cause poor report performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the positive effect of modeling the data in the way explained here is that
+    I can follow this rule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though this means going the extra mile when modeling a Data model in Power
+    BI and Power Query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your Users will not thank you for that, but they will not complain, which is
+    even better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0ebf22bda65d2cef702354aa07e828b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The data is self-generated with phantasy names.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I generated this complete list by multiplying a list of First- and Last-Names
+    with each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, I generated a fact table based on random numbers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the links to my other articles about Data access with RLS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/4-2-security-features-in-power-bi-4c5a21968e53?source=post_page-----2c67f980983f--------------------------------)
+    [## 4 + 2 Security features in Power BI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One year after my first article on this topic, here is an update on new security
+    features in Power BI
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/4-2-security-features-in-power-bi-4c5a21968e53?source=post_page-----2c67f980983f--------------------------------)
+    [](/develop-and-test-rls-rules-in-power-bi-9dc705945feb?source=post_page-----2c67f980983f--------------------------------)
+    [## Develop and test RLS Rules in Power BI
+  prefs: []
+  type: TYPE_NORMAL
+- en: Very often, not all Users should have permission to access all data in a Report.
+    Here I will explain how to develop RLS…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/develop-and-test-rls-rules-in-power-bi-9dc705945feb?source=post_page-----2c67f980983f--------------------------------)
+    [](/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=post_page-----2c67f980983f--------------------------------)
+    [## Calculate the percentage of the total with RLS in place in Power BI
+  prefs: []
+  type: TYPE_NORMAL
+- en: With RLS in place, some users can see only some aspects of the data set. But
+    what happens when they must compare the…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=post_page-----2c67f980983f--------------------------------)
+    [](/explore-all-ways-to-implement-rls-rules-ee4a402db39a?source=post_page-----2c67f980983f--------------------------------)
+    [## Explore all ways to implement RLS Rules
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing row-level security in Power BI is a recurring task for developers.
+    Let’s look at the techniques for…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/explore-all-ways-to-implement-rls-rules-ee4a402db39a?source=post_page-----2c67f980983f--------------------------------)
+    [](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----2c67f980983f--------------------------------)
+    [## Get an email whenever Salvatore Cagliari publishes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
+    create a Medium account if you don't…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----2c67f980983f--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I make my articles accessible to everyone, even though Medium has a paywall.
+    This allows me to earn a little for each reader, but I turn it off so you can
+    read my pieces without cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work, which I do during my free time, through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

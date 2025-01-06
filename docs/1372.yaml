@@ -1,0 +1,542 @@
+- en: Training Naive Bayes… Really Fast
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31](https://towardsdatascience.com/train-naive-bayes-really-fast-7398a404e342?source=collection_archive---------10-----------------------#2024-05-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/5ca58b4de0a8ed93631227f9f6925e2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Marc Sendra Martorell](https://unsplash.com/de/@marcsm?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/de/fotos/zeitraffer-von-strassenlaternen--Vqn2WrfxTQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance tuning in Julia
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[![Roland
+    Schätzle](../Images/5d03aad32cda174f2fee595a3fc34a17.png)](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)
+    [Roland Schätzle](https://medium.com/@schaetzle.ka?source=post_page---byline--7398a404e342--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7398a404e342--------------------------------)
+    ·12 min read·May 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a recent lecture I demonstrated to my students how a *Multinomial Naive Bayes
+    (MNB)* model can be used for document classification. As an example I used the
+    [Enron Email Dataset](https://www.cs.cmu.edu/~enron/) in order to create a spam
+    filter based on such a model. The version of the dataset used consists of 33,716
+    emails, categorised as “spam” or “ham” (i.e. no spam).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We chose the `MultinomialNBClassifier` from the Julia `[MLJ.jl](https://juliaai.github.io/MLJ.jl/dev/)`-package
+    and for data preparation the `CountTransformer` from the same package. I was quite
+    surprised that it took more than 30 minutes to train this classifier using the
+    whole dataset (on an Apple M3, 16 GB RAM).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typically only a part of a dataset is used for training as the rest is needed
+    for testing. Using just 70% of the dataset for this purpose still took more than
+    10 minutes. The 33,716 emails are admittedly more than a simple textbook example,
+    but on the other hand NB models are known for low training costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore I began to investigate why it takes so long and if there are ways
+    to make things faster. In the following sections I will present the performance
+    tuning measures I’ve applied and the speedup which could be achieved. These measures
+    are not very specific to this problem and thus should also be applicable in other
+    situations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: All implementations and benchmarks are done using Julia 1.10.3 on a M3
+    MacBook Pro with 16 GB RAM. The utilised Julia packages are MLJ 0.20.0, TextAnalysis
+    0.7.5, Metal 1.1.0, CategoricalArrays 0.10.8 and BenchmarkTools 1.5.0.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Training a Multinomial Naive Bayes model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: But first let me introduce the main steps which are necessary to train a MNB
+    in order to understand which algorithm has to be optimised. There is
+  prefs: []
+  type: TYPE_NORMAL
+- en: a **data preparation** step which converts the documents (in our case the emails)
+    to an adequate data structure (a so-called *document term matrix; DTM)* and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the **actual training** step where the DTM is aggregated into a vector for each
+    class (spam or ham)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data Preparation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Documents for use with an MNB are represented as “bags of words”. I.e. the order
+    of the words within the document is considered irrelevant and only the number
+    of occurrences of each word is stored. So the sentence “the cow eats grass” is
+    in this representation equivalent to “eats the cow grass” or “grass eats the cow”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to convert all documents into this form using a memory efficient representation,
+    a *dictionary* of all words that occur in the documents is created (it’s basically
+    an array of all words). Let’s say we have the following documents D1, D2 and D3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'D1: “the grey cat lies on the grass”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'D2: “the cow eats grass”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'D3: “the cat is grey”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then the dictionary is as follows: [“the”, “grey”, “cat”, “lies”, “on”, “grass”,
+    “cow”, “eats”, “is”] as there are nine different words in the three documents.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each document is then represented as an array of the same length as the dictionary
+    and each element within this array is the number of occurrences of the corresponding
+    word in the dictionary. So D1, D2 and D3 will have the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'D1: [2, 1, 1, 1, 1, 1, 0, 0, 0] as e.g. the first word in the dictionary (“the”)
+    occurs twice, the second word (“grey”) occurs once and so on'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'D2: [1, 0, 0, 0, 0, 1, 1, 1, 0]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'D3: [1, 1, 1, 0, 0, 0, 0, 0, 1]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If we combine these arrays into a matrix — one row for each document, we get
+    the above mentioned *document term matrix (DTM).* In our case it is a 3 x 9 matrix,
+    as we have three documents and a dictionary consisting of nine different words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The training of the MNB consists basically of adding all the document vectors,
+    separated by class. I.e. in our spam-example we have to add all document vectors
+    for “spam” and all for “ham” resulting in two vectors, each containing the summarised
+    word frequencies for the respective class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we assume that the documents D1 and D3 are “ham” and D2 is “spam”, we would
+    get the following results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“ham” word frequencies: [3, 2, 2, 1, 1, 1, 0, 0, 1]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '“spam” word frequencies: [1, 0, 0, 0, 0, 1, 1, 1, 0]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In a complete training step for a MNB there is some additional post-processing
+    of these numbers, but the “expensive” part, which we want to optimise, is the
+    aggregation of the DTM as shown here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting with the Enron dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Data Preparation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I created the DTM for the Enron dataset using the `CountTransformer`, which
+    is part of `MLJ` with the following function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The input `doc_list` to this function is an array of the tokenised emails. I.e.
+    each word within a mail got separated into a single string (using `TextAnalysis.tokenize()`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This results is a 33,716 x 159,093 matrix as there are 33,716 emails and the
+    dictionary consists of 159,093 different words. This is a matrix with more than
+    5.3 billion elements. Surprisingly the creation of the DTM took less than a minute.
+    So the focus of the performance tuning will be exclusively on the training step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the majority of elements of a DTM are 0, a so-called *sparse matrix* is used
+    to store them in a memory efficient way (in Julia this is the `[SparseMatrixCSC](https://docs.julialang.org/en/v1/stdlib/SparseArrays/)`
+    type).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be exact, the `CountTransformer` produces a data structure of type `LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64,
+    Int64}}`. We will come to this special structure later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Training the `MultinomialNBClassifier` is then done as follows with `X` containing
+    the DTM and `y` being the array of spam/ham labels (as a `[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`
+    since all MLJ models expect this type):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The call to `fit!` does the actual training and took more than 30 minutes for
+    all Enron mails and more than 10 minutes for a 70%-subset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to focus on the analysis and optimisation of the training step, I’m
+    starting with my own implementation of a function that does the above mentioned
+    aggregation of all document vectors into two vectors containing the summarised
+    word frequencies for “spam” and “ham”. The respective code of the `MultinomialNBCClassifier`
+    has too many dependencies which makes it much less feasible to demonstrate the
+    following optimisation steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A first baseline approach for this function (called `count_words`) looks as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Applied to `X` and `y` it takes **241.076 seconds** to complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To reduce the runtime of the test runs and to avoid that memory becomes the
+    decisive factor for the runtime, I’ve done all further tests (if not stated otherwise)
+    on a part of the DTM (called `Xpart`) limited to the first 10,000 columns (i.e.
+    a 33,716 x 10,000 matrix).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this reduced DTM `count_words_base` needs **20.363 seconds** to complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OPT1: Use the right data structures in the right way'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An important aspect of performance tuning are the data structures used and the
+    question if they are used in the most efficient manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Column-first Storage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this sense `count_words_base` already uses an optimisation. In Julia a matrix
+    is stored in a column-first order. I.e. that the elements of each column are stored
+    close to each other in memory. So iterating over all elements in *one* *column*
+    is faster than iterating over the elements within a *row*. Therefore the inner
+    loop in `count_words_base` iterates over a column in `X`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Column-first order storage is common practice in Julia. It also holds e.g. for
+    a `SparseMatrixCSC` or a `DataFrame`. But it’s always a good idea to check which
+    storage order a data structure uses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CategoricalArrays
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The if-statement in `count_words_base` is executed for each element of the DTM.
+    So it surely helps to optimise this part of the function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The parameter `y` is not a “normal” array which would store the words “ham”
+    or “spam” 33,716 times. It is a `[CategoricalArray](https://github.com/JuliaData/CategoricalArrays.jl?tab=readme-ov-file)`
+    which stores these two words exactly once and uses internally an array of integers
+    to store the 33,716 different “ham” and “spam” values (which are represented by
+    the numbers 1 and 2). We can access this numerical representation using the function
+    `levelcode`. So `y[1]` results in `"ham"`, whereas `levelcode(y[1])` gives us
+    1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore we can replace the whole if-statement by the following single line
+    (resulting in the first optimised version `count_words_01`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gives us a runtime of **18.006 s** which is an improvement of about 10%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A more efficient Matrix
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Often memory efficient data structures are less efficient when it comes to accessing
+    their elements. So I suspected that a (dense) matrix (i.e. a 2-dimensional `Array`)
+    might be more performant than the sparse matrix used for the DTM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a **point of reference** I created a **dense matrix** `Xref` (filled with
+    random numbers) of the same size as `Xpart`: `Xref = rand(0:9, 33716, 10000)`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This matrix has the following runtimes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count_words_base`: **2.378 s**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`count_words_01`: **0.942 s**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So there must be a real problem with the DTM produced by `CountTransformer`.
+    Already the baseline implementation gives us a speedup of more than 8x and the
+    optimisation used in `count_words_01` is more effective in this case and reduces
+    the runtime to less than half of the baseline number!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As mentioned above, `CountTransfomer` doesn’t produce an actual `SparseMatrixCSC`
+    but a `LinearAlgebra.Adjoint{Int64,SparseMatrixCSC{Int64, Int64}}`. I.e. the sparse
+    matrix is wrapped in some other structure. This could be a problem. Therefore
+    I tried to extract the actual sparse matrix … which proved to be difficult and
+    expensive: It takes almost 17 s to do this!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the resulting **“pure” sparse matrix** is much more efficient:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`count_words_base`: **3.22 s**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`count_words_01`: **1.435 s**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we have to add almost 17 s for the extraction to these numbers, this doesn’t
+    really improve the process as a whole. So I was looking for alternatives and found
+    these within the `[TextAnalysis](https://github.com/JuliaText/TextAnalysis.jl?tab=readme-ov-file)`-package,
+    which also has a function to create a DTM. The creation is as performant as with
+    `CountTransformer`, but it produces a “pure” sparse matrix directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So we get the runtime numbers for the sparse matrix without having to add another
+    17 s. This results in a **speedup** at this point of 20.363/1.435 = **14.2.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OPT2: Multithreading'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With Julia it is relatively easy to use multithreading. Especially in our case
+    where we iterate over a data structure and access in each iteration another part
+    of that data structure. So each iteration could potentially be executed within
+    another thread without having to care about data access conflicts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this setting we just have to put the macro `@threads` in front of the `for`-statement
+    and Julia does the rest for us. I.e. it distributes the different iterations to
+    the threads which are available on a particular machine. As the M3 chip has eight
+    kernels, I’ve set the `JULIA_NUM_THREADS` environment variable to 8 and changed
+    the for-loop-part of the `count_words`-function as follows (resulting in the next
+    optimised version `count_words_02`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gives us a runtime of **231 ms** which is a **speedup** of 20.363/0.231
+    = **88.2.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OPT3: GPU and Matrix Operations'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Getting even more performance is often achieved by using the GPU. But this can
+    only be done, if the algorithm fits the quite special computing structure of a
+    GPU. Ideally your algorithm should be made up of vector and matrix operations.
+    So let’s explore, if our `count_words` function can be adapted this way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filtering Rows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Our example from above with just three documents D1, D2 and D3 is perhaps a
+    good starting point to get a better understanding. `X` and `y` for that simple
+    example are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `count_words` adds the numbers in the columns, but only for specific
+    rows. In this example, first rows 1 and 3 are added and then we are looking at
+    row 2\. I.e. we need sort of a filter for the rows and then we can just sum up
+    columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In Julia it is possible to index an array using a `BitArray`. I.e. `X[[1,0,1],:]`
+    will give as rows 1 and 3 of `X` and `X[[0,1,0],:]` gives us row 2\. We can get
+    these “filters”, if we replace “ham” and “spam” in `y` by ones and zeros and convert
+    it to the following matrix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: So `yb[:,1]` would be the first filter and `yb[:,2]` the second one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the spam model we can convert the `CategoricalArray` `y` to such a bit
+    matrix with the following function (`y.refs` is the internal representation using
+    just integers):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using this representation of `y` we can implement `count_words` as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This variant has a runtime of **652 ms** (on CPU). So not faster than our last
+    version above, but we are still exploring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dot Product
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s go back again to the simple three document example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also achieve our goal, if we compute the *dot product* of each column
+    in `X` first with the first column of `yb` and then doing the same with the second
+    column of `yb`. This leads to `count_words_04`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This results in a runtime of **4.96 ms** (on CPU) which is now a **speedup**
+    of 20.363/0.00496 = **4,105.4!**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This drastic improvement needs perhaps some explanation. Two things go here
+    hand in hand:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector operations like the dot product are super optimised in Julia relying
+    on proven libraries like [BLAS](https://en.wikipedia.org/wiki/Basic_Linear_Algebra_Subprograms).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The sparse matrix type is very efficient in this context. Our dense reference
+    matrix `Xref` has a runtime of only 455.7 ms in this case.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Matrix Multiplication
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Taking the ideas from above a bit further we can represent `yb` in its transposed
+    form as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This depiction makes the shortest and probably most elegant version of `count_words`
+    more or less obvious. It is just a matrix multiplication:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is also the fastest version with **1.105 ms** leading to a speedup of 20.363/0.00105
+    = **19,393**!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multithreading is here implicit as the underlying BLAS library is by default
+    multithreaded. The number of threads used can be obtained by `BLAS.get_num_threads()`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover this solution scales well. Applied to the complete dataset, the matrix
+    `X` with 33,716 x 159,093 elements, it takes 13.57 ms to complete. This is a speedup
+    of 241.076/0.01357 = **17,765.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OPT4: GPU'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Finally, applying the last variant to the GPU can be done using the `Metal.jl`-package.
+    For this purpose the matrices used have only to be converted to their corresponding
+    metal array type using the `mtl`-function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `count_words` variant for the GPU is, apart from the data types, the same
+    as above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Its runtime is only **0.306 ms**. But copying the data to the GPU (using `mtl`)
+    takes much longer than the time gained by running the algorithm on the GPU. So
+    it’s not really faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Apart from that, the `Metal`-package for Apple silicon GPUs is not quite as
+    mature as e.g. `CUDA.jl`. This becomes visible when trying to convert the large
+    matrix `X` to a metal array: The conversion stops with an error message.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Of course not every algorithm can be converted to such a concise variant as
+    we have in `count_words_05`. But even the more “classic” implementation `count_words_04`
+    is more than 4,000 times faster than our starting point. Many of the performance
+    tuning measures presented in this article can be applied to other functions too.
+    Apart from this, I would recommend anyone, who wants go get more performance out
+    of a Julia program, to follow the “[Performance Tips](https://docs.julialang.org/en/v1/manual/performance-tips/)”
+    in the Julia documentation.
+  prefs: []
+  type: TYPE_NORMAL

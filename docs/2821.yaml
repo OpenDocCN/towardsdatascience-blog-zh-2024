@@ -1,0 +1,355 @@
+- en: 'Graph Neural Networks: Fraud Detection and Protein Function Prediction'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/graph-neural-networks-fraud-detection-and-protein-function-prediction-08f9531c98de?source=collection_archive---------0-----------------------#2024-11-21](https://towardsdatascience.com/graph-neural-networks-fraud-detection-and-protein-function-prediction-08f9531c98de?source=collection_archive---------0-----------------------#2024-11-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding AI applications in bio for machine learning engineers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@meghanheintz?source=post_page---byline--08f9531c98de--------------------------------)[![Meghan
+    Heintz](../Images/9eaae6d3d8168086d83ff7100329c51f.png)](https://medium.com/@meghanheintz?source=post_page---byline--08f9531c98de--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08f9531c98de--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--08f9531c98de--------------------------------)
+    [Meghan Heintz](https://medium.com/@meghanheintz?source=post_page---byline--08f9531c98de--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08f9531c98de--------------------------------)
+    ·7 min read·Nov 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e56db49516d0f5fd8f3f3c247711da18.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Conny Schneider](https://unsplash.com/@choys_?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/a-blue-background-with-lines-and-dots-xuTJZ7uD7PI?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What do a network of financial transactions and a protein structure have in
+    common? They’re both poorly modeled in Euclidean (x, y) space and require encoding
+    complex, large, and heterogeneous graphs to truly grok.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd117c6208688bc1d86b447bba16305d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Left: image in Euclidean Space. Right: graph in non-Euclidean space. [From
+    Graph neural networks: A review of methods and applications](https://www.sciencedirect.com/science/article/pii/S2666651021000012#bib56)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graphs are the natural way to represent relational data in financial networks
+    and protein structures. They capture the relationships and interactions between
+    entities, such as transactions between accounts in financial systems or bonds
+    and spatial proximities between amino acids in proteins. However, more widely
+    known deep learning architectures like RNNs/CNNs and Transformers fail to model
+    graphs effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might ask yourself why we can’t just map these graphs into 3D space? If
+    we were to force them into a 3D grid:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We would lose edge information, such as bond types in molecular graphs or transaction
+    types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Mapping would require padding or resizing, leading to distortions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sparse 3D data results would result in many unused grid cells, wasting memory
+    and processing power.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Given these limitations, **Graph Neural Networks (GNNs)** serve as a powerful
+    alternative. In this continuation of our series on [Machine Learning for Biology
+    applications](https://medium.com/@meghanheintz/list/understanding-ai-applications-in-bio-for-ml-engineers-7b9e9551bb7f),
+    we’ll explore how GNNs can address these challenges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As always, we’ll start with the more familiar topic of fraud detection and then
+    learn how similar concepts are applied in biology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fraud Detection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To be crystal clear, let’s first define what a graph is. We remember plotting
+    graphs on x, y axes in grade school but what we were really doing there was [graphing
+    a function](https://en.wikipedia.org/wiki/Graph_of_a_function) where we plotted
+    the points of f(x)=y. We when talk about a “graph” in the context of GNNs, we
+    mean to model pairwise relations between objects where each object is a node and
+    the relationships are edges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a financial network, the nodes are accounts and the edges are the transactions.
+    The graph would be constructed from related party transactions (RPT) and could
+    be enriched with attributes (e.g. time, amount, currency).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/287793aa4a3a07394fb807b1a432e099.png)![](../Images/5f4b41d38a1b7842a1cd0d66ed6792da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Left: Graph of a Function (What we are NOT talking about) (2024, March 15).
+    In *Wikipedia*. [https://en.wikipedia.org/wiki/Graph_of_a_function](https://en.wikipedia.org/wiki/Graph_of_a_function))
+    Right: A graph with nodes and edges (What we are talking about) (2024, October
+    25). In *Wikipedia*. [https://en.wikipedia.org/wiki/Graph_theory](https://en.wikipedia.org/wiki/Graph_theory)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traditional rules-based and machine-learning methods often operate on a single
+    transaction or entity. This limitation fails to account for how transactions are
+    connected to the wider network. Because fraudsters often operate across multiple
+    transactions or entities, fraud can go undetected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By analyzing a graph, we can capture dependencies and patterns between direct
+    neighbors and more distant connections. This is crucial for detecting laundering
+    where funds are moved through multiple transactions to obscure their origin. GNNs
+    illuminate the dense subgraphs created by laundering methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6f0353065d78d76bb14b60891d56bfb8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of a related party transfers network from [Using GNN to detect financial
+    fraud based on the related party transactions network](https://pdf.sciencedirectassets.com/280203/1-s2.0-S1877050922X00173/1-s2.0-S1877050922018956/main.pdf?X-Amz-Security-Token=IQoJb3JpZ2luX2VjEN7%2F%2F%2F%2F%2F%2F%2F%2F%2F%2FwEaCXVzLWVhc3QtMSJIMEYCIQDmpYTBTxDWh1A1%2BpPCyckZYvi2Nibrmgp5emc9oNQXlQIhAJ3wUM5Vj4%2FCTjt6CDrkYO4ph%2FN3On8JBU5MdLhciDxyKrIFCHcQBRoMMDU5MDAzNTQ2ODY1IgwTobTDUoeog6MueskqjwWI8o3mdlZLaJ5z1t5V%2F%2B2ZcfGjr%2FscaRbGl9jWKT%2ByXW2xAxqvWqFTJpVl4l3Zzv7ACPsxVY8RClj6FOe7W32hm5NTaqQq%2BRi42f55tM3hmwQT4WWOPa06zyEiCwBMgRnAX7SWeTpNRBegsGlNvTLa6dPoziPWOzu7HMv3%2Bt%2BrG7o9fPHaP8dBVFlbXorIPwTeicPh3HnCYHMLaKSVMtR76ZjtOwMzzbUfpzPgXzzjMDuEP5UgNsktqQ4lMwj4Z1iuuYVWxaFIlAElm4n17b%2B0uVprUzf7268iDXWTFGZebUYm6YJt%2Fa6y2ycY7gWo4XUnmrN4GHkCLoQNiIcvMhwRtlF6eqib6Eo5JvJRMe1OmQEIdU%2BQq62WYOl3x3Dt1ibe7aQUfVxwrymXUt7HjuVe%2BfKfSbvtRL%2Fd21kgBcA%2F4RnP2Iqv5Tg2NMCXInCJ7EIaw2y1s2ZSPSPKSRt2rcX0YMFHP1vyXDcxONU6Gybp%2B%2B1fRkoXY6AkqfoC5QwVDS68aRYg3S%2FhdaW6zIWGY2vjOc35f3TEPu1mx1nMrdMMrn2ZHtBvdR6hNZG1MkkqbsCJvpqxSivlNR6LFTqQ5C4Wy419YLpv%2Fy%2F26B%2Ftxz8LEbHY9pTd%2BZ7YEKCGXfRs8e0Ju4ALcznreLzJh7mwh85gxkP5US%2Fa1FsbTvZxe5deLjmjBLX%2Fq2wEbOVJDusY8LYkLek%2Fd6kfEu35E1QNCIjKR3YCd7yBlgHZoOSuiVARMeGt4kGdwSMHGU6uuBufZNvCn0diYOxxnywJ45HnEwRzc9IoDildTvj7LBh6jC%2FfIo0OBXwoZkt5m9YkBcWuzNojkOaZSchchqmikcDQLGT05BfDZ4wWKQC5GFawAQGmMNex8rkGOrABqtUDkTpujnzOcs0IpHrAGx01hFPOfDBp6S%2Bq%2B3lmBEG1yhXPDJSebGsHBTYf09fOj9ql6UQGhEaYi%2BkOVzLnFmpmjoNsuw4PgSyVqevV5zGVxVeDqGVbdhQFUqJPXqRRb%2BXmjH%2FYbvxD0o9bfP1HERYS2li2CrE%2BIP5V4DwdVonFuZEfkgzwDNx97GrQI42i44ar2YRIqOO%2FXHFSRifLMpdfgV%2Fq85YvDuYIFOLHOHI%3D&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20241119T144009Z&X-Amz-SignedHeaders=host&X-Amz-Expires=300&X-Amz-Credential=ASIAQ3PHCVTY4UDBK2ZU%2F20241119%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Signature=42b1ff3fe7f83791b38aa18964428551a53184eaa2759a0389ab51df9d3828fa&hash=728fa1835f0699e9951cc0c2fbe4fb313cffe2740de875b7e60e68a2770188dc&host=68042c943591013ac2b2430a89b270f6af2c76d8dfd086a07176afe7c76c2c61&pii=S1877050922018956&tid=spdf-19095051-fc91-4c7a-ab21-c03e79c4a978&sid=2594d8d573f9514c458af0a5cdffe931090bgxrqa&type=client&tsoh=d3d3LnNjaWVuY2VkaXJlY3QuY29t&ua=10145d00525003565d03&rr=8e50f42a1a8d7d00&cc=us)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Message-passing frameworks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Like other deep learning methods, the goal is to create a representation or
+    embedding from the dataset. In GNNs, these node embeddings are created using a
+    message-passing framework. Messages pass between nodes iteratively, enabling the
+    model to learn both the local and global structure of the graph. Each node embedding
+    is updated based on the aggregation of its neighbors’ features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A generalization of the framework works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Initialization**: Embeddings *hv(0)* are initialized with feature-based embeddings
+    about the node, random embeddings, or pre-trained embeddings (e.g. the account
+    name’s word embedding).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Message Passing:** At each layer *t*, nodes exchange messages with their
+    neighbors. Messages are defined as features of the sender node, features of the
+    recipient node, and features of the edge connecting them combined in a function.
+    The combining function can be a simple concatenation with a fixed-weight scheme
+    (used by [Graph Convolutional Networks](https://arxiv.org/abs/1609.02907), GCNs)
+    or attention-weighted, where weights are learned based on the features of the
+    sender and recipient (and optionally edge features) (used by [Graph Attention
+    Networks](https://arxiv.org/abs/1710.10903), GATs).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Aggregation:** After the message passing step, each node aggregates the received
+    messages (as simple as mean, max, sum).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Update:** The aggregated messages then update the node’s embedding through
+    an update function (potentially MLPs (Multi-Layer Perceptrons) like ReLU, GRUs
+    (Gated Recurrent Units), or attention mechanisms).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Finalization:** Embeddings are finalized, like other deep learning methods,
+    when the representations stabilize or a maximum number of iterations is reached.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/5eaee950880ff032dce1a690a4e6ecb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Node representation update in a Message Passing Neural Network (MPNN) layer.
+    Node receives messages sent by all of its immediate neighbours to . Messages are
+    computing via the message function , which accounts for the features of both senders
+    and receiver. Graph neural network. (2024, November 14). In *Wikipedia*. [https://en.wikipedia.org/wiki/Graph_neural_network](https://en.wikipedia.org/wiki/Graph_neural_network)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After the node embeddings are learned, a fraud score can be calculated in a
+    few different ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Classification:** where the final embedding is passed into a classifier like
+    a Multi-Layer Perceptron, which requires a comprehensive labeled historical training
+    set.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Anomaly Detection:** where the embedding is classified as anomalous based
+    on how distinct it is from the others. Distance-based scores or reconstruction
+    errors can be used here for an unsupervised approach.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Graph-Level Scoring:** where embeddings are pooled into subgraphs and then
+    fed into classifiers to detect fraud rings. (again requiring a label historical
+    dataset)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Label Propagation:** A semi-supervised approach where label information propagates
+    based on edge weights or graph connectivity making predictions for unlabeled nodes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Now that we have a foundational understanding of GNNs for a familiar problem,
+    we can turn to another application of GNNs: predicting the functions of proteins.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Protein Function Prediction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ve seen huge advances in protein folding prediction via AlphaFold [2](https://medium.com/towards-data-science/alphafold-2-through-the-context-of-bert-78c9494e99af)
+    and [3](https://medium.com/towards-data-science/how-alphafold-3-is-like-dalle-2-and-other-learnings-1f809010afc7)
+    and protein design via [RFDiffusion](https://www.nature.com/articles/s41586-023-06415-8).
+    However, protein function prediction remains challenging. Function prediction
+    is vital for many reasons but is particularly important in biosecurity to predict
+    if DNA will be parthenogenic before sequencing. Tradional methods like [BLAST](https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-6-272)
+    rely on sequence similarity searching and do not incoperate any structural data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today, GNNs are beginning to make meaningful progress in this area by leveraging
+    graph representations of proteins to model relationships between residues and
+    their interactions. There are considered to be well-suited for protein function
+    prediction as well as, identifying binding sites for small molecules or other
+    proteins and classifying enzyme families based on active site geometry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In many examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: nodes are modeled as amino acid residues
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: edges as the interactions between them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The rational behind this approach is a graph’s inherent ability to capture long-range
+    interactions between residues that are distant in the sequence but close in the
+    folded structure. This is similar to why transformer archicture was so helpful
+    for AlphaFold 2, which allowed for parallelized computation across all pairs in
+    a sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make the graph information-dense, each node can be enriched with features
+    like residue type, chemical properties, or evolutionary conservation scores. Edges
+    can optionally be enriched with attributes like the type of chemical bonds, proximity
+    in 3D space, and electrostatic or hydrophobic interactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[DeepFRI](https://github.com/flatironinstitute/DeepFRI/tree/master) is a GNN
+    approach for predicting protein functions from structure (specifically a Graph
+    Convolutional Network (GCN)). A GCN is a specific type of GNN that extends the
+    idea of convolution (used in CNNs) to graph data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ff53ff24633563fda818cf9677712867.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'DeepFRI Diagram: LSTM language model, pretrained on ~2 million Pfam protein
+    sequences, used for extracting residue level features of PDB sequence. (B) GCN
+    with 3 graph convolutional layers for learning complex structure–to–function relationships.
+    from [Structure-Based Function Prediction using Graph Convolutional Networks](https://www.biorxiv.org/content/10.1101/786236v1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In DeepFRI, each amino acid residue is a node enriched by attributes such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the amino acid type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: physicochemical properties
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: evolutionary information from the [MSA](https://en.wikipedia.org/wiki/Multiple_sequence_alignment)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sequence embeddings from a pretrained LSTM
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: structural context such as the solvent accessibility.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each edge is defined to capture spatial relationships between amino acid residues
+    in the protein structure. An edge exists between two nodes (residues) if their
+    distance is below a certain threshold, typically 10 Å. In this application, there
+    are no attributes to the edges, which serve as unweighted connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The graph is initialized with node features LSTM-generated sequence embeddings
+    along with the residue-specific features and edge information created from a residue
+    contact map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the graph is defined, message passing occurs through adjacency-based convolutions
+    at each of the three layers. Node features are aggregated from neighbors using
+    the graph’s adjacency matrix. Stacking multiple GCN layers allows embeddings to
+    capture information from increasingly larger neighborhoods, starting with direct
+    neighbors and extending to neighbors of neighbors etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final node embeddings are globally pooled to create a protein-level embedding,
+    which is then used to classify proteins into hierarchically related functional
+    classes (GO terms). Classification is performed by passing the protein-level embeddings
+    through fully connected layers (dense layers) with sigmoid activation functions,
+    optimized using a binary cross-entropy loss function. The classification model
+    is trained on data derived from protein structures (e.g., from the Protein Data
+    Bank) and functional annotations from databases like UniProt or Gene Ontology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Graphs are useful for modeling many non-linear systems.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GNNs capture relationships and patterns that traditional methods struggle to
+    model by incorporating both local and global information.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are many variations to GNNs but the most important (currently) are Graph
+    Convolutional Networks and Graph Attention Networks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GNNs can be efficient and effective at identifying the multi-hop relationships
+    present in money laundering schemes using supervised and unsupervised methods.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GNNs can improve on sequence only based protein function prediction tools like
+    BLAST by incorporating structural data. This enables researchers to predict the
+    functions of new proteins with minimal sequence similarity to known ones, a critical
+    step in understanding biosecurity threats and enabling drug discovery.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cheers and if you liked this post, check out my other articles on [Machine Learning
+    and Biology.](https://medium.com/@meghanheintz/list/understanding-ai-applications-in-bio-for-ml-engineers-7b9e9551bb7f)
+  prefs: []
+  type: TYPE_NORMAL

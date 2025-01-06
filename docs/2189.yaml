@@ -1,0 +1,456 @@
+- en: Quantizing Neural Network Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/quantizing-neural-network-models-8ce49332f1d3?source=collection_archive---------7-----------------------#2024-09-07](https://towardsdatascience.com/quantizing-neural-network-models-8ce49332f1d3?source=collection_archive---------7-----------------------#2024-09-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding post-training quantization, quantization-aware training, and the
+    straight through estimator
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)[![Arun
+    Nanda](../Images/48836e7e13dbe0821bed6902209f2d25.png)](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)
+    [Arun Nanda](https://medium.com/@arunnanda?source=post_page---byline--8ce49332f1d3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8ce49332f1d3--------------------------------)
+    ·10 min read·Sep 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6db4148a239d387bc1be88110a5f676c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Large AI models are resource-intensive. This makes them expensive to use and
+    very expensive to train. A current area of active research, therefore, is about
+    reducing the size of these models while retaining their accuracy. Quantization
+    has emerged as one of the most promising approaches to achieve this goal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The previous article, [*Quantizing the Weights of AI Models*](/quantizing-the-weights-of-ai-models-39f489455194),
+    illustrated the arithmetics of quantization with numerical examples. It also discussed
+    different types and levels of quantization. This article discusses the next logical
+    step — how to get a quantized model starting from a standard model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Broadly, there are two approaches to quantizing models:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Train the model with higher-precision weights and quantize the weights of the
+    trained model. This is post-training quantization (PTQ).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Start with a quantized model and train it while taking the quantization into
+    account. This is called Quantization Aware Training (QAT).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since quantization involves replacing high-precision 32-bit floating point weights
+    with 8-bit, 4-bit, or even binary weights, it inevitably results in a loss of
+    model accuracy. The challenge, therefore, is how to quantize models, while minimizing
+    the drop in accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because it is an evolving field, researchers and developers often adopt new
+    and innovative approaches. In this article, we discuss two broad techniques:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantizing a Trained Model — Post-Training Quantization (PTQ)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Training a Quantized Model — Quantization Aware Training (QAT)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantizing a Trained Model — Post-Training Quantization (PTQ)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Conventionally, AI models have been trained using 32-bit floating point weights.
+    There is already a large library of pre-trained models. These trained models can
+    be quantized to lower precision. After quantizing the trained model, one can choose
+    to further fine-tune it using additional data, calibrate the model’s parameters
+    using a small dataset, or just use the quantized model as-is. This is called Post-Training
+    Quantization (PTQ).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two broad categories of PTQ:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantizing only the weights
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantizing both weights and activations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Weights-only quantization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this approach, the activations remain in high precision. Only the weights
+    of the trained model are quantized. Weights can be quantized at different granularity
+    levels (per layer, per tensor, etc.). The article [*Different Approaches to Quantization*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)
+    explains granularity levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After quantizing the weights, it is also common to have additional steps like
+    cross-layer equalization. In neural networks, often the weights of different layers
+    and channels can have very different ranges (W_max and W_min). This can cause
+    a loss of information when these weights are quantized using the same quantization
+    parameters. To counter this, it is helpful to modify the weights such that different
+    layers have similar weight ranges. The modification is done in such a way that
+    the output of the activation layers (which the weights feed into) is not affected.
+    This technique is called Cross Layer Equalization. It exploits the scale-equivariance
+    property of the activation function. Nagel et al., in their paper [*Data-Free
+    Quantization Through Weight Equalization and Bias Correction*](https://arxiv.org/pdf/1906.04721),
+    discuss cross-layer equalization (Section 4) in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weights and Activation quantization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In addition to quantizing the weights as before, for higher accuracy, some methods
+    also quantize the activations. Activations are less sensitive to quantization
+    than weights are. It is empirically observed that activations can be quantized
+    down to 8 bits while retaining almost the same accuracy as 32 bits. However, when
+    the activations are quantized, it is necessary to use additional training data
+    to calibrate the quantization range of the activations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of PTQ
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The advantage is that the training process remains the same and the model doesn’t
+    need to be re-trained. It is thus faster to have a quantized model. There are
+    also many trained 32-bit models to choose from. You start with a trained model
+    and quantize the weights (of the trained model) to any precision — such as 16-bit,
+    8-bit, or even 1-bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The disadvantage is loss of accuracy. The training process optimized the model’s
+    performance based on high-precision weights. So when the weights are quantized
+    to a lower precision, the model is no longer optimized for the new set of quantized
+    weights. Thus, its inference performance takes a hit. Despite the application
+    of various quantization and optimization techniques, the quantized model doesn’t
+    perform as well as the high-precision model. It is also often observed that the
+    PTQ model shows acceptable performance on the training dataset but fails to on
+    new previously unseen data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To tackle the disadvantages of PTQ, many developers prefer to train the quantized
+    model, sometimes from scratch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training a Quantized Model — Quantization Aware Training (QAT)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The alternative to PTQ is to train the quantized model. To train a model with
+    low-precision weights, it is necessary to modify the training process to account
+    for the fact that most of the model is now quantized. This is called quantization-aware
+    training (QAT). There are two approaches to doing this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantize the untrained model and train it from scratch
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantize a trained model and then re-train the quantized model. This is often
+    considered a hybrid approach.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In many cases, the starting point for QAT is not an untrained model with random
+    weights but rather a pre-trained model. Such approaches are often adopted in extreme
+    quantization situations. The BinaryBERT model discussed later in this series in
+    the article [*Extreme Quantization: 1-bit AI Models*](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96)
+    applies a similar approach.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advantages and disadvantages of QAT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The advantage of QAT is the model performs better because the inference process
+    uses weights of the same precision as was used during the forward pass of the
+    training. The model is trained to perform well on the quantized weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The disadvantage is that most models are currently trained using higher precision
+    weights and need to be retrained. This is resource-intensive. It remains to be
+    established if they can match the performance of older higher-precision models
+    in real-world usage. It also remains to be validated if quantized models can be
+    successfully scaled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Historical background of QAT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'QAT, as a practice, has been around for at least a few years. Courbariaux et
+    al, in their [2015 paper titled *BinaryConnect: Training Deep Neural Networks
+    with binary weights during propagations*](https://arxiv.org/pdf/1511.00363), discuss
+    their approach to quantizing Computer Vision neural networks to use binary weights.
+    They quantized weights during the forward pass and unquantized weights during
+    the backpropagation (section 2.3). Jacob et al, then working at Google explain
+    the idea of QAT, in their 2017 paper titled [Quantization and Training of Neural
+    Networks for Efficient Integer-Arithmetic-Only Inference](https://arxiv.org/pdf/1712.05877)
+    (section 3). They do not explicitly use the phrase Quantization Aware Training
+    but call it simulated quantization instead.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overview of the QAT process
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The steps below present the important parts of the QAT process, based on the
+    papers referenced earlier. Note that other researchers and developers have adopted
+    variations of these steps, but the overall principle remains the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maintain an unquantized copy of the weights throughout the process. This copy
+    is sometimes called the latent weights or shadow weights.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Run the forward pass (inference) based on a quantized version of the latest
+    shadow weights. This simulates the working of the quantized model. The steps in
+    the forward pass are:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '- Quantize the weights and the inputs before matrix-multiplying them.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Dequantize the output of the convolution (matrix multiplication).'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Add (accumulate) the biases (unquantized) to the output of the convolution.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Pass the result of the accumulation through the activation function to get
+    the output.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Compare the model’s output with the expected output and compute the loss
+    of the model.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'Backpropagation happens in full precision. This allows for small changes to
+    the model parameters. To perform the backpropagation:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '- Compute the gradients in full precision'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Update via gradient descent the full-precision copy of all weights and biases'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: After training the model, the final quantized version of the weights is exported
+    to use for inference.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: QAT is sometimes referred to as “fake quantization” — it just means that the
+    model training happens using the unquantized weights and the quantized weights
+    are used only for the forward pass. The (latest version of the) unquantized weights
+    are quantized during the forward pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The flowchart below gives an overview of the QAT process. The dotted green arrow
+    represents the backpropagation path for updating the model weights while training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f034c7467ede7b6428127806b59a68ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next section explains some of the finer points involved in backpropagating
+    quantized weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BackPropagation in Quantization Aware Training
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is important to understand how the gradient computation works when using
+    quantized weights. When the forward pass is modified to include the quantizer
+    function, the backward pass must also be modified to include the gradient of this
+    quantizer function. To refresh neural networks and backprop concepts, refer to
+    [*Understanding Weight Update in Neural Networks*](https://medium.com/@simon.palma/understanding-weight-update-in-neural-networks-a9f6e23ce984)
+    by Simon Palma.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a regular neural network, given inputs X, weights W, and bias B, the result
+    of the convolution accumulation operation is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf65bdd802af4f64c54e0009d3d37ecb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Applying the sigmoid activation function on the convolution gives the model’s
+    output. This is expressed as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ee3a91289babcfff84958a560a08e78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The Cost, C, is a function of the difference between the expected and the actual
+    output. The standard backpropagation process estimates the partial derivative
+    of the cost function, C, with respect to the weights, using the chain rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3fbb7db6212854269a1c3501cfa90837.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'When quantization is involved, the above equation changes to reflect the quantized
+    weight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/03916c9a0da0cedc48bf32f3c29f3d34.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice that there is an additional term — which is the partial derivative of
+    the quantized weights with respect to the unquantized weights. Look closely at
+    this (last) partial derivative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Partial derivative of the quantized weights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The quantizer function can simplistically be represented as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/928225e1329720c988f81d467a0ed432.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In the expression above, w is the original (unquantized, full-precision) weight,
+    and s is the scaling factor. Recall from [Quantizing the Weights of AI Models](https://medium.com/@arunnanda/quantizing-the-weights-of-ai-models-39f489455194)
+    (or from basic maths) that the graph of the function mapping the floating point
+    weights to the binary weights is a step function, as shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4e43419f9c1b053ac389cfee3cf2ee7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the function for which we need the partial derivative. The derivative
+    of the step function is either 0 or undefined — it is undefined at the boundaries
+    between the intervals and 0 everywhere else. To work around this, it is common
+    to use a “Straight-Through Estimator(STE)” for the backprop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Straight Through Estimator (STE)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Bengio et al, in their 2013 paper [*Estimating or Propagating Gradients Through
+    Stochastic Neurons for Conditional Computation*](https://arxiv.org/abs/1308.3432),
+    propose the concept of the STE. Huh et al, in their 2023 paper [Straightening
+    Out the Straight-Through Estimator: Overcoming Optimization Challenges in Vector
+    Quantized Networks](https://arxiv.org/abs/2305.08842), explain the application
+    of the STE to the derivative of the loss function using the chain rule (Section
+    2, Equation 7).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The STE assumes that the gradient with respect to the unquantized weight is
+    essentially equal to the gradient with respect to the quantized weight. In other
+    words, it assumes that within the intervals of the Clip function,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2170673a04eedad7d62f9c832d4ec110.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hence, the derivative of the cost function, C, with respect to the unquantized
+    weights is assumed to be equal to the derivative based on the quantized weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6a86087c7afa96cc7912722aa320f00d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Thus, the gradient of the Cost is expressed as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b72df6b5f039aa908f36b128b581e139.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This is how the Straight Through Estimator enables the gradient computation
+    in the backward pass using quantized weights. After estimating the gradients.
+    The weights for the next iteration are updated as usual (alpha in the expression
+    below refers to the learning rate):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0461f0f9f7b8110f309b35d30dfa6a05.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The clip function above is to ensure that the updated (unquantized) weights
+    remain within the boundaries, W_min, and W_max.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Quantizing neural network models makes them accessible enough to run on smaller
+    servers and possibly even edge devices. There are two broad approaches to quantizing
+    models, each with its advantages and disadvantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Post-Training Quantization (PTQ): Starting with a high-precision trained model
+    and quantizing it (post-training quantization) to lower-precision.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Quantization Aware Training (QAT): Applying the quantization during the forward
+    pass of training a model so that the optimization accounts for quantized inference'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This article discusses both these approaches but focuses on QAT, which is more
+    effective, especially for modern 1-bit quantized LLMs like [BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
+    and [BitNet b1.58](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a).
+    Since 2021, [NVIDIA’s TensorRT has included a Quantization Toolkit to perform
+    both QAT and quantized inference with 8-bit model weights](https://developer.nvidia.com/blog/achieving-fp32-accuracy-for-int8-inference-using-quantization-aware-training-with-tensorrt/).
+    For a more in-depth discussion of the principles of quantizing neural networks,
+    refer to the 2018 whitepaper [*Quantizing deep convolutional networks for efficient
+    inference*](https://arxiv.org/pdf/1806.08342), by Krishnamoorthi.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantization encompasses a broad range of techniques that can be applied at
+    different levels of precision, different granularities within a network, and in
+    different ways during the training process. The next article,[*Different Approaches
+    to Quantization*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a),
+    discusses these varied approaches, which are applied in modern implementations
+    like [BinaryBERT](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96),
+    [BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3),
+    and [BitNet b1.58](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a).
+  prefs: []
+  type: TYPE_NORMAL

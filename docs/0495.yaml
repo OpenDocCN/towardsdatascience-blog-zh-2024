@@ -1,0 +1,328 @@
+- en: How to Forecast Time Series Data Using any Supervised Learning Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-forecast-time-series-data-using-any-supervised-learning-model-02dd62cd4bda?source=collection_archive---------0-----------------------#2024-02-22](https://towardsdatascience.com/how-to-forecast-time-series-data-using-any-supervised-learning-model-02dd62cd4bda?source=collection_archive---------0-----------------------#2024-02-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Featurizing time series data into a standard tabular format for classical ML
+    models and improving accuracy using AutoML
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mturk24?source=post_page---byline--02dd62cd4bda--------------------------------)[![Matthew
+    Turk](../Images/2c000da20cc4e662d1fd21e0eca90988.png)](https://medium.com/@mturk24?source=post_page---byline--02dd62cd4bda--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02dd62cd4bda--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02dd62cd4bda--------------------------------)
+    [Matthew Turk](https://medium.com/@mturk24?source=post_page---byline--02dd62cd4bda--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02dd62cd4bda--------------------------------)
+    ·10 min read·Feb 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c143b6e4b58b16095c1e0dda4e22ce73.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: [Ahasanara Akter](https://www.vecteezy.com/members/ahasanaraakter)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article delves into enhancing the process of forecasting daily energy consumption
+    levels by transforming a time series dataset into a tabular format using open-source
+    libraries. We explore the application of a popular multiclass classification model
+    and leverage AutoML with Cleanlab Studio to significantly boost our out-of-sample
+    accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key takeaway from this article is that we can utilize more general methods
+    to model a time series dataset by converting it to a tabular structure, and even
+    find improvements in trying to predict this time series data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a Snapshot
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'At a high level we will:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Establish a baseline accuracy by fitting a Prophet forecasting model on our
+    time series data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Convert our time series data into a tabular format by using open-source featurization
+    libraries and then will show that can outperform our Prophet model with a standard
+    multiclass classification (Gradient Boosting) approach by a **67% reduction in
+    prediction error** (increase by 38% raw percentage points in out-of-sample accuracy).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use an AutoML solution for multiclass classification **resulted in a 42% reduction
+    in prediction error** (increase by 8% in raw percentage points in out-of-sample
+    accuracy) compared to our Gradient Boosting model and **resulted in a 81% reduction
+    in prediction error** (increase by 46% in raw percentage points in out-of-sample
+    accuracy) compared to our Prophet forecasting model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To run the code demonstrated in this article, here’s the [full notebook](https://github.com/mturk24/blog_posts/blob/main/time_series_automl/time_series_automl.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Examine the Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can download the dataset [here](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption?select=PJME_hourly.csv).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data represents PJM hourly energy consumption (in megawatts) on an hourly
+    basis. PJM Interconnection LLC (PJM) is a regional transmission organization (RTO)
+    in the United States. It is part of the Eastern Interconnection grid operating
+    an electric transmission system serving many states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s take a look at our dataset. The data includes one datetime column (`object`
+    type), and the Megawatt Energy Consumption (`float64`) type) column we are trying
+    to forecast as a discrete variable (corresponding to the quartile of hourly energy
+    consumption levels). Our aim is to train a time series forecasting model to be
+    able to forecast the tomorrow’s daily energy consumption level falling into 1
+    of 4 levels: `low` , `below average` , `above average` or `high` (these levels
+    were determined based on quartiles of the overall daily consumption distribution).
+    We first demonstrate how to apply time-series forecasting methods like Prophet
+    to this problem, but these are restricted to certain types of ML models suitable
+    for time-series data. Next we demonstrate how to reframe this problem into a standard
+    multiclass classification problem that we can apply any machine learning model
+    to, and show how we can obtain superior forecasts by using powerful supervised
+    ML.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We first convert this data into a average energy consumption at a daily level
+    and rename the columns to the format that the Prophet forecasting model expects.
+    These real-valued daily energy consumption levels are converted into quartiles,
+    which is the value we are trying to predict. Our training data is shown below
+    along with the quartile each daily energy consumption level falls into. The quartiles
+    are computed using training data to prevent data leakage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now show the training data below, which is the data we are using to fit our
+    forecasting model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/853f65f5e4e0336e3d5a2d015e420413.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training data with quartile of daily energy consumption level included
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then show the test data below, which is the data we are evaluating our forecasting
+    results against.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7d8f8c364bbda6c109fefa760b02272d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Test data with quartile of daily energy consumption level included
+  prefs: []
+  type: TYPE_NORMAL
+- en: Train and Evaluate Prophet Forecasting Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As seen in the images above, we will use a date cutoff of `2015-04-09` to end
+    the range of our training data and start our test data at `2015-04-10` . We compute
+    quartile thresholds of our daily energy consumption using ONLY training data.
+    This avoids data leakage - using out-of-sample data that is available only in
+    the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we will forecast the daily PJME energy consumption level (in MW) for the
+    duration of our test data and represent the forecasted values as a discrete variable.
+    This variable represents which quartile the daily energy consumption level falls
+    into, represented categorically as 1 (`low`), 2 (`below average`), 3 (`above average`),
+    or 4 (`high`). For evaluation, we are going to use the `accuracy_score` function
+    from `scikit-learn` to evaluate the performance of our models. Since we are formulating
+    the problem this way, we are able to evaluate our model’s next-day forecasts (and
+    compare future models) using classification accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The out-of-sample accuracy is quite poor at 43%. By modelling our time series
+    this way, we limit ourselves to only use time series forecasting models (a limited
+    subset of possible ML models). In the next section, we consider how we can more
+    flexibly model this data by transforming the time-series into a standard tabular
+    dataset via appropriate featurization. Once the time-series has been transformed
+    into a standard tabular dataset, we’re able to employ any supervised ML model
+    for forecasting this daily energy consumption data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Convert time series data to tabular data through featurization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we convert the time series data into a tabular format and featurize the
+    data using the open source libraries `sktime`, `tsfresh`, and `tsfel`. By employing
+    libraries like these, we can extract a wide array of features that capture underlying
+    patterns and characteristics of the time series data. This includes statistical,
+    temporal, and possibly spectral features, which provide a comprehensive snapshot
+    of the data's behavior over time. By breaking down time series into individual
+    features, it becomes easier to understand how different aspects of the data influence
+    the target variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`TSFreshFeatureExtractor` is a feature extraction tool from the `sktime` library
+    that leverages the capabilities of `tsfresh` to extract relevant features from
+    time series data. `tsfresh` is designed to automatically calculate a vast number
+    of time series characteristics, which can be highly beneficial for understanding
+    complex temporal dynamics. For our use case, we make use of the minimal and essential
+    set of features from our `TSFreshFeatureExtractor` to featurize our data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`tsfel`, or Time Series Feature Extraction Library, offers a comprehensive
+    suite of tools for extracting features from time series data. We make use of a
+    predefined config that allows for a rich set of features (e.g., statistical, temporal,
+    spectral) to be constructed from the energy consumption time series data, capturing
+    a wide range of characteristics that might be relevant for our classification
+    task.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we clean our dataset by removing features that showed a high correlation
+    (above 0.8) with our target variable — average daily energy consumption levels
+    — and those with null correlations. High correlation features can lead to overfitting,
+    where the model performs well on training data but poorly on unseen data. Null-correlated
+    features, on the other hand, provide no value as they lack a definable relationship
+    with the target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By excluding these features, we aim to improve model generalizability and ensure
+    that our predictions are based on a balanced and meaningful set of data inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we look at the first several rows of the training data now, this is a snapshot
+    of what it looks like. We now have 73 features that were added from the time series
+    featurization libraries we used. The label we are going to predict based on these
+    features is the next day’s energy consumption level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b848d10e4e2b4dc50a8d87d45c91344c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: First 5 rows of training data which is newly featurized and in a tabular format
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s important to note that we used a best practice of applying the featurization
+    process separately for training and test data to avoid data leakage (and the held-out
+    test data are our most recent observations).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, we compute our discrete quartile value (using the quartiles we originally
+    defined) using the following code to obtain our train/test energy labels, which
+    is what our y_labels are.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Train and Evaluate GradientBoostingClassifier Model on featurized tabular data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Using our featurized tabular dataset, we can apply any supervised ML model to
+    predict future energy consumption levels. Here we’ll use a Gradient Boosting Classifier
+    (GBC) model, the weapon of choice for most data scientists operating on tabular
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our GBC model is instantiated from the `sklearn.ensemble` module and configured
+    with specific hyperparameters to optimize its performance and avoid overfitting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The out-of-sample accuracy of 81% is considerably better than our prior Prophet
+    model results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using AutoML to streamline things
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we’ve seen how to featurize the time-series problem and the benefits
+    of applying powerful ML models like Gradient Boosting, a natural question emerges:
+    Which supervised ML model should we apply? Of course, we could experiment with
+    many models, tune their hyperparameters, and ensemble them together. An easier
+    solution is to let AutoML handle all of this for us.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here we’ll use a simple AutoML solution provided in [Cleanlab Studio](https://cleanlab.ai/),
+    which involves zero configuration. We just provide our tabular dataset, and the
+    platform automatically trains many types of supervised ML models (including Gradient
+    Boosting among others), tunes their hyperparameters, and determines which models
+    are best to combine into a single predictor. Here’s all the code needed to train
+    and deploy an AutoML supervised classifier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below we can see model evaluation estimates in the AutoML platform, showing
+    all of the different types of ML models that were automatically fit and evaluated
+    (including multiple Gradient Boosting models), as well as an ensemble predictor
+    constructed by optimally combining their predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74c3bf0f045edd844f9b2651ce32701b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AutoML results across different types of models used
+  prefs: []
+  type: TYPE_NORMAL
+- en: After running inference on our test data to obtain the next-day energy consumption
+    level predictions, we see the test accuracy is 89%, a 8% raw percentage points
+    improvement compared to our previous Gradient Boosting approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9ab4cd48956b723421b807d7b19d0c00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AutoML test accuracy on our daily energy consumption level data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For our PJM daily energy consumption data, we found that transforming the data
+    into a tabular format and featurizing it achieved a **67% reduction in prediction
+    error** (increase by 38% in raw percentage points in out-of-sample accuracy) compared
+    to our baseline accuracy established with our Prophet forecasting model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also tried an easy AutoML approach for multiclass classification, which **resulted
+    in a 42% reduction in prediction error** (increase by 8% in raw percentage points
+    in out-of-sample accuracy) compared to our Gradient Boosting model and **resulted
+    in a 81% reduction in prediction error** (increase by 46% in raw percentage points
+    in out-of-sample accuracy) compared to our Prophet forecasting model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By taking approaches like those illustrated above to model a time series dataset
+    beyond the constrained approach of only considering forecasting methods, we can
+    apply more general supervised ML techniques and achieve better results for certain
+    types of forecasting problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL

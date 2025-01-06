@@ -1,0 +1,453 @@
+- en: 'Understanding Tensors: Learning a Data Structure Through 3 Pesky Errors'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understanding-tensors-learning-a-data-structure-through-3-pesky-errors-6d674776be0c?source=collection_archive---------4-----------------------#2024-03-13](https://towardsdatascience.com/understanding-tensors-learning-a-data-structure-through-3-pesky-errors-6d674776be0c?source=collection_archive---------4-----------------------#2024-03-13)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What working through TensorFlow errors has taught me about tensors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)[![Eva
+    Revear](../Images/675266fccb503690d50d83b8c92f48b8.png)](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------)
+    [Eva Revear](https://medium.com/@erevear?source=post_page---byline--6d674776be0c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6d674776be0c--------------------------------)
+    ·11 min read·Mar 13, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/feff5a593eac65c3656a2db9bd90c879.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Michael Dziedzic](https://unsplash.com/@lazycreekimages?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ve recently been tinkering with deep learning models in Tensorflow, and have
+    accordingly been introduced to managing data as tensors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a Data Engineer that works all day in tables that I can easily slice, dice,
+    and visualize, I had absolutely no intuition around working with tensors, and
+    I seemed to constantly run into the same errors that, especially at first, went
+    way over my head.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, deep diving them has taught me a lot about tensors and TensorFlow,
+    and I wanted to consolidate those learnings here to use as a reference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have a favorite error, solution, or debugging tip, please leave a comment!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code recipes for debugging
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we dive into the errors themselves, I wanted to document a few of the
+    light-weight, simple bits and pieces of code that I’ve found helpful in debugging.
+    (Although it must be stated for legal reasons that we of course always debug with
+    official debugging features and never just dozens of print statements 🙂)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Seeing inside our Tensorflow Datasets**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First off, looking at our actual data. When we print a Dataframe or SELECT *
+    in SQL, we see the data! When we print a tensor dataset we see…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is all quite useful information, but it doesn’t help us understand what’s
+    actually going on in our data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To print a single tensor within the execution graph we can leverage tf.print.
+    This article is a wonderful deep dive into tf.print that I highly recommend if
+    you plan to use it often: [Using tf.Print() in TensorFlow](/using-tf-print-in-tensorflow-aa26e1cff11e)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But when working with Tensorflow datasets during development, sometimes we
+    need to see a few values at a time. For that we can loop through and print individual
+    pieces of data like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can also use skip to get to a specific index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Knowing our tensors’ specs**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When working with tensors we also need to know their shape, rank, dimension,
+    and data type (if some of that vocabulary is unfamiliar, as it was to me initially,
+    don’t worry, we’ll get back to it later in the article). Anyway, below are a few
+    lines of code to gather this information:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The above outputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Augmenting model.summary()**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, its is always helpful to be able to see how data is moving through
+    a model, and how shape changes throughout inputs and outputs between layers. The
+    source of many an error will be a mismatch between these expected input and output
+    shapes and the shape of a given tensor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[model.summary()](https://www.geeksforgeeks.org/tensorflow-js-tf-layersmodel-class-summary-method/)
+    of course gets the job done, but we can supplement that information with the following
+    snippet, which adds a bit more context with model and layer inputs and outputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Learning from our mistakes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So let’s jump into some errors!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rank
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'ValueError: Shape must be rank x but is rank y….'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Ok, first of all, what is a rank? Rank is just the unit of dimensionality we
+    use to describe tensors. A rank 0 tensor is a scalar value; a rank one tensor
+    is a vector; a rank two is a matrix, and so on for all n dimensional structures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take for example a 5 dimensional tensor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code above shows that each dimension of the five has a size of two. If
+    we wanted to index it, we could do so along any of these axes. To get at the last
+    element, 32, we would run something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The [official tensor documentation](https://www.tensorflow.org/guide/tensor#basics)
+    has some really helpful visualizations to make this a bit more comprehensible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Back to the error: it is just flagging that the tensor provided is a different
+    dimension than what is expected to a particular function. For example if the error
+    declares that the “Shape must be rank 1 but is rank 0…” it means that we are providing
+    a scalar value, and it expects a 1-D tensor.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take the example below where we are trying to multiply tensors together with
+    the matmul method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we take a peek at the [documentation](https://www.tensorflow.org/api_docs/python/tf/linalg/matmul),
+    matmul expects at least a rank 2 tensor, so multiplying the matrix by [1,2,3,4,5,6],
+    which is just an array, will raise this error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A great first step for this error is to dive into the documentation and understand
+    what the function you are using is looking for (Here’s a nice list of the functions
+    available on tensors: [raw_ops](https://www.tensorflow.org/api_docs/python/tf/raw_ops).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then use the rank method to determine what we are actually providing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As far as fixes go, tf.reshape is often a good option to start with. Let’s
+    take a brief moment to talk a little bit about tf.reshape, since it will be a
+    faithful companion throughout our Tensorflow journey: [tf.reshape(tensor, shape,
+    name=None)](https://www.tensorflow.org/api_docs/python/tf/reshape)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Reshape simply takes in the tensor we want to reshape, and another tensor containing
+    what we want the shape of the output to be. For example, let’s reshape our multiplication
+    input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our variable will turn into a (3,2) tensor (3 rows, 2 columns). A quick note,
+    tf.reshape(t, [3, -1]).numpy() will produce the same thing because the -1 tells
+    Tensorflow to compute the size of the dimension such that the total size remains
+    constant. The number of elements in the shape tensor is the rank.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we create a tensor with the proper rank, our multiplication will work just
+    fine!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Shape
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'ValueError: Input of layer is incompatible with layer….'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Having an intuitive understanding of tensor shape, and how it interacts and
+    changes across model layers has made life with deep learning significantly easier
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, getting basic vocab out of the way: the shape of a tensor refers to
+    the number of elements along each dimension, or axis of the tensor. For example,
+    a 2D tensor with 3 rows and 4 columns has a shape of (3, 4).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what can go wrong with shape? Glad you asked, quite a few things!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First and foremost the shape and rank of your training data must match the
+    input shape expected by the input layer. Let’s take a look at an example, a basic
+    CNN:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Trying to run the code above will result in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is because our model is expecting the input tensor to be of the shape (128,
+    128, 3) and our generated data is (64, 64, 3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a situation like this, our good friend, reshape, or another Tensorflow function,
+    resize, can help. If, as in the case above we are working with images, we can
+    simply run resize or change the expectations of our model’s input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this context, it is helpful to know a little about how common types of models
+    and model layers expect input of different shapes, so let’s take a little detour.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deep Neural Networks of Dense layers take in 1 dimensional tensors (or 2 dimensional,
+    depending on whether you include batch size, but we will talk about batch size
+    in a bit) of the format (feature_size, ) where feature_size is the number of features
+    in each sample.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Convolutional Neural Networks take in data representing images, using 3 dimensional
+    tensors of (width, height, channels) where channels are the color scheme, 1 for
+    gray scale, and 3 for RBG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And finally, Recurrent Neural Networks such as LTSMs take in 2 dimensions (time
+    steps, feature_size)
+  prefs: []
+  type: TYPE_NORMAL
+- en: But back to errors! Another common culprit in Tensorflow shape errors has to
+    do with how shape changes as data passes through the model layers. As previously
+    mentioned, different layers take in different input shapes, and they can also
+    reshape output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Returning to our CNN example from above, let’s break it again, by seeing what
+    happens when we remove the Flatten layer. If we try to run the code we will see
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is where printing all of our model input and output shapes along with our
+    data shapes comes in handy to help us pinpoint where there is a mismatch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: model.summary() will show us
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: And our further diagnostic will reveal
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is a lot of output, but we can see that dense_13 layer is looking for input
+    of (None, 50176) shape. However, conv2d_17 layer outputs (None, 28, 28, 64)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flatten layers transform the multi-dimensional output from previous layers into
+    a one-dimensional (flat) vector that the Dense layer expects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conv2d and Max Pooling layers change their input data in other interesting
+    ways as well, but those are out of scope for this article. For an awesome breakdown
+    take a look at: [Ultimate Guide to Input shape and Model Complexity in Neural
+    Networks](/ultimate-guide-to-input-shape-and-model-complexity-in-neural-networks-ae665c728f4b)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what about batch size?! I haven’t forgotten!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we break our code one more time by removing the .batch(32) from the dataset
+    in model.fit we will get the error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: That is because, the first dimension of a layer’s input is reserved for the
+    batch size or number of samples that we want the model to work through at a time.
+    For a great deep dive read through [Difference between batch and epoch](https://machinelearningmastery.com/difference-between-a-batch-and-an-epoch/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Batch size defaults to None prior to fitting, as we can see in the model summary
+    output, and our model expects us to set it elsewhere, depending on how we tune
+    the hyperparameter. We can also force it in our input layer by using batch_input_size
+    instead of input_size, but that decreases our flexibility in testing out different
+    values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Type
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'TypeError: Failed to convert object of type to Tensor. Unsupported object type'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Finally, let’s talk a bit about some data type specifics in Tensors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The error above is another, that, if you’re used to working in database systems
+    with tables built from all sorts of data, can be a bit baffling, but it is one
+    of the more simple to diagnose and fix, although there are a couple of common
+    causes to look out for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main issue is that, although tensors support a variety of [data types](https://www.tensorflow.org/api_docs/python/tf/dtypes),
+    when we convert a NumPy array to tensors (a common flow within deep learning),
+    the datatypes must be floats. The script below initializes a contrived example
+    of a dataframe with None and with string data points. Let’s walk through some
+    issue and fixes for this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this code will flag to us that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: The most obvious issue is that you are sending in a NumPy array that contains
+    some non float type, an object. If you have an actual column of categorical data,
+    there are many ways to convert that to numeric data (One shot encoding, etc) but
+    that is out of scope for this discussion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can determine that if we run print(X_train.dtypes), which will tell us what’s
+    in our dataframe that Tensorflow doesn’t like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we are running into non float data points, the line below will magically
+    solve all of our problems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another thing to check for is if you have None or np.nan anywhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To find out we can use a few lines of code such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Which tells us that we have nulls on rows 0 and 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: If so, and that is expected/intentional we need to replace those values with
+    an acceptable alternative. Fillna can help us here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: With these changes to the code below, our NumPy array will successfully convert
+    to a tensor dataset and we can train our model!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I often find that I learn the most about a particular technology when I have
+    to work through errors, and I hope this has been somewhat helpful to you too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have cool tips and tricks or fun Tensorflow errors please pass them along!
+  prefs: []
+  type: TYPE_NORMAL

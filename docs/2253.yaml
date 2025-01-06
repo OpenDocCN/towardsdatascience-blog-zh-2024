@@ -1,0 +1,307 @@
+- en: The Essential Guide to Effectively Summarizing Massive Documents, Part 1
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/demystifying-document-digestion-a-deep-dive-into-summarizing-massive-documents-part-1-53f2ed9a669d?source=collection_archive---------5-----------------------#2024-09-14](https://towardsdatascience.com/demystifying-document-digestion-a-deep-dive-into-summarizing-massive-documents-part-1-53f2ed9a669d?source=collection_archive---------5-----------------------#2024-09-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Document summarization is important for GenAI use-cases, but what if the documents
+    are too BIG!? Read on to find out how I have solved it.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vinayak.sengupta?source=post_page---byline--53f2ed9a669d--------------------------------)[![Vinayak
+    Sengupta](../Images/ae66b684329fd9e4f34cf1c21e0b3b57.png)](https://medium.com/@vinayak.sengupta?source=post_page---byline--53f2ed9a669d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--53f2ed9a669d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--53f2ed9a669d--------------------------------)
+    [Vinayak Sengupta](https://medium.com/@vinayak.sengupta?source=post_page---byline--53f2ed9a669d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--53f2ed9a669d--------------------------------)
+    ·8 min read·Sep 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a30c3d146fa1c3d85a1f30b369a5e24.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: “Summarizing a lot of text”— Image generated with GPT-4o
+  prefs: []
+  type: TYPE_NORMAL
+- en: Document summarization today has become one of the most (if not the most) common
+    problem statements to solve using modern Generative AI (GenAI) technology. Retrieval
+    Augmented Generation (RAG) is a common yet effective solution architecture used
+    to solve it (If you want a deeper dive into what RAG is, check out this [**blog**](https://medium.com/@vinayak.sengupta/exploring-the-core-of-augmented-intelligence-advancing-the-power-of-retrievers-in-rag-frameworks-3ef9fe273764)!).
+    But what if the document itself is so large that it cannot be sent as a whole
+    in a single API request? Or what if it produces too many chunks to cause the infamous
+    ‘Lost in the Middle’ context problem? In this article, I will discuss the challenges
+    we face with such a problem statement, and go through a step-by-step solution
+    that I applied using the guidance offered by Greg Kamradt in his [**GitHub repository**](https://github.com/gkamradt/langchain-tutorials/blob/main/data_generation/5%20Levels%20Of%20Summarization%20-%20Novice%20To%20Expert.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some “c*ontext”*
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: RAG is a well-discussed and widely implemented solution for addressing document
+    summarizing optimization using GenAI technologies. However, like any new technology
+    or solution, it is prone to edge-case challenges, especially in today’s enterprise
+    environment. Two main concerns are contextual length coupled with per-prompt cost
+    and the previously mentioned ‘Lost in the Middle’ context problem. Let’s dive
+    a bit deeper to understand these challenges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note***:* *I will be performing the exercises in Python using the LangChain,
+    Scikit-Learn, Numpy and Matplotlib libraries for quick iterations.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Context window and Cost constraints
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Today with automated workflows enabled by GenAI, analyzing big documents has
+    become an industry expectation/requirement. People want to quickly find relevant
+    information from medical reports or financial audits by just prompting the LLM.
+    But there is a caveat, enterprise documents are not like documents or datasets
+    we deal with in academics, the sizes are considerably bigger and the pertinent
+    information can be present pretty much anywhere in the documents. Hence, methods
+    like data cleaning/filtering are often not a viable option since domain knowledge
+    regarding these documents is not always given.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to this, even the latest Large Language Models (LLMs) like GPT-4o
+    by OpenAI with context windows of 128K tokens cannot just consume these documents
+    in one shot or even if they did, the quality of response will not meet standards,
+    especially for the cost it will incur. To showcase this, let’s take a real-world
+    example of trying to summarize the Employee Handbook of GitLab which can downloaded
+    [**here**](https://kocielnik.gitlab.io/gitlab_handbook_takeaway/about-the-handbook.html).
+    This document is available free of charge under the MIT license available on their
+    GitHub [repository](https://gitlab.com/kocielnik/gitlab_handbook_takeaway/-/blob/master/LICENSE).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 We start by loading the document and also initialize our LLM, to keep this
+    exercise relevant I will make use of GPT-4o.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 2 Then we can divide the document into smaller chunks (this is for *embedding*,
+    I will explain why in the later steps).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3 Now, let’s calculate how many tokens make up this document, for this we will
+    iterate through each document chunk and calculate the total tokens that make up
+    the document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we can see the number of tokens is 254,006, while the context window limit
+    for GPT-4o is 128,000\. This document cannot be sent in one go through the LLM’s
+    API. In addition to this, considering this model's pricing is $0.00500 / 1K input
+    tokens, a single request sent to OpenAI for this document would cost $1.27! This
+    does not sound horrible until you present this in an enterprise paradigm with
+    multiple users and daily interactions across many such large documents, especially
+    in a startup scenario where many GenAI solutions are being born.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lost in the Middle
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Another challenge faced by LLMs is the *Lost in the Middle,* context problem
+    as discussed in detail in this [**paper**](https://arxiv.org/abs/2307.03172).
+    Research and my experiences with RAG systems handling multiple documents describe
+    that LLMs are not very robust when it comes to extrapolating information from
+    long context inputs. Model performance degrades considerably when relevant information
+    is somewhere in the middle of the context. However, the performance improves when
+    the required information is either at the beginning or the end of the provided
+    context. Document Re-ranking is a solution that has become a subject of progressively
+    heavy discussion and research to tackle this specific issue. I will be exploring
+    a few of these methods in another post. For now, let us get back to the solution
+    we are exploring which utilizes K-Means Clustering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is K-Means Clustering?!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Okay, I admit I sneaked in a technical concept in the last section, allow me
+    to explain it (for those who may not be aware of the method, I got you).
+  prefs: []
+  type: TYPE_NORMAL
+- en: First the basics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To understand K-means clustering, we should first know what clustering is.
+    Consider this: we have a messy desk with pens, pencils, and notes all scattered
+    together. To clean up, one would group like items together like all pens in one
+    group, pencils in another, and notes in another creating essentially 3 separate
+    groups (not promoting segregation). Clustering is the same process where among
+    a collection of data (in our case the different chunks of document text), similar
+    data or information are grouped creating a clear separation of concerns for the
+    model, making it easier for our RAG system to pick and choose information effectively
+    and efficiently instead of having to go through it all like a greedy method.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: K, Means?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'K-means is a specific method to perform clustering (there are other methods
+    but let’s not information dump). Let me explain how it works in 5 simple steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Picking the number of groups (K)**: How many groups we want the data to be
+    divided into'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Selecting group centers**: Initially, a center value for each of the K-groups
+    is randomly selected'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Group assignment**: Each data point is then assigned to each group based
+    on how close it is to the previously chosen centers. Example: items closest to
+    center 1 are assigned to group 1, items closest to center 2 will be assigned to
+    group 2…and so on till Kth group.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Adjusting the centers**: After all the data points have been pigeonholed,
+    we calculate the average of the positions of the items in each group and these
+    averages become the new centers to improve accuracy (because we had initially
+    selected them at random).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Rinse and repeat:** With the new centers, the data point assignments are
+    again updated for the K-groups. This is done till the difference (mathematically
+    the ***Euclidean* *distance***) is minimal for items within a group and the maximal
+    from other data points of other groups, ergo optimal segregation.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: While this may be quite a simplified explanation, a more detailed and technical
+    explanation (for my fellow nerds) of this algorithm can be found [here](https://www.analyticsvidhya.com/blog/2019/08/comprehensive-guide-k-means-clustering/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enough theory, let’s code.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have discussed K-means clustering which is the main protagonist
+    in our journey to optimization, let us see how this robust algorithm can be used
+    in practice to summarize our Handbook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 Now that we have our chunks of document text, we will be embedding them into
+    vectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Maybe a little theory
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Alright, alright so maybe there’s more to learn here — what’s embedding? Vectors?!
+    and why?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Embedding & Vectors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Think of how a computer does things — it sees everything as binary, ergo the
+    best language to teach/instruct it is in numbers. Hence, an optimal way to have
+    complex ML systems understand our data is to see all that text as numbers, and
+    that very method by which we do this conversion is called **Embedding**. The number
+    list describing the text or word is known as **Vectors**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Embeddings can differ depending on how we want to describe our data and the
+    heuristics we choose. Let’s say we wanted to describe an apple, we need to consider
+    its color (Red), its shape (Roundness), and its size. Each of these could be encoded
+    as numbers, like the ‘redness’ could be an 8 on a scale of 1–10\. The roundness
+    could be 9 and the size could be 3 (inches in width). Hence, our vector for representing
+    the apple would be [8,9,3]. This very concept is applied in more complexity when
+    describing different qualities of documents where we want each number to map the
+    topic, the semantic relationships, etc. This would result in vectors having hundreds
+    or more numbers long.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, Why?!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now, what improvements does this method provide? Firstly as I mentioned before,
+    it makes data interpretation for the LLMs easier which provides better accuracy
+    in inference from the models. Secondly, it also helps massively, in memory optimization
+    (space complexity in technical terms), by reducing the amount of memory consumption
+    by converting the data into vectors. The paradigm of vectors is known as vector
+    space, for example: A document with 1000 words can be reduced to a 768-dimensional
+    vector representation, hence, resulting in a 768 number representation instead
+    of 1000 words.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A little deeper math (for my dear nerds again), “1234” in word (or strings in
+    computer language) form would consume 54 bytes of memory, while the 1234 in numeral
+    (integers in computer language) form would consume only 8 bytes! So if you were
+    to consider documents consuming Megabytes, we are reducing memory management costs
+    as well (yay, budget!).
+  prefs: []
+  type: TYPE_NORMAL
+- en: And we are back!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 5 Using the Scikit-Learn Python library for easy implementation, we first select
+    the number of clusters we want, in our case 15\. We then run the algorithm to
+    fit our embedded documents into 15 clusters. The parameter ‘random_state = 42’
+    means that we are shuffling the dataset to prevent pattern bias in our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also important to note that we are converting our list of embeddings into
+    a Numpy array (a mathematical representation of vectors for advanced operation
+    in the Numpy library). This is because Scikit-learn requires Numpy arrays for
+    K-means operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Class dismissed…for now.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I think this is a good place for a pit stop! We have covered much both in code
+    and theory. But no worries, I will be posting a second part covering how we make
+    use of these clusters in generating rich summaries for large documents. There
+    are going to be more interesting techniques to showcase and of course, I will
+    be explaining through all the theory and understanding as best as I can!
+  prefs: []
+  type: TYPE_NORMAL
+- en: So stay tuned! Also, I would love your feedback and any comments you may have
+    regarding this article, as it really helps me improve my content, and as always,
+    Thank you so much for trading and I hope it was worth the read!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/278c53b9d5784ee5ee150b91ba30a43d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Priscilla Du Preez 🇨🇦](https://unsplash.com/@priscilladupreez?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL

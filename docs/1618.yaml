@@ -1,0 +1,365 @@
+- en: Learn Transformer Fine-Tuning and Segment Anything
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30](https://towardsdatascience.com/learn-transformer-fine-tuning-and-segment-anything-481c6c4ac802?source=collection_archive---------0-----------------------#2024-06-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Train Meta’s Segment Anything Model (SAM) to segment high fidelity masks for
+    any domain
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Stefan
+    Todoran](../Images/37e67b874c85a58d597a6c8c82b1160f.png)](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)
+    [Stefan Todoran](https://todoran.medium.com/?source=post_page---byline--481c6c4ac802--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--481c6c4ac802--------------------------------)
+    ·11 min read·Jun 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The release of several powerful, open-source foundational models coupled with
+    advancements in fine-tuning have brought about a new paradigm in machine learning
+    and artificial intelligence. At the center of this revolution is the [transformer
+    model](https://arxiv.org/pdf/1706.03762).
+  prefs: []
+  type: TYPE_NORMAL
+- en: While high accuracy domain-specific models were once out of reach for all but
+    the most well funded corporations, today the foundational model paradigm allows
+    for even the modest resources available to student or independent researchers
+    to achieve results rivaling state of the art proprietary models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/79d4f3b808380557b9859fb5d468c3fd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Fine-tuning can greatly improve performance on out-of-distribution tasks (image
+    source: by author).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article explores the application of Meta’s Segment Anything Model (SAM)
+    to the remote sensing task of river pixel segmentation. If you’d like to jump
+    right in to the code the source file for this project is available on [GitHub](https://github.com/geo-smart/water-surf/blob/main/book/chapters/masking_distributed.ipynb)
+    and the data is on [HuggingFace](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1),
+    although reading the full article first is advised.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Project Requirements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first step is to either find or create a suitable dataset. Based on existing
+    literature, a good fine-tuning dataset for SAM will have at least 200–800 images.
+    A key lesson of the past decade of deep learning advancement is that more data
+    is always better, so you can’t go wrong with a larger fine-tuning dataset. However,
+    the goal behind foundational models is to allow even relatively small datasets
+    to be sufficient for strong performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It will also be necessary to have a HuggingFace account, which can be [created
+    here](https://huggingface.co/join). Using HuggingFace we can easily store and
+    fetch our dataset at any time from any device, which makes collaboration and reproducibility
+    easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last requirement is a device with a GPU on which we can run the training
+    workflow. An Nvidia T4 GPU, which is available for free through [Google Colab](https://colab.research.google.com/),
+    is sufficiently powerful to train the largest SAM model checkpoint (sam-vit-huge)
+    on 1000 images for 50 epochs in under 12 hours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid losing progress to usage limits on hosted runtimes, you can mount Google
+    Drive and save each model checkpoint there. Alternatively, deploy and connect
+    to a [GCP virtual machine](https://console.cloud.google.com/marketplace/product/colab-marketplace-image-public/colab)
+    to bypass limits altogether. If you’ve never used GCP before you are eligible
+    for a free $300 dollar credit, which is enough to train the model at least a dozen
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding SAM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we begin training, we need to understand the architecture of SAM. The
+    model contains three components: an image encoder from a minimally modified [masked
+    autoencoder](https://arxiv.org/pdf/2111.06377), a flexible prompt encoder capable
+    of processing diverse prompt types, and a quick and lightweight mask decoder.
+    One motivation behind the design is to allow fast, real-time segmentation on edge
+    devices (e.g. in the browser) since the image embedding only needs to be computed
+    once and the mask decoder can run in ~50ms on CPU.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1ca364b41e10eba87510cb407ede1fcf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The model architecture of SAM shows us what inputs the model accepts and which
+    portions of the model need to be trained (image source: [SAM GitHub](https://github.com/facebookresearch/segment-anything)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In theory, the image encoder has already learned the optimal way to embed an
+    image, identifying shapes, edges and other general visual features. Similarly,
+    in theory the prompt encoder is already able to optimally encode prompts. The
+    mask decoder is the part of the model architecture which takes these image and
+    prompt embeddings and actually creates the mask by operating on the image and
+    prompt embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As such, one approach is to freeze the model parameters associated with the
+    image and prompt encoders during training and to only update the mask decoder
+    weights. This approach has the benefit of allowing both supervised and unsupervised
+    downstream tasks, since control point and bounding box prompts are both automatable
+    and usable by humans.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9bd06d274db8c4e8c28203001b9df717.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Diagram showing the frozen SAM image encoder and mask decoder, alongside the
+    overloaded prompt encoder, used in the AutoSAM architecture (source: [AutoSAM
+    paper](https://arxiv.org/pdf/2306.06370)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative approach is to overload the prompt encoder, freezing the image
+    encoder and mask decoder and simply not using the original SAM mask encoder. For
+    example, the AutoSAM architecture uses a network based on Harmonic Dense Net to
+    produce prompt embeddings based on the image itself. In this tutorial we will
+    cover the first approach, freezing the image and prompt encoders and training
+    only the mask decoder, but code for this alternative approach can be found in
+    the AutoSAM [GitHub](https://github.com/talshaharabany/AutoSAM/blob/main/inference.py)
+    and [paper](https://arxiv.org/pdf/2306.06370).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configuring Prompts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next step is to determine what sorts of prompts the model will receive during
+    inference time, so that we can supply that type of prompt at training time. Personally
+    I would not advise the use of text prompts for any serious computer vision pipeline,
+    given the unpredictable/inconsistent nature of natural language processing. This
+    leaves points and bounding boxes, with the choice ultimately being down to the
+    particular nature of your specific dataset, although the literature has found
+    that bounding boxes outperform control points fairly consistently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reasons for this are not entirely clear, but it could be any of the following
+    factors, or some combination of them:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Good control points are more difficult to select at inference time (when the
+    ground truth mask is unknown) than bounding boxes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The space of possible point prompts is orders of magnitude larger than the space
+    of possible bounding box prompts, so it has not been as thoroughly trained.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The original SAM authors focused on the model’s zero-shot and few-shot (counted
+    in term of human prompt interactions) capabilities, so pretraining may have focused
+    more on bounding boxes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Regardless, river segmentation is actually a rare case in which point prompts
+    actually outperform bounding boxes (although only slightly, even with an extremely
+    favorable domain). Given that in any image of a river the body of water will stretch
+    from one end of the image to another, any encompassing bounding box will almost
+    always cover most of the image. Therefore the bounding box prompts for very different
+    portions of river can look extremely similar, in theory meaning that bounding
+    boxes provide the model with significantly less information than control points
+    and therefore leading to worse performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/caef3506b78c144b9dca83f9982381dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Control points, bounding box prompts, and the ground truth segmentation overlaid
+    on two sample training images (image source: by author).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how in the illustration above, although the true segmentation masks for
+    the two river portions are completely different, their respective bounding boxes
+    are nearly identical, while their points prompts differ (comparatively) more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other important factor to consider is how easily input prompts can be generated
+    at inference time. If you expect to have a human in the loop, then both bounding
+    boxes and control points are both fairly trivial to acquire at inference time.
+    However in the event that you intend to have a completely automated pipeline,
+    answering this questions becomes more involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether using control points or bounding boxes, generating the prompt typically
+    first involves estimating a rough mask for the object of interest. Bounding boxes
+    can then just be the minimum box which wraps the rough mask, whereas control points
+    need to be sampled from the rough mask. This means that bounding boxes are easier
+    to obtain when the ground truth mask is unknown, since the estimated mask for
+    the object of interest only needs to roughly match the same size and position
+    of the true object, whereas for control points the estimated mask would need to
+    more closely match the contours of the object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9b118912df2a60eb5dde9b81600cb6f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'When using an estimated mask as opposed to the ground truth, control point
+    placement may include mislabeled points, while bounding boxes are generally in
+    the right place (image source: by author).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For river segmentation, if we have access to both RGB and NIR, then we can use
+    spectral indices thresholding methods to obtain our rough mask. If we only have
+    access to RGB, we can convert the image to HSV and threshold all pixels within
+    a certain hue, saturation, and value range. Then, we can remove connected components
+    below a certain size threshold and use `erosion` from `skimage.morphology` to
+    make sure the only 1 pixels in our mask are those which were towards the center
+    of large blue blobs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Training
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To train our model, we need a data loader containing all of our training data
+    that we can iterate over for each training epoch. When we load our dataset from
+    HuggingFace, it takes the form of a `datasets.Dataset` class. If the dataset is
+    private, make sure to first install the HuggingFace CLI and sign in using `!huggingface-cli
+    login`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then need to code up our own custom dataset class which returns not just
+    an image and label for any index, but also the prompt. Below is an implementation
+    that can handle both control point and bounding box prompts. To be initialized,
+    it takes a HuggingFace `datasets.Dataset` instance and a SAM processor instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also have to define the `SAMDataset._getitem_ctrlpts` and `SAMDataset._getitem_bbox`
+    functions, although if you only plan to use one prompt type then you can refactor
+    the code to just directly handle that type in `SAMDataset.__getitem__` and remove
+    the helper function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting it all together, we can create a function which creates and returns
+    a PyTorch dataloader given either split of the HuggingFace dataset. Writing functions
+    which return dataloaders rather than just executing cells with the same code is
+    not only good practice for writing flexible and maintainable code, but is also
+    necessary if you plan to use [HuggingFace Accelerate](https://huggingface.co/docs/accelerate/index)
+    to run distributed training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this, training is simply a matter of loading the model, freezing the image
+    and prompt encoders, and training for the desired number of iterations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below is the basic outline of the training loop code. Note that the `forward_pass`,
+    `calculate loss`, `evaluate_model`, and `save_model_checkpoint` functions have
+    been left out for brevity, but implementations are available on the GitHub. The
+    forward pass code will differ slightly based on the prompt type, and the loss
+    calculation needs a special case based on prompt type as well; when using point
+    prompts, SAM returns a predicted mask for every single input point, so in order
+    to get a single mask which can be compared to the ground truth either the predicted
+    masks need to be averaged, or the best predicted mask needs to be selected (identified
+    based on SAM’s predicted IoU scores).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Tuning Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For the Elwha river project, the best setup achieved trained the “sam-vit-base”
+    model using a dataset of over 1k segmentation masks using a GCP instance in under
+    12 hours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compared with baseline SAM the fine-tuning drastically improved performance,
+    with the median mask going from unusable to highly accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2a00107139c1bb22dddf9d3a329fc6cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Fine-tuning SAM greatly improves segmentation performance relative to baseline
+    SAM with the default prompt (image source: by author).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One important fact to note is that the training dataset of 1k river images was
+    imperfect, with segmentation labels varying greatly in the amount of correctly
+    classified pixels. As such, the metrics shown above were calculated on a held-out
+    pixel perfect dataset of 225 river images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An interesting observed behavior was that the model learned to generalize from
+    the imperfect training data. When evaluating on datapoints where the training
+    example contained obvious misclassifications, we can observe that the models prediction
+    avoids the error. Notice how images in the top row which shows training samples
+    contains masks which do not fill the river in all the way to the bank, while the
+    bottom row showing model predictions more tightly segments river boundaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/711983a57ffa0c862d13e50b50b1f44b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Even with imperfect training data, fine-tuning SAM can lead to impressive generalization.
+    Notice how the predictions (bottom row) have less misclassifications and fill
+    the river more than the training data (top row). *Image by author.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Congratulations! If you’ve made it this far you’ve learned everything you need
+    to know to fully fine-tune Meta’s Segment Anything Model for any downstream vision
+    task!
+  prefs: []
+  type: TYPE_NORMAL
+- en: While your fine-tuning workflow will without a doubt differ from the implementation
+    presented in this tutorial, the knowledge gained from reading this will transfer
+    not only to your segmentation project, but to future your deep learning projects
+    and beyond.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep exploring the world of machine learning, stay curious, and as always, happy
+    coding!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Appendix
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The dataset used in this example is the [Elwha V1 dataset](https://huggingface.co/datasets/stodoran/elwha-segmentation-v1),
+    created by the [GeoSMART research lab](https://geo-smart.github.io/) from the
+    University of Washington for a research project on the application of fine-tuned
+    large vision transformers to geospatial segmentation tasks. The tutorial in this
+    article represents a condensed and more approachable version of the forthcoming
+    paper. At a high level, the Elwha V1 dataset consists of postprocessed model predictions
+    from a SAM checkpoint fine-tuned using a subset of the labeled orthoimagery published
+    by [Buscombe et al.](https://zenodo.org/records/10155783) and released on Zenodo.
+  prefs: []
+  type: TYPE_NORMAL

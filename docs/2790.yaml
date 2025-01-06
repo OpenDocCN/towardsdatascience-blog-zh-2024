@@ -1,0 +1,479 @@
+- en: Increasing Transformer Model Efficiency Through Attention Layer Optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/increasing-transformer-model-efficiency-through-attention-layer-optimization-fefa6f87b1d6?source=collection_archive---------2-----------------------#2024-11-18](https://towardsdatascience.com/increasing-transformer-model-efficiency-through-attention-layer-optimization-fefa6f87b1d6?source=collection_archive---------2-----------------------#2024-11-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How paying “better” attention can drive ML cost savings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--fefa6f87b1d6--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--fefa6f87b1d6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fefa6f87b1d6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fefa6f87b1d6--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--fefa6f87b1d6--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fefa6f87b1d6--------------------------------)
+    ·13 min read·Nov 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/392d04054c201f7813635598c7dd5502.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Andrew Seaman](https://unsplash.com/@amseaman?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduced in the landmark 2017 paper [*“Attention Is All You Need”*](https://arxiv.org/abs/1706.03762)
+    (Vaswani et al., 2017), the Transformer architecture is widely regarded as one
+    of the most influential scientific breakthroughs of the past decade. At the core
+    of the Transformer is the attention mechanism, a novel approach that enables AI
+    models to comprehend complex structures by focusing on different parts of input
+    sequences based on the task at hand. Originally demonstrated in the world of natural
+    language processing, the success of the Transformer architecture has quickly spread
+    to many other domains, including speech recognition, scene understanding, reinforcement
+    learning, protein structure prediction, and more. However, attention layers are
+    highly resource-intensive, and as these layers become the standard across increasingly
+    large models, the costs associated with their training and deployment have surged.
+    This has created an urgent need for strategies that reduce the computational cost
+    of this core layer so as to increase the efficiency and scalability of Transformer-based
+    AI models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we will explore several tools for optimizing attention in [PyTorch](https://pytorch.org/).
+    Our focus will be on methods that maintain the accuracy of the attention layer.
+    These will include [PyTorch SDPA](https://pytorch.org/tutorials/intermediate/scaled_dot_product_attention_tutorial.html),
+    [FlashAttention](https://pytorch.org/blog/flashattention-3/), [TransformerEngine](https://github.com/NVIDIA/TransformerEngine)
+    Attention, [FlexAttention](https://pytorch.org/blog/flexattention/), and [xFormer](https://github.com/facebookresearch/xformers)
+    attention. Other methods that reduce the computational cost via approximation
+    of the attention calculation (e.g., [DeepSpeed’s Sparse Attention](https://www.deepspeed.ai/tutorials/sparse-attention/),
+    [Longformer](https://github.com/allenai/longformer), [Linformer](https://arxiv.org/abs/2006.04768),
+    and more) will not be considered. Additionally, we will not discuss general optimization
+    techniques that, while beneficial to attention performance, are not specific to
+    the attention computation itself (e.g., [FP8 training](/accelerating-pytorch-training-workloads-with-fp8-5a5123aec7d7),
+    [model sharding](https://pytorch.org/blog/introducing-pytorch-fully-sharded-data-parallel-api/),
+    and [more](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, attention optimization is an active area of research with new methods
+    coming out on a pretty regular basis. Our goal is to increase your awareness of
+    some of the existing solutions and provide you with a foundation for further exploration
+    and experimentation. The code we will share below is intended for demonstrative
+    purposes only — we make no claims regarding its accuracy, optimality, or robustness.
+    Please do not interpret our mention of any platforms, libraries, or optimization
+    techniques as an endorsement for their use. The best options for you will depend
+    greatly on the specifics of your own use-case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many thanks to [Yitzhak Levi](https://www.linkedin.com/in/yitzhak-levi-49a217201/)
+    for his contributions to this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To facilitate our discussion, we build a [Vision Transformer](https://en.wikipedia.org/wiki/Vision_transformer)
+    (ViT)-backed classification model using the popular [timm](https://pypi.org/project/timm/)
+    Python package (version 0.9.7). We will use this model to illustrate the performance
+    impact of various attention kernels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start by defining a simplified Transformer block that allows for programming
+    the attention function by passing it into its constructor. Since attention implementations
+    assume specific input tensor formats, we also include an option for controlling
+    the format, ensuring compatibility with the attention kernel of our choosing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define a randomly generated dataset which we will use to feed to our model
+    during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we define our ViT training function. While our example focuses on demonstrating
+    a *training* workload, it is crucial to emphasize that optimizing the attention
+    layer is equally, if not more, important during model *inference*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The training function we define accepts the customized Transformer block and
+    a flag that controls the use of [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the code block below we define a PyTorch-native attention function and use
+    it to train our ViT model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We ran this on an [NVIDIA H100](https://www.nvidia.com/en-eu/data-center/h100/)
+    with [CUDA 12.4](https://developer.nvidia.com/cuda-toolkit) and [PyTorch](https://pytorch.org/)
+    2.5.1\. The uncompiled variant resulted in an average step time of 370 milliseconds
+    (ms), while the compiled variant improved to 242 ms. We will use these results
+    as a baseline for comparison as we consider alternative solutions for performing
+    the attention computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PyTorch SDPA
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'One of the easiest ways to boost the performance of our attention layers in
+    PyTorch is to use the [scaled_dot_product_attention](https://pytorch.org/docs/stable/generated/torch.nn.functional.scaled_dot_product_attention.html)
+    (SDPA) function. Currently in beta, PyTorch SDPA consolidates multiple kernel-level
+    optimizations and dynamically selects the most efficient one based on the input''s
+    properties. Supported backends (as of now) include: [FlashAttention-2](https://arxiv.org/abs/2307.08691),
+    [Memory-Efficient Attention](https://github.com/facebookresearch/xformers), a
+    C++-based Math Attention, and [CuDNN](https://pytorch.org/blog/pytorch2-5/#beta-cudnn-backend-for-sdpa).
+    These backends fuse together high-level operations while employing GPU-level optimizations
+    for increasing compute efficiency and memory utilization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SDPA is continuously evolving, with new and improved backend implementations
+    being introduced regularly. Staying up to date with the latest PyTorch releases
+    is key to leveraging the most recent performance improvements. For example, [PyTorch
+    2.5](https://pytorch.org/blog/pytorch2-5/) introduced an updated [CuDNN backend](https://pytorch.org/blog/pytorch2-5/#beta-cudnn-backend-for-sdpa)
+    featuring a specialized [SDPA primitive](https://developer.nvidia.com/blog/accelerating-transformers-with-nvidia-cudnn-9/)
+    specifically tailored for training on [NVIDIA Hopper architecture](https://www.nvidia.com/en-us/data-center/technologies/hopper-architecture/)
+    GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the code block below, we iterate through the list of supported backends
+    and assess the runtime performance of training with each one. We use a helper
+    function, *set_sdpa_backend*, for programming the SDPA backend:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We summarize our interim results in the table below
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7f98ef38f1ec30988ed4b79706748b20.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Step times for various attention functions (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the choice of SDPA backend has a noticeable impact on performance when
+    running in eager mode, the optimizations performed by [model compilation](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
+    appear to overshadow the differences between the attention kernels. Once again,
+    we caution against deriving any conclusions from these results as the performance
+    impact of different attention functions can vary significantly depending on the
+    specific model and use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Third-Party Attention Kernels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While PyTorch SDPA is a great place to start, using third-party attention kernels
+    can help accelerate your ML workloads further. These alternatives often come with
+    added flexibility, offering a wider range of configuration options for attention.
+    Some may also include optimizations tailored for specific hardware accelerators
+    or newer GPU architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will explore some of the third-party attention kernels available
+    and evaluate their potential impact on runtime performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FlashAttention-3
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While Pytorch SDPA supports a [FlashAttention](https://arxiv.org/abs/2307.08691)
+    backend, more advanced FlashAttention implementations can be found in the [flash-attn](https://pypi.org/project/flash-attn/)
+    library. Here we will explore the [FlashAttention-3](https://pytorch.org/blog/flashattention-3/)
+    beta release which boasts a speed of up to 2x compared to FlashAttention-2\. Given
+    the early stage in its development, FlashAttention-3 can only be installed directly
+    from the [GitHub repository](https://github.com/HazyResearch/flash-attention)
+    and its use is limited to certain head dimensions. Additionally, it does not yet
+    support model compilation. In the following code block, we configure our transformer
+    block to use flash-attn-3 while setting the attention input format to “bshd” (batch,
+    sequence, head, depth) to meet the expectations of the library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant step time was 240 ms, making it 5% faster than the SDPA flash-attn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transformer Engine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Transformer Engine](https://github.com/NVIDIA/TransformerEngine) (TE) is a
+    specialized library designed to accelerate Transformer models on NVIDIA GPUs.
+    TE is updated regularly with optimizations that leverage the capabilities of the
+    latest NVIDIA hardware and software offerings, giving users access to specialized
+    kernels long before they are integrated into general-purpose frameworks such as
+    PyTorch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the code block below we use [DotProductAttention](https://github.com/NVIDIA/TransformerEngine/blob/main/transformer_engine/pytorch/attention.py#L7271)
+    from [TE version 1.11.0](https://pypi.org/project/transformer-engine/). Similar
+    to PyTorch SDPA, TE supports a number of backends which are controlled via environment
+    variables. Here we demonstrate the use of the *NVTE_FUSED_ATTN* backend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: TE attention resulted in average step times of 243 ms and 204 ms for the eager
+    and compiled model variants, correspondingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: XFormer Attention
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Underlying the memory-efficient backend of PyTorch SDPA is an attention kernel
+    provided by the [xFormers](https://github.com/facebookresearch/xformers/tree/main)
+    library. Once again, we can go to the source to benefit from the latest kernel
+    optimizations and from the full set of API capabilities. In the following code
+    block we use the [memory_efficient_attention](https://facebookresearch.github.io/xformers/components/ops.html#xformers.ops.memory_efficient_attention)
+    operator from [xFormers version 0.0.28](https://pypi.org/project/xformers/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This eager model variant resulted in an average step time of 246 ms, making
+    it 10.5% faster than the SDPA memory efficient kernel. The compiled variant resulted
+    in a step time of 203 ms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The table below summarizes our experiments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e3051e670033c5e99bcdf855549632c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Step times for various attention functions (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The winner for the eager model was flash-attn-3 with an average step time that
+    is 54% faster than our baseline model. This translates to a similar 54% reduction
+    in training costs. In compiled mode, the performance across the optimized kernels
+    was more or less equal, with the fastest implementations achieving 202 ms, representing
+    a 20% improvement compared to the baseline experiment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned above, the precise impact savings is greatly dependent on the model
+    definition. To assess this variability, we reran the experiments using modified
+    settings that increased the attention sequence length to 3136 tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results are summarized in the table below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/54ce4ff619bd4657bb51114e22be1772.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results for large seqlen (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our immediate observation is that when the sequence length is greater the performance
+    impact of the attention kernels is far more pronounced. Once again, flash-attn-3
+    came out in front for the eager execution mode — this time with a ~5x increase
+    in performance compared to the PyTorch-native function. For the compiled model
+    we see that the TE kernel broke away from the pack with an overall best step-time
+    of 53 ms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Customizing Attention with FlexAttention
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Thus far, we’ve focused on the standard attention function. However, sometimes
+    we may want to use a variant of the typical attention computation in which we
+    either mask out some of the values of intermediate tensors or apply some operation
+    on them. These types of changes may interfere with our ability to use the optimized
+    attention blocks we covered above. In this section we discuss some of the ways
+    to address this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Leverage Advanced Kernel APIs**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many optimized attention kernels provide extensive APIs with controls for customizing
+    the attention computation. Before implementing a new solution, explore these APIs
+    to determine if they already support your required functionality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Implement a custom kernel:** If the existing APIs do not meet your needs,
+    you could consider creating your own custom attention implementation. In previous
+    posts (e.g., [here](/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e))
+    we discussed some of the pros and cons of custom kernel development. Achieving
+    optimal performance can be extremely difficult. If you do go down this path, one
+    approach might be to start with an existing (optimal) kernel and apply minimal
+    changes to integrate the desired change.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Use FlexAttention:** A recent addition to PyTorch, [FlexAttention](https://pytorch.org/blog/flexattention/)
+    empowers users to implement a wide variety of attention variants without needing
+    to compromise on performance. Denoting the result of the dot product of the query
+    and key tokens by *score*, [flex_attention](https://github.com/pytorch/pytorch/blob/v2.5.1/torch/nn/attention/flex_attention.py#L927)
+    allows for programming either a [*score_mod*](https://pytorch.org/blog/flexattention/#score-mod-examples)
+    function or a [*block_mask*](https://pytorch.org/blog/flexattention/#mask-mods)
+    mask that is automatically applied to the *score* tensor. See the [documentation](https://pytorch.org/blog/flexattention/)
+    as well as the accompanying [attention-gym](https://github.com/pytorch-labs/attention-gym)
+    repository for examples of the types of operations that the API enables.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[FlexAttention](https://pytorch.org/blog/flexattention/) works by [compiling](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)
+    the *score_mod* operator into the attention operator, thereby creating a single
+    fused kernel. It also leverages the sparsity of *block_masks* to avoid unnecessary
+    computations. The [benchmarks](https://pytorch.org/blog/flexattention/#performance)
+    reported in the [FlexAttention](https://pytorch.org/blog/flexattention/) documentation
+    show considerable performance gains for a variety of use cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s see both the *score_mod* and *block_mask* in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Score Mod Example — Soft-Capping with Tanh
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Soft-capping is a common technique used to control the logit sizes (e.g., see
+    [here](https://arxiv.org/pdf/1611.09940)). The following code block extends our
+    PyTorch-native attention kernel with soft-capping:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the code block below we train our model, first with our PyTorch-native kernel,
+    and then with the optimized Flex Attention API. These experiments were run with
+    the 3136-length sequence settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results of the experiments are captured in the table below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/de916d94926beddd350137bca752fa5b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Soft-cap step time results (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The impact of the Flash Attention kernel is clearly evident, delivering performance
+    boosts of approximately 3.5x in eager mode and 1.5x in compiled mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mask Mod Example — Neighborhood Masking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We assess the *mask_mod* functionality by applying a sparse mask to our attention
+    *score*. Recall that each token in our sequence represents a patch in our 2D input
+    image. We modify our kernel so that each token attends only to other tokens that
+    are within a 5x5 window in the corresponding 2-D token array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a baseline for our experiment, we use PyTorch SDPA which includes support
+    for passing in an attention mask. The following block includes the masked SDPA
+    experiment followed by the Flex Attention implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results of the experiments are captured below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e73e0cff7eb528d567982bc709f8bb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Masked attention step time results (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once again, Flex Attention offers a considerable performance boost, amounting
+    to 2.19x in eager mode and 2.59x in compiled mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flex Attention Limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Although we have succeeded in demonstrating the power and potential of Flex
+    Attention, there are a few limitations that should be noted:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Limited Scope of Modifications**: With Flex Attention you can (as of the
+    time of this writing) only modify the attention score (the result of the dot product
+    between the query and key tokens). It does not support changes at other stages
+    of the attention computation.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Dependency on torch.compile:** Given the reliance on torch.compile, care
+    must be taken to avoid excessive recompilations which could greatly degrade runtime
+    performance. For instance, while the support for [Document Masking](https://pytorch.org/blog/flexattention/#document-maskingjagged-sequences)
+    is very compelling, it will perform as expected only if the sum of the lengths
+    of all of the documents remains fixed.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**No Support for Trainable Parameters in *score_mod*:** At the time of this
+    writing, Flex Attention does not support a *score_mod* implementation that includes
+    *trainable* parameters. For example, while the documentation highlights support
+    for [relative position encodings](https://pytorch.org/blog/flexattention/#relative-position-encodings),
+    these are commonly implemented with *trainable* parameters (rather than fixed
+    values) which cannot currently be accommodated.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the face of these limitations, we can return to one of the other optimization
+    opportunities discussed above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As the reliance on transformer architectures and attention layers in ML models
+    increases, so does the need for tools and techniques for optimizing these components.
+    In this post, we have explored a number of attention kernel variants, each with
+    its own unique properties, capabilities, and limitations. Importantly, one size
+    does not fit all — different models and use cases will warrant the use of different
+    kernels and different optimization strategies. This underscores the importance
+    of having a wide variety of tools and techniques for optimizing attention layers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a [sequel to this post](https://chaimrand.medium.com/optimizing-transformer-models-for-variable-length-input-sequences-19fb88fddf71),
+    we will further explore attention layer optimization by focusing on applying some
+    of the tools we discussed to tackle the challenge of handling variable-sized input
+    sequences. Stay tuned…
+  prefs: []
+  type: TYPE_NORMAL

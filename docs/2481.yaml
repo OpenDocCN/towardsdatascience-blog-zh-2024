@@ -1,0 +1,644 @@
+- en: Low-Code Data Connectors and Destinations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/low-code-data-connectors-and-destinations-b044128c72ca?source=collection_archive---------11-----------------------#2024-10-10](https://towardsdatascience.com/low-code-data-connectors-and-destinations-b044128c72ca?source=collection_archive---------11-----------------------#2024-10-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Get started with Airbyte and Cloud Storage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://hectormrejia.medium.com/?source=post_page---byline--b044128c72ca--------------------------------)[![Hector
+    Andres Mejia Vallejo](../Images/e794e545531eeea552986ce7ceb6162f.png)](https://hectormrejia.medium.com/?source=post_page---byline--b044128c72ca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b044128c72ca--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b044128c72ca--------------------------------)
+    [Hector Andres Mejia Vallejo](https://hectormrejia.medium.com/?source=post_page---byline--b044128c72ca--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b044128c72ca--------------------------------)
+    ·11 min read·Oct 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coding the connectors yourself? Think very carefully
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Creating and maintaining a data platform is a hard challenge. Not only do you
+    have to make it scalable and useful, but every architectural decision builds up
+    over time. Data connectors are an essential part of such a platform. Of course,
+    how else are we going to get the data? And building them yourself from scratch
+    gives you **full control of how you want them to behave**. But beware, with ever-increasing
+    data sources in your platform, that can only mean the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating large volumes of code for every new connector.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Maintaining complex code for every single data connector.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Functions and definitions between classes may diverge over time, resulting in
+    even more complex maintenance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Of course, all three **can be mitigated** with well-defined practices in object-oriented
+    programming. But even still, **it will take many hours of coding** that could
+    be used in later stages to serve your data consumers faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a353f00b105a05e5bc1d3df787f9e00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data flowing like cars in a highway. Photo by [Stephan Seeber](https://unsplash.com/@stywo?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if you try low-code connectors?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Other options still give you the flexibility to define what data you want to
+    ingest and how with no to very little code involved. With this option, you get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Connectors with standardized behavior given the extraction methodology: No
+    divergent classes for two connectors that use REST APIs at their core, for instance.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Simple, but powerful user interfaces to build connections between sources and
+    destinations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Connectors that are maintained by the teams building the tools and the community.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These benefits allow you to **build data connections in minutes, instead of
+    hours.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nevertheless, I am not trying to sell you these tools; if and when you need
+    highly customizable logic for data ingestion, you are going to need to implement
+    it. So, do what is best for your application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The exercise: Airbyte with ADLS Gen2'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s jump right into it. I am using Azure for this tutorial. You can sign up
+    and get $200 worth of services for free to try the platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are going to deploy Airbyte Open Source using an Azure Kubernetes cluster
+    and use Azure Storage (ADLS) Gen 2 for cloud storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the infrastructure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, create the following resources:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Resource group** with the name of your choosing.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Azure Kubernetes Services**. To avoid significant costs, set a single node
+    pool with one node. However, that node needs enough resources. Otherwise, the
+    Airbyte syncs won’t start. An appropriate node size is ***Standard_D4s_v3.***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Azure Storage Account**. While creating git, turn on the hierarchical namespace
+    feature so the storage account becomes ADLS Gen2\. Now create a storage container
+    with any name you like.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Production Tip: Why the hierarchical namespace?*** *Object stores by default
+    have a flat storage environment. This has the benefit of infinite scalability,
+    with an important downside. For analytics workloads, this results in additional
+    overhead when reading, modifying, or moving files as the whole container has to
+    be scanned. Enabling this features brings hierarchical directories from filesystems
+    to scalable object storage.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Deploying Airbyte to Kubernetes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You need to install a few things on your shell first:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Azure-CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Helm](https://helm.sh/docs/intro/install/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Kubernetes command line tools (kubectl)](https://kubernetes.io/docs/tasks/tools/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Now, follow these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log into your Azure account using the shell.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Set the cluster credentials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Add remote helm repository and search for the Airbyte chart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create a unique Kubernetes namespace for the Airbyte deployments. I called it
+    ***dev-airbyte****.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Deploy Airbyte.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Wait a few minutes until the deployment is completed. Run the following command
+    to check if the pods are running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d52e441afa2593ab414f0da47a0cf780.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Airbyte pods ready! Screen capture taken by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Accessing the Airbyte web app locally**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After Airbyte is deployed you can get the container and port, and then run a
+    port forwarding command to map a port in your local machine to the port in the
+    Kubernetes web app pod. This will allow us to access the application using localhost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you go to ***127.0.0.1:8080*** on your machine, you should see the application.
+    Now, we can start adding data connectors!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Production Tip:*** *Port forwarding works only for your local machine and
+    must be done every time the shell is started. However, for data teams in real
+    scenarios, Kubernetes allows you to expose your application throughout a* [*virtual
+    private network*](https://learn.microsoft.com/en-us/azure/aks/internal-lb?tabs=set-service-annotations)*.
+    For that, you will need to switch to* [*Airbyte Self-managed enterprise*](https://docs.airbyte.com/enterprise-setup/)
+    *which provides* [*Single Sign-On*](https://docs.airbyte.com/access-management/sso-providers/azure-entra-id)
+    *with Cloud identity providers like Azure Active Directory to secure your workspace.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Setting up the data source
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The provider for the data in this exercise is called [Tiingo](https://www.tiingo.com/documentation/general/overview),
+    which serves very valuable information from the companies in the stock market.
+    They offer [a free license](https://www.tiingo.com/documentation/general/overview)
+    that will give you access to the end-of-day prices endpoint for any asset and
+    fundamental analysis for companies in the DOW 30\. Be mindful that **with the
+    free license, their data are for your eyes only**. If you want to share your creations
+    based on Tiingo, you must pay for a commercial license. For now, I will use the
+    free version and guide you through the tutorial without showing their actual stock
+    data to remain compliant with their rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Create the account](https://www.tiingo.com/documentation/general/overview).
+    Then, copy the API key provided to you. We are now ready to set up the source
+    in Airbyte.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Creating a data source in Airbyte**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the Airbyte app, go to ***Builder > Start from Scratch***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/812b3c82e58da3bdf5f9e49a7b75fe01.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Airbyte connector builder screen. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the API Base URL write [***https://api.tiingo.com/tiingo/***](https://api.tiingo.com/tiingo/)and
+    for the configuration click on the YAML button. Enter the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will allow the API token to be inserted in the header of every request.
+    Now, let’s add your first stream by clicking on the plus icon (+) on the left.
+    See the image below for guidance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bf9e5f12c1dc47849a790faba83a3d82.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Building the data source. Global Configuration. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**URL and stream partitioning**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the top write ***End of Day Prices***. This will be our stream name and
+    the URL path will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: What is this placeholder between ***{{}}***? These are variables filled by Airbyte
+    at runtime. In this case, Airbyte supports what they call stream partitioning,
+    which allows the connector to **make as many requests as the number of values
+    you have on your partition array**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68fe3ef2cb53068555465ea2fc4323ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Defining URL path and primary key. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Scroll down to parameterized requests, and check the box. In the parameter
+    values dropdown, click User Input, and on the value textbox enter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the ***config*** variable used here is also referenced in the API
+    Key in the global configuration. This variable holds the user inputs. Moreover,
+    the user input ***tickers_arr*** will hold an array of stock IDs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, on the ***Current Parameter Value Identifier*** textbox enter ***ticker***.
+    This is the key that is added to the **stream_partition** variable and references
+    a single stock ID from the array ***tickers_arr*** for a single HTTP request.
+    Below you can find screenshots of this process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7344e59366784a9b8e46e92d42c22883.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Defining the parameterized requests. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We are going to test it with 4 stock tickers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**BA** for Boeing Corp'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**CAT** for Caterpillar'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**CVX** for Chevron Corp'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**KO** for Coca-Cola'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'With the stream partitioning set up, the connector will make 4 requests to
+    the Tiingo server as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[***https://api.tiingo.com/tiingo/***](https://api.tiingo.com/tiingo/)***daily/BA/prices***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[***https://api.tiingo.com/tiingo/***](https://api.tiingo.com/tiingo/)***daily/CAT/prices***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[***https://api.tiingo.com/tiingo/***](https://api.tiingo.com/tiingo/)***daily/CVX/prices***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[***https://api.tiingo.com/tiingo/daily/KO/prices***](https://api.tiingo.com/tiingo/daily/KO/prices)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pretty cool, huh?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Production Tip:*** *Airbyte supports a parent stream, which allows us to
+    get the list for the partitioning using a request to some other endpoint, instead
+    of issuing the array elements ourselves. We are not doing that in this exercise,
+    but you can check it out* [*here*](https://docs.airbyte.com/connector-development/connector-builder-ui/partitioning#parent-stream)*.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Incremental Sync**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Airbyte supports syncing data in Incremental Append mode i.e.: syncing only
+    *new* or *modified* data. This prevents re-fetching data that you have already
+    replicated from a source. If the sync is running for the first time, it is equivalent
+    to a [Full Refresh](https://docs.airbyte.com/using-airbyte/core-concepts/sync-modes/full-refresh-append)
+    since all data will be considered as *new*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To implement this in our connector, scroll to **Incremental Sync** and check
+    the box. In the **cursor** field textbox write date since, according to the documentation,
+    that is the name of the date field indicating when the asset was updated. For
+    the cursor DateTime Formats, enter
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is the output format suggested by the API docs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the **Start DateTime dropdown** click Custom and on the textbox enter the
+    following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: It will tell Airbyte to insert the date corresponding to yesterday. For the
+    **End Datetime** leave the dropdown in **Now** to get data from the start date,
+    up until today. The screenshot below depicts these steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5cd1f3a8416f313df9514724e7611cca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding Incremental Start Datetime and End Datetime. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, check the boxes to inject the start and end time into the outgoing
+    HTTP request. The parameter names should be startDate and endDate, respectively.
+    These parameter names come from Tiingo documentation as well. An example request
+    will now look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[***https://api.tiingo.com/tiingo/daily/BA/prices?startDate=2024-09-20T13%3A54%3A20.000000Z&endDate=2024-09-23T13%3A54%3A20.000000Z***](https://api.tiingo.com/tiingo/daily/BA/prices?startDate=2024-09-20T13%3A54%3A20.000000Z&endDate=2024-09-23T13%3A54%3A20.000000Z)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/7ce827f23bcbac38adc32536fd8e1fc3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Start and End Time parameters for our incremental loads. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Control Fields**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are going to insert some information to enrich the data. For this, scroll
+    to the transformations section and check the box. Inside the transformation dropdown,
+    click on Add Field. The path is just the column name to be added, write process_date
+    with the value {{ today_utc() }}. This will just indicate the timestamp for which
+    the records were ingested into our system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, according to the documentation, the ticker of the asset is not returned
+    in the response, but we can easily add it using an additional transformation.
+    So, for path, write ticker and the value should be {{ stream_partition[‘ticker’]
+    }}. This will add the ticker value of the current stream partition as a column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5dd6fdc264b64ad6b7c3c34da2125965.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding our control fields to the API response. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Testing**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On the Testing values button, enter the list of tickers. A comma separates
+    each ticker: BA, CAT, CVX, KO.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should see something similar to the following image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c84d4c77e7b89e4b42052eccee1835d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice the two example partitions. These are two separate, parameterized requests
+    that Airbyte performed. You can also get information about the actual content
+    in your request, the generated schema of the data, and state information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the top right corner and click **publish** to save this connector. Give
+    it any name you want, I just called it Tiingo Connector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Connecting Airbyte to the object store**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s return to our storage service, go to ***Security + Networking > Access
+    keys***. Copy the account name and one of the access keys. Note: we need the access
+    key, not the connection string.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a0a893eec48cc4699adfa60c0e0ce34f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting the access keys for the azure storage account. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, go to your Airbyte app, select ***Destinations> Marketplace,*** and click
+    ***Azure Blob Storage***. Enter the account name, account key, and leave the other
+    configurations as in the image. Additionally, in the Optional fields, enter the
+    name of the container you created. Next, click on **Set up destination.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/905e407aa641d36903b82425992f7582.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Setting up the destination in Airbyte. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Production Tip:*** *Data assets from your organization need to be secured
+    so that the individuals or teams have access to only the files they need. You
+    can set up role-based access control at the storage account level with the Access
+    Control (IAM) button, and also set Access Control Lists (ACLs) when right clicking
+    folders, containers, or files.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Creating a connection from source to destination**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are four steps to build a connection in Airbyte and it will use the Tiingo
+    Connector and the Azure Storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Defining the source**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the Airbyte app, go to connections and create one. The first step is to set
+    up the source. Click ***Set up a new source.*** Then, on the ***Custom*** tab,
+    select the Tiingo connector we just created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e8af663b6df1908980692dfe2bfae4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Creating a source for the connection. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It will prompt you to enter the API Keys and stock tickers. Just copy the ones
+    you used while testing the source. Now click on ***Set up source***. It will test
+    the connector with your configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/67cf7b9b74f85e75cfd47462c052a461.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding user inputs for the source. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Defining the destination**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once it has passed, we will set up the destination, which is the one created
+    in the above section. At this time, Airbyte will also test the destination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90840b72922681efa4ccac4eb4e1ef68.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding the destination for the connection. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Defining streams**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The third step is to select the streams and the sync mode. As we only defined
+    one stream called ***End of Day Prices***, this is the only one available. As
+    for the sync modes, these are the options available for this exercise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Full Refresh | Overwrite:** This mode will retrieve all the data and replace
+    any existing data in the destination.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Full Refresh | Append**: This mode will also retrieve all of the data, but
+    it will append the new data to the destination. You must deduplicate or transform
+    your data properly to suit your needs afterward.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Incremental | Append:** This mode requests data given the incremental conditions
+    we defined while building the connector. Then, it will append the data to the
+    destination.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can read more about synch modes [here](https://docs.airbyte.com/using-airbyte/core-concepts/sync-modes/).
+    For now, choose ***Incremental | Append.***
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2a3c9165f9bb4530b65b269f360fc0ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Selecting the streams to ingest. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Final connection configurations**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here you can define the schedule you want, plus other additional settings. Click
+    ***finish and sync*** to prompt your first data extraction and ingestion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a7793c13f18d5914054a5f9d456a619.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Running the first synching process. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that’s it! The data is now ingested. Head back to the storage container
+    and you will see a new folder with one CSV file. With the append mode chosen,
+    whenever a sync is triggered, a new file appears in the folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3377672c7a3c6cf036baef6f8e84e9a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A new folder with the name of the stream is created. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/26caccaa6abe9cc899f7da740c84fbc1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data files as a result of multiple syncs in Airbyte. Image captured by me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can clearly see the power of these kinds of tools. In this case, Airbyte
+    allows you to get started with ingesting critical data in a matter of minutes
+    with production-grade connectors, without the need to maintain large amounts of
+    code. In addition, it allows incremental and full refresh modes with append or
+    overwrite capabilities. In this exercise, only the Rest API sources were demonstrated,
+    but there are many other source types, such as traditional databases, data warehouses,
+    object stores, and many other platforms. Finally, it also offers a variety of
+    destinations where your data can land and be analyzed further, greatly speeding
+    up the development process and allowing you to take your products to market faster!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading this article! If you enjoyed it, please give it a clap
+    and share. I do my best to write about the things I learn in the data world as
+    an appreciation for this community that has taught me so much.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Till the next time!
+  prefs: []
+  type: TYPE_NORMAL

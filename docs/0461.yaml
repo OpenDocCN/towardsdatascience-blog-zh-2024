@@ -1,0 +1,269 @@
+- en: Stream Processing with Python, Kafka & Faust
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/stream-processing-with-python-kafka-faust-a11740d0910c?source=collection_archive---------2-----------------------#2024-02-18](https://towardsdatascience.com/stream-processing-with-python-kafka-faust-a11740d0910c?source=collection_archive---------2-----------------------#2024-02-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to Stream and Apply Real-Time Prediction Models on High-Throughput Time-Series
+    Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@aliosia?source=post_page---byline--a11740d0910c--------------------------------)[![Ali
+    Osia](../Images/2ca3a785bc86bb71408f2c6a79f369af.png)](https://medium.com/@aliosia?source=post_page---byline--a11740d0910c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a11740d0910c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a11740d0910c--------------------------------)
+    [Ali Osia](https://medium.com/@aliosia?source=post_page---byline--a11740d0910c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a11740d0910c--------------------------------)
+    ·7 min read·Feb 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef4f06938ee58f847fdbc6bc1a65aaf2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [JJ Ying](https://unsplash.com/@jjying?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the stream processing libraries are not python friendly while the majority
+    of machine learning and data mining libraries are python based. Although the [Faust](https://faust-streaming.github.io/faust/introduction.html)
+    library aims to bring Kafka Streaming ideas into the Python ecosystem, it may
+    pose challenges in terms of ease of use. This document serves as a tutorial and
+    offers best practices for effectively utilizing Faust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the first section, I present an introductory overview of stream processing
+    concepts, drawing extensively from the book *Designing Data-Intensive Applications*
+    [1]. Following that, I explore the key functionalities of the Faust library, placing
+    emphasis on Faust windows, which are often difficult to grasp from the available
+    documentation and utilize efficiently. Consequently, I propose an alternative
+    approach to utilizing Faust windows by leveraging the library’s own functions.
+    Lastly, I share my experience implementing a similar pipeline on the Google Cloud
+    Platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stream Processing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A *stream* refers to unbounded data that is incrementally made available over
+    time. An *event* is a small, self-contained object that contains the details of
+    something happened at some point in time e.g. user interaction. An event is generated
+    by a *producer* (e.g. temperature sensor) and may be consumed by some *consumers*
+    (e.g. online dashboard). Traditional databases are ill-suited for storing events
+    in high throughput event streams. This is due to the need for consumers to periodically
+    poll the database to identify new events, resulting in significant overhead. Instead,
+    it is better for consumers to be notified when new events appear and *messaging
+    systems* are designed for doing this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A *message broker* is a widely adopted system for messaging, in which producers
+    write messages to the broker, and consumers are notified by the broker and receive
+    these messages. *AMQP-based message brokers*, like *RabbitMQ*, are commonly employed
+    for asynchronous message passing between services and task queues. Unlike databases,
+    they adopt a transient messaging mindset and delete a message only after it has
+    been acknowledged by its consumers. When processing messages becomes resource-intensive,
+    parallelization can be achieved by employing multiple consumers that read from
+    the same topic in a load-balanced manner. In this approach, messages are randomly
+    assigned to consumers for processing, potentially resulting in a different order
+    of processing compared to the order of receiving.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, *log-based message brokers* such as *Apache Kafka* combine
+    the durability of database storage with the low-latency notification capabilities
+    of messaging systems. They utilize a partitioned-log structure, where each partition
+    represents an append-only sequence of records stored on disk. This design enables
+    the re-reading of old messages. Load balancing in Kafka is achieved by assigning
+    a consumer to each partition and in this way, the order of message processing
+    aligns with the order of receiving, but the number of consumers is limited to
+    the number of partitions available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Stream processing* involves performing actions on a stream, such as processing
+    a stream and generate a new one, storing event data in a database, or visualizing
+    data on a dashboard. *Stream analytics* is a common use case where we aggregate
+    information from a sequence of events within a defined time window. *Tumbling
+    windows* (non-overlapping) and *hopping windows* (overlapping) are popular window
+    types used in stream analytics. Examples of stream analytics use cases can be
+    simply counting the number of events in the previous hour, or applying a complex
+    time-series prediction model on events.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stream analytics faces the challenge of distinguishing between event creation
+    time *(event time)* and event *processing time* as the processing of events may
+    introduce delays due to queuing or network issues. Defining windows based on processing
+    time is a simpler approach, especially when the processing delay is minimal. However,
+    defining windows based on event time poses a greater challenge. This is because
+    it is uncertain whether all the data within a window has been received or if there
+    are still pending events. Hence, it becomes necessary to handle *straggler events*
+    that arrive after the window has been considered complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In applications involving complex stream analytics, such as time-series prediction,
+    it is often necessary to process a sequence of ordered messages within a window
+    as a cohesive unit. In this situation, the messages exhibit strong inter-dependencies,
+    making it difficult to acknowledge and remove individual messages from the broker.
+    Consequently, a log-based message broker presents itself as a preferable option
+    for utilization. Furthermore, parallel processing may not be feasible or overly
+    intricate to implement in this context, as all the messages within a window need
+    to be considered together. However, applying a complex ML model to the data can
+    be computationally intensive, necessitating an alternative approach to parallel
+    processing. This document aims to propose a solution for effectively employing
+    a resource-intensive machine learning model in a high-throughput stream processing
+    application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Faust Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are several stream processing libraries available, such as Apache Kafka
+    Streams, Flink, Samza, Storm, and Spark Streaming. Each of these libraries has
+    its own strengths and weaknesses, but many of them are not particularly Python-friendly.
+    However, *Faust* is a Python-based stream processing library that use Kafka as
+    the underlying messaging system and aims to bring the ideas of Kafka Streams to
+    the Python ecosystem. Unfortunately, Faust’s documentation can be confusing, and
+    the source code can be difficult to comprehend. For instance, understanding how
+    windows work in Faust is challenging without referring to the complex source code.
+    Additionally, there are numerous open issues in the [Faust](https://github.com/robinhood/faust)
+    (v1) and the [Faust-Streaming](https://github.com/faust-streaming/faust) (v2)
+    repositories, and resolving these issues is not a straightforward process. In
+    the following, essential knowledge about Faust’s underlying structure will be
+    provided, along with code snippets to assist in effectively utilizing the Faust
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To utilize Faust, the initial step involves creating an *App* and configuring
+    the project by specifying the broker and other necessary parameters. One of the
+    useful parameters is the `table_cleanup_interval` that will be discussed later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then you can define a stream processor using the *agent* decorator to consume
+    from a Kafka topic and do something for every event it receives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: For keeping state in a stream processor, we can use Faust *Table.* A table is
+    a distributed in-memory dictionary, backed by a Kafka changelog topic. You can
+    think of `table` as a python dictionary that can be set within a stream processor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Faust Windows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s consider a time-series problem where every second, we require samples
+    from the previous 10 seconds to predict something. So we need 10s overlapping
+    windows with 1s overlap. To achieve this functionality, we can utilize Faust [*windowed
+    tables*](https://faust-streaming.github.io/faust/userguide/tables.html#windowing)which
+    are inadequately explained in the Faust documentation and often lead to confusion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ideally, a stream processing library should automatically perform the following
+    tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maintain a state for each window (list of events);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identify the relevant windows for a new event (the last 10 windows);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update the state of these windows (append the new event to the end of their
+    respective lists);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Apply a function when a window is closed, using the window’s state as input.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'In the code snippet below, you can observe the suggested approach in the Faust
+    documentation for constructing a window and utilizing it in a streaming processor
+    (refer to [this](https://github.com/faust-streaming/faust/blob/master/examples/windowed_aggregation.py)
+    example from the Faust library):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the provided code, the object `window_wrapper` is an instance of the [*WindowWrapper*](https://github.com/faust-streaming/faust/blob/ebf66ae031c3eb462ade320c73e84d1c4cb7a32f/faust/tables/wrappers.py#L312)
+    class that provides some of the required functionalities. The `expires` parameter
+    determines the duration of a window’s lifespan, starting from its creation. Once
+    this specified time has elapsed, the window is considered closed. Faust performs
+    periodic checks on the `table_cleanup_interval` duration to identify closed windows.
+    It then applies the `window_close` function, using the window state as its input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you call `window_wrapper[key]` it returns an object of type *WindowSet*,
+    which internally contains all the relevant windows. By calling `window_set.value()`,
+    you can access the state of the latest window, and you can also access previous
+    window states by calling `window_set.delta(30)` which gives the state at 30 seconds
+    ago. Additionally, you can update the state of the *latest* window by assigning
+    a new value to `window_wrapper[key]`. This approach works fine for tumbling windows.
+    However, it does not work for hopping windows where we need to update the state
+    of multiple windows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Faust Documentation:] At this point, when accessing data from a hopping table,
+    we always access the latest window for a given timestamp and we have no way of
+    modifying this behavior.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: While Faust provides support for maintaining the state of windows, identifying
+    relevant windows, and applying a function on closed windows, it does not fully
+    address the third functionality which involves updating the state of all relevant
+    windows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Google Cloud Solution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I would like to briefly discuss my negative experience with the Google Cloud
+    Platform (GCP). GCP recommends using Google Pub/Sub as the message broker, Apache
+    Beam as the stream processing library, Google Dataflow for execution, and Google
+    BigQuery as the database. However, when I attempted to use this stack, I encountered
+    numerous issues that made it quite challenging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working with Google Pub/Sub in Python proved to be slow (check [this](https://medium.com/google-cloud/how-long-does-google-dataflow-pick-and-process-pub-sub-messages-in-real-time-8ac19da774a2)
+    and [this](https://cloud.google.com/blog/products/data-analytics/testing-cloud-pubsub-clients-to-maximize-streaming-performance)),
+    leading me to abandon it in favor of Kafka. Apache Beam is a well-documented library,
+    however, using it with Kafka presented its own set of problems. The direct runner
+    was buggy, requiring the use of Dataflow and resulting in significant time delays
+    as I waited for machine provisioning. Furthermore, I experienced issues with delayed
+    triggering of windows, despite my unsuccessful attempts to resolve the problem
+    (check this [GitHub issue](https://github.com/apache/beam/issues/27238) and this
+    [Stack Overflow post](https://stackoverflow.com/questions/76545125/google-dataflow-has-delay-in-stream-jobs-using-apache-beam-and-kafka)).
+    Also debugging the entire system was a major challenge due to the complex integration
+    of multiple components, leaving me with limited control over the logs and making
+    it difficult to pinpoint the root cause of issues within Pub/Sub, Beam, Dataflow,
+    or BigQuery. In summary, my experience with the Google Cloud Platform was marred
+    by the slow performance of Google Pub/Sub in Python, the bugs encountered when
+    using Apache Beam with Kafka, and the overall difficulty in debugging the interconnected
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Kleppmann, Martin. *Designing data-intensive applications: The big ideas
+    behind reliable, scalable, and maintainable systems*. “ O’Reilly Media, Inc.”,
+    2017.'
+  prefs: []
+  type: TYPE_NORMAL

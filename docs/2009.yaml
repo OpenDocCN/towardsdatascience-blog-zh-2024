@@ -1,0 +1,229 @@
+- en: Exploring cancer types with neo4j
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-cancer-types-with-neo4j-43acf161362f?source=collection_archive---------0-----------------------#2024-08-17](https://towardsdatascience.com/exploring-cancer-types-with-neo4j-43acf161362f?source=collection_archive---------0-----------------------#2024-08-17)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to identify and visualise clusters in knowledge graphs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@david.arthur.wells?source=post_page---byline--43acf161362f--------------------------------)[![David
+    Wells](../Images/711a4195d0c9d82a9d6a72d649ae190b.png)](https://medium.com/@david.arthur.wells?source=post_page---byline--43acf161362f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--43acf161362f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--43acf161362f--------------------------------)
+    [David Wells](https://medium.com/@david.arthur.wells?source=post_page---byline--43acf161362f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--43acf161362f--------------------------------)
+    ·7 min read·Aug 17, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post we’ll identify and visualise different clusters of cancer types
+    by analysing [disease ontology](https://disease-ontology.org/) as a knowledge
+    graph. Specifically we’ll set up neo4j in a docker container, import the ontology,
+    generate graph clusters and embeddings, before using dimension reduction to plot
+    these clusters and derive some insights. Although we’re using `disease_ontology`
+    as an example, the same steps can be used to explore any ontology or graph database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a2f42430da71f0508ec76b117c2a73d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cancer types viewed as embeddings and coloured by cluster, image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ontology set up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a graph database, rather than storing data as rows (like a spreadsheet or
+    relational database) data is stored as nodes and relationships between nodes.
+    For example in the figure below we see that melanoma and carcinoma are SubCategories
+    Of cell type cancer tumour (shown by the SCO relationship). With this kind of
+    data we can clearly see that melanoma and carcinoma are related even though this
+    is not explicitly stated in the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f62ff219ffa0ba6fef53f0e626a9949.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Graph database example, image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ontologies are a formalised set of concepts and relationships between those
+    concepts. They are much easier for computers to parse than free text and therefore
+    easier to extract meaning from. Ontologies are widely used in biological sciences
+    and you may find an ontology you’re interested in at [https://obofoundry.org/](https://obofoundry.org/).
+    Here we’re focusing on the disease ontology which shows how different types of
+    diseases relate to each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neo4j is a tool for managing, querying and analysing graph databases. To make
+    it easier to set up we’ll use a docker container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the above command the `-publish` flags set ports to let python query the
+    database directly and let us access it through a browser. The `NEO4J_PLUGINS`
+    argument specifies which plugins to install. Unfortunately, the windows docker
+    image doesn’t seem to be able to handle the installation, so to follow along you’ll
+    need to install neo4j desktop manually. Don’t worry though, the other steps should
+    all still work for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While neo4j is running you can access your database by going to http://localhost:7474/
+    in your browser, or you can use the python driver to connect as below. Note that
+    we’re using the port we published with our docker command above and we’re authenticating
+    with the username and password we also defined above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once you have your neo4j database set up, it’s time to get some data. The neo4j
+    plug-in n10s is built to import and handle ontologies; you can use it to embed
+    your data into an existing ontology or to explore the ontology itself. With the
+    cypher commands below we first set some configs to make the results cleaner, then
+    we set up a uniqueness constraint, finally we actually import disease ontology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: To see how this can be done with the python driver, check out the full code
+    here [https://github.com/DAWells/do_onto/blob/main/import_ontology.py](https://github.com/DAWells/do_onto/blob/main/import_ontology.py)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we’ve imported the ontology you can explore it by opening http://localhost:7474/
+    in your web browser. This lets you explore a little of your ontology manually,
+    but we’re interested in the bigger picture so lets do some analysis. Specifically
+    we will do Louvain clustering and generate fast random projection embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clusters and embeddings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Louvain clustering is a clustering algorithm for networks like this. In short,
+    it identifies sets of nodes that are more connected to each other than they are
+    to the wider set of nodes; this set is then defined as a cluster. When applied
+    to an ontology it is a fast way to identify a set of related concepts. Fast random
+    projection on the other hand produces an embedding for each node, i.e. a numeric
+    vector where more similar nodes have more similar vectors. With these tools we
+    can identify which diseases are similar and quantify that similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To generate embeddings and clusters we have to “project” the parts of our graph
+    that we are interested in. Because ontologies are typically very large, this subsetting
+    is a simple way to speed up computation and avoid memory errors. In this example
+    we are only interested in cancers and not any other type of disease. We do this
+    with the cypher query below; we match the node with the label “cancer” and any
+    node that is related to this by one or more SCO or SCO_RESTRICTION relationships.
+    Because we want to include the relationships between cancer types we have a second
+    MATCH query that returns the connected cancer nodes and their relationships.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once we have the projection (which we have called “proj”) we can calculate the
+    clusters and embeddings and write them back to the original graph. Finally by
+    querying the graph we can get the new embeddings and clusters for each cancer
+    type which we can export to a csv file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s have a look at some of these clusters to see which type of cancers are
+    grouped together. After we’ve loaded the exported data into a pandas dataframe
+    in python we can inspect individual clusters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cluster 2168 is a set of pancreatic cancers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Cluster 174 is a larger group of cancers but mostly carcinomas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: These are sensible groupings, based on either organ or cancer type, and will
+    be useful for visualisation. The embeddings on the other hand are still too high
+    dimensional to be visualised meaningfully. Fortunately, TSNE is a very useful
+    method for dimension reduction. Here, we use TSNE to reduce the embedding from
+    128 dimensions down to 2, while still keeping closely related nodes close together.
+    We can verify that this has worked by plotting these two dimensions as a scatter
+    plot and colouring by the Louvain clusters. If these two methods agree we should
+    see nodes clustering by colour.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0518921a1cc8badb01af191ef86d9618.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: TSNE projection of Cancer embeddings coloured by cluster, image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which is exactly what we see, similar types of cancer are grouped together and
+    visible as clusters of a single colour. Note that some nodes of a single colour
+    are very far apart, this is because we’re having to reuse some colours as there
+    are 29 clusters and only 20 colours. This gives us a great overview of the structure
+    of our knowledge graph, but we can also add our own data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below we plot the frequency of cancer type as node size and the mortality rate
+    as the opacity ([Bray et al 2024](https://doi.org/10.3322/caac.21834)). I only
+    had access to this data for a few of the cancer types so I’ve only plotted those
+    nodes. Below we can see that liver cancer does not have an especially high incidence
+    over all. However, incidence rates of liver cancer are much higher than other
+    cancers within its cluster (shown in purple) like oropharynx, larynx, and nasopharynx.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/34f0f4f82189e41951de3914f13d783c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Frequency and mortality of cancers coloured by cluster, image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here we have used the disease ontology to group different cancers into clusters
+    which gives us the context to compare these diseases. Hopefully this little project
+    has shown you how to visually explore an ontology and add that information to
+    your own data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can check out the full code for this project at [https://github.com/DAWells/do_onto](https://github.com/DAWells/do_onto).
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Bray, F., Laversanne, M., Sung, H., Ferlay, J., Siegel, R. L., Soerjomataram,
+    I., & Jemal, A. (2024). Global cancer statistics 2022: GLOBOCAN estimates of incidence
+    and mortality worldwide for 36 cancers in 185 countries. CA: a cancer journal
+    for clinicians, 74(3), 229–263.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL

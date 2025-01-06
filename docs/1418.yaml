@@ -1,0 +1,382 @@
+- en: Automating Prompt Engineering with DSPy and Haystack
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/automating-prompt-engineering-with-dspy-and-haystack-926a637a3f43?source=collection_archive---------0-----------------------#2024-06-07](https://towardsdatascience.com/automating-prompt-engineering-with-dspy-and-haystack-926a637a3f43?source=collection_archive---------0-----------------------#2024-06-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Teach your LLM how to talk through examples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@dataqa?source=post_page---byline--926a637a3f43--------------------------------)[![Maria
+    Mestre](../Images/3e2586487691b731293b1bfa091b651e.png)](https://medium.com/@dataqa?source=post_page---byline--926a637a3f43--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--926a637a3f43--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--926a637a3f43--------------------------------)
+    [Maria Mestre](https://medium.com/@dataqa?source=post_page---byline--926a637a3f43--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--926a637a3f43--------------------------------)
+    ·9 min read·Jun 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da9ea834c6eb33d8ee5a3ba9234bf9f0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Markus Winkler](https://unsplash.com/@markuswinkler?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most frustrating parts of building gen-AI applications is the manual
+    process of optimising prompts. In a [publication](https://www.linkedin.com/blog/engineering/generative-ai/musings-on-building-a-generative-ai-product)
+    made by LinkedIn earlier this year, they described what they learned after deploying
+    an agentic RAG application. One of the main challenges was obtaining consistent
+    quality. They spent 4 months tweaking various parts of the application, including
+    prompts, to mitigate issues such as hallucination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DSPy is an open-source library that tries to parameterise prompts so that it
+    becomes an optimisation problem. The [original paper](https://arxiv.org/abs/2310.03714)
+    calls prompt engineering “brittle and unscalable” and compares it to “hand-tuning
+    the weights for a classifier”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Haystack](https://github.com/deepset-ai/haystack) is an open-source library
+    to build LLM applications, including RAG pipelines. It is platform-agnostic and
+    offers a large number of integrations with different LLM providers, search databases
+    and more. It also has its own [evaluation metrics](https://docs.haystack.deepset.ai/docs/evaluation).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will briefly go over the internals of DSPy, and show how
+    it can be used to teach an LLM to prefer more concise answers when answering questions
+    over an academic medical dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quick overview of DSPy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This [article](https://medium.com/towards-data-science/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7)
+    from TDS provides a great in-depth exploration of DSPy. We will be summarising
+    and using some of their examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to build a LLM application that can be optimised, DSPy offers two
+    main abstractions: **signatures** and **modules**. A signature is a way to define
+    the input and output of a system that interacts with LLMs. The signature is translated
+    internally into a prompt by DSPy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When using the DSPy `Predict` module (more on this later), this signature is
+    turned into the following prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, DSPy also has **modules** which define the “predictors” that have parameters
+    that can be optimised, such as the selection of few-shot examples. The simplest
+    module is `dspy.Predict` which does not modify the signature. Later in this article
+    we will use the module `dspy.ChainOfThought` which asks the LLM to provide reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Things start to get interesting once we try to optimise a module (or as DSPy
+    calls it “compiling” a module). When optimising a module, you typically need to
+    specify 3 things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the module to be optimised,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: a training set, which might have labels,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and some evaluation metrics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When using the `dspy.Predict` or the `dspy.ChainOfThought` modules, DSPy searches
+    through the training set and selects the best examples to add to the prompt as
+    few-shot examples. In the case of RAG, it can also include the context that was
+    used to get the final response. It calls these examples “demonstrations”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You also need to specify the type of [optimiser](https://dspy-docs.vercel.app/docs/building-blocks/optimizers)
+    you want to use to search through the parameter space. In this article, we use
+    the `BootstrapFewShot` optimiser. How does this algorithm work internally? It
+    is actually very simple and the paper provides some simplified pseudo-code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The search algorithm goes through every training input in the `trainset` , gets
+    a prediction and then checks whether it “passes” the metric by looking at `self.metric(example,
+    prediction, predicted_traces)`. If the metric passes, then the examples are added
+    to the `demonstrations` of the compiled program.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s create a custom Haystack pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The entire code can be found in this [cookbook with associated colab](https://github.com/deepset-ai/haystack-cookbook/blob/main/notebooks/prompt_optimization_with_dspy.ipynb),
+    so we will only go through some of the most important steps here. For the example,
+    we use a [dataset](https://huggingface.co/datasets/vblagoje/PubMedQA_instruction/viewer/default/train?row=0)
+    derived from the [PubMedQA dataset](https://github.com/pubmedqa/pubmedqa) (both
+    under the MIT license). It has questions based on abstracts of medical research
+    papers and their associated answers. Some of the answers provided can be quite
+    long, so we will be using DSPy to “teach” the LLM to prefer more concise answers,
+    while keeping the accuracy of the final answer high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After adding the first 1000 examples to an in-memory document store (which
+    can be replaced by any number of [retrievers](https://docs.haystack.deepset.ai/docs/retrievers)),
+    we can now build our RAG pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s try it out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The answer to the above question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ketamine inhibits the proliferation of rat neural stem cells in a dose-dependent
+    manner at concentrations of 200, 500, 800, and 1000µM. Additionally, ketamine
+    decreases intracellular Ca(2+) concentration, suppresses protein kinase C-α (PKCα)
+    activation, and phosphorylation of extracellular signal-regulated kinases 1/2
+    (ERK1/2) in rat neural stem cells. These effects do not seem to be mediated through
+    caspase-3-dependent apoptosis.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can see how the answers tend to be very detailed and long.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use DSPy to get more concise answers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We start by creating a DSPy signature of the input and output fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we can see, we already specify in our description that we are expecting a
+    short answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we create a DSPy module that will be later compiled:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are using the Haystack retriever previously defined to search the documents
+    in the document store `results = retriever.run(query=question)`. The prediction
+    step is done with the DSPy module `dspy.ChainOfThought` which teaches the LM to
+    think step-by-step before committing to the response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'During compilation, the prompt that will be optimised to look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68ebd2d7ccc8136d323e686b67686a38.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: All the bold text is replaced by the examples selected by DSPy and the question-context
+    for the specific query. Made by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, we have to define the metrics that we would like to optimise. The
+    evaluator will have two parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[SASEvaluator](https://docs.haystack.deepset.ai/docs/sasevaluator)` : The
+    semantic answer similarity metric is a score between 0 and 1 that computes the
+    similarity between the given output and the actual output.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will apply a penalty for answers that are longer than 20 words that will
+    grow proportionally to the number of words up to a maximum of 0.5.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our evaluation dataset is composed of 20 training examples and 50 examples in
+    the devset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we evaluate the current naive RAG pipeline with the code below, we get an
+    average score of 0.49.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Looking at some examples can give us some intuition on what the score is doing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question: Is increased time from neoadjuvant chemoradiation to surgery associated
+    with higher pathologic complete response rates in esophageal cancer?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Predicted answer: Yes, increased time from neoadjuvant chemoradiation to surgery
+    is associated with higher pathologic complete response rates in esophageal cancer.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Score: 0.78**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: But
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question: Is epileptic focus localization based on resting state interictal
+    MEG recordings feasible irrespective of the presence or absence of spikes?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Predicted answer: Yes.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Score: 0.089**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As we can see from the examples, if the answer is too short, it gets a low score
+    because its similarity with the ground truth answer drops.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We then compile the RAG pipeline with DSPy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: After we do this and re-evaluate the compiled pipeline, the score is now 0.69!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it’s time to get the final optimised prompt and add it into our Haystack
+    pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting the final prompt-optimised pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can see the few-shot examples selected by DSPy by looking at the `demos`
+    field in the `compiled_rag` object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are 2 types of examples provided in the final prompt: few-shot examples
+    and bootstrapped demos, like in the prompt shown above. The few-shot examples
+    are question-answer pairs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Whereas the bootstrapped demo has the full trace of the LLM, including the
+    context and reasoning provided (in the `rationale` field below):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'All we need to do now is extract these examples found by DSPy and insert them
+    in our Haystack pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Our new pipeline becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s check the same question we tried before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What effects does ketamine have on rat neural stem cells?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Before:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ketamine inhibits the proliferation of rat neural stem cells in a dose-dependent
+    manner at concentrations of 200, 500, 800, and 1000µM. Additionally, ketamine
+    decreases intracellular Ca(2+) concentration, suppresses protein kinase C-α (PKCα)
+    activation, and phosphorylation of extracellular signal-regulated kinases 1/2
+    (ERK1/2) in rat neural stem cells. These effects do not seem to be mediated through
+    caspase-3-dependent apoptosis.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'After:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ketamine at higher concentrations inhibits the proliferation of rat neural stem
+    cells, while not affecting apoptosis. Additionally, it decreases intracellular
+    calcium concentration and suppresses PKCα activation and ERK1/2 phosphorylation
+    in these cells.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Job done!
+  prefs: []
+  type: TYPE_NORMAL
+- en: A few words of conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, we have used DSPy to optimise the prompt used in a Haystack RAG
+    pipeline. We have done so by using a custom metric based on Haystack’s evaluation
+    framework that penalised the LLM for long answers while keeping the similarity
+    with the correct answer high. With this approach, we have managed to improve our
+    performance by almost 40% without having to do any manual prompt engineering.
+  prefs: []
+  type: TYPE_NORMAL

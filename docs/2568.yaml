@@ -1,0 +1,311 @@
+- en: The Power of Optimization in Designing Experiments Involving Small Samples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21](https://towardsdatascience.com/the-power-of-optimization-in-designing-experiments-involving-small-samples-de87f9783d3b?source=collection_archive---------6-----------------------#2024-10-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step guide to designing more precise experiments using optimization
+    in Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[![Leandro
+    Magga](../Images/75d2b6b31635ac2bd409bfb91d151ac4.png)](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)
+    [Leandro Magga](https://medium.com/@leandro.magga?source=post_page---byline--de87f9783d3b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--de87f9783d3b--------------------------------)
+    ·10 min read·Oct 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experimentation is the foundation for testing hypotheses with scientific rigor.In
+    medicine, it is used to assess the effect of new treatments on patients, while
+    in the digital world, tech giants like [Amazon](https://www.amazon.jobs/en/teams/aeo),
+    [Netflix](https://netflixtechblog.com/experimentation-is-a-major-focus-of-data-science-across-netflix-f67923f8e985),
+    and [Uber](https://www.uber.com/en-CL/blog/xp/) run thousands of experiments each
+    year to optimize and improve their platforms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For large-scale experiments, random assignment is commonly used and its considered
+    the “Gold Standard”. With a substantial amount of data, randomness tends to produce
+    comparable groups, where important pre-experiment factors are balanced and the
+    exchangeability assumption holds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, when the sample for an experiment is very small, random assignment
+    often fails to create statistically equivalent groups. So, **how can we split
+    units efficiently between treatment and control groups?**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What you will learn:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this post, I’ll explain an optimization-based approach to constructing equivalent
+    groups for an experiment which was proposed by Bertsimas et al. in [this article](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With a simple example in Python we’ll learn how to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Design an optimization-based experiment.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Perform inference using bootstrap techniques.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Implement the code in Python for your own experiments
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Power of Optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before diving into our example and Python code, let’s first discuss some insights
+    into the benefits of using an optimization-based approach to design experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization makes statistics more precise, allowing for a more powerful inference.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The optimization-based approach **matches the experimental groups to minimize
+    the en-masse discrepancies in means and variances**. This makes the statistics
+    much more precise, concentrating them tightly around their nominal values while
+    still being unbiased estimates. This increased precision allows for more powerful
+    inference (using the bootstrap algorithm, which we’ll cover later).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows researchers to draw statistically valid conclusions with less data,
+    reducing experimental costs — an important benefit in disciplines like oncology
+    research, where testing chemotherapy agents in mouse cancer models is both laborious
+    and expensive. Moreover, compared to other methods for small sample sizes, optimization
+    has been shown to outperform them, as we’ll see later with simulated experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s dive into an example to see how to apply this approach using Python!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the Algorithm in Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Case Study: A Drug Experiment with 20 Mice'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s consider an experiment with 20 mice, where we are interested in studying
+    the effect of a drug on tumor growth with varying initial tumor sizes. Suppose
+    that the initial tumor sizes are normally distributed with a mean of 200 mg and
+    a standard deviation of 300 mg (truncated to ensure non-negative values). We can
+    generate the population of mice with the following Python code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we need to divide the 20 rodents into two groups of 10 each — one group
+    will receive the treatment, while the other will receive a placebo. We’ll accomplish
+    this using optimization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will also assume that tumor growth is observed over a one-day period and
+    follows the Gompertz model (detailed in [*Mathematical Models in Cancer Research*](https://medium.com/r?url=https%3A%2F%2Fwww.semanticscholar.org%2Fpaper%2FMathematical-models-in-cancer-research-Wheldon%2F9e3176627ff018f369b87b1aa8c97df203020f76)).
+    The treatment is assumed to have a deterministic effect of reducing tumor size
+    by 250 mg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experimental Design
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We aim to formulate the creation of equivalent groups as an optimization problem,
+    where the objective is to minimize the discrepancy in both the mean and varianceof
+    the initial tumor weight.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To implement this, we need to follow three steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Paso 1: Normalize the Initial Tumor Weight'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, the entire sample must be pre-processed and the metric should be normalized
+    so that it has a mean of zero and unit variance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Paso 2: Create the groups using optimization'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Next, we need to implement the general optimization model that construct *m-groups*
+    with *k-subjects* each, minimizing the *maximum discrepancy between any two groups*
+    (a full description of the model variables can be found in [the article](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361))
+    and passing it the normalized metric:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/73f213fb1e811cde82574a44e4a94e8a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimization model that creates m-groups of k-units each (from [Bertsimas et
+    al. 2015](https://pubsonline.informs.org/doi/10.1287/opre.2015.1361)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The mathematical model can be implemented in Python using the ortools library
+    with the SCIP solver, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***Note:*** *The parameter* rho *controls the trade-off between minimizing
+    discrepancies in the first moment and second moment and is chosen by the researcher.
+    In our example, we have considered* rho *equals 0.5.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Paso 3: Randomize which group receives which treatment'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Lastly, we randomly determine which experimental mice group will receive the
+    drug, and which will receive the placebo:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s see the quality of the result by analyzing the mean and variance of the
+    initial tumor weights in both groups:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**This is the group division with minimal discrepancy** in the mean and variance
+    of pre-experimental tumor weights!Now let’s conduct the experiment and analyze
+    the results.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inference with bootstrap
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Simulating tumor growth**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Given the established treatment assignment, tumor growth is simulated over
+    one day using the Gompertz model, assuming an effect of -250 mg for the treated
+    group:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have the final tumor weights, we observe that the average final
+    tumor weight in the treatment group is 260 mg lower than in the control group.
+    However, to determine if this difference is statistically significant, we need
+    to apply the following bootstrap mechanism to calculate the p-value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bootstrap inference for optimization-based design**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: “In an optimization-based design, statistics like the average difference between
+    groups become more precise but no longer follow the usual distributions. Therefore,
+    a bootstrap inference method should be used to draw valid conclusions.”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The boostrap inference method proposed by [Bertsimas et al. (2015)](https://medium.com/r?url=https%3A%2F%2Fpubsonline.informs.org%2Fdoi%2F10.1287%2Fopre.2015.1361)
+    involves using sampling with replacement to construct the baseline distribution
+    of our estimator. In each iteration, the group division is performed using optimization,
+    and finally the the *p-value* is derived as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The observed difference of -260 mg between the groups is significant at the
+    5% significance level (the p-value less than 0.05). Therefore, we reject the null
+    hypothesis of equal means and conclude that the treatment had a statistically
+    significant effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results over 1000 mice experiments**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can simulate the experiment multiple times, generating populations of mice
+    with different initial tumor weights, drawn from the same normal distribution
+    with a mean of 200 mg and a standard deviation of 300 mg.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This allows us to compare the optimization-based design with other experimental
+    designs. In the following graph, I compare the optimization approach with simple
+    random assignment and stratified random assignment (where the strata were created
+    using a k-means algorithm based on initial tumor weight):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/95504d0add5f8dacff5e62d5f7f6d1e5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of 1000 simulated experiments to detect an effect of -250 mg (Image
+    by author).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In their article, the authors also compare the optimization-based approach with
+    re-randomization and pairwise matching across different effect sizes and group
+    sizes. I highly recommend reading the full article if you’re interested in exploring
+    the details further!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Congratulations! You’ve reached the end 🎉 If you found this article interesting,
+    consider following me. I often share ideas about optimization and causal inference.
+  prefs: []
+  type: TYPE_NORMAL

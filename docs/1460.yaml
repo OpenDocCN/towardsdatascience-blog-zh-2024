@@ -1,0 +1,575 @@
+- en: Anatomy of Windows Functions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/anatomy-of-windows-functions-08f04938b12b?source=collection_archive---------11-----------------------#2024-06-11](https://towardsdatascience.com/anatomy-of-windows-functions-08f04938b12b?source=collection_archive---------11-----------------------#2024-06-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Theory and practice of an underappreciated SQL operation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)[![João
+    Pedro](../Images/64a0e14527be213e5fde0a02439fbfa7.png)](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------)
+    [João Pedro](https://joaopedro214.medium.com/?source=post_page---byline--08f04938b12b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--08f04938b12b--------------------------------)
+    ·12 min read·Jun 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/372d1f6e1d8557debca3c91f47c3198b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Marcus Woodbridge](https://unsplash.com/@marcuswoodbridge?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The IT area is known for its constant changes, with new tools, new frameworks,
+    new cloud providers, and new LLMs being created every day. However, even in this
+    busy world, some principles, paradigms, and tools seem to challenge the *status
+    quo* of ‘nothing is forever’. And, in the data area, there is no example of this
+    as imposing as the SQL language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since its creation back in the 80s, it passed the age of Data Warehouses, materialized
+    itself in the Hadoop/Data-lake/Big Data as Hive, and is still alive today as one
+    of the Spark APIs. The world changed a lot but SQL remained not only alive but
+    very important and present.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But SQL is like chess, easy to understand the basic rules but hard to master!
+    It is a language with many possibilities, many ways to solve the same problem,
+    many functions and keywords, and, unfortunately, many underrated functionalities
+    that, if better known, could help us a lot when building queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because of this, in this post, I want to talk about one of the not-so-famous
+    SQL features that I found extremely useful when building my daily queries: Window
+    Functions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is a Window Function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The traditional and most famous SGBDs (PostgreSQL, MySQL, and Oracle) are based
+    on relational algebra concepts. In it, the lines are called tuples, and, the tables,
+    are relations. A relation is a set (in the mathematical sense) of tuples, i.e.
+    there is no ordering or connection between them. Because of that, there is no
+    default ordering of lines in a table, and the calculus performed on one line does
+    not impact and it is not impacted by the results of another. Even clauses like
+    ORDER BY, only order tables, and it is not possible to make calculus in a line
+    based on the values of other lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simply put, window functions fix this, extending the SQL functionalities, and
+    allowing us to perform calculations in one row based on the values ​​of other
+    lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basic cases for understanding/ The Anatomy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**1-Aggregating Without Aggregation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most trivial example to understand Windows functions is the ability to ‘*aggregate
+    without aggregation*’.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we made an aggregation with traditional GROUP BY, the whole table is condensed
+    into a second table, where each line represents a group’s element. With Windows
+    Functions, instead of condensing the lines, it’s possible to create a new column
+    in the same table containing the aggregation results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, if you need to add up all the expenses in your expense table,
+    traditionally you would do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With Windows functions, you would make something like that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The image below shows the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/515a0dd1db51ff15a16402b7e56af807.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 1\. Traditional Group By vs Windows Functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rather than creating a new table, it will return the aggregation’s value in
+    a new column. Note that the value is the same, but the table was not ‘*summarized*’,
+    the original lines were maintained — we just calculated an *aggregation without
+    aggregating* the table ;)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The OVER clause is the indication that we’re creating a window function. This
+    clause defines over which lines the calculation will be made. It is empty in the
+    code above, so it will calculate the SUM() over all the lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is useful when we need to make calculations based on totals (or averages,
+    minimums, maximums) of columns. For example, to calculate how much each expense
+    contributes in percentage relative to the total.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In real cases, we might also want the detail by some category, like in the
+    example in image 2, where we have company expenses by department. Again, we can
+    achieve the total spent by each department with a simple GROUP BY:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or specify a PARTITION logic in the window function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'See the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0947321d3d95e41d31ad0db854d715d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 2\. Traditional Group By vs Windows Functions II.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example helps to understand why the operation is called a ‘window’ function
+    — the OVER clause defines a set of lines over which the corresponding function
+    will operate, a ‘window’ in the table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case above, the SUM() function will operate in the partitions created
+    by the depto column (RH and SALES) — it will sum all the values in the ‘value’
+    column for each item in the depto column in isolation. The group the line is part
+    of (RH or SALES) determines the value in the ‘Total’ column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2 — Time and Ordering awareness**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sometimes we need to calculate the value of a column in a row based on the values
+    of other rows. A classic example is the yearly growth in a country’s GDP, computed
+    using the current and the previous value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Computations of this kind, where we need the value of the past year, the difference
+    between the current and the next rows, the first value of a series, and so on
+    are a testament to the Windows function’s power. In fact, I don’t know if this
+    behavior could be achieved with standard SQL commands! It probably could, but
+    would be a very complex query…
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But windows functions made it straightforward, see the image below (table recording
+    some child’s height):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d21d9b89afae09daf771815ebdbfa173.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 3\. Analytical Function example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The function LAG( ‘column’ ) is responsible for referencing the value of ‘column’
+    in the previous row. You can imagine it as a sequence of steps: In the second
+    line, consider the value of the first; In the third, the value of the second;
+    and so on… The first line doesn’t count (hence the *NULL*), as it has no predecessor.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Naturally, some ordering criterion is needed to define what the ‘previous line’
+    is. And that’s another important concept in Windows functions: **analytical functions**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In contrast to traditional SQL functions, analytical functions (like LAG) consider
+    that there exists an ordering in the lines — and this order is defined by the
+    clause ORDER BY inside OVER(), i.e., the concept of first, second, third lines
+    and so on is defined inside the OVER keyword. The main characteristic of these
+    functions is the ability to reference other rows relative to the current row:
+    LAG references the previous row, LEAD references the next rows, FIRST references
+    the first row in the partition, and so on.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One nice thing about LAG and LEAD is that both accept a second argument, the
+    offset, which specifies how many rows forward (for LEAD) or backward (for LAG)
+    to look.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And it is also perfectly possible to perform calculations with these functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**3 — Time Awareness and Aggregation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Time and space are only one — once said Einsteinm, or something like that, I
+    don’t know ¯\_(ツ)_/¯
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we know how to partition and order, we can use these two together!
+    Going back to the previous example, let’s suppose there are more kids on that
+    table and we need to compute the growth rate of each one. It’s very simple, just
+    combine ordering and partitioning! Let’s order by year and partition by child
+    name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/922cd5ae7576c1932396cd98d0439a81.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 4\. ORDER BY + PARTITION BY
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above query does the following — Partitions the table by child and, in each
+    partition, orders the values ​​by year and divides the current year height value
+    with the previous value (and subtracts the result from one).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’re getting closer to the full concept of ‘window’! It’s a table slice, a
+    set of rows grouped by the columns defined in PARTITION BY that are ordered by
+    the fields in ORDER BY, where all the computations are made considering only the
+    rows in the same group (partition) and a specific ordering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4-Ranking and Position**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Windows functions can be divided into three categories, two of which we already
+    talked about: Aggregation functions ( COUNT, SUM, AVG, MAX, … ) and Analytical
+    Functions ( LAG, LEAD, FIRST_VALUE, LAST_VALUE, … ).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third group is the simplest — Ranking Functions, with its greatest exponent
+    being the row_number() function, which returns an integer representing the position
+    of a row in the group (based on the defined order).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ranking functions, as the name indicates, return values based on the position
+    of the line in the group, defined by the ordering criteria. ROW_NUMBER, RANK,
+    and NTILE are some of the most used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/48c1e37784164faa6c962419619ba7d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 5\. Ranking Function example
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the image above, a row number is created based on each player’s score
+  prefs: []
+  type: TYPE_NORMAL
+- en: … and yes, it commits the atrocious programming sin of starting from 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**5-Window size**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the functions presented till this point consider ALL the rows in the partition/group
+    when computing the results. For example, the SUM() described in the first example
+    considers all department’s rows to compute the total.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But it is possible to specify a smaller window size, i.e. how many lines before
+    and after the current line should be considered in the computations. This is a
+    helpful functionality to calculate moving averages / rolling windows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s consider the following example, with a table containing the daily number
+    of cases of a certain disease, where we need to compute the average number of
+    cases considering the current day and the two previous. Note that it’s possible
+    to solve this problem with the LAG function, shown earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But we can achieve the same result more elegantly using the concept of **frames**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The frame above specifies that we must calculate the average looking only for
+    the two previous (PRECEDING) rows and the current row. If we desire to consider
+    the previous, the current line, and the following line, we can change the frame:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And that’s all a frame is — a way to limit a function’s reach to a specific
+    bound. By default (in most cases), windows functions consider the following frame:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/63a58c1627d3e6cb5a9756f33d45be17.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 6\. Exploring Window Size definition
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope this introduction helps you better understand what Windows functions
+    are, how they work, and their syntax in practice. Naturally, many more keywords
+    can be added to Windows functions, but I think this introduction already covers
+    many commands you’ll likely use in everyday life. Now, let’s see some interesting
+    practical applications that I use in my daily routine to solve problems — some
+    are very curious!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Curious and Interesting use cases for windows functions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Cumulative Sum over time
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is one of the most classic cases of using windows functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Imagine a table with your salary per month and you want to know how much you
+    earned in each month cumulatively (considering all previous months), this is how
+    it works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c463284ee60b1bc1514217408428556.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 7\. Practical example — Cumulative SUM
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pretty simple, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: An interesting thing to note in this query is that the SUM() function considers
+    the current row and all previous rows to calculate the aggregation, as mentioned
+    previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Duration of events in log tables
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I recently used this one in my post [**My First Billion (of Rows) in DuckDB**](/my-first-billion-of-rows-in-duckdb-11873e5edbb5),
+    in which I manipulate logs from electronic voting machines in Brazil, it’s worth
+    checking if you’re interested in the processing of large volumes of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In summary, imagine a log table in which each event is composed of a timestamp
+    that indicates when it started, its name, and a unique identifier. Considering
+    that each event only starts when the previous one ends, we can easily add a column
+    with the event duration as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1bd06a9e78748dcf647153074683b60.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 8\. Practical example — Event Duration in Logs
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fill missing values (With the last occurrence)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Machine learning classic with pandas! Just do a fillna, bfill or whatever, and
+    that’s it, we fill in the null values with the last valid occurrence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to do this in SQL? Simple!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f641b9eb882d0002c966009bd0bf68da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 8\. Practical example — Filling Missing Values I
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we first study machine learning, we work a lot with pandas and get used
+    to their high-level functions. However, when working on a real project, the data
+    volume can be very large, so we may not be lucky enough to use pandas and need
+    to switch to tools such as PySpark, Snowflake, Hive+hadoop, etc — all of which,
+    in one way or another, can be operated in SQL. Therefore, I think it is important
+    to learn how to do these treatments and preprocessing in SQL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filling missing values (With the avg of preceding rows)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A slightly more elaborate way of filling in null values, but still simple!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c734d992b57a4881e1a4b9376119521.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 8\. Practical example — Filling Missing Values II
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This example highlights that, despite seeming complicated and special, windows
+    functions can be used just like normal columns! They can be included in CASE,
+    calculations can be done with them and so on. One of the few restrictions I know
+    of is that they cannot be placed directly in a WHERE clause:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Row Deduplication based on a set of columns
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another classic of windows functions! Sometimes we need to deduplicate rows
+    in a table based on just one set of columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Of course, in SQL we have the DISTINCT clause, but it only works if the full
+    line is duplicated. If a table has several lines with the same value in an ID
+    column but with different values ​​in the remaining columns, it’s possible to
+    deduplicate with the following logic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0419e5ca21c880e1c1b1b7585aad7f1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 9\. Practical example — Deduplication
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This operation also allows data versioning! For example, if we save a new line
+    for each time a user changed their name in the system with the date of change
+    (instead of changing the existing line), we can retrieve each user’s current name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Percentage of occurrences of a group/class over the total number of rows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Consider a table that lists various pets, which can be dogs, cats, or birds.
+    We need to add a column to each row indicating the percentage that each pet type
+    represents out of the total count of all pets. This task is solved using not one,
+    but two window functions!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9510c84678562ece6e866050e410dbb8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image 10\. Practical example — Percentage of Occurences
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the image above, to make it more educational, I added two columns to represent
+    the result of each window function, but only the rightmost column is actually
+    created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And you, do you have any interesting windows functions cases that you would
+    like to share? Please leave it in the comments!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I wouldn’t dare say that SQL is vintage or classic, as these, although positive,
+    refer to the past. For me, SQL is present, pervasive, and, without a doubt, an
+    essential language for anyone working in the data area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, several problems may seem complicated to solve using just SQL itself
+    and, at these times, having a good knowledge of the language and its capabilities
+    is really important. Without windows functions, many problems considered common
+    — when looking from a Pythonic perspective — would be very difficult or even impossible
+    to solve. But we can do magic if we know how to use the tools correctly!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope this post has helped you better understand how Windows functions work
+    and what types of problems they can solve in practice. All the material presented
+    here was mainly based on PostgreSQL syntax and may not necessarily work right
+    away in another database, but the most important thing is the logic itself. As
+    always, I’m not an expert on the subject and I strongly recommend deeper reading
+    — and lots of practice — to anyone interested in the subject.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading! ;)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All the code is available in [this GitHub repository](https://github.com/jaumpedro214/posts/tree/main/sql_window_functions).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Interested in more works like this one? Visit my [posts repository](https://github.com/jaumpedro214/posts).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[1] *Data processing with PostgreSQL window functions*. (n.d.). Timescale.
+    [Link](https://www.timescale.com/learn/postgresql-window-functions).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Kho, J. (2022, June 5). An easy guide to advanced SQL window functions
+    — towards data science. [*Medium*](/a-guide-to-advanced-sql-window-functions-f63f2642cbf9).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Markingmyname. (2023, November 16). *Funções analíticas (Transact-SQL)
+    — SQL Server*. [Microsoft Learn](https://learn.microsoft.com/pt-br/sql/t-sql/functions/analytic-functions-transact-sql?view=sql-server-ver16).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] PostgreSQL Tutorial. (2021, April 27). *PostgreSQL Window Functions: The
+    Ultimate Guide*. [Link](https://www.postgresqltutorial.com/postgresql-window-function/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] VanMSFT. (2023, May 23). *OVER Clause (Transact-SQL) — SQL Server*. [Microsoft
+    Learn](https://learn.microsoft.com/en-us/sql/t-sql/queries/select-over-clause-transact-sql?view=sql-server-ver16).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] *Window Functions*. (n.d.). [SQLite Official docs](https://www.sqlite.org/draft/windowfunctions.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] *Window Functions*. (2014, July 24). [PostgreSQL Documentation](https://www.postgresql.org/docs/8.4/functions-window.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images in this post are made by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

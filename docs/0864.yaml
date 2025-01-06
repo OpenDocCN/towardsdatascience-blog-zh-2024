@@ -1,0 +1,391 @@
+- en: Extending PAC Learning to a Strategic Classification Setting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/extending-pac-learning-to-a-strategic-classification-setting-6c374935dde2?source=collection_archive---------3-----------------------#2024-04-04](https://towardsdatascience.com/extending-pac-learning-to-a-strategic-classification-setting-6c374935dde2?source=collection_archive---------3-----------------------#2024-04-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A case study of the meeting point between game theory and fundamental concepts
+    in machine learning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://jhyahav.medium.com/?source=post_page---byline--6c374935dde2--------------------------------)[![Jonathan
+    Yahav](../Images/30c3293a94be9258a65c38afd58bb521.png)](https://jhyahav.medium.com/?source=post_page---byline--6c374935dde2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c374935dde2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c374935dde2--------------------------------)
+    [Jonathan Yahav](https://jhyahav.medium.com/?source=post_page---byline--6c374935dde2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c374935dde2--------------------------------)
+    ·10 min read·Apr 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Last semester, I took a seminar in *Incentives and Learning.* The papers we
+    discussed throughout the course dealt with the overlap between the fields of game
+    theory and machine learning. I had very little familiarity with formal game theory
+    beforehand, and I thought finding out more about it through the lens of its intersection
+    with machine learning was fascinating. By the end of this article, I hope you’ll
+    think so, too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The paper my group chose to present was [***PAC-Learning for Strategic Classification***](https://arxiv.org/abs/2012.03310)(Sundaram,
+    Vullikanti, Xu, & Yao, 2021). It generalizes the basic machine learning notion
+    of [PAC learning](https://en.wikipedia.org/wiki/Probably_approximately_correct_learning)
+    to work in a **strategic** [binary classification](https://en.wikipedia.org/wiki/Binary_classification)
+    setting. The word “strategic” here signifies that the data points we want to classify
+    aren’t just data points, but rather **represent rational agents with their own
+    individual preferences.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**This will be a three-part series on my takeaways from the paper.** **In this
+    article, I’ll lay the intuitive and formal foundations required to understand
+    the strategic classification model and setup.** In the next one, I’ll cover the
+    concept of strategic VC dimension as a generalization of the canonical notion
+    of [VC dimension](https://en.wikipedia.org/wiki/Vapnik%E2%80%93Chervonenkis_dimension).
+    The final post will be a walkthrough of my favorite proof in the paper, which
+    will tie together the definitions and ideas introduced in the first two.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An understanding the idea of binary classification and the basic notation used
+    for it in the context of machine learning should be all you need to understand
+    the articles in this series. **Ultimately, the goal is to present the concepts
+    in a way that makes them as approachable as possible, regardless of your background.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Why Strategic Classification Is Useful: Motivation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Binary classification is a cornerstone of machine learning.** It was the
+    first topic I was taught when I took an introductory course on the subject; the
+    real-world example we examined back then was the problem of classifying emails
+    as either *spam* or *not spam*. Other common examples include diagnosing a disease
+    and screening resumes for a job posting.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The basic binary classification setup is intuitive and easily applicable to
+    our day-to-day lives, andit can serve as a helpful demonstration of **the ways
+    we can leverage machine learning to solve *human* problems.** But how often do
+    we stop to consider the fact that **people usually have a vested interest in the
+    classification outcome of such problems?** Spammers want their emails to make
+    it through spam filters, not everyone wants their COVID test to come back positive,
+    and job seekers may be willing to stretch the truth to score an interview. **The
+    data points aren’t just data points — they’re active participants in the classification
+    process, often aiming to game the system to their own benefit.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: In light of this, the canonical binary classification setup seems a bit simplistic.
+    However, the complexity of reexamining binary classification while tossing out
+    the implicit assumption that the objects we wish to classify are uninfluenced
+    by external stakes sounds unmanageable. **The preferences that could affect the
+    classification process come in so many different forms — how could we possibly
+    take all of them into account?**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**It turns out that, under certain assumptions, we can.** Through a clever
+    generalization of the canonical binary classification model, the paper’s authors
+    demonstrate the feasibility of designing computationally-tractable, gaming-resistant
+    classification algorithms.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From Data Points to Rational Agents: Preference Classes'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, if we want to be as realistic as possible, we have to properly consider
+    the wide breadth of forms that real-world preferences can take among rational
+    agents. The paper mentions five increasingly general categories of preferences
+    (which I’ll call *preference classes*). The names I’ll use for them are my own,
+    but are based on the terminology used in the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Impartial**: No preferences, just like in canonical binary classification.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Homogeneous:** Identical preferences across all the agents involved. For
+    example, within the set of people who are willing to fill out the paperwork necessary
+    to apply for a tax refund, we can reasonably expect that everyone is equally motivated
+    to get their money back (i.e., to be classified positively).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Adversarial:** Equally-motivated agents aim to induce the opposite of their
+    true labels. Think of bluffing in poker — a player with a weak hand (negatively
+    classified) wants their opponents to think they have a strong hand (positively
+    classified), and vice versa. For the “equally-motivated” part, imagine all players
+    bet the same amount.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Generalized Adversarial:** Unequally-motivated agents aim to induce the opposite
+    of their true labels. This isn’t too different from the plain *Adversarial* case.
+    Still, it should be easy to understand how a player with $100 dollars on the line
+    would be willing to go to greater lengths to deceive their opponents than a player
+    betting $1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**General Strategic:** *“*Anything goes.*”* This preference class aims to encompass
+    any set of preferences imaginable. All four of the previously mentioned preference
+    classes are strict subsets of this one. Naturally, this class is the main focus
+    of the paper, and most of the results demonstrated in the paper apply to it. The
+    authors give the wonderful example of college applications, where “*students [who]
+    have heterogeneous preferences over universities […] may manipulate their application
+    materials during the admission process.*”'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'How can the canonical classification setup be modified to account for such
+    rich agent preferences? The answer is astoundingly simple. Instead of limiting
+    our scope to (*x*, *y*) ∈ *X* × { -1, 1 }, **we consider data points of the form
+    (*x*, *y*, *r*) ∈ *X* × { -1, 1 } × *R*.** A point’s *r* value represents its
+    preference, which we can break down into two equally important components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **sign** of *r* indicates **whether the data point wants to be positively
+    or negatively classified** (*r* > 0 or *r* < 0, respectively).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The **absolute value** of *r* specifies **how strong the data point’s preference
+    is.** For example, a data point with *r* = 10 would be much more strongly motivated
+    to manipulate its feature vector *x* to ensure it ends up being positively classified
+    than a data point with *r* = 1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**What determines the preference class we operate within is the set *R*.**
+    We can formally define each of the aforementioned preference classes in terms
+    of *R* and see how the formal definitions align with their intuitive descriptions
+    and examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Impartial**: *R* = { 0 }. *(This makes it abundantly clear that the strategic
+    setup is just a generalization of the canonical setup.)*'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Homogeneous:** *R* = { 1 }.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Adversarial:** *R* = { -1, 1 }, with the added requirement that all data
+    points prefer to be classified as the opposite of their true labels.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Generalized Adversarial:** *R* ⊆ ℝ (and all data points prefer to be classified
+    as the opposite of their true labels.)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**General Strategic:** *R* ⊆ ℝ.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Giving Preference Magnitude Meaning: Cost Functions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Clearly, though, *R* on its own isn’t enough to construct an entire general
+    strategic framework. The very idea of a data point’s preference having a certain
+    magnitude is meaningless without tying it to **the cost the data point incurs
+    in manipulating its feature vector.** Otherwise, any data point with a positive
+    *r*, no matter how small, would have no reason not to manipulate its feature vector
+    *ad infinitum*. This is where the concept of **cost functions** comes into play.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let *c*: *X* × *X* → ℝ⁺. For simplicity, we will assume (as the paper’s authors
+    do) that *c* is induced by [seminorms](https://en.wikipedia.org/wiki/Seminorm).
+    We say that a **test data point** (*x*, *y*, *r*) may transform its feature vector
+    *x* into *z* ∈ *X* with **cost** *c*(*z*; *x*). It’s important to note in this
+    context that the paper assumes that the training data is unmanipulated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can divide cost functions into two categories, with the former being a subset
+    of the latter. An **instance-invariant cost function** is the same across all
+    data points. To put it more formally:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*∃ℓ:* X *×* X *→ ℝ⁺ . ∀(*x*,* y*,* r*) ∈* X *× { -1, 1 } ×* R *. ∀*z *∈* X
+    *.* c*(*z*;* x*) = ℓ(*z *-* x*)*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I.e., there exists a function ℓ such that for all data points and all potential
+    manipulated feature vectors, *c*(*z ; x*) simply takes the value of ℓ(*z* - *x*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An **instance-wise cost function** may vary between data points. Formally:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*∀(*x*,* y*,* r*) ∈* X *× { -1, 1 } ×* R . *∃ℓ*ₓ*:* X *×* X *→ ℝ⁺* .*∀*z *∈*
+    X . c*(*z*;* x*) = ℓ*ₓ*(*z - x*)*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I.e., **each data point can have its own function,** ℓ*ₓ*, and *c*(*z; x*) takes
+    the value of ℓ*ₓ*(*z - x*) for each individual data point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we will see in the final article in this series, while the difference between
+    the two types of cost functions may seem subtle, **instance-wise cost functions
+    are significantly more expressive and harder to learn.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Preference Classes and Cost Functions in Action: An Example'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s take a look at an example given in the paper to help hammer home the aspects
+    of the setup we’ve covered so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/96133e26aa9ea534a03de2dbdc10646e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by *R. Sundaram, A. Vullikanti, H. Xu, F. Yao from* [**PAC-Learning for
+    Strategic Classification**](https://arxiv.org/abs/2012.03310) *(use under* [*CC-BY
+    4.0 license*](https://creativecommons.org/licenses/by/4.0/)*).*
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, we have a decision boundary induced by a linear binary classifier
+    and four data points with individual preferences. *General strategic* is the only
+    applicable preference class in this case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dotted perimeter around each *xᵢ* shows the manipulated feature vectors
+    *z* to which it would cost the point exactly 1 to move. Since we assume the cost
+    function is induced by seminorms, everything inside a perimeter has a cost of
+    less than 1 for the corresponding data point to move to. We can easily tell that
+    the cost function in this example varies from data point to data point, which
+    means it is instance-wise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see, **the leftmost data point (*x*₁, -1, -1) has no incentive to
+    cross the decision boundary** since it is on the negative side of the decision
+    boundary while also having a negative preference. (*x*₄, -1, 2), however, wants
+    to be positively classified, and since the **reward for manipulating *x*₄** to
+    cross the boundary (which is 2) **outweighs the cost** of doing so (which is less
+    than 1), **it makes sense to go through with the manipulation.** (*x*₃, 1, -2)
+    is symmetric to (*x*₄, -1, 2), also deciding to manipulate its feature to achieve
+    its desired classification outcome. Lastly, **(*x*₂, -1, 1),** the cost function
+    of which we can see is based on [taxicab distance](https://en.wikipedia.org/wiki/Taxicab_geometry),
+    **opts to stay put regardless of its preference to be positively classified.**
+    This is because **the cost of manipulating *x*₂ to cross the decision boundary
+    would be greater than 1,** surpassing the reward the data point would stand to
+    gain by doing so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming the agents our data points represent are rational, **we can very easily
+    tell when a data point should manipulate its feature vector** (benefits outweigh
+    costs) and when it shouldn’t (costs outweigh benefits). **The next step is to
+    turn our intuitive understanding into something more formal.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Balancing Costs & Benefits: Defining *Data Point Best Response*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This leads us to define the ***data point best response*:**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ebefb39d8e7565f868bb6dd8bf791b7b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So we’re looking for the feature vector(s) *z* ∈ *X* that maximize… what exactly?
+    **Let’s break down the expression we’re aiming to maximize into more manageable
+    parts.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***h*:** A given binary classifier (*h*: *X* → { -1, 1 }).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***c*(*z*; *x*):** As stated above, this expresses the **cost** of modifying
+    the feature vector *x* to be *z*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**𝕀(*h*(*z*) = 1):** Here, 𝕀(*p*) is the indicator function, returning 1 if
+    the predicate *p* is upheld or 0 if it isn’t. The predicate *h*(*z*) = 1is true
+    if the vector *z* under consideration is positively classified by *h*. Putting
+    that together, we find that 𝕀(*h*(*z*) = 1) evaluates to 1 for any *z* that is
+    positively classified. If *r* is positive, that’s good. If it’s negative, that’s
+    bad.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The bottom-line is that we want to find vector(s) *z* for which** 𝕀(*h*(*z*)
+    = 1) ⋅ *r*, which we can call t**he *realized reward*, outweighs the cost of manipulating
+    the original *x* into *z* by as much as possible.** To put it in game theoretic
+    terms, **the data point best response maximizes the *utility* of its corresponding
+    agent in the context of the binary classification under consideration.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Putting It All Together: A Formal Definition of the Strategic Classification
+    Problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, we’ve laid all the necessary groundwork to formally define **the strategic
+    classification problem.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/054a8278559f7e6cf18b9579939c3925.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A diagram illustrating the formal definition of the strategic classification
+    problem. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a hypothesis class *H*, a preference class *R*, a cost function *c*, and
+    a set of *n* data points drawn from a distribution *D*, we want to find a binary
+    classifier *h*’ that minimizes the loss as defined in the diagram above. Note
+    that the loss is simply a modification of the canonical zero-one loss, plugging
+    in the data point best response instead of *h*(*x*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Starting from the canonical binary classification setup, we introduced the notion
+    of ***preference classes***. Next, we saw how to formalize that notion using an
+    ***r* value** for each data point. We then saw how ***cost functions*** complement
+    data point preferences. After that, we broke down an example before defining the
+    key concept of ***data point best response*** based on the ideas we explored beforehand.
+    Lastly, we used the data point best response to define the ***modified zero-one
+    loss* used in the definition of the strategic classification problem.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Join me next time as I define and explain the strategic VC dimension, which
+    is the natural next step from where we left off this time.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/quantifying-the-complexity-and-learnability-of-strategic-classification-problems-fd04cbfdd4b9?source=post_page-----6c374935dde2--------------------------------)
+    [## Quantifying the Complexity and Learnability of Strategic Classification Problems'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How generalizing the notion of VC dimension to a strategic setting can help
+    us understand whether or not a problem is…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/quantifying-the-complexity-and-learnability-of-strategic-classification-problems-fd04cbfdd4b9?source=post_page-----6c374935dde2--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] R. Sundaram, A. Vullikanti, H. Xu, F. Yao. [PAC-Learning for Strategic
+    Classification](https://arxiv.org/abs/2012.03310) (2021), International Conference
+    on Machine Learning.'
+  prefs: []
+  type: TYPE_NORMAL

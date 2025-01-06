@@ -1,0 +1,805 @@
+- en: Calculate the percentage of the total with RLS in place in Power BI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=collection_archive---------13-----------------------#2024-02-05](https://towardsdatascience.com/calculate-the-percentage-of-the-total-with-rls-in-place-in-power-bi-1ea5c3ab1fac?source=collection_archive---------13-----------------------#2024-02-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Most data models have RLS in place, where some users can see only some aspects
+    of the entire data set. But what happens when they must see their result compared
+    to the overall result? This is not that easy.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--1ea5c3ab1fac--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ea5c3ab1fac--------------------------------)
+    ·11 min read·Feb 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a3c8d15eb058fbe11d3711d926e9fa1b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Wim van 't Einde](https://unsplash.com/@wimvanteinde?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s look at the following scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: My Salespeople can see only the results for their assigned geographic regions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this scenario, it’s the continent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For benchmarking, they must be able to compare their results to the results
+    of the other continents and the total.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is impossible when RLS (Row-Level-Security) is in place, as the users are
+    not allowed to see the results for the other continents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A change to the data model is necessary to make this possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let’s look at how to implement such a change.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solution by SQLBI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'SQLBI has already written an article and created a video on this topic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.sqlbi.com/articles/computing-accurate-percentages-with-row-level-security-in-power-bi/?source=post_page-----1ea5c3ab1fac--------------------------------)
+    [## Computing accurate percentages with row-level security in Power BI - SQLBI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article shows how to compute ratios when row-level security hides some
+    of the data. If the percentage also…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.sqlbi.com](https://www.sqlbi.com/articles/computing-accurate-percentages-with-row-level-security-in-power-bi/?source=post_page-----1ea5c3ab1fac--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Theoretically, we can stop here: Read the article or watch the video. All OK,
+    isn’t it?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not that fast, my young horse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While Alberto has built a solution using DAX, I would like to create the additional
+    tables for the data model earlier, preferably in the source (database) or Power
+    Query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As not everyone stores their data in a database, I don’t want to dig into SQL
+    code to build the necessary tables, even though creating the solution in SQL would
+    be pretty straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, I go to Power Query to create the solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Just like my previous article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------)
+    [## Converting a Flat Table to a Good Data Model in Power Query'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When loading a wide Excel table into Power BI, we end up with a suboptimal Data
+    model. What can we do to create a good…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: OK, let’s start.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1 — Create the Fact table without Customers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I will take the same scenario and approach described in the SQLBI article above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the RLS rules are set up on the Customer table, I created a copy of the Fact
+    tale “Online Sales,” but without referencing the Customer table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without this reference, the RLS rule on the Customer table doesn’t apply, and
+    I can calculate the result as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After opening Power Query, I create a Reference of the Online Sales table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/10f54184f0be788adb2bd41b105c245b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Create a Reference from the Online Sales table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: By creating a Reference, I do not reread the data from the source in Power Query
+    but reuse the result from the original Online Sales table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I rename the table to “Online Sales (No Customers)”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second step is to analyze the data and decide by which columns I must group
+    the data and which columns I can aggregate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step is necessary as I’m changing the granularity of the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By removing the Customer, I can reduce the size of the table, as I have fewer
+    details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I can group my data by all Dimension Keys on the table. But without the Customer
+    Key. And as I must not be able to figure out which customer has placed which order,
+    I must also remove the Order Number and the Order Line details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But I must spend some time figuring out which column I can aggregate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s look at an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When I take Sales Quantity, I can sum this column without problems, as the result
+    can be reused.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But when I look at Unit Price, the picture is not that easy anymore.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have to look at what I can do with this column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What happens when I aggregate this column?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This price is likely to change over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This poses a danger when calculating the Sales Amount by multiplying the Unit
+    Price with the Sales Quantity. This can lead to wrong results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, I cannot aggregate the Unit Price.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the end, I grouped the table by these columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: OrderDate
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: StoreKey
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ProductKey
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PromotionKey
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: CurrencyKey
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DateKeyYear
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DueDate
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ShipDate
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And I aggregate (Sum) these columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SalesQuantity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SalesAmount
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ReturnQuantity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ReturnAmount
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DiscountAmount
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: TotalCost
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: UnitCost
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additionally, I can add a distinct count by CustomerKey to count the Customers
+    to analyze the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a9c653c646619a796e7c5b2f8e743a2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Grouping and aggregating the new table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I must click on “Add grouping” to add the column by which the data must be grouped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, I must scroll down to click on “Add aggregation” to add the columns that
+    must be aggregated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each column, I must set the Operation (Aggregation function à e. g. Sum),
+    and I can put a new name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The next step is to add all relationships to the newly created table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1513d253cf98be2cbe4cf2226450171e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Data model for the new table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s look at the results without and with the additional table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the starting point from the original data and without RLS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/581efb487f85b21e7cf1de5b31ffde50.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Initial result without RLS (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s apply the RLS role for Asia and Australia:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea7b0c2b9b365072a3a4cf20aab1cfb9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Initial result with applied RLS role (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the result is mathematically correct, but it doesn’t fulfill
+    our requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The percentage is calculated only over the remaining two Continents instead
+    of all continents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I can change the report by moving the Continent to a Slicer and adding
+    the Product Brand to the Matrix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b6b8253ac062266f765d32b7556b2d73.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 — Changed report with continent Slicer and Brand (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to this change, I can see that the values still change with and without
+    RLS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The problem now is that the result with an active RLS role is wrong:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ee731f09a32902f8c64588de1723aced.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Wrong result by Brand with RLS applied (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason is that the percentage of Sales over “all” Continents by Brand is
+    calculated over the available Continents, Asia and Australia. Therefore, the result
+    is wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the result differs when I add a new Measure, which points to the new
+    table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Measure is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the result (with RLS) is this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b4f41e728dd213e4717ba1ad1b91c2d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8 — Result with new Measure on the new table and RLS (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Take care: if you don’t select any continent and don’t have an active RLS role,
+    the result of the new Measure looks wrong.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You must take this into account while building and testing your solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Depending on the report, you can use one of the two Measures, as both might
+    deliver the correct result, depending on the situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the Sales Director might have access to the Sales results of all
+    Continents. For him, the result of the original Measure is correct, as it considers
+    the Continent of the Customers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To simplify this, we can add a new table with Customer Attributes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 2 — Reporting over Customer Attributes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As described in the SQL article, there can be a situation where it is necessary
+    to create a report based on some Customer attributes, like Gender, Education,
+    or any other Attributes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, I must create a table for these Attributes and expand our Data
+    model with this table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To build such a table, I must first define the Requirements and then the process
+    for creating the table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I must have a table without customers’ data (e.g., due to Data protection rules).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: I must not be able to reconstruct customers’ data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: I must be able to filter both the new and the original Online Sales tables.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Next, I define the necessary steps to fulfill the requirements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Duplicate the Customer table (named Customer Attributes).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Remove the unnecessary columns.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Remove all duplicates.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add an Index (Key / ID) column.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Merge the new table with the original Customer table to add the newly created
+    Key column.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Merge the Key column to the “Online Sales” table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add the new Key column to the “Online Sales (No Customers)” table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This should work. Let’s start:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One short note: As I must Merge the table without the unwanted Customer Attributes
+    to the Original Customer table, I cannot create a Reference, as this would introduce
+    a circular dependency. Therefore, I must Duplicate the Customer table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b45ed1d09fccb86be53e32c515712485.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9 — Duplicate the Customer table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I renamed the duplicated table to Customer Attributes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, I remove all columns that contain personal data (Except Gender, Education,
+    and other statistically relevant columns). But I must make sure that I keep all
+    the columns necessary to ensure that the Merge doesn’t result in a multiplication
+    of rows in the following Merge Step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, I got duplicates in the Result without the Birthdate. The reason
+    is that there are a lot of customers sharing the same attributes without the Birthdate.
+    But including the Birthdate ensures that the rows can be matched.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need to check this step carefully, as this might change case-by-case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, I add the Index column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e3b648c321795449f0785ee4fe57f80d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10 — Add Index column (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Index column is renamed to “CustomerAttributesKey”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I use the Merge function to transport the new Key to the Original Customer
+    table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/17823dcb5738502dfee214d9d73d9a0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 11 — Merge the new Customer Attributes table to the original Customer
+    table (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I must select all matching columns while holding the Ctrl-Key pressed to ensure
+    all columns are combined to merge the correct rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A problem exists with non-matching rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see above, thirteen rows cannot be matched. Unfortunately, I wasn’t
+    able to find the cause of this mismatch. Power Query doesn’t offer tools to find
+    and solve such problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I created a CustomerAttributes_Dummy table in Excel with a CustomerAttributesKey
+    = -1 to solve this. Then, I added a table with the Enter Data feature with this
+    row and appended this row to the CustomerAttributes table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another Note: I added the Dummy row to simplify the solution for this article.
+    In the real world, I would try to find the cause, examine the data, and find the
+    right solution instead of such a workaround.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now I can expand the merged table to extract the CustomerAttributesKey:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c31f8568f440de8189fbde7fada04825.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 12 — Expand the new Key column (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The non-matching values for the Key columns can be filled with the Dummy-Key
+    -1 through the Replace Value feature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/370de1eb79e764c9ff249e441abaf13f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 13 — Replace the non-matching Keys with the Dummy Key “-1” (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to add the CutomerAttributesKey to the “Online Sales” and,
+    therefore, to the “Online Sales (No Customers)” tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, I use the Merge and Expand Features to add the column to the “Online
+    Sales” table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d5ebc81f51364982dff127222852d60.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 14 — Merge the Online Sales table with the Customer table (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Expansion of the CustomerAttributeyKey column is done the same way as shown
+    before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lastly, I have to add the new CustomerAttributeKey as a Grouping column to
+    the “Online Sales (No Customers)” table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46ba5f5acc005f2be989f3804761712b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 15 — Add CustomerAttributeKey as a Grouping column (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this step, I have completed the data preparation tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modifying the Data model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At this point, I have two options for the data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In any case, I will add a Relationship to the “Online Sales (No Customer)” table,
+    as this will fulfill a central requirement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But I can add a Relationship to the Customer or the Online Sales table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linking the new CustomerAttributes table to the Customer table, which relates
+    to the Original Online Sales table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add a direct Relationship to the Online Sales table without adding a Relationship
+    to the Customer table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Here are the two options, side by side:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/785bb68292b2b140ca85a535e8c9e800.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 16 — Variants for Data model for the Customer Attributes table (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Variant 1 uses the Customer table as an intermediary table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This has the following consequences:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The duplicate attributes in the Customer table can be removed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Therefore, a unique distribution of Attributes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The RLS on the Customer table is always applied.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '2\. Variant 2 uses two relationships from the Online Sales table to each Customer
+    table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Duplicated Attributes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two possibilities to filter the data by the same attribute.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Customer Attributes table is not affected by RLS on the Customer table.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A clear Star Schema.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I will go with the Variant 2, as I want to eliminate the effects of the RLS
+    rules in some specific calculations, which opens more possibilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But this is a decision for each situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results and Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The result will differ depending on the data model and how you use the attributes
+    from each table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, when I add the Gender from both tables to the Matrix shown at
+    the beginning, the results are the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/be416d063c6be8e6c9db671680b59f68.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 17 — Comparison of the results with the Gender from each table (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the result by Gender on the right can be summarized to the Brand above,
+    the result on the left cannot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These results are Non-Visual-Totals, as described in the SQLBI article above,
+    which can cause confusion and are hard to understand while being mathematically
+    correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I strongly encourage reading the article to better understand this complex topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main question is: What is better, using DAX or Power Query to prepare the
+    data?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Strictly from the view of a data engineer, I would say Do it in the Source or
+    Power Query to avoid data manipulation in Power BI using DAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This would follow [Roche’s Maxim](https://ssbipolar.com/2021/05/31/roches-maxim/):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Transform the data as early as possible and as late as necessary.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One more reason to do it in Power Query is efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Power BI will compress and optimize the data storage more efficiently when the
+    data is prepared in the source or Power Query than when using DAX tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This very technical video explains this in great detail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the complexity of doing this transformation is greater than the approach
+    shown in the SQLBI article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When developing a solution for my clients, I ask the following questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Who will maintain the solution?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What are the skills of that person?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is that person willing to learn more while maintaining the solution?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The answers to these questions will drive the approach for the solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I already had situations when I had to rebuild a solution with a different approach,
+    as the client wasn’t able or willing to learn the techniques used in my first
+    approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, as usual, the answer to the question “Power Query or DAX” is: it depends
+    …'
+  prefs: []
+  type: TYPE_NORMAL
+- en: My aim for this article is to show you an alternative way of building the solution,
+    which can give you more flexibility while deciding which approach is the right
+    one for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope I could achieve this and you learned something new.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c3c4eb830fdce30f0dd68f36dd39cef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Brett Jordan](https://unsplash.com/@brett_jordan?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I wrote an article about using Power Query to transform a flat table into a
+    Star schema while using some techniques described here. You can find it here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------)
+    [## Converting a Flat Table to a Good Data Model in Power Query'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When loading a wide Excel table into Power BI, we end up with a suboptimal Data
+    model. What can we do to create a good…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/converting-a-flat-table-to-a-good-data-model-in-power-query-46208215f17a?source=post_page-----1ea5c3ab1fac--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I use the Contoso sample dataset, like in my previous articles. You can download
+    the ContosoRetailDW Dataset for free from Microsoft [here](https://www.microsoft.com/en-us/download/details.aspx?id=18279).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Contoso Data can be freely used under the MIT License, as described [here](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work, which I do during my free time, through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

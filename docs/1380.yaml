@@ -1,0 +1,448 @@
+- en: PRISM-Rules in Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02](https://towardsdatascience.com/prism-rules-in-python-14d2cfd801a3?source=collection_archive---------3-----------------------#2024-06-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A simple python rules-induction system
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[![W
+    Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)
+    [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--14d2cfd801a3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--14d2cfd801a3--------------------------------)
+    ·12 min read·Jun 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is part of a series covering interpretable predictive models. Previous
+    articles covered [ikNN](/interpretable-knn-iknn-33d38402b8fc) and [Additive Decision
+    Trees](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223).
+    PRISM is an existing algorithm (though I did create a python implementation),
+    and the focus in this series is on original algorithms, but I felt it was useful
+    enough to warrant it’s own article as well. Although it is an old idea, I’ve found
+    it to be competitive with most other interpretable models for classification and
+    have used it quite a number of times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRISM is relatively simple, but in machine learning, sometimes the most complicated
+    solutions work best and sometimes the simplest. Where we wish for interpretable
+    models, though, there is a strong benefit to simplicity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRISM is a rules-induction tool. That is, it creates a set of rules to predict
+    the target feature from the other features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rules have at least a couple very important purposes in machine learning. One
+    is prediction. Similar to Decision Trees, linear regression, GAMs, [ikNN](/interpretable-knn-iknn-33d38402b8fc),
+    [Additive Decision Trees](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223),
+    Decision Tables, and small number of other tools, they can provide interpretable
+    classification models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rules can also be used simply as a technique to understand the data. In fact,
+    even without labels, they can be used in an unsupervised manner, creating a set
+    of rules to predict each feature from the others (treating each feature in the
+    table in turns as a target column), which can highlight any strong patterns in
+    the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are other tools for creating rules in python, including the very strong
+    [imodels library](https://github.com/csinva/imodels). However, it can still be
+    challenging to create a set of rules that are both accurate and comprehensible.
+    Often rules induction systems are unable to create reasonably accurate models,
+    or, if they are able, only by creating many rules and rules with many terms. For
+    example, rules such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IF color=’blue’ AND height < 3.4 AND width > 3.2 AND length > 33.21 AND temperature
+    > 33.2 AND temperature < 44.2 AND width < 5.1 AND weight > 554.0 AND … THEN…
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where rules have more than about five or ten terms, they can become difficult
+    to follow. Given enough terms, rules can eventually become effectively uninterpretable.
+    And where the set of rules includes more than a moderate number of rules, the
+    rule set as a whole becomes difficult to follow (more so if each rule has many
+    terms).
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRISM Rules
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: PRISM is a rules-induction system first proposed by Chendrowska [[1]](https://github.com/Brett-Kennedy/PRISM-Rules#references)
+    [[2]](https://github.com/Brett-Kennedy/PRISM-Rules#references) and described in
+    Principles of Data Mining [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I was unable to find a python implementation and so created one. The main page
+    for PRISM rules is: [https://github.com/Brett-Kennedy/PRISM-Rules](https://github.com/Brett-Kennedy/PRISM-Rules).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PRISM supports generating rules both as a descriptive model: to describe patterns
+    within a table (in the form of associations between the features); and as a predictive
+    model. It very often produces a very concise, clean set of interpretable rules.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a predictive model, it provides both what are called *global* and *local*
+    explanations (in the terminology used in Explainable AI (XAI)). That is, it is
+    fully-interpretable and allows both understanding the model as a whole and the
+    individual predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing multiple rules-induction systems, I very often find PRISM produces the
+    cleanest set of rules. Though, no one system works consistently the best, and
+    it’s usually necessary to try a few rules induction tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The rules produced are in disjunctive normal form (an OR of ANDs), with each
+    individual rule being the AND of one or more terms, with each term of the form
+    Feature = Value, for some Value within the set of values for that feature. For
+    example: the rules produced may be of the form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rules for target value: ‘blue’:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IF feat_A = ‘hot’ AND feat_C = ‘round’ THEN ‘blue’
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IF feat_A = ‘warm’ AND feat_C = ‘square’ THEN ‘blue’
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Rules for target value: ‘red’:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IF feat_A = ‘cold’ AND feat_C = ‘triangular’ THEN ‘red’
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IF feat_A = ‘cool’ AND feat_C = ‘triangular’ THEN ‘red’
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The algorithm works strictly with categorical features, in both the X and Y
+    columns. This implementation will, therefore, automatically bin any numeric columns
+    to support the algorithm. By default, three equal-count bins (representing low,
+    medium, and high values for the feature) are used, but this is configurable through
+    the nbins parameter (more or less bins may be used).
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRISM Algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this section, we assume we are using PRISM as a predictive model, specifically
+    as a classifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The algorithm works by creating a set of rules for each class in the target
+    column. For example, if executing on the Iris dataset, where there are three values
+    in the target column (Setosa, Versicolour, and Virginica), there would be a set
+    of rules related to Setosa, a set related to Versicolour, and a set related to
+    Virginica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The generated rules should be read in a first-rule-to-fire manner, and so all
+    rules are generated and presented in a sensible order (from most to least relevant
+    for each target class). For example, examining the set of rules related to Setosa,
+    we would have a set of rules that predict when an iris is Setosa, and these would
+    be ordered from most to least predictive. Similarly for the sets of rules for
+    the other two classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating the Rules
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ll describe here the algorithm PRISM uses to generate a set of rules for
+    one class. With the Iris dataset, lets say we’re about to generate the rules for
+    the Setosa class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start, PRISM finds the best rule available to predict that target value.
+    This first rule for Setosa would predict as many of the Setosa records as possible.
+    That is, we find the unique set of values in some subset of the other features
+    that best predicts when a record will be Setosa. This is the first rule for Setosa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first rule will, however, not cover all Setosa records, so we create additional
+    rules to cover the remaining rows for Setosa (or as many as we can).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As each rule is discovered, the rows matching that rule are removed, and the
+    next rule is found to best describe the remaining rows for that target value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rules may each have any number of terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each other value in the target column, we start again with the full dataset,
+    removing rows as rules are discovered, and generating additional rules to explain
+    the remaining rows for this target class value. So, after finding the rules for
+    Setosa, PRISM would generate the rules for Versicolour, and then for Virginica.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coverage and Support
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This implementation enhances the algorithm as described in Principles of Data
+    Mining by outputting statistics related to each rule, as many induced rules can
+    be much more relevant or, the opposite, of substantially lower significance than
+    other rules induced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As well, tracking simple statistics about each rule allows providing parameters
+    to specify the minimum *coverage* for each rule (the minimum number of rows in
+    the training data for which it applies); and the minimum *support* (the minimum
+    probability of the target class matching the desired value for rows matching the
+    rule). These help reduce noise (extra rules that add only small value to the descriptive
+    or predictive power of the model), though can result in some target classes having
+    few or no rules, potentially not covering all rows for one or more target column
+    values. In these cases, users may wish to adjust these parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison to Decision Trees
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Decision trees are among the most common interpretable models, quite possibly
+    the most common. When sufficiently small, they can be reasonably interpretable,
+    perhaps as interpretable as any model type, and they can be reasonably accurate
+    for many problems (though certainly not all). They do, though, have limitations
+    as interpretable models, which PRISM was designed to address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decision trees were not specifically designed to be interpretable; it is a convenient
+    property of decision trees that they are as interpretable as they are. They, for
+    example, often grow much larger than is easily comprehensible, often with repeated
+    sub-trees as relationships to features have to be repeated many times within the
+    trees to be properly captured.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As well, the decision paths for individual predictions may include nodes that
+    are irrelevant, or even misleading, to the final predictions, further reducing
+    compressibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Cendrowska paper provides examples of simple sets of rules that cannot
+    be represented easily by trees. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 1: IF a = 1 AND b = 1 THEN class = 1'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Rule 2: IF c = 1 AND d = 1 THEN class = 1'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'These lead to a surprisingly complex tree. In fact, this is a common pattern
+    that results in overly-complex decision trees: “where there are two (underlying)
+    rules with no attribute in common, a situation that is likely to occur frequently
+    in practice” [[3]](https://github.com/Brett-Kennedy/PRISM-Rules#references)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rules can often generate more interpretable models than can decision trees (though
+    the opposite is also often true) and are useful to try with any project where
+    interpretable models are beneficial. And, where the goal is not building a predictive
+    model, but understanding the data, using multiple models may be advantageous to
+    capture different elements of the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The project consists of a single [python file](https://github.com/Brett-Kennedy/PRISM-Rules/blob/main/prism_rules.py)
+    which may be downloaded and included in any project using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example using the Wine dataset from sklearn
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The github page provides two example notebooks that provide simple, but thorough
+    examples of using the tool. The tool is, though, quite straight-forward. To use
+    the tool to generate rules, simply create a PrismRules object and call get_prism_rules()
+    with a dataset, specifying the target column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This dataset has three values in the target column, so will generate three
+    sets of rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each rule, we see both the support and the coverage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The support indicates how many rows support the rule; that is: of the rows
+    where the rule can be applied, in how many is it true. The first rule here is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This indicates that of the 39 rows where proline = High (the feature proline
+    has a high numeric value) and alcohol is High (the features alcohol has a high
+    numeric value), for 100% of them, the target it 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The coverage indicates how many rows the rule covers. For the first rule, this
+    is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This indicates the coverage both in terms of row count and as a percent of the
+    rows in the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example Generating Predictions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To create predictions, we simply call predict() passing a dataframe with the
+    same features as the dataframe used to fit the model (though the target column
+    may optionally be omitted, as in this example).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this way, PRISM rules may be used equivalently to any other predictive model,
+    such as Decision Trees, Random Forests, XGBoost, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, while generating predictions, some rows may match no rules. In this
+    case, by default, the most common value in the target column during training (which
+    can be seen accessing prism.default_target) will be used. The predict() method
+    also supports a parameter, leave_unknown. If this is set to True, then any records
+    not matching any rules will be set to “NO PREDICTION”. In this case, the predictions
+    will be returned as a string type, even if the original target column was numeric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further examples are provided in the sample notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example with Numeric Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this example, we use sklearn’s make_classification() method to create numeric
+    data (other than the target column), which is then binned. This uses the default
+    of three bins per numeric feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The data is binned into low, medium, and high values for each column. The results
+    are a set of rules per target class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example from the book Principles of Data Mining
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This example is provided in one of the sample notebooks on the github page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc7522d6dae2c461205a8af9a8c2fb61.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'PRISM generated three rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IF tears = 1 THEN Target=3
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: IF astig = 1 AND tears = 2 and specRX = 2 THEN Target=2
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If astig = 2 and tears = 2 AND specRX =1 THEN Target =1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Execution Time
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The algorithm is generally able to produce a set of rules in seconds or minutes,
+    but if it is necessary to decrease the execution time of the algorithm, a sample
+    of the data may be used in lieu of the full dataset. The algorithm generally works
+    quite well on samples of the data, as the model is looking for general patterns
+    as opposed to exceptions, and the patterns will be present in any sufficiently
+    large sample.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further notes on tuning the model are provided on the github page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unfortunately, there are relatively few options available today for interpretable
+    predictive models. As well, no one interpretable model will be sufficiently accurate
+    or sufficiently interpretable for all datasets. Consequently, where interpretability
+    is important, it can be worth testing multiple interpretable models, including
+    Decision Trees, other rules-induction tools, GAMs, [ikNN](/interpretable-knn-iknn-33d38402b8fc),
+    [Additive Decision Trees](https://medium.com/towards-data-science/additive-decision-trees-85f2feda2223),
+    and PRISM rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PRISM Rules very often generates clean, interpretable rules, and often a high
+    level of accuracy, though this will vary from project to project. Some tuning
+    is necessary, though similar to other predictive models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Chendrowska, J. (1987) PRISM: An Algorithm for Inducing Modular Rules.
+    International Journal of Man-Machine Studies, vol 27, pp. 349–370.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Chendrowska, J. (1990) Knowledge Acquisition for Expert Systems: Inducing
+    Modular Rules from Examples. PhD Thesis, The Open University.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Bramer, M. (2007) Principles of Data Mining, Springer Press.'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,533 @@
+- en: 'No GPU, No Party : Fine-Tune BERT for Sentiment Analysis with Vertex AI Custom
+    jobs'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/no-gpu-no-party-fine-tune-bert-for-sentiment-analysis-with-vertex-ai-custom-jobs-d8fc410e908b?source=collection_archive---------5-----------------------#2024-06-03](https://towardsdatascience.com/no-gpu-no-party-fine-tune-bert-for-sentiment-analysis-with-vertex-ai-custom-jobs-d8fc410e908b?source=collection_archive---------5-----------------------#2024-06-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Speed up the training process with serverless jobs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)[![Benjamin
+    Etienne](../Images/cad8bc2d4b900575e76b7cf9debc9eea.png)](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------)
+    [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--d8fc410e908b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d8fc410e908b--------------------------------)
+    ·13 min read·Jun 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/de04296aee8fcd10eae449ceb2f6d4ce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [yns plt](https://unsplash.com/@ynsplt?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*TL;DR: How to launch a training job with Pytorch with GPUs on Vertex. Code
+    with examples.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In my [previous article](/machine-learning-on-gcp-from-dev-to-prod-with-vertex-ai-c9e42c4b366f),
+    I mentioned the fact that training locally huge models is not always a good practice
+    when you have limited resources. Sometimes you just don’t have a choice, but sometimes
+    you have at your disposal a Cloud provider such as Google Cloud Platform which
+    can significantly speed up your trainings by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Providing you cutting-edge machines with custom configurations (memory, GPUs,
+    etc.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Allowing you to launch several jobs simultaneously and choose the best model
+    in the end
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Not to mention that offloading the training to the cloud will relieve your
+    personal machine. I already saw the battery melt after leaving my personal laptop
+    train a model for 1 week. Back from holidays, my touchpad was literally popping
+    out.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**In this article, we will take a concrete use case where we will fine-tune
+    a BERT model on social media comments to perform sentiment analysis. As we will
+    see, training this kind of model on a CPU is very cumbersome and not optimal.
+    We will therefore see how we can leverage Google Cloud Platform to speed up the
+    process by using a GPU for only 60 cents.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What is BERT
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is Sentiment Analysis
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get and prepare the data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use a small BERT pretrained model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create the dataloaders
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Write the main script to train the model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dockerize the script
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Build and push an image to Google Cloud
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create a job on Vertex AI
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is BERT ?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: BERT stands for Bidirectional Encoder Representations from Transformers and
+    was open-sourced by Google in 2018\. It is mainly used for NLP tasks as it was
+    trained to capture semantics in sentences and provide rich word embeddings (representations).
+    The difference with other models such as Word2Vec and Glove lies in the fact that
+    it uses Transformers to process text. Transformers (refer to my previous article
+    if you want to know more) are a family of neural networks which, a little bit
+    like RNNs, have the ability to process sequences in both directions, therefore
+    able to capture context around a word for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Sentiment Analysis ?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sentiment Analysis is a specific task within the NLP domain which objective
+    is to classify text into categories related to the tonality of it. Tonality is
+    often expressed as *positive*, *negative*, or *neutral*. It is very commonly used
+    to analyze verbatims, posts on social media, product reviews, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fine-tuning a BERT model on social media data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Getting and preparing the data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The dataset we will use comes from Kaggle, you can download it here : [https://www.kaggle.com/datasets/farisdurrani/sentimentsearch](https://www.kaggle.com/datasets/farisdurrani/sentimentsearch)
+    (CC BY 4.0 License). In my experiments, I only chose the datasets from Facebook
+    and Twitter.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following snippet will take the csv files and save 3 splits (training, validation,
+    and test) to where you want. I recommend saving them in Google Cloud Storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can run the script with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The data should look roughly like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bd678c8886d35aadd886a31d031ad2ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a small BERT pretrained model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For our model, we will use a lightweight BERT model, BERT-Tiny. This model has
+    already been pretrained on vasts amount of data, but not necessarily with social
+    media data and not necessarily with the objective of doing Sentiment Analysis.
+    This is why we will fine-tune it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It contains only 2 layers with a 128-units dimension, the full list of models
+    can be seen [here](https://github.com/google-research/bert) if you want to take
+    a larger one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s first create a `main.py` file, with all necessary modules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s also write down our requirements in a dedicated `requirements.txt`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will now load 2 parts to train our model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ***tokenizer***, which will take care of splitting the text inputs into
+    tokens that BERT has been trained with.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ***model*** itself.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'You can obtain both from Huggingface [here](http://google/bert_uncased_L-2_H-128_A-2).
+    You can also download them to Cloud Storage. That is what I did, and will therefore
+    load them with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now add the following piece to our file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: A little break here. We have several options when it comes to reusing an existing
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Transfer learning** : we freeze the weights of the model and use it as a
+    “feature extractor”. We can therefore append additional layers downstream. This
+    is frequently used in Computer Vision where models like VGG, Xception, etc. can
+    be reused to train a custom model on small datasets'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Fine-tuning** : we unfreeze all or part of the weights of the model and retrain
+    the model on a custom dataset. This is the preferred approach when training custom
+    LLMs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'More details on Transfer learning and Fine-tuning [here](https://www.tensorflow.org/tutorials/images/transfer_learning):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the model, we have chosen to unfreeze all the model, but feel free to freeze
+    one or more layers of the pretrained BERT module and see how it influences the
+    performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key part here is to add a fully connected layer after the BERT module to
+    “link” it to our classification task, hence the final layer with 3 units. This
+    will allow us to reuse the pretrained BERT weights and adapt our model to our
+    task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the dataloaders
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To create the dataloaders we will need the Tokenizer loaded above. The Tokenizer
+    takes a string as input, and returns several outputs amongst which we can find
+    the tokens (‘input_ids’ in our case):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/894b0cbe3aec033e162d3be5ca1ddc3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The BERT tokenizer is a bit special and will return several outputs, but the
+    most important one is the `input_ids`: they are the tokens used to encode our
+    sentence. They might be words, or parts or words. For example, the word “looking”
+    might be made of 2 tokens, “look” and “##ing”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now create a dataloader module which will handle our datasets :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Writing the main script to train the model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let us define first and foremost two functions to handle the training and evaluation
+    steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We are getting closer to getting our main script up and running. Let’s stitch
+    pieces together. We have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A `BertDataset` class to handle the loading of the data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `SentimentBERT` model which takes our Tiny-BERT model and adds an additional
+    layer for our custom use case
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`train()` and `eval()` functions to handle those steps'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A `train_and_eval()` functions that bundles everything
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will use `argparse` to be able to launch our script with arguments. Such
+    arguments are typically the train/eval/test files to run our model with any datasets,
+    the path where our model will be stored, and parameters related to the training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is great, but unfortunately, this model will take a long time to train.
+    Indeed, with around 4.7M parameters to train, one step will take around 3s on
+    a 16Gb Macbook Pro with Intel chip.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5a00cef328f5d4ab3879f010a18ff24.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 3s per step can be quite long when you have 1238 steps to go and 10 epochs to
+    complete…
+  prefs: []
+  type: TYPE_NORMAL
+- en: No GPU, no party.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to use Vertex AI and start the party?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*Short answer : Docker and gcloud.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you do not have a powerful GPU on your laptop (as most of us do), and/or
+    want to avoid burning your laptop’s cooling fan, you may want to move your script
+    on a Cloud platform such as Google Cloud (disclaimer: I use Google Cloud at my
+    job).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nice thing about Google is it offers 300$ in credits when you open your
+    own project with your Gmail account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And as always, when it comes to transferring your code to somewhere else, Docker
+    is usually the go-to solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dockerizing the script
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s write a Docker image with GPU enabled. There are a lot of Docker images
+    you can find on the official Docker repository, I chose the *pytorch/pytorch:2.2.2-cuda11.8-cudnn8-runtime*
+    as I use a Pytorch 2.2.2 version. Be sure to select a version with CUDA, otherwise
+    you will have to install it yourself in your Dockerfile, and trust me, you don’t
+    want to do that, except if you really have to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This Dockerfile will preinstall necessary CUDA dependencies and drivers and
+    ensure we can use them in a custom training job, and run your python `main.py`
+    file with the arguments that you will pass once you call the image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Building and pushing an image to Google Cloud
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once our image is ready to be built, we need to build it and push it to a registry.
+    It can be on any registry you like, but Google Cloud offers a service for that
+    called Artefact Registry. You will therefore be able to store your images on Google
+    Cloud very easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Write this little file at the root of your directory, and be sure that the
+    Dockerfile is at the same level:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Run the `build.sh` file, and after waiting a couple of minutes for the image
+    to build, you should see something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**eu.gcr.io/<your-project-id>/pt_bert_sentiment:dev SUCCESS**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a job on Vertex AI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once your image has been built and pushed to Artefact Registry, we will now
+    be able to tell Vertex AI to run this image on any machine we want, including
+    ones with powerful GPUs ! Google offers a $300 credit when you create your own
+    GCP project, it will be largely sufficient to run our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Costs are available [here](https://cloud.google.com/vertex-ai/pricing#custom-trained_models).
+    In our case, we will take the *n1-standard-4* machine at $0.24/hr, and attach
+    a *NVIDIA T4* GPU at $0.40/hr.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8405cc80d311c01147fa5b3ed826a415.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(source : Google Cloud)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cd5fc0930e342b345abb1060e0593f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(source : Google Cloud)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a `job.sh` file as follows, by specifying which region you are in and
+    what kind of machine you use. Refer to the link above if you are in a different
+    region as costs may vary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You’ll also need to pass arguments to your training script. The syntax for
+    the `gcloud ai custom-jobs create` consists of 2 parts:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- the arguments related to the job itself : `--region` , `--display-name` ,
+    `--worker-pool-spec` , `--service-account` , and `--args`'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- the arguments related to the training : `--training-file` , `--epochs` ,
+    etc.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The latter needs to be preceded by the `--args` to indicate that all following
+    arguments are related to the training Python script.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Ex: supposing our script takes 2 arguments x and y, we would have:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '`--args=x=1,y=2`'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running the job on Vertex AI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Launch the script, and navigate to your GCP project, in the Training section
+    under the Vertex menu .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d622336b28fc8d7f5f60fbb0431498ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Launch the script, and navigate to the console. You should see the job status
+    as “Pending”, and then “Training”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To ensure the GPU is being used, you can check the job and its ressources :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f18577283659330ba871d2d88baf21b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This indicates that we are training with a GPU, we should therefore expect
+    a significant speed-up now ! Let’s have a look at the logs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/959225237e7b4fa03ac158ba31a68e23.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Less than 10 minutes to run 1 epoch, vs 1hr/epoch on CPU ! We have offloaded
+    the training to Vertex and accelerated the training process. We could decide to
+    launch other jobs with different configurations, without overloading our laptop’s
+    capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about the final accuracy of the model ? Well after 10 epochs, it is around
+    94–95%. We could let it run even longer and see if the score improves (we can
+    also add an early stopping callback to avoid overfitting)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/40b37ce0f0bb8c48db7b04e1152a1ef2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How does our model perform ?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/b3808a8189226c3c73eacc46470f071c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Time to party !
+  prefs: []
+  type: TYPE_NORMAL

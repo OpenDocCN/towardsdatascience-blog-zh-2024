@@ -1,0 +1,492 @@
+- en: Evaluate RAGs Rigorously or Perish
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/evaluate-rags-rigorously-or-perish-54f790557357?source=collection_archive---------6-----------------------#2024-04-26](https://towardsdatascience.com/evaluate-rags-rigorously-or-perish-54f790557357?source=collection_archive---------6-----------------------#2024-04-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Use the RAGAs framework with hyperparameter optimization to boost the quality
+    of your RAG system.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)[![Jarek
+    Grygolec, Ph.D.](../Images/a7982bd8f5ced5b36d4196f45102e59d.png)](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------)
+    [Jarek Grygolec, Ph.D.](https://medium.com/@jgrygolec?source=post_page---byline--54f790557357--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--54f790557357--------------------------------)
+    ·11 min read·Apr 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/63cee95bd64080c5b1373fcf47e8460f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is a graphic depicting the idea of “LLMs Evaluating RAGs.” The author generated
+    it using AI in Canva.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TL;DR**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you develop a RAG system, you must choose between different design options.
+    The ragas library can help you by generating synthetic evaluation data with answers
+    grounded in your documents. This makes possible the rigorous evaluation of a RAG
+    system with the classic split between train/validation/test sets, boosting the
+    quality of your RAG system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The development of a Retrieval Augmented Generation (RAG) system in practice
+    involves making many decisions that are consequential for its ultimate quality,
+    i.e., about text splitter, chunk size, overlap size, embedding model, metadata
+    to store, distance metric for semantic search, top-k to rerank, reranker model,
+    top-k to context, prompt engineering, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reality:** In most cases, such decisions are not grounded in methodologically
+    sound evaluation practices but rather driven by ad hoc judgments of developers
+    and product owners, who often face deadlines.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Gold Standard:** In contrast, the rigorous evaluation of the RAG system should
+    involve:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: a large evaluation set so that performance metrics are estimated with low confidence
+    intervals
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: diverse questions in an evaluation set
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: answers specific to the internal documents
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: separate evaluation of retrieval and generation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: evaluation of the RAG as the whole
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: train/validation/test split to ensure good generalization ability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: hyperparameter optimization
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Most RAG systems are NOT evaluated rigorously up to the Gold Standard due to
+    lack of evaluation sets with answers grounded in the private documents!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The generic Large Language Model (LLM) benchmarks (GLUE, SuperGlue, MMLU, BIG-Bench,
+    HELM, …) are not of much relevance to evaluate RAGs as the essence of RAGs is
+    to extract information from internal documents unknown to LLMs. If you insist
+    on using LLM benchmarks for RAG system evaluation, one route would be to select
+    the task-specific to your domain and quantify the value added to the RAG system
+    on top of the bare-bones LLM for this chosen task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The alternative to generic LLM benchmarks is to create human annotated test
+    sets based on internal documents, so that the questions require access to these
+    internal documents to answer correctly. Such a solution is generally prohibitively
+    expensive. In addition, outsourcing annotation may be problematic for internal
+    documents, as they are sensitive or contain private information and can’t be shared
+    with outside parties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here comes the [RAGAs framework](https://arxiv.org/abs/2309.15217) (Retrieval
+    Augmented Generation Assessment) [1] for reference-free RAG evaluation, with Python
+    implementation made available in **ragas** package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It provides essential **tools for rigorous RAG evaluation**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: generation of synthetic evaluation sets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: metrics specialized for RAG evaluation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: prompt adaptation to deal with non-English languages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: integration with LangChain and Llama-Index
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Synthetic Evaluation Sets**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The LLM enthusiasts, myself included, suggest using LLM as a solution to many
+    problems. Here it means:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs are not autonomous, but may be useful. RAGAs employs LLMs to generate synthetic
+    evaluation sets to evaluate RAG systems.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: RAGAs framework follows up on the Evol-Instruct framework, which uses LLM to
+    generate a diverse set of instruction data (i.e. Question — Answer pairs, QA)
+    in the evolutionary process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5af66112472251a8a853e06f092dc1a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Picture 1: Depicting the evolution of questions in RAGAs. The author created
+    this image in Canva and draw.io.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the Evol-Instruct framework, LLM starts with an initial set of simple instructions
+    and gradually rewrites them into more complex instructions, creating diverse instruction
+    data. Can Xu et al. [2] argue that instruction data''s gradual, incremental evolution
+    produces high-quality results. In RAGAs framework, instruction data generated
+    and evolved by LLM are grounded in available documents. The ragas library currently
+    implements three different types of instruction data evolution by depth, starting
+    from the simple question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reasoning:** Rewrite the question to increase the need for reasoning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Conditioning:** Rewrite the question to introduce a conditional element.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Multi-Context:** Rewrite the question to require many documents or chunks
+    to answer it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In addition, ragas library also provides the option to generate conversations.
+    Now, let’s see ragas in practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Examples of Question Evolutions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use the Wikipedia page on Large Language Models [3] as the source document
+    for ragas library to generate question — ground truth pairs, one for each evolution
+    type available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To ***run the code***: You can follow the code snippets in the article or access
+    the notebook with all the related code on Github to run on Colab or locally:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://github.com/gox6/colab-demos/blob/main/rags/evaluate-rags-rigorously-or-perish.ipynb?source=post_page-----54f790557357--------------------------------)
+    [## colab-demos/rags/evaluate-rags-rigorously-or-perish.ipynb at main · gox6/colab-demos'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Colab notebooks exploring topics in Data Science and AI, discussed on the blog:
+    https://medium.com/@jgrygolec …'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/gox6/colab-demos/blob/main/rags/evaluate-rags-rigorously-or-perish.ipynb?source=post_page-----54f790557357--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running the above code, I received the following synthetic question — answer
+    pairs based on the aforementioned Wikipedia page [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1783cb7ec307e72fbe43b1371ae8015b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Table 1: Synthetic question — answer pairs generated using ragas library and
+    GPT-3.5-turbo from the Wikipedia page on LLMs [3].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results presented in Table 1 are very appealing. The *simple* evolution
+    performs very well. In the case of the reasoning evolution, the first part of
+    the question is answered perfectly, but the second part is left unanswered. Inspecting
+    the Wikipedia page [3], there is no answer to the second part of the question
+    in the document, so it can also be interpreted as the restraint from hallucinations,
+    which is good. The *multi-context* question-answer pair seems very good. The conditional
+    evolution type is acceptable if we look at the question-answer pair. One way of
+    looking at these results is that there is always space for better prompt engineering
+    behind evolutions. Another way is to use better LLMs, especially for the critic
+    role, as is the default in the ragas library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Metrics**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ragas library is able not only to generate the synthetic evaluation sets
+    but also provides us with built-in metrics for component-wise evaluation as well
+    as end-to-end evaluation of RAGs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d5919921c133036f027312376838865.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Picture 2: [RAG Evaluation Metrics in RAGAS](https://docs.ragas.io/en/latest/concepts/metrics/index.html).
+    Image created by the author in draw.io.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As of this writing, RAGAS provides eight out-of-the-box metrics for RAG evaluation,
+    see Picture 2, and likely new ones will be added. You are about to choose the
+    metrics most suitable for your use case. However, I recommend to select the one
+    most important metric, i.e.:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Answer Correctness***— the end-to-end metric with scores between 0 and 1,
+    the higher the better, measuring the accuracy of the generated answer as compared
+    to the ground truth.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Focusing on one end-to-end metric helps to start the optimization of your RAG
+    system as fast as possible. Once you achieve some improvements in quality, you
+    can look at component-wise metrics, focusing on the most important one for each
+    RAG component:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Faithfulness*** — the generation metric with scores between 0 and 1, the
+    higher the better, measuring the factual consistency of the generated answer relative
+    to the provided context. It is about grounding the generated answer as much as
+    possible in the provided context, and by doing so prevent hallucinations.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '***Context Relevance*** — the retrieval metric with scores between 0 and 1,
+    the higher the better, measuring the relevancy of retrieved context relative to
+    the question.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**RAG Factory**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OK, so we have a RAG ready for optimisation… not so fast, this is not enough.
+    To optimize RAG, we need the factory function to generate RAG chains with a given
+    set of RAG hyperparameters. Here, we define this factory function in 2 steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1**: A function to store documents in the vector database.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Step 2:** A function to generate RAG in LangChain with document collection
+    or the proper RAG factory function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The former function *get_vectordb_collection* is incorporated into the latterfunction
+    *get_chain*, which generates our RAG chain for a given set of parameters, i.e:
+    embedding_model, llm_model, chunk_size, overlap_size, top_k, lambda_mult. With
+    our factory function, we are just scratching the surface of possibilities of what
+    hyperparameters of our RAG system we optimize. Note also that the RAG chain will
+    require 2 arguments: *question* and *ground_truth*, where the latter is just passed
+    through the RAG chain as required for evaluation using RAGAs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**RAG Evaluation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To evaluate our RAG, we will use the diverse dataset of news articles from CNN
+    and Daily Mail, which is available on Hugging Face [4]. Most articles in this
+    dataset are below 1000 words. In addition, we will use a tiny extract from the
+    dataset of just 100 news articles. This is all done to limit the costs and time
+    needed to run the demo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As we will consider many different RAG prototypes beyond the one defined above
+    we need a function to collect answers generated by the RAG on our synthetic evaluation
+    set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**RAG Optimisation with RAGAs and Optuna**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, it is worth emphasizing that the proper optimization of the RAG system
+    should involve global optimization, where all parameters are optimized simultaneously.
+    This is in contrast to the sequential or greedy approach, where parameters are
+    optimized one by one. The sequential approach ignores the fact that there can
+    be interactions between the parameters, which can result in a sub-optimal solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we are ready to optimize our RAG system. We will use the hyperparameter
+    optimization framework [Optuna](https://optuna.org/). To this end, we define the
+    objective function for Optuna’s study, specifying the allowed hyperparameter space
+    and computing the evaluation metric. See the code below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, with the objective function, we define and run the study to optimize
+    our RAG system in Optuna. We can add our educated guesses of hyperparameters to
+    the study with the method enqueue_trial and limit the study by time or number
+    of trials. See [Optuna’s docs](https://optuna.readthedocs.io/en/stable/index.html)
+    for more tips.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In our study, the educated guess wasn’t confirmed, but I’m sure it will get
+    better with a rigorous approach like the one proposed above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Limitations of RAGAs**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After experimenting with ragas library to synthesize evaluation sets and evaluate
+    RAGs I have some caveats:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The question may contain the answer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The ground truth is just the literal excerpt from the document.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Issues with RateLimitError as well as network overflows on Colab.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Built-in evolutions are few, and there is no easy way to add new ones.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is room for improvement in documentation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The first 2 caveats are quality-related. The root cause may be in the LLM used,
+    and obviously, GPT-4 gives better results than GPT-3.5-Turbo. At the same time,
+    it seems that this could be improved by some prompt engineering for evolutions
+    used to generate synthetic evaluation sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For issues with rate-limiting and network overflows, it is advisable to use
+    1) checkpointing during the generation of synthetic evaluation sets to prevent
+    loss of created data and 2) exponential backoff to ensure you complete the whole
+    task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, and most importantly, more built-in evolutions would be a welcome addition
+    to the ragas package, not to mention the possibility of creating custom evolutions
+    more easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Other Useful Features of RAGAs**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Custom Prompts.** The Ragas package allows you to change the prompts in the
+    provided abstractions. The docs describe an example of custom prompts for metrics
+    in the evaluation task.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Automatic Language Adaptation.** RAGAs has you covered for non-English languages.
+    It has a great feature called automatic language adaptation supporting RAG evaluation
+    in the languages other than English, see the docs for more info.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Conclusions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Despite RAGAs limitations, do NOT miss the most important thing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAGAs is already very useful tool despite its young age. It enables generation
+    of synthetic evaluation set for rigorous RAG evaluation, a critical aspect for
+    successful RAG development.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Please clap i**f you enjoyed this reading. I invite You to look at[**my other
+    articles**](https://medium.com/@jgrygolec) and[**f**](https://medium.com/@jgrygolec/about)**ollow**
+    me to get my new content.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Acknowledgments**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This project & article would be impossible if I didn’t stand on the shoulders
+    of giants. It is impossible to mention all influences, but the following were
+    directly related:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] S. Es, J. James, L. Espinosa-Anke, S. Schockaert, RAGAS: Automated Evaluation
+    of Retrieval Augmented Generation (2023), [arXiv:2309.15217](https://arxiv.org/abs/2309.15217)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] C. Xu, Q. Sun, K. Zheng, X. Geng, P. Zhao, J. Feng, C. Tao, D. Jiang, WizardLM:
+    Empowering Large Language Models to Follow Complex Instructions (2023), [arXiv:2304.12244](https://arxiv.org/abs/2304.12244)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Community, Large Language Models, Wikipedia (2024), [https://en.wikipedia.org/wiki/Large_language_model](https://en.wikipedia.org/wiki/Large_language_model)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] CNN & Daily Mail Dataset available on Hugging Face, for more info, see:
+    [https://huggingface.co/datasets/cnn_dailymail](https://huggingface.co/datasets/cnn_dailymail)'
+  prefs: []
+  type: TYPE_NORMAL

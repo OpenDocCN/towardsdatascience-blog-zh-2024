@@ -1,0 +1,457 @@
+- en: Data Dirtiness Score
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/data-dirtiness-score-fe2ca5678d40?source=collection_archive---------1-----------------------#2024-03-02](https://towardsdatascience.com/data-dirtiness-score-fe2ca5678d40?source=collection_archive---------1-----------------------#2024-03-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: New method to measure tabular dataset quality
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)[![Simon
+    Grah](../Images/f8fd00600db79bc910ff51e9f64503d0.png)](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------)
+    [Simon Grah](https://medium.com/@simon.grah?source=post_page---byline--fe2ca5678d40--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe2ca5678d40--------------------------------)
+    ·11 min read·Mar 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article, the first in a series on data cleaning practices involving Large
+    Language Models (LLMs), focuses on quantifying the cleanliness or dirtiness of
+    a dataset
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/4c8f68fd06ac2bc78782f13b1a251904.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Fabrizio Conti](https://unsplash.com/@conti_photos?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting with the Why
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article introduces a concept for evaluating the dirtiness of a dataset,
+    a topic that presents challenges due to the lack of a tangible score or loss function
+    related to data cleaning. The primary objective here is to establish a metric
+    that can effectively measure the cleanliness level of a dataset, translating this
+    concept into a concrete optimisation problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data cleaning is defined as a two-phase process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, **detecting data errors** such as formatting issues, duplicate records,
+    and outliers;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Second, **fixing** these **errors**.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The evaluation of each phase typically relies on comparing a dirty dataset
+    against a clean (ground truth) version, using classification metrics like recall,
+    precision, and F1-score for error detection (see for example [Can Foundation Models
+    Wrangle Your Data?](https://arxiv.org/abs/2205.09911), [Detecting Data Errors:
+    Where are we and what needs to be done?](https://cs.uwaterloo.ca/~ilyas/papers/AbedjanVLDB2016.pdf))
+    and accuracy or overlap-based metrics for data repair tasks (see [Automatic Data
+    Repair: Are We Ready to Deploy?](https://www.semanticscholar.org/reader/5191f08424a3ec0cdaf2b3285860216caca57463)
+    or [HoloClean: Holistic Data Repairs with Probabilistic Inference](https://arxiv.org/abs/1702.00820)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, these metrics are task-specific and do not offer a unified measure
+    for the overall cleanliness of a dataset that includes various types of errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This discussion is focused on **structured and tidy tabular datasets** (see
+    [Tidy Data | Journal of Statistical Software](https://www.jstatsoft.org/article/view/v059i10)),
+    **distinguishing data cleaning from broader data quality concerns** that include
+    data governance, lineage, cataloguing, drift, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The score blueprint
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All the assumptions hereafter are the foundations the *Data Dirtiness Score*
+    relies on. There are largely inspired by the article [How to quantify Data Quality?](/how-to-quantify-data-quality-743721bdba03).
+    Of course, all of them could be debated and criticised but it is crucial to clearly
+    state them to enhance discussions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data errors are tied to violated constraints**, which arise from **expectations**
+    about the data. For example, if the expectation is that the ID column should have
+    no missing values, the presence of missing IDs would constitute a constraint violation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No Expectation No Cry. **The absence of expectations means no impact on the
+    score**. In other words, no data issues can be identified without predefined expectations,
+    and thus, can’t violate constraints that don’t exist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data issues should be locateable to specific cells**. The score relies on
+    the ability to pinpoint errors to particular cells in the dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Confidence scores for data errors**. Not all data errors can be identified
+    with the same level of certainty. Each detected issue should be tagged with a
+    confidence level, indicating how likely it is that the identified issue is indeed
+    an error. This approach acknowledges that some errors might be open to interpretation.
+    Instead of using a continuous scale from 0 to 1, which might be too detailed,
+    we suggest categorising this confidence level into four ordinal categories: `low`,
+    `medium`, `high`, and `certain`. These categories correspond to probability values
+    of 0.25, 0.5, 0.75, and 1, respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Uniform impact of cells on the overall score**. Each cell in a dataset has
+    an equal potential impact on the dirtiness score. Addressing an issue related
+    to a given cell may resolve issues in others, suggesting a uniform distribution
+    of cell weights in the score calculation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A toy example for illustration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When examining a dataset, it’s not uncommon to spot potential data quality
+    issues at a glance. Consider the following simple dataset for analysis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This example from the book [Cleaning Data for Effective Data Science](https://github.com/PacktPublishing/Cleaning-Data-for-Effective-Data-Science)
+    illustrates data quality issues within a dataset representing a 6th-grade class.
+    This dataset includes multiple variables for each student, organised such that
+    there are 6 students and 5 variables per student.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Upon inspection, certain entries might raise concerns due to apparent inconsistencies
+    or errors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The entry for the student with `Student#` 2 (Lopez, Liam) appears to have an
+    extra value in the `Favorite Color` column, which looks like two values ('blue,green')
+    have been merged. Typically, this column should only contain a single value. Given
+    the uncertainty, this issue is flagged with a `high`confidence level for further
+    inspection.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The next student, Isabella Lee, lacks a `Favorite Color` value. Given that this
+    column should not have any missing entries, this issue is identified with `certain`confidence
+    for correction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The record for student number 4, Mason Fisher, lists an age of `-1`, an implausible
+    value. This might represent a sentinel value indicating missing data, as it is
+    common practice to use such placeholders. However, ages should be positive integers,
+    necessitating a review of this entry.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The row for student number 5, Olivia Gupta, while free from structural errors,
+    presents an unusual case as several explanations are plausible. The `Favorite
+    Color` and `First Name` fields might be swapped, considering `Olivia` can be both
+    a name and a colour. Alternatively, the number `9` could represent a colour code,
+    but this hypothesis lacks corroborating evidence. Moreover, an age of `102` for
+    a 6th-grade student is highly improbable, suggesting potential typographical errors
+    (e.g. `102` instead of `12`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The last row contains superfluous commas, indicating a possible data ingestion
+    issue. However, aside from this formatting concern, the entry itself seems valid,
+    leading to a `high`confidence level in identifying the nature of this error.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Following our guidelines to compute the dirtiness score, we can adopt a methodical
+    approach by introducing a `DataIssue` class in Python, designed to encapsulate
+    various aspects of a data issue:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: To locate specific errors, a `numpy` array of size `(6, 5)` is utilised, where
+    each element corresponds to a cell in the dataset. This array consists of 0s and
+    1s, with 1 indicating a potential issue in the corresponding cell of the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All the identified data issues are instantiated hereafter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The categorisation of multiple data errors into specific `DataIssue` instances
+    can be somewhat subjective, similar to the nuances involved in bug reporting in
+    software development. The fields—`type_of_issue`, `expectation`, and `constraint_violated`—serve
+    to elucidate the nature of the error, facilitating understanding during investigations
+    or reviews.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For computing the dirtiness score, the critical elements are the locations of
+    the errors and the associated confidence scores. In this example, the confidence
+    scores are estimated based on the perceived certainty of an error's presence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Repeated issues pointing to the same cells significantly increase the likelihood
+    of a problem being present there.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Now that we have all the information we need, let’s see how to calculate the
+    dirtiness score for this small data set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculation of the Data Dirtiness Score
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*The* Data Dirtiness Score *represents the* ***expected fraction of cells***
+    *in a dataset* ***that contain errors****.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The theory and calculation for this score are elaborated in the `Score Theory`
+    section of the appendix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using confidence scores for various issues as estimates for the independent
+    probability of an error in each cell, we can apply fundamental probability principles
+    to calculate the likelihood of an issue per cell, and consequently, the *Data
+    Dirtiness Score*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below is a Python function to calculate this metric based on a list of identified
+    data issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s compute the score for the data set presented earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Data Dirtiness Score: 31.87%*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To improve (reduce) this score, a natural step is to tackle the simplest errors,
+    such as correcting duplicate commas used as separators in the last row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the new version of the dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s recompute the score once again to see the improvement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Data Dirtiness Score: 15.21%*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reevaluating the score post-correction reveals a significant improvement, halving
+    the score due to the nature of the error affecting an entire row in a relatively
+    small dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, this measure provides a quantitative means of monitoring and
+    improving the cleanliness of our dataset by correcting iteratively identified
+    data errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next Steps and Challenges
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Creating expectations or constraints for data can be challenging and costly
+    due to the need for human labelling and domain knowledge. A solution is to automate
+    the generation of constraints and data error detection, allowing humans to later
+    review and adjust these automated constraints by either removing issues or modifying
+    confidence scores. For that purpose, LLMs are really good candidates (cf. [Jellyfish:
+    A Large Language Model for Data Preprocessing](https://www.semanticscholar.org/reader/7e17ef56273063dfa838de30b7cc0546b2e5ee10),
+    [Can language models automate data wrangling?](http://josephorallo.webs.upv.es/escrits/MLJ-DataWranglingAutomation.pdf)
+    or [Large Language Models as Data Preprocessors](https://arxiv.org/abs/2308.16361)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The likelihood of certain constraints and violations isn’t always crystal-clear,
+    which necessitates a confidence score to account for this uncertainty. Even experts
+    might not always agree on specific data issues, so when automation is involved
+    in detecting these issues, having an estimated likelihood becomes particularly
+    useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What about absent expectations or missed data errors? The effectiveness of
+    error detection directly influences the cleanliness score and can lead to an overly
+    optimistic value. However, there’s a counterargument to consider: errors that
+    are more difficult to detect, and thus more concealed, might not be as critical
+    in their impact on data usability or downstream applications. This suggests that
+    such errors should be assigned a lower confidence score when identified as issues,
+    reflecting their reduced significance. While this approach may not be without
+    its flaws, it serves to limit the influence of these overlooked errors on the
+    overall dirtiness score by weighting their importance accordingly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another aspect to consider is the dynamic nature of the score. Addressing one
+    issue could potentially affect other issues, raising questions about how to update
+    the score efficiently without much hassle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There’s also the question of whether to include indexes and column names as
+    part of the dataset cells when calculating the cleanliness score, as their accuracy
+    can also affect the data cleaning process (see for example [Column Type Annotation
+    using ChatGPT](https://arxiv.org/abs/2306.00745)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future articles in this series will explore various related topics, including
+    a taxonomy of data errors, leveraging LLMs for automated issue detection, and
+    strategies for data correction and repair. Stay tuned then!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '-> Link to the 2nd article: [Data Quality Error Detection powered by LLMs](/automated-detection-of-data-quality-issues-54a3cb283a91).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Can Foundation Models Wrangle Your Data?](https://arxiv.org/abs/2205.09911)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Detecting Data Errors: Where are we and what needs to be done?](https://cs.uwaterloo.ca/~ilyas/papers/AbedjanVLDB2016.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Automatic Data Repair: Are We Ready to Deploy?](https://www.semanticscholar.org/reader/5191f08424a3ec0cdaf2b3285860216caca57463)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[HoloClean: Holistic Data Repairs with Probabilistic Inference](https://arxiv.org/abs/1702.00820)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Tidy Data | Journal of Statistical Software](https://www.jstatsoft.org/article/view/v059i10)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[How to quantify Data Quality?](/how-to-quantify-data-quality-743721bdba03)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Cleaning Data for Effective Data Science](https://github.com/PacktPublishing/Cleaning-Data-for-Effective-Data-Science)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Jellyfish: A Large Language Model for Data Preprocessing](https://www.semanticscholar.org/reader/7e17ef56273063dfa838de30b7cc0546b2e5ee10)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Can language models automate data wrangling?](http://josephorallo.webs.upv.es/escrits/MLJ-DataWranglingAutomation.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Large Language Models as Data Preprocessors](https://arxiv.org/abs/2308.16361)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Column Type Annotation using ChatGPT](https://arxiv.org/abs/2306.00745)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Score theory
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s dive into the concept of calculating the *Data Dirtiness Score* for a
+    dataset, denoted as 𝒟. This dataset comprises I rows, representing individuals,
+    and J columns, representing different variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We introduce a matrix X, which is of the same dimensions as 𝒟, with I rows
+    and J columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9e7f620081e61c7931d40d94f0cbba78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this matrix, each element X_{ij} follows a Bernoulli distribution with parameter
+    π_{ij}. The value of X_{ij} is set to 0 if the cell (i, j) in dataset 𝒟 is free
+    from data issues, and 1 if there is an issue, with the probability 𝔼[X_{ij}] =
+    π_{ij} indicating the likelihood of an issue being present.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we define a random variable Y that represents the proportion of cells
+    in 𝒟 that are problematic. The formula for Y is given by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b81b04e0127fadd5e595f155ada72ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The *Data Dirtiness Score* is then the expected value of Y:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9751e5fc469f30e2848fb5cde58471e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'To connect this back to our earlier discussion, the link between the confidence
+    scores for each cell’s data error and the probabilities π_{ij} is captured by
+    the following relationship:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6dd87d19370c09f8103e0cae7236a483.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This means that the probability of a cell being error-free is calculated as
+    the product of the complements of the confidence scores for potential errors in
+    that cell.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If all confidence scores are set to 1, indicating absolute certainty of errors,
+    the dirtiness score simplifies to the proportion of cells with errors in the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Calculating the dirtiness score or the cleanliness score for a dataset essentially
+    yields the same insight, just from different perspectives. The formula for the
+    *Data Cleanliness Score* is simply one minus the *Data Dirtiness Score*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b96f59c6e83b5836924288130a2d89f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this way, a dataset with no errors at all would have a cleanliness score
+    of 100% and a dirtiness score of 0%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Changes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'EDIT-2024–03–21: Convert confidence values to ordinal categories: `low`, `medium`,
+    `high`, and `certain`. These represent probabilities of 0.25, 0.5, 0.75, and 1,
+    respectively.'
+  prefs: []
+  type: TYPE_NORMAL

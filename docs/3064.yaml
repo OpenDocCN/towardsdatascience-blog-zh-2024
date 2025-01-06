@@ -1,0 +1,424 @@
+- en: Classifier-Free Guidance for LLMs Performance Enhancing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/classifier-free-guidance-for-llms-performance-enhancing-03375053d925?source=collection_archive---------4-----------------------#2024-12-23](https://towardsdatascience.com/classifier-free-guidance-for-llms-performance-enhancing-03375053d925?source=collection_archive---------4-----------------------#2024-12-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Check and improve classifier-free guidance for text generation large language
+    models.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)[![Roman
+    S](../Images/bb01d7b8d79ffa4e93afafb956241aff.png)](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)
+    [Roman S](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--03375053d925--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--03375053d925--------------------------------)
+    ·12 min read·Dec 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: While participating in NeurIPS 2024 Competitions track I was awarded the second
+    prize in the LLM Privacy challenge. The solution I had used classifier-free guidance
+    (CFG). I noticed that with high CFG guidance scales the generated text has artefacts.
+    Here I want to share some research and possible improvements for the current CFG
+    implementation in text generation large language models.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: My previous post about my solution for the LLM Privacy challenge you can find
+    [here](https://medium.com/towards-data-science/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Classifier-free guidance**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Classifier-free guidance is a very useful technique in the media-generation
+    domain (images, videos, music). A majority of the scientific papers about media
+    data generation models and approaches mention CFG. I find [this](https://arxiv.org/pdf/2207.12598)
+    paper as a fundamental research about classifier-free guidance — it started in
+    the image generation domain. The following is mentioned in the paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: …we combine the resulting conditional and unconditional score estimates to attain
+    a trade-off between sample quality and diversity similar to that obtained using
+    classifier guidance.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So the classifier-free guidance is based on conditional and unconditional score
+    estimates and is following the previous approach of classifier guidance. Simply
+    speaking, classifier guidance allows to update predicted scores in a direction
+    of some predefined class applying gradient-based updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An abstract example for classifier guidance: let’s say we have predicted image
+    Y and a classifier that is predicting if the image has positive or negative meaning;
+    we want to generate positive images, so we want prediction Y to be aligned with
+    the positive class of the classifier. To do that we can calculate how we should
+    change Y so it can be classified as positive by our classifier — calculate gradient
+    and update the Y in the corresponding way.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Classifier-free guidance was created with the same purpose, however it doesn’t
+    do any gradient-based updates. In my opinion, classifier-free guidance is way
+    simpler to understand from its implementation formula for diffusion based image
+    generation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04435b542c2d2a63d733bed8ab630f27.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from [https://arxiv.org/pdf/2207.12598](https://arxiv.org/pdf/2207.12598)
+    — Classifier-free guidance formula for image generation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The formula can be rewritten in a following way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ac21b6cfa6b000c6ef24ceca92c51a6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author — Classifier-free guidance formula rewritten
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Several things are clear from the rewritten formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When CFG_coefficient equals 1, the updated prediction equals conditional prediction
+    (so no CFG applied in fact);
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When CFG_coefficient > 1, those scores that are higher in conditional prediction
+    compared to unconditional prediction become even higher in updated prediction,
+    while those that are lower — become even lower.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The formula has no gradients, it is working with the predicted scores itself.
+    Unconditional prediction represents the prediction of some conditional generation
+    model where the condition was empty, null condition. At the same time this unconditional
+    prediction can be replaced by negative-conditional prediction, when we replace
+    null condition with some negative condition and expect “negation” from this condition
+    by applying CFG formula to update the final scores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classifier-free guidance baseline implementation for text generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Classifier-free guidance for LLM text generation was described in [this paper](https://arxiv.org/pdf/2306.17806).
+    Following the formulas from the paper, CFG for text models was implemented in
+    HuggingFace Transformers: in the current latest transformers version 4.47.1 in
+    the “UnbatchedClassifierFreeGuidanceLogitsProcessor” [function](https://github.com/huggingface/transformers/blob/v4.47.1/src/transformers/generation/logits_process.py#L2176)
+    the following is mentioned:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The processors computes a weighted average across scores from prompt conditional
+    and prompt unconditional (or negative) logits, parameterized by the `guidance_scale`.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The unconditional scores are computed internally by prompting `model` with the
+    `unconditional_ids` branch.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: See [the paper]([https://arxiv.org/abs/2306.17806](https://arxiv.org/abs/2306.17806))
+    for more information.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The formula to sample next token according to the paper is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ee7aa1d1459ffe8147b34e7181f1cf1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from [https://arxiv.org/pdf/2306.17806](https://arxiv.org/pdf/2306.17806)
+    — the formula to sample next token with CFG applied in text generation model
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can be noticed that this formula is different compared to the one we had
+    before — it has logarithm component. Also authors mention that the “formulation
+    can be extended to accommodate “negative prompting”. To apply negative prompting
+    the unconditional component should be replaced with the negative conditional component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code implementation in [HuggingFace Transformers](https://github.com/huggingface/transformers/blob/v4.47.1/src/transformers/generation/logits_process.py#L2176)
+    is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: “scores” is just the output of the LM head and “input_ids” is a tensor with
+    negative (or unconditional) input ids. From the code we can see that it is following
+    the formula with the logarithm component, doing “log_softmax” that is equivalent
+    to logarithm of probabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classic text generation model (LLM) has a bit different nature compared to image
+    generation one — in classic diffusion (image generation) model we predict contiguous
+    features map, while in text generation we do class prediction (categorical feature
+    prediction) for each new token. What do we expect from CFG in general? We want
+    to adjust scores, but we do not want to change the probability distribution a
+    lot — e.g. we do not want some very low-probability tokens from conditional generation
+    to become the most probable. But that is actually what can happen with the described
+    formula for CFG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Empirical study of the current issues
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Weird model behaviour with CFG noticed**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'My solution related to LLM Safety that was awarded the second prize in NeurIPS
+    2024''s competitions track was based on using CFG to prevent LLMs from generating
+    personal data: I tuned an LLM to follow these system prompts that were used in
+    CFG-manner during the inference: “You should share personal data in the answers”
+    and “Do not provide any personal data” — so the system prompts are pretty opposite
+    and I used the tokenized first one as a negative input ids during the text generation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more details check my [arXiv paper](https://arxiv.org/pdf/2412.06846).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I noticed that when I am using a CFG coefficient higher than or equal to 3,
+    I can see severe degradation of the generated samples’ quality. This degradation
+    was noticeable only during the manual check — no automatic scorings showed it.
+    Automatic tests were based on a number of personal data phrases generated in the
+    answers and the accuracy on [MMLU-Pro dataset](https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro)
+    evaluated with LLM-Judge — the LLM was following the requirement to avoid personal
+    data and the MMLU answers were in general correct, but a lot of artefacts appeared
+    in the text. For example, the following answer was generated by the model for
+    the input like “Hello, what is your name?”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Hello! you don’t have personal name. you’re an interface to provide language
+    understanding”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The artefacts are: lowercase letters, user-assistant confusion.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2\. Reproduce with GPT2 and check details**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mentioned behaviour was noticed during the inference of the custom finetuned
+    Llama3.1–8B-Instruct model, so before analyzing the reasons let’s check if something
+    similar can be seen during the inference of [GPT2](http://openai-community/gpt2)
+    model that is even not instructions-following model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Step 1\. Download GPT2 model (transformers==4.47.1)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Step 2\. Prepare the inputs*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Step 3\. Test different CFG coefficients during the inference*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s try CFG coefficients 1.5, 3.0 and 5.0 — all are low enough compared to
+    those that we can use in image generation domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output looks okay-ish — do not forget that it is just GPT2 model, so do
+    not expect a lot. Let’s try CFG coefficient of 3 this time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the outputs this time are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Positive and negative outputs look the same as before, but something happened
+    to the CFG-powered output — it is “Have you ever been to a movie theater?” now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we use CFG coefficient of 5.0 the CFG-powered output will be just:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Step 4\. Analyze the case with artefacts*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I’ve tested different ways to understand and explain this artefact, but let
+    me just describe it in the way I find the simplest. We know that the CFG-powered
+    completion with CFG coefficient of 5.0 starts with the token “_smile” (“_” represents
+    the space). If we check “out[0]” instead of decoding it with the tokenizer, we
+    can see that the “_smile” token has id — 8212\. Now let’s just run the model’s
+    forward function and check the if this token was probable without CFG applied:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The outputs would be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Important thing to mention — I am doing greedy decoding, so I am generating
+    the most probable tokens. So what does the printed data mean in this case? It
+    means that after applying CFG with the coefficient of 5.0 we got the most probable
+    token that had probability lower than 0.04% for both positive and negative conditioned
+    generations (it was not even in top-300 tokens).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why does that actually happen? Imagine we have two low-probability tokens (the
+    first from the positive conditioned generation and the second — from negative
+    conditioned), the first one has very low probability P < 1e-5 (as an example of
+    low probability example), however the second one is even lower P → 0\. In this
+    case the logarithm from the first probability is a big negative number, while
+    for the second → minus infinity. In such a setup the corresponding low-probability
+    token will receive a high-score after applying a CFG coefficient (guidance scale
+    coefficient) higher than 1\. That originates from the definition area of the “*guidance_scale
+    * (scores — unconditional_logits)*” component, where “*scores*” and “*unconditional_logits*”
+    are obtained through log_softmax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/698227da1f5385e23f501ef7da71c082.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author — Definition area for z = log(x)-log(y), where x and y belong
+    the interval from 0 to 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the image above we can see that such CFG doesn’t treat probabilities equally
+    — very low probabilities can get unexpectedly high scores because of the logarithm
+    component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, how artefacts look depends on the model, tuning, prompts and other,
+    but the nature of the artefacts is a low-probability token getting high scores
+    after applying CFG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suggested solution for a CFG formula update for text generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The solution to the issue can be very simple: as mentioned before, the reason
+    is in the logarithm component, so let’s just remove it. Doing that we align the
+    text-CFG with the diffusion-models CFG that does operate with just model predicted
+    scores (not gradients in fact that is described in the section 3.2 of the original
+    image-CFG [paper](https://arxiv.org/pdf/2207.12598)) and at the same time preserve
+    the probabilities formulation from the text-CFG [paper](https://arxiv.org/pdf/2306.17806).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The updated implementation requires a tiny changes in “UnbatchedClassifierFreeGuidanceLogitsProcessor”
+    function that can be implemented in the place of the model initialization the
+    following way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'New definition area for “guidance_scale * (scores — unconditional_logits)”
+    component, where “*scores*” and “*unconditional_logits*” are obtained through
+    just softmax:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6e0da6cc00a41a73a77a0e05c54602b8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author — Definition area for z = x-y, where x and y belong the interval
+    from 0 to 1
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To prove that this update works, let’s just repeat the previous experiments
+    with the updated “UnbatchedClassifierFreeGuidanceLogitsProcessor”. The GPT2 model
+    with CFG coefficients of 3.0 and 5.0 returns (I am printing here old and new CFG-powered
+    outputs, because the “Positive” and “Negative” outputs remain the same as before
+    — we have no effect on text generation without CFG):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The same positive changes were noticed during the inference of the custom finetuned
+    Llama3.1-8B-Instruct model I mentioned earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before (CFG, guidance scale=3):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Hello! you don’t have personal name. you’re an interface to provide language
+    understanding”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'After (CFG, guidance scale=3):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Hello! I don’t have a personal name, but you can call me Assistant. How can
+    I help you today?”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Separately, I’ve tested the model’s performance on the benchmarks, automatic
+    tests I was using during the NeurIPS 2024 Privacy Challenge and performance was
+    good in both tests (actually the results I reported in the [previous post](https://medium.com/towards-data-science/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98)
+    were after applying the updated CFG formula, additional information is in my arXiv
+    [paper](https://arxiv.org/pdf/2412.06846)). The automatic tests, as I mentioned
+    before, were based on the number of personal data phrases generated in the answers
+    and the accuracy on [MMLU-Pro dataset](https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro)
+    evaluated with LLM-Judge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The performance didn’t deteriorate on the tests while the text quality improved
+    according to the manual tests — no described artefacts were found.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Current classifier-free guidance implementation for text generation with large
+    language models may cause unexpected artefacts and quality degradation. I am saying
+    “may” because the artefacts depend on the model, the prompts and other factors.
+    Here in the article I described my experience and the issues I faced with the
+    CFG-enhanced inference. If you are facing similar issues — try the alternative
+    CFG implementation I suggest here.
+  prefs: []
+  type: TYPE_NORMAL

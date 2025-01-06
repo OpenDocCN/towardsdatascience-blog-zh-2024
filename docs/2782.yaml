@@ -1,0 +1,331 @@
+- en: Introduction to the Finite Normal Mixtures in Regression with R
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/introduction-to-the-finite-normal-mixtures-in-regression-with-6a884810a692?source=collection_archive---------7-----------------------#2024-11-15](https://towardsdatascience.com/introduction-to-the-finite-normal-mixtures-in-regression-with-6a884810a692?source=collection_archive---------7-----------------------#2024-11-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to make linear regression flexible enough for non-linear data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)[![Lukasz
+    Gatarek](../Images/a44ec84d3c30e6dd5ad0735698d46a52.png)](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------)
+    [Lukasz Gatarek](https://medium.com/@lukaszgatarek81?source=post_page---byline--6a884810a692--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6a884810a692--------------------------------)
+    ·8 min read·Nov 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The linear regression is usually considered not flexible enough to tackle the
+    nonlinear data. From theoretical viewpoint it is not capable to dealing with them.
+    However, we can make it work for us with any dataset by using finite normal mixtures
+    in a regression model. This way it becomes a very powerful machine learning tool
+    which can be applied to virtually any dataset, even highly non-normal with non-linear
+    dependencies across the variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What makes this approach particularly interesting comes with interpretability.
+    Despite an extremely high level of flexibility all the detected relations can
+    be directly interpreted. The model is as general as neural network, still it does
+    not become a black-box. You can read the relations and understand the impact of
+    individual variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we demonstrate how to simulate a finite mixture model for regression
+    using Markov Chain Monte Carlo (MCMC) sampling. We will generate data with multiple
+    components (groups) and fit a mixture model to recover these components using
+    Bayesian inference. This process involves regression models and mixture models,
+    combining them with MCMC techniques for parameter estimation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/36ff117a1f0b195a0c5ab4c72153b45e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data simulated as a mixtures of three linear regressions
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loading Required Libraries
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We begin by loading the necessary libraries to work with regression models,
+    MCMC, and multivariate distributions
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**pscl**: Used for various statistical functions like regression models.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**MCMCpack**: Contains functions for Bayesian inference, particularly MCMC
+    sampling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**mvtnorm**: Provides tools for working with multivariate normal distributions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Data Generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We simulate a dataset where each observation belongs to one of several groups
+    (components of the mixture model), and the response variable is generated using
+    a regression model with random coefficients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We consider a general setup for a regression model using G Normal mixture components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3ed53e8272456985255a39c1e2290cd9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**N**: The number of observations per group.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**nSim**: The number of MCMC iterations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**G**: The number of components (groups) in our mixture model.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Simulating Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Each group is modeled using a univariate regression model, where the explanatory
+    variables (X) and the response variable (y) are simulated from normal distributions.
+    The `betas` represent the regression coefficients for each group, and `sigmas`
+    represent the variance for each group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**betas**: These are the regression coefficients. Each group’s coefficient
+    is sequentially assigned.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**sigmas**: Represents the variance for each group in the mixture model.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this model we allow each mixture component to possess its own variance paraameter
+    and set of regression parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Group Assignment and Mixing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We then simulate the group assignment of each observation using a random assignment
+    and mix the data for all components.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We augment the model with a set of component label vectors for
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb047a04981f3687cebbe80278b29314.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9756b038c770fa78ab6fd85e875d98dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and thus *z_gi=1* implies that the *i-*th individual is drawn from the *g-*th
+    component of the mixture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This random assignment forms the `z_original` vector, representing the true
+    group each observation belongs to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Bayesian Inference: Priors and Initialization'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We set prior distributions for the regression coefficients and variances. These
+    priors will guide our Bayesian estimation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/66c79c39852ac0490d55a7958de9afa6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**muBeta**: The prior mean for the regression coefficients. We set it to 0
+    for all components.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**VBeta**: The prior variance, which is large (100) to allow flexibility in
+    the coefficients.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**shSigma** and **raSigma**: Shape and rate parameters for the prior on the
+    variance (sigma) of each group.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the component indicators and component probabilities we consider following
+    prior assignment
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/32c364a60b362d26cc314efdca7072ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The multinomial prior M is the multivariate generalizations of the binomial,
+    and the Dirichlet prior D is a multivariate generalization of the beta distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MCMC Initialization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we initialize the MCMC process by setting up matrices to store
+    the samples of the regression coefficients, variances, and mixing proportions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**mBeta**: Matrix to store samples of the regression coefficients.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**mSigma2**: Matrix to store the variances (sigma squared) for each component.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**mPi**: Matrix to store the mixing proportions, initialized using a Dirichlet
+    distribution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'MCMC Sampling: Posterior Updates'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If we condition on the values of the component indicator variables z, the conditional
+    likelihood can be expressed as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a03f350ff3f9294c59770a83f1abc56c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the MCMC sampling loop, we update the group assignments (`z`), regression
+    coefficients (`beta`), and variances (`sigma`) based on the posterior distributions.
+    The likelihood of each group assignment is calculated, and the group with the
+    highest posterior probability is selected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following complete posterior conditionals can be obtained:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a7d1f5bcc4952cfa4ab1f0d36e1478a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aaf3ceb5f34ba16009e704d76e351267.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: denotes all the parameters in our posterior other than *x*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b9f326d43e2c0dc83726a042e1f3adff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and where *n_g* denotes the number of observations in the *g*-th component of
+    the mixture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/220beb5af0688c95c858473ae05d9b2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9b9da480f7230033270068a2921f3d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Algorithm below draws from the series of posterior distributions above in a
+    sequential order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This block of code performs the key steps in MCMC:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Group Assignment Update**: For each observation, we calculate the likelihood
+    of the data belonging to each group and update the group assignment accordingly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Regression Coefficient Update**: The regression coefficients for each group
+    are updated using the posterior mean and variance, which are calculated based
+    on the observed data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Variance Update**: The variance of the response variable for each group is
+    updated using the inverse gamma distribution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Visualizing the Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, we visualize the results of the MCMC sampling. We plot the posterior
+    distributions for each regression coefficient, compare them to the true values,
+    and plot the most likely group assignments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This plot shows how the MCMC samples (posterior distribution) for the regression
+    coefficients converge to the true values (`betas`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Through this process, we demonstrated how finite normal mixtures can be used
+    in a regression context, combined with MCMC for parameter estimation. By simulating
+    data with known groupings and recovering the parameters through Bayesian inference,
+    we can assess how well our model captures the underlying structure of the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless otherwise noted, all images are by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,238 @@
+- en: 'Unleashing the Power of SQL Analytical Window Functions: A Deep Dive into Fusing
+    IPv4 Blocks'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10](https://towardsdatascience.com/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0?source=collection_archive---------15-----------------------#2024-01-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to summarize a geolocation table by merging contiguous network IPv4 blocks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[![Jean-Claude
+    Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)
+    [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--62bf2b3405e0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--62bf2b3405e0--------------------------------)
+    ·8 min read·Jan 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e46edade3e88927aa214a1e67a73ca08.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by Pascal Bernardon on Unsplash
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every device on the internet is uniquely addressable via an Internet Protocol
+    (IP) address. The global IP address space is overseen by the Internet Assigned
+    Numbers Authority (IANA). Traditionally, IANA allocates address space in /8 prefix
+    blocks for IPv4, which are subsequently assigned to Internet Service Providers
+    and other organizations. Various databases exist to map these IP blocks to their
+    respective owners, along with information about the originating country and city.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the Canadian national CSIRT, we, the [Canadian Centre for Cyber Security](https://cyber.gc.ca/en),
+    rely heavily on referencing these databases for looking up a given IP or enhancing
+    entire datasets through SQL JOINs. However, not all use cases necessitate precision
+    up to the city level; sometimes, country information alone suffices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within a country, many network blocks are contiguous. Consolidating these into
+    mega blocks can significantly reduce the size of a table mapping mega blocks to
+    countries, leading to improved JOIN operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will demonstrate how to summarize a geolocation table by
+    merging contiguous network blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s assume our geolocation table contains the following data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, `start_ip` represents the lowest number in the network block, and `end_ip`
+    represents the largest. Normally, these numbers are much larger. For example,
+    Google’s DNS server 8.8.8.8 is represented by the number 134744072\. We use simple
+    synthetic values for illustration purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To start, let’s perform a simple summarization. For example, counting the number
+    of IP addresses assigned to each country. This can be achieved by grouping the
+    data by country and summing the number of IPs in each network block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This statement groups rows by country and applies a `SUM` aggregation function,
+    calculating the total number of IPs for each country. It’s important to note that
+    the `SUM` aggregation is associative, meaning the order in which you sum does
+    not matter, similar to additions in mathematics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, let’s delve into the complexities of aggregating contiguous network blocks.
+    Referring to our original table, we need to fuse together the first 3 rows. Bocks
+    1–2, 3–4, 5–8 should result in the mega block 1–8\. We also need to fuse the last
+    2 rows. Blocks 19–22 and 23–29 result into 19–29\. Our goal is to produce the
+    following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Detecting contiguous blocks requires inter-row information, and the order of
+    rows becomes crucial. Fortunately, windowed analytical functions provide a solution
+    by offering a mechanism for inter-record referencing. These functions, such as
+    `LEAD` and `LAG`, enable comparisons with the values of the previous and subsequent
+    rows, facilitating the identification of contiguous IP blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s apply the `LEAD` and `LAG` windowing functions to our table. Notice that
+    within the `OVER` clause we still specify that our data should be grouped by country
+    `PARTITION BY country` but additionally we specify the ordering of this data `ORDER
+    BY start_ip`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The resulting table `view_1` is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s crucial to distinguish between windowing functions and simple `GROUP BY`
+    functions. In an `OVER()` operation, the results of `LEAD` and `LAG` are appended
+    to every row, providing context for the previous and next row’s information. This
+    is distinct from functions in a `GROUP BY` clause that reduce a group of rows
+    into a single aggregation result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have access to the details of both the preceding and succeeding
+    rows, we can facilitate inter-row comparisons. This comparison is crucial for
+    identifying contiguous IP blocks, enabling us to determine when to fuse adjacent
+    blocks together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each row can fall into one of four states:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1) Remove: The block is contiguous with both the previous and next blocks.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2) Start: The block is contiguous with only the next block.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3) End: The block is contiguous with only the previous block.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4) Keep: The block is not contiguous with either the previous nor the next
+    block.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s add this `state` column to our table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We obtain the following `view_2` result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can proceed to remove the rows falling between the start and end blocks,
+    specifically those identified with state `remove`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Resulting in `view_3`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are getting close to our goal! All we have to do now is merge the `start`
+    and `end` rows, which contain the `start_ip` and `end_ip` of the mega blocks we
+    are seeking to produce. To achieve this, we once again use a window function.
+    This time to fetch the `end_ip` from the `end` row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Result in `view_4`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the rows with state `start` now have a `start_ip` and a `next_end_ip`,
+    the information necessary to build a mega block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rows with state `end` are no longer needed and can be removed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rows with state `keep` already have the correct `end_ip`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now determine the `final_end` value of the mega blocks. Two cases are
+    possible:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) for a `start` row, we obtain the end value from the `next_end_ip`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2) for a `keep` row, we simply use the original `end_ip` value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: We thus achieve our goal of fusing contiguous IPv4 blocks into mega blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Putting all the statements above together, we obtain a final statement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: In conclusion, SQL analytical window functions offer a robust framework for
+    complex data analysis. They empower users to perform aggregations while retaining
+    the context of individual rows, facilitating tasks such as running totals, averages,
+    and percentile calculations. Moreover, these functions play a crucial role in
+    ranking, time-series analysis, and detecting anomalies and outliers within datasets.
+    These functions are indispensable assets in the toolkit of data practitioners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Analytical window functions are very powerful. In this article, we only scratched
+    the surface; for example, we did not make use of a `window_frame`. A window frame
+    allows you to further refine which rows are considered in the aggregation. Window
+    frames are relative to the current row and can be based on the number of rows
+    or time intervals, making these functions indispensable for a wide range of analyses.
+    You can learn more about these features in the Spark documentation: [Spark SQL
+    — Window Operations](https://spark.apache.org/docs/latest/sql-ref-syntax-qry-select-window.html)
+    .'
+  prefs: []
+  type: TYPE_NORMAL

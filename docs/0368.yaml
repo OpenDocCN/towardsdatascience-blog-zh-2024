@@ -1,0 +1,382 @@
+- en: But What is Backpropagation, Really? (Part 1)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07](https://towardsdatascience.com/but-what-is-backpropagation-really-part-1-3cf73653ddd6?source=collection_archive---------8-----------------------#2024-02-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implementing a simple neural network framework from scratch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[![Matthew
+    Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)
+    [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--3cf73653ddd6--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3cf73653ddd6--------------------------------)
+    ·11 min read·Feb 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a32c4308353179756efb049de6ad07a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Trees — the core of computation. Source: [Adrian Infernus on Unsplash](https://unsplash.com/photos/a-forest-filled-with-lots-of-snow-covered-trees-E4O3FTh9V04).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite doing some work and research in the AI ecosystem for some time, I didn’t
+    truly stop to think about backpropagation and gradient updates within neural networks
+    until recently. This article seeks to rectify that and will hopefully provide
+    a thorough yet easy-to-follow dive into the topic by implementing a simple (yet
+    somewhat powerful) neural network framework from scratch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Elementary Operations — The Network’s Core
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Fundamentally, a neural network is just a mathematical function from our input
+    space to our desired output space. In fact, we can effectively “unwrap” any neural
+    network into a function. Consider, for instance, the following simple neural network
+    with two layers and one input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28d8d57c58d3bff09dc26bfd8b862275.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simple neural net with two layers and a ReLU activation. Here, the linear
+    networks have weights wₙ and biases bₙ
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can now construct an equivalent function by going forwards layer by layer,
+    starting from the input. Let’s follow our final function layer by layer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the input, we start with the identity function *pred(x) = x*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: At the first linear layer, we get *pred(x) = w*₁*x + b*₁
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The ReLU nets us *pred(x) = max(0, w*₁*x + b*₁)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: At the final layer, we get *pred(x) = w*₂*(max(0, w*₁*x + b*₁)) + *b*₂
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With more complicated nets, these functions of course get unwieldy, but the
+    point is that we can construct such representations of neural networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can go one step further though — functions of this form are not extremely
+    convenient for computation, but we can parse them into a more useful form, namely
+    a syntax tree. For our simple net, the tree would look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2381ed9dd06321fd769d6bd9003b27b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A tree representation of our function
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this tree form, our leaves are parameters, constants, and inputs, and the
+    other nodes are **elementary operations** whose arguments are their children.
+    Of course, these elementary operations don’t have to be binary — the sigmoid operation,
+    for instance, is unary (and so is ReLU if we don’t represent it as a max of 0
+    and x), and we can choose to support multiplication and addition of more than
+    one input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By thinking of our network as a tree of these elementary operations, we can
+    now do a lot of things very easily with recursion, which will form the basis of
+    both our backpropagation and forward propagation algorithms. In code, we can define
+    a recursive neural network class that looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Going Backwards — Recursive Chain Rule
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Suppose now that we have a differentiable loss function for our neural network,
+    say MSE. Recall that MSE (for one sample) is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d309e28f0599f66e68be32b3cdc62c61.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The MSE loss function
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now wish to update our parameters (the green circles in our tree representation)
+    given the value of our loss. To do this, we need the derivative of our loss function
+    with respect to each parameter. Calculating this directly from the loss is extremely
+    difficult though — after all, our MSE is calculated in terms of the value predicted
+    by our neural net, which can be an extraordinarily complicated function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where very useful piece of mathematics — the chain rule — comes into
+    play. Instead of being forced to compute our highly complex derivatives from the
+    get-go, we can instead compute a series of simpler derivatives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It turns out that the chain rule meshes very well with our recursive tree structure.
+    The idea basically works as follows: assuming that we have simple enough elementary
+    operations, each elementary operation knows its derivative with respect to all
+    of its arguments. Given the derivative from the parent operation, we can thus
+    compute the derivative of each child operation with respect to the loss function
+    through simple multiplication. For a simple linear regression model using MSE,
+    we can diagram it as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf0d461dba33bca20044ddd701532bc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Forward and backward pass diagrams for a simple linear classifier with weight
+    w1, bias b1\. Note *h*₁ is just the variable returned by our multiplication operation,
+    like our prediction is returned by addition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Of course, some of our nodes don’t do anything with their derivatives — namely,
+    only our leaf nodes care. But now each node can get the derivative of its output
+    with respect to the loss function through this recursive process. We can thus
+    add the following methods to our NeuralNetNode class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Exercise 1:** Try creating one of these trees for a simple linear regression
+    model and perform the recursive gradient updates by hand for a couple of steps.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: For simplicity’s sake, we require our nodes to have only one parent
+    (or none at all). If each node is allowed to have multiple parents, our backwards()
+    algorithm becomes somewhat more complicated as each child needs to sum the derivative
+    of its parents to compute its own. We can do this iteratively with a topological
+    sort (e.g. see* [*here*](https://www.cs.toronto.edu/~rgrosse/courses/csc321_2018/slides/lec10.pdf)*)
+    or still recursively, i.e. with reverse accumulation (though in this case we would
+    need to do a second pass to actually update all of the parameters). This isn’t
+    extraordinarily difficult, so I’ll leave it as an exercise to the reader (and
+    will talk about it more in part 2, stay tuned).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Edit: While writing the part two of this article, I noticed that our current
+    implementation does work with multiple parent nodes —* `*on_backward*`*will just
+    be called multiple times, which will eventually correctly update the weights (I
+    encourage you to think about why this works). Some minor updates to the implementation
+    as described are needed (namely in the* `*find_input_nodes*` *method described
+    later) to make everything work, but the algorithm itself doesn’t need to change.
+    I apologize for the oversight.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The rest of our code really just involves implementing parameters, inputs,
+    and operations, and of course running our training. Parameters and inputs are
+    fairly simple constructs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Operations are slightly more complicated, though not too much so — we just
+    need to calculate their gradients properly. Below are implementations of some
+    useful operations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The operation superclass here is not useful yet, though we will need it to more
+    easily find our model’s inputs later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how often the gradients of the functions require the values from their
+    children, hence we require calling the child’s forward() method. We will touch
+    upon this more in a little bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Defining a neural network in our framework is a bit verbose but is very similar
+    to constructing a tree. Here, for instance, is code for a simple linear classifier
+    in our framework:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using Our Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To run a prediction with our model, we have to first populate the inputs in
+    our tree and then call forward() on the parent. To populate the inputs though,
+    we first need to find them, hence we add the following method to our **Operation**
+    class (we don’t add this to our NeuralNetNode class since the Input type isn’t
+    defined there yet):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can now add the predict() method to the Operation class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Exercise 2**: The current way we implemented predict() is somewhat inefficient
+    since we need to traverse the tree to find all the inputs every time we run predict().
+    Write a compile() method that caches the operation’s inputs when it is run.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Training our models is now very straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, for instance, is how we would train a linear Fahrenheit to Celsius classifier
+    using our framework:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: After running this, we get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which correctly corresponds to a linear classifier with weight 0.56, bias -17.78
+    (which is the Fahrenheit to Celsius formula)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can, of course, also train much more complex models, e.g. here is one for
+    predicting if a point (x, y) is above or below the line y = x:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we reasonably get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Though this has reasonable runtime, it is somewhat slower than we would expect.
+    This is because we have to call forward() and re-calculate the model inputs *a
+    lot* in the call to backwards(). As such, have the following exercise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exercise 3**: Add caching to our network. That is, on the call to forward(),
+    the model should return the cached value from the previous call to forward() *if
+    and only if the inputs haven’t changed since the last call*. Ensure that you run
+    forward() again if the inputs have changed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And that’s about it! We now have a working neural network framework in which
+    we can train just a lot of interesting models (though not networks with nodes
+    that feed into multiple other nodes. This isn’t too difficult to add — see the
+    note in the discussion of the chain rule), though granted it’s a bit verbose.
+    If you’d like to make it better, try some of the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exercise 4:** When you think about it, more “complex” nodes in our network
+    (e.g. Linear layers) are really just “macros” in a sense — that is, if we had
+    a neural net tree that looked, say, as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/29319be00ff7ceadc6b3612ab061410d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A linear classification model
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'what you are really doing is this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/16b4e8fbc11e64298ec81c1ca432a2b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An equivalent formulation for our linear net
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, *Linear(inp)* is really just a macro for a tree containing *|inp|
+    + 1* parameters, the first of which are weights in multiplication and the last
+    of which is a bias. Whenever we see *Linear(inp)*, we can thus substitute it for
+    an equivalent tree composed only of elementary operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this exercise, your job is thus to implement the **Macro** class. The class
+    should be an **Operation** that recursively replaces itself with elementary operations
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: this step can be done whenever, though it’s likely easiest to add a
+    compile() method to the Operation class that you have to call before training
+    (or add it to your existing method from Exercise 2). We can, of course, also implement
+    more complex nodes in other (perhaps more efficient) ways, but this is still a
+    good exercise.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exercise 5:** Though we don’t really ever need internal nodes to produce
+    anything other than one number as their output, it is sometimes nice for the root
+    of our tree (that is, our output layer) to produce something else (e.g. a list
+    of numbers in the case of a Softmax). Implement the **Output** class and allow
+    it to produce a Listof[float] instead of just a float. As a bonus, try implementing
+    the SoftMax output.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: there are a few ways of doing this. You can make Output extend Operation,
+    and then modify the NeuralNetNode class’ op() method to return a List[float] instead
+    of just a float. Alternatively, you could create a new Node superclass that both
+    Output and Operation extend. This is likely easier.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note further that although these outputs can produce lists, they will still
+    only get one derivative back from the loss function — the loss function will just
+    happen to take a list of floats instead of a float (e.g. the Categorical Cross
+    Entropy loss)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exercise 6:** Remember how earlier in the article we said that neural nets
+    are just mathematical functions comprised of elementary operations? Add the *funcify()*
+    method to the NeuralNetNode class that turns it into such a function written in
+    human-readable notation (add parentheses as you please). For example, the neural
+    net *Add([Parameter(0.1), Parameter(0.2)])* should collapse to “0.1 + 0.2” (or
+    “(0.1 + 0.2)”).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: For this to work, inputs should be named. If you did exercise 2, name
+    your inputs in the compile() function. If not, you’ll have to figure out a way
+    to name your inputs — writing a compile() function is still likely the easiest
+    way.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That’s all for now! If you’d like to check out the code, you can look at [this
+    google colab](https://colab.research.google.com/drive/1H0qOvXuq0GMxGoTNJmDba0W46bfZRowP?usp=sharing)
+    that has everything (except for solutions to every exercise but #6, though I may
+    add those in part 2).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contact me at [mchak@calpoly.edu](mailto:mchak@calpoly.edu) for any inquiries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless otherwise specified, all images are by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,441 @@
+- en: 'ITT vs LATE: Estimating Causal Effects with IV in Experiments with Imperfect
+    Compliance'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/itt-vs-late-estimating-causal-effects-with-iv-in-experiments-with-imperfect-compliance-7ca1220fe425?source=collection_archive---------7-----------------------#2024-10-09](https://towardsdatascience.com/itt-vs-late-estimating-causal-effects-with-iv-in-experiments-with-imperfect-compliance-7ca1220fe425?source=collection_archive---------7-----------------------#2024-10-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Intuition, step-by-step script, and assumptions needed for the use of IV
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@robson.tigre0?source=post_page---byline--7ca1220fe425--------------------------------)[![Robson
+    Tigre](../Images/220b66a5189f45f3a43ed2c94075f577.png)](https://medium.com/@robson.tigre0?source=post_page---byline--7ca1220fe425--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7ca1220fe425--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7ca1220fe425--------------------------------)
+    [Robson Tigre](https://medium.com/@robson.tigre0?source=post_page---byline--7ca1220fe425--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7ca1220fe425--------------------------------)
+    ·9 min read·Oct 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f65f6f65b7387de907d11a279a24d176.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many experiments, not all individuals assigned to receive a treatment actually
+    take it or use it. For example, a company may send discount coupons to customers,
+    intending for them to use these coupons to make a purchase now, which could subsequently
+    increase their future purchases. However, not all customers will redeem the coupon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This scenario represents "imperfect compliance" ([see here](https://medium.com/@robson.tigre0/part-1-simplifying-causal-inference-to-connect-stakeholders-and-data-scientists-e119856f0f61)),
+    where treatment assignment does not always lead to treatment uptake. To estimate
+    the impact of offering the coupon on future customer purchases, we must distinguish
+    between two main approaches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Intention to treat effect (ITT)**: Estimates the effect of being assigned
+    to receive the coupon, regardless of whether it was used.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Local average treatment effect (LATE)**: Estimates the effect of treatment
+    among those who complied with the assignment — those who used the coupon because
+    they were assigned to receive it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This tutorial introduces the intuition behind these methods, their assumptions,
+    and how to implement them using R ([see script here](https://github.com/RobsonTigre/iv_experimental_design/blob/main/IV%20imperfect%20compliance.R)).
+    We will also discuss two-stage least squares (2SLS), the method used to estimate
+    LATE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intuition
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In experiments with imperfect compliance, treatment assignment (e.g., receiving
+    a coupon) does not perfectly correspond to consuming the treatment (e.g., using
+    the coupon). So simply comparing the treatment group to the control group may
+    lead to misleading conclusions, as the effect of the treatment among those who
+    took it (the blue group in the figure below) gets diluted within the larger treatment
+    group (the green group).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ce475b292a5bd53825d042519a6647c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Images by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To deal with this situation, we use two main approaches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Intention-to-treat (ITT)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It measures the effect of *being assigned to a treatment, regardless of whether
+    individuals actually follow through with it*. In our example, it compares the
+    future average purchases of customers assigned to receive a coupon (treatment
+    group) with those who were not (control group). This method is useful for understanding
+    the effect of the assignment itself, but it may underestimate the treatment's
+    impact, as it includes individuals who did not use the coupon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd97e83156ab232bb0bca56f2b867a11.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Local average treatment effect (LATE)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here we use the instrumental variables (IV) method to estimate the local average
+    treatment effect, which is the causal effect of treatment among those who complied
+    with the assignment ("compliers") — i.e., those who used the coupon because they
+    were assigned to receive it. In summary:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The random assignment to treatment (receiving a coupon) is used as an instrumental
+    variable that strongly predicts actual treatment uptake (using the coupon).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The IV must meet specific assumptions (relevance, exogeneity, and exclusion
+    restriction) that we will discuss in detail.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The IV isolates the part of variation in coupon use that's attributable to random
+    assignment, eliminating the influence of unobserved factors that could bias the
+    estimate ([see more on "selection bias" here](https://medium.com/@robson.tigre0/part-1-simplifying-causal-inference-to-connect-stakeholders-and-data-scientists-e119856f0f61)).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The LATE estimates the effect of treatment by adjusting the impact of treatment
+    assignment (ITT) for the compliance rate (the probability of using the coupon
+    given that the customer was assigned).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is estimated via two-stage least squares (2SLS), in which each stage is illustrated
+    in the figure below. An intuitive explanation of this method is discussed in [section
+    5 here](https://medium.com/@robson.tigre0/part-2-simplifying-causal-inference-to-connect-stakeholders-and-data-scientists-e2e9336e1b26).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/24d33846812b14398f49758a792cc872.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Assumptions and limitations**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'While the ITT estimate can be obtained directly by using OLS , IV methods require
+    strong assumptions to provide valid causal estimates. Fortunately, those assumptions
+    tend to be met in the experimental scenario:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Instrument relevance**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The instrumental variable (in this case, assignment to the treatment group)
+    must be correlated with the endogenous variable whose effect on future purchases
+    we want to measure (coupon usage). In other words, random assignment to receive
+    a coupon should significantly increase the likelihood that a customer uses it.
+    This is tested via the magnitude and statistical significance of the treatment
+    assignment coefficient in the first stage regression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Instrument exogeneity and exclusion restriction**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The instrumental variable must be independent of any unobserved factors that
+    influence the outcome (future purchases). It should impact the outcome only through
+    its effect on the endogenous variable (coupon usage).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In simpler terms, the instrument should influence the outcome only by affecting
+    coupon usage, and not through any other pathway.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In our scenario, the random assignment of coupons ensures that it is not correlated
+    with any unobserved customer characteristics that could affect future purchases.
+    Randomization also implies that the impact of being assigned a coupon will primarily
+    depend on whether the customer chooses to use it or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Limitations and challenges**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The LATE provides the causal effect only for "compliers" — customers who used
+    the coupon because they received it, and this effect is specific to this group
+    (local validity only). It cannot be generalized to all customers or those who
+    used the coupon for other reasons.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When compliance rates are low (meaning only a small proportion of customers
+    respond to the treatment), the estimated effect becomes less precise, and the
+    findings are less reliable. Since the effect is based on a small number of compliers,
+    it is also difficult to determine if the results are meaningful for the broader
+    population.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The assumptions of exogeneity and exclusion restriction are not directly testable,
+    meaning that we must rely on the experimental design or on theoretical arguments
+    to support the validity of the IV implementation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Hands-on with instrumental variables using R**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we understand the intuition and assumptions, we will apply these techniques
+    in an example to estimate both ITT and LATE in R. We will explore the following
+    scenario, reproduced in this [R script](https://github.com/RobsonTigre/iv_experimental_design/blob/main/IV%20imperfect%20compliance.R):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An e-commerce company wants to assess whether the use of discount coupons increases
+    future customer purchases. To circumvent selection bias, coupons were randomly
+    sent to a group of customers, but not all recipients used them. Additionally,
+    customers who did not receive a coupon had no access to it.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/4fdb20e440433ce09aae7487017fca47.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I simulated a dataset representing that situation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**treatment:** Half of the customers were randomly *assigned to receive the
+    coupon* (treatment = 1) while the other half did not receive (treatment = 0).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**coupon_use:** Among the individuals who received treatment, *those who used
+    the coupon* to make a purchase are identified by coupon_use = 1.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**income and age:** simulated covariates that follow a normal distribution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**prob_coupon_use:** To make this more realistic, the probability of coupon
+    usage varies among those who received the coupons. Individuals with higher income
+    and lower age tend to have a higher likelihood of using the coupons.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**future_purchases:** The outcome, future purchases in R$, is also influenced
+    by income and age.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**past_purchases:** Purchases in R$ from previous months, before the coupon
+    assignment. This should not be correlated with receiving or using a coupon after
+    we control for the covariates.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the simulated effect of coupon usage for customers who used the coupon
+    is set to "**true_effect <- 50**". This means that, on average, using the coupon
+    increases future purchases by R$50 for those who redeemed it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Verifying Assumptions**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Instrument relevance:** The first stage regression explains the relationship
+    between belonging to the treatment group and the usage of the coupon. In this
+    regression, the coefficient for "**treatment"** was 0.362, meaning that ~36% of
+    the treatment group used the coupon. The p-value for this coefficient was < 0.01,
+    with a t-statistic of 81.2 (substantial), indicating that treatment assignment
+    (receiving a coupon) significantly influences coupon use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/41299bf7cd97a8969c0e18431b3ff675.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Instrument exogeneity and exclusion restriction:** By construction, since
+    assignment is random, the instrument is not correlated with unobserved factors
+    that affect future purchases. But in any case, these assumptions are indirectly
+    testable via the two sets of results below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first set includes regression results from the first ([only in the script](https://github.com/RobsonTigre/iv_experimental_design/blob/main/IV%20imperfect%20compliance.R))
+    and second stages (below), with and without covariates. These should yield similar
+    results to support the idea that our instrument (coupon assignment) affects the
+    outcome (future purchases) only through the endogenous variable (coupon use).
+    Without covariates, the estimated effect was 49.24 with a p-value < 0.01, and
+    with covariates, it was 49.31 with a p-value < 0.01.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1f4c032ce2b7d94991bbc4b7dd534f28.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second set involved a placebo test to determine whether the instrument affects
+    past purchases (which it logically shouldn't). This test suggests that the instrument
+    does not have a direct effect on the outcome outside of its effect through the
+    endogenous variable. The estimated effect, with or without covariates, was close
+    to zero and not statistically significant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fce708994aa1892f857bc059f1ca29cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LATE with two-stage least squares (2SLS)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Due to the nature of the indirect tests discussed above, we ended up anticipating
+    the results of our main analysis, including the LATE (see the second figure of
+    the subsection "Verifying Assumptions"). But now let''s go into more detail about
+    this estimation process, which involves two steps using the 2SLS method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**First stage:** We regress coupon usage on treatment assignment. This generates
+    predicted values of coupon usage, isolating the portion attributable to random
+    assignment.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Second stage:** We take the predicted coupon usage from the first stage and
+    regress it against future purchases. This step allows us to estimate the causal
+    impact of coupon usage.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: By applying the 2SLS method, we derive an unbiased estimate of the causal effect
+    of coupon usage specifically for those who comply with the treatment, effectively
+    filtering out the influence of random assignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Estimating causal effects**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**ITT estimate**: It measures the average effect that offering a coupon has
+    on customers'' future purchases. In our specific example, the coefficient for
+    treatment was R$17.89 with a p-value < 0.01, while controlling for age and income.
+    This indicates a significant effect of offering the coupon, although due to non-compliance,
+    ITT will generally be lower than the true causal effect.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/faa3c195790e94ee555e4ebf73537914.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LATE estimate using IV**: It represents the causal effect of coupon usage
+    on future purchases among compliers (those who used the coupon because they received
+    it). In our example, the estimated LATE was close to $50 (see the second figure
+    in subsection "Verifying assumptions"), indicating that customers who complied
+    by using the coupon saw their future purchases increase by roughly $50 compared
+    to what would have happened without the coupon.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This result is larger than the ITT effect of R$17.89, as LATE focuses specifically
+    on compliers, who are more likely to experience the true causal impact of using
+    the coupon. Now you see how measuring LATE is important in experiments like this,
+    helping us derive a more accurate understanding of the impact on individuals who
+    actually use the treatment, and providing insights into the true efficacy of the
+    intervention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just out of curiosity, run the following part of the [script](https://github.com/RobsonTigre/iv_experimental_design/blob/main/IV%20imperfect%20compliance.R)
+    to learn that neither the difference in means between compliers and non-compliers,
+    nor the difference between compliers and the control group, gives us the LATE
+    simulated in the data — a point that many data professionals tend to overlook.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Insights to take home
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Many data professionals focus only on the ITT estimate, often because it's easier
+    to explain or because they aren't familiar with other estimands. However, the
+    ITT effect can obscure the true impact on those who actually "consumed" the treatment.
+    The LATE, on the other hand, provides a more accurate measure of the interventions
+    effectiveness among compliers, offering insights that ITT alone cannot capture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the instrumental variables (IV) approach may initially seem complex,
+    random assignment in an experimental setup makes IV a powerful and reliable tool
+    for isolating causal effects. Notice, however, that IV methods can also be applied
+    beyond experimental contexts, provided the assumptions hold. For example, in a
+    fuzzy regression discontinuity design (RDD), IV is a credible way to estimate
+    local treatment effects, even though [sharp RDD](https://medium.com/@robson.tigre0/when-and-how-to-apply-causal-inference-with-rdd-be6b96733dcc)
+    might appear more straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading. Follow me for more in this series :)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you enjoyed this content and want to learn more about causal inference and
+    econometrics, follow me [here](https://medium.com/@robson.tigre0) and on [Linkedin](https://www.linkedin.com/in/robson-tigre/),
+    where I post about causal inference and career.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Would you like to support, me? Just share this with those who may be interested!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Recommended references**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Facure M. (2022). Causal Inference for the Brave and True, [chapter 8](https://matheusfacure.github.io/python-causality-handbook/08-Instrumental-Variables.html)
+    and [chapter 9](https://matheusfacure.github.io/python-causality-handbook/09-Non-Compliance-and-LATE.html).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Huntington-Klein N. (2021). The Effect: An Introduction to Research Design
+    and Causality, [chapter 19](https://theeffectbook.net/ch-InstrumentalVariables.html).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

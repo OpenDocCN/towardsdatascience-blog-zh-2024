@@ -1,0 +1,380 @@
+- en: On the Programmability of AWS Trainium and Inferentia
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/on-the-programmability-of-aws-trainium-and-inferentia-cd455826e26c?source=collection_archive---------7-----------------------#2024-11-01](https://towardsdatascience.com/on-the-programmability-of-aws-trainium-and-inferentia-cd455826e26c?source=collection_archive---------7-----------------------#2024-11-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Accelerating AI/ML Model Training with Custom Operators — Part 4
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--cd455826e26c--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--cd455826e26c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd455826e26c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cd455826e26c--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--cd455826e26c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd455826e26c--------------------------------)
+    ·12 min read·Nov 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a73e650c804e6ccb2a840de147054903.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Agata Bres](https://unsplash.com/@bresia?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post we continue our exploration of the opportunities for runtime optimization
+    of machine learning (ML) workloads through custom operator development. This time,
+    we focus on the tools provided by the [AWS Neuron SDK](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/index.html)
+    for developing and running new kernels on [AWS Trainium](https://aws.amazon.com/machine-learning/trainium/)
+    and [AWS Inferentia](https://aws.amazon.com/machine-learning/inferentia/). With
+    the rapid development of the low-level model components (e.g., [attention layers](https://en.wikipedia.org/wiki/Attention_(machine_learning)))
+    driving the AI revolution, the programmability of the accelerators used for training
+    and running ML models is crucial. Dedicated AI chips, in particular, must offer
+    a worthy alternative to the widely used and highly impactful general-purpose GPU
+    (GPGPU) development frameworks, such as [CUDA](https://developer.nvidia.com/cuda-toolkit)
+    and [Triton](https://triton-lang.org/main/index.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In previous posts (e.g., [here](/ai-model-optimization-on-aws-inferentia-and-trainium-cfd48e85d5ac)
+    and [here](/a-first-look-at-aws-trainium-1e0605071970)) we explored the opportunity
+    for building and running ML models on AWS’s custom-built AI chips using the the
+    dedicated [AWS Neuron SDK](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/).
+    In its most recent release of the SDK (version [2.20.0](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/index.html#id8)),
+    AWS introduced the [Neuron Kernel Interface (NKI)](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/index.html)
+    for developing custom kernels for [NeuronCore-v2](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/arch/neuron-hardware/neuron-core-v2.html),
+    the underlying accelerator powering both [Trainium](https://aws.amazon.com/machine-learning/trainium/)
+    and [Inferentia2](https://aws.amazon.com/machine-learning/inferentia/). The NKI
+    interface joins another API that enables [NeuronCore-v2](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/arch/neuron-hardware/neuron-core-v2.html)
+    programmability, [Neuron Custom C++ Operators](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/index.html).
+    In this post we will explore both opportunities and demonstrate them in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disclaimers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Importantly, this post should not be viewed as a substitute for the official
+    [AWS Neuron SDK documentation](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/index.html).
+    At the time of this writing the Neuron SDK APIs for custom kernel development
+    is in Beta, and may change by the time you read this. The examples we share are
+    intended for demonstrative purposes, only. We make no claims as to their optimality,
+    robustness, durability, or accuracy. Please do not view our mention of any platforms,
+    tools, APIs, etc., as an endorsement for their use. The best choices for any project
+    depend on the specifics of the use-case at hand and warrant appropriate investigation
+    and analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Developing Custom Kernels for Neuron Cores
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although the list of ML models supported by the Neuron SDK is continuously growing,
+    some operations remain either unsupported or implemented suboptimally. By exposing
+    APIs for Neuron kernel customization, the SDK empowers developers to create and/or
+    optimize the low-level operations that they need, greatly increasing the opportunity
+    for running ML workloads on Trainium and Inferentia.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As discussed in our [previous posts](/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12)
+    in this series, fully leveraging the power of these AI chips requires a detailed
+    understanding of their low-level architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Neuron Core Architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The NKI documentation includes a [dedicated section](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#)
+    on the architecture design of NeuronCore-v2 and its implications on custom operator
+    development. Importantly, there are many differences between Neuron cores and
+    their AI accelerator counterparts (e.g., GPUs and TPUs). Optimizing for Neuron
+    cores requires a unique set of strategies and skills.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to other dedicated AI chips, NeuronCore-v2 includes several internal
+    [acceleration engines](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#neuroncore-v2-compute-engines),
+    each of which specializes in performing certain types of computations. The engines
+    can be run asynchronously and in parallel. The [Neuron Compiler](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/compiler/index.html)
+    is responsible for transforming ML models into low-level operations and optimizing
+    the choice of compute engine for each one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [**Tensor engine**](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#tensor-engine)
+    specializes in matrix multiplication. The [**Vector**](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#vector-engine)
+    and [**Scalar**](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#scalar-engine)
+    engines both operate on tensors with the Vector engine specializing in reduction
+    operations and the Scalar engine in non-linear functions. [**GpSimd**](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#gpsimd-engine)
+    is a general purpose engine capable of running arbitrary C/C++ programs. Note
+    that while the [NKI](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/index.html)
+    interface exposes access to all four compute engines, [custom C++ operators](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/index.html)
+    are designed specifically for the [GpSimd](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#gpsimd-engine).
+  prefs: []
+  type: TYPE_NORMAL
+- en: More details on the capabilities of each engine can be found in the architecture
+    documentation. Furthermore, the [NKI Instruction Set Architecture (ISA)](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/api/nki.isa.html)
+    documentation provides details on the engines on which different low-level operations
+    are run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another important aspect of the Neuron chip is its [memory architecture](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#data-movement).
+    A Neuron device includes three types of memory, HBM, SBUF, and PSUM. An intimate
+    understanding of the capacities and capabilities of each one is crucial for optimal
+    kernel development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the architecture overview, you might conclude that Neuron kernel development
+    requires high expertise. While this may be true for creating fully optimized kernels
+    that leverage all the capabilities of the Neuron core, our aim is to demonstrate
+    the accessibility, value, and potential of the Neuron custom kernel APIs — even
+    for non-expert developers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom NKI Kernels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [NKI](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/index.html)
+    interface is a Python-level API that exposes the use of the Neuron core compute
+    engines and memory resources to ML developers. The [NKI Getting Started](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/getting_started.html)
+    guide details the setup instructions and provides a soft landing with a simple
+    “hello world” kernel. The [NKI Programming Model](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/programming_model.html)
+    guide details the three stages of a typical NKI kernel (loading inputs, running
+    operations on the computation engines, and storing outputs) and introduces the
+    NKI Tile and [Tile-based operations](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/programming_model.html#nki-pm-tile).
+    The [NKI tutorials](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/tutorials.html)
+    demonstrate a variety of NKI kernel sample applications, with each one introducing
+    new core NKI APIs and capabilities. Given the presumed optimality of the sample
+    kernels, one possible strategy for developing new kernels could be to 1) identify
+    a sample that is similar to the operation you wish to implement and then 2) use
+    it as a baseline and iteratively refine and adjust it to achieve the specific
+    functionality you require.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [NKI API Reference Manual](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/api/index.html#nki-api-reference)
+    details the Python API for kernel development. With a syntax and semantics that
+    are similar to [Triton](https://triton-lang.org/main/index.html) and [NumPy](https://numpy.org/doc/stable/),
+    the [NKI language](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/api/nki.language.html)
+    definition aims to maximize accessibility and ease of use. However, it is important
+    to note that NKI kernel development is limited to the operations defined in the
+    [NKI](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/api/nki.html)
+    library, which (as of the time of this writing) are fewer and more constrained
+    than in libraries such as [Triton](https://triton-lang.org/main/index.html) and
+    [NumPy](https://numpy.org/doc/stable/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Example — A GIOU Kernel
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As in our [previous posts](/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12),
+    we assess the use of NKI by building a custom implementation of the [Generalized
+    Intersection Over Union (GIOU)](https://giou.stanford.edu/) operation on a pair
+    of batches of input boxes. Since GIOU involves pixel-wise operations, we used
+    the [*exp* kernel](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/programming_model.html#tile-size-considerations)
+    from the [NKI Programming](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/programming_model.html)
+    guide as a reference point and incorporated the use of NKI’s [advanced tensor
+    indexing](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/programming_model.html#advanced-tensor-indexing)
+    in our implementation. To facilitate debugging in a CPU environment, we also added
+    options to run the code using the [nki.simulate_kernel](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/api/generated/nki.simulate_kernel.html#nki.simulate_kernel)
+    and [nki.language.device_print.html](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/api/generated/nki.language.device_print.html)
+    APIs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To run our GIOU kernel, we generate two batches of random boxes and feed them
+    to our function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To assess the performance of our NKI kernel, we will compare it with the following
+    naive implementation of GIOU in PyTorch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We use the following benchmarking utility to compare the runtime performance
+    of our two functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Runtime Environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We ran our script on an [Amazon EC2 inf2.xlarge](https://aws.amazon.com/ec2/instance-types/inf2/)
+    instance (containing two [Neuron cores](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/arch/neuron-hardware/neuron-core-v2.html#neuroncores-v2-arch)
+    and four vCPUs). We used the most recent version of the [Deep Learning AMI for
+    Neuron](https://aws.amazon.com/releasenotes/aws-deep-learning-ami-neuron-ubuntu-22-04/)
+    available at the time of this writing, “Deep Learning AMI Neuron (Ubuntu 22.04)
+    20241027”, with [AWS Neuron 2.20.1](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/release-notes/index.html#neuron-2-20-1-10-25-2024)
+    and [PyTorch 2.1](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/appnotes/torch-neuronx/introducing-pytorch-2-1.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our custom GIOU kernel demonstrated an average runtime of 0.211 milliseconds
+    compared to 0.293, amounting to a 39% performance boost. Keep in mind that these
+    results are unique to our toy example. Other operators, particularly ones that
+    include matrix multiplications (and utilize the Tensor engine) are likely to exhibit
+    different comparative results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing NKI Kernel Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step in our kernel development — beyond the scope of this post — would
+    to be to analyze the performance of the GIOU kernel using the dedicated [Neuron
+    Profiler](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/neuron_profile_for_nki.html)
+    in order to identify bottlenecks and optimize our implementation. Please see the
+    [NKI performance guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/nki_perf_guide.html#nki-perf-guide)
+    for more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neuron Custom C++ Operators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The second method for creating a custom Neuron kernel is to build a C++ operator
+    for the [GpSimd engine](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#gpsimd-engine).
+    This method is described in the [Neuron Custom C++ Operators Developer Guide](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/programming-guide/custom-c%2B%2B-operators-devguide.html#feature-custom-operators-devguide)
+    and demonstrated in the [Neuron Custom C++ Operators in MLP](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/tutorials/customop-mlp-training.html#neuronx-customop-mlp-tutorial)
+    and [Neuron Custom C++ Operators Performance Optimization](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/tutorials/customop-mlp-perf-opt.html#neuronx-customop-mlp-perf)
+    tutorials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Neuron Custom C++ Operators presents an opportunity for “kernel fusion” on
+    the GpSimd engine by facilitating the combination of multiple low-level operations
+    into a single kernel execution. This approach can significantly reduce the overhead
+    associated with: 1) loading multiple individual kernels, and 2) transferring data
+    between different memory regions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Example — A GIOU C++ Kernel
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the code block below we implement a C++ GIOU operator for Neuron and save
+    it to a file named *giou.cpp*. Our kernel uses the [TCM accessor](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/api-reference-guide/custom-ops-ref-guide.html#tcm-accessor)
+    for optimizing memory read and write performance and applies the *multicore* setting
+    in order to [use all eight of the GpSimd’s internal processors](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/api-reference-guide/custom-ops-ref-guide.html#using-multiple-gpsimd-cores).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We require a separate *shape.cpp* file that defines the output shape of our
+    GIOU function and registers our custom operator with the Neuron library:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The *build.py* script compiles the C++ operator and exposes it as a Python
+    API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The compilation script generates a *libgiou.so* library containing the implementation
+    of our C++ GIOU operator. In the code block below we load the library and measure
+    the performance of our custom kernel using the benchmarking utility defined above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Runtime Environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We used the same Neuron environment from our NKI experiments to compile and
+    test our C++ kernel. Please note the [installation steps](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/neuron-customops/programming-guide/custom-c%2B%2B-operators-devguide.html#setup-installation)
+    that are required for custom C++ operator development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our C++ GIOU kernel demonstrated an average runtime of 0.061 milliseconds —
+    nearly five times faster than our baseline implementation. This is presumably
+    a result of “kernel fusion”, as discussed above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The table below summarizes the runtime results of our experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a4a93747c3b62268e577bf26e1df984e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Avg time of different GIOU implementations (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please keep in mind that these results are specific to the toy example and runtime
+    environment used in this study. The comparative results of other kernels might
+    be very different — depending on the degree to which they can leverage the Neuron
+    core’s internal compute engines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The table below summarizes some of the differences we observed between the two
+    methods of AWS Neuron kernel customization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/301bdafd4bab9a99c908d04758d1ef91.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison between kernel customization tools (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Through its high-level Python interface, the NKI APIs expose the power of the
+    Neuron acceleration engines to ML developers in an accessible and user-friendly
+    manner. The low-level C++ Custom Operators library enables even greater programmability,
+    but is limited to the [GpSimd engine](https://awsdocs-neuron.readthedocs-hosted.com/en/latest/general/nki/trainium_inferentia2_arch.html#gpsimd-engine).
+    By effectively combining both tools, developers can fully leverage the AWS Neuron
+    architecture’s capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the AI revolution in full swing, many companies are developing advanced
+    new AI chips to meet the growing demand for compute. While public announcements
+    often highlight these chips’ runtime performance, cost savings, and energy efficiency,
+    several core capabilities are essential to making these chips and their software
+    stacks truly viable for ML development. These capabilities include robust debugging
+    tools, performance analysis and optimization utilities, **programmability**, and
+    more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we focused on the utilities available for programming AWS’s homegrown
+    AI accelerators, [Trainium](https://aws.amazon.com/machine-learning/trainium/)
+    and [Inferentia](https://aws.amazon.com/machine-learning/inferentia/), and demonstrated
+    their use in building custom ML operations. These tools empower developers to
+    optimize the performance of their ML models on AWS’s AI chips and open up new
+    opportunities for innovation and creativity.
+  prefs: []
+  type: TYPE_NORMAL

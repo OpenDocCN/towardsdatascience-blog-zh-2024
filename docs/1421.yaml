@@ -1,0 +1,832 @@
+- en: Applied LLM Quantisation with AWS Sagemaker | Analytics.gov
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/applied-llm-quantisation-with-aws-sagemaker-analytics-gov-ab210bd6697d?source=collection_archive---------3-----------------------#2024-06-07](https://towardsdatascience.com/applied-llm-quantisation-with-aws-sagemaker-analytics-gov-ab210bd6697d?source=collection_archive---------3-----------------------#2024-06-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Host production-ready LLMs endpoints at twice the speed but one fifth the
+    cost.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@james-teo?source=post_page---byline--ab210bd6697d--------------------------------)[![James
+    Teo](../Images/393a3137764cce6bcc760d8bc980e78c.png)](https://medium.com/@james-teo?source=post_page---byline--ab210bd6697d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ab210bd6697d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ab210bd6697d--------------------------------)
+    [James Teo](https://medium.com/@james-teo?source=post_page---byline--ab210bd6697d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ab210bd6697d--------------------------------)
+    ·16 min read·Jun 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/39d0752a052e81ea9d506acbe5077570.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author, Generated in Analytics.gov with AWS Sagemaker Jumpstart - Stable
+    Diffusion XL 1.0 (open-source)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Disclosure: I am a Data Engineer with Singapore’s Government Technology Agency
+    (GovTech) Data Science and Artificial Intelligence Division (DSAID). As one of
+    the key developers working on Analytics.gov, I work with agencies across the entire
+    public sector to develop Data Science and AI/ML capabilities for public good.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table of Contents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Preamble](#270c)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Why use open-source models?](#a831)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Blockers for Hosting Open-source LLMs](#9f25)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[What is quantisation and how can it help?](#1db5)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[How do AWS Sagemaker Endpoints work?](#fc28)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Hosting a Quantised Model in AG Sagemaker](#4036)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Benchmarks](#87cd)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Conclusion](#9809)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 1\. Preamble
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*If you haven’t read our previous publications, you can peruse them here!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/dsaid-govtech/accelerating-machine-learning-and-ai-impact-with-mlops-on-analytics-gov-ada449f216b6?source=post_page-----ab210bd6697d--------------------------------)
+    [## Accelerating Machine Learning and AI impact with MLOps on Analytics.gov'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to Analytics.gov
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'medium.com](https://medium.com/dsaid-govtech/accelerating-machine-learning-and-ai-impact-with-mlops-on-analytics-gov-ada449f216b6?source=post_page-----ab210bd6697d--------------------------------)
+    [](https://medium.com/dsaid-govtech/productionising-llms-and-ml-models-with-analytics-gov-moms-journey-into-ai-solution-deployment-bad4ceb12df2?source=post_page-----ab210bd6697d--------------------------------)
+    [## Productionising LLMs and ML Models with Analytics.gov: MOM’s Journey into
+    AI Solution Deployment'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Shoutout to our co-contributors for this article: MOM Forward Deployed Team
+    (Barry Tng, Ethan Mak, Joel Koo), and…'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/dsaid-govtech/productionising-llms-and-ml-models-with-analytics-gov-moms-journey-into-ai-solution-deployment-bad4ceb12df2?source=post_page-----ab210bd6697d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Analytics.gov (AG), developed by GovTech Singapore’s Data Science and Artificial
+    Intelligence Division (DSAID), is a Central Machine Learning Operations (MLOps)
+    platform that productionises ML and AI use cases for the Whole-of-Government (WOG).
+    Hosted on Government Commercial Cloud (GCC) 2.0, it utilises best-practice network
+    and security configurations to provide a safe and secure environment for all data
+    science and AI needs. Through AG, government officers are able to access compute
+    resources, managed AI services and other utilities directly from their government
+    issued laptops without the need for managing or developing new infrastructure,
+    thereby fast-tracking AI/ML initiatives across the whole of government.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AG provides custom functionalities to create and manage production-ready inference
+    endpoints for quantised models through the capabilities offered by AWS Sagemaker
+    Endpoints. With just a few lines of code, end users can quickly set up their own
+    private inference endpoints for quantised models, reducing what could have taken
+    days or weeks of work into mere minutes. This substantially lowers the barrier
+    of entry for agencies across the whole of government to leverage the power of
+    GenAI with greater efficiency and cost-effectiveness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will explore how AG enables government agencies to run LLMs
+    efficiently and cost-effectively. Our goal is to demystify model quantisation,
+    illustrate how we streamlined the process of hosting quantised open-source LLMs
+    in AWS Sagemaker, and provide benchmarks to gauge the gains in performance and
+    cost-efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Why use open-source models?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*For a brilliant read on Open LLMs, please view Sau Sheong’s publication here!
+    (Note: its a medium member-only story)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://sausheong.com/programming-with-ai-open-llms-28091f77a088?source=post_page-----ab210bd6697d--------------------------------)
+    [## Programming with AI — Open LLMs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Open LLMs in LLM Applications
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: sausheong.com](https://sausheong.com/programming-with-ai-open-llms-28091f77a088?source=post_page-----ab210bd6697d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*I highly recommend it, as it sheds light on hosting open-source LLMs as APIs,
+    providing a great complement to this article.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Security & Sensitivity**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open-source models can be hosted privately on your own devices or cloud environments,
+    meaning that queries to your model do not get sent to third-party providers. This
+    is particularly crucial with government data, as a large majority of it contains
+    sensitive information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Controlled Output Generation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usage of open-sourced models can be controlled on a more granular level. Closed-sourced
+    models have to be interfaced via exposed commercial APIs which abstracts out complexity
+    but reduces the degree of control over the model. Locally hosted open-sourced
+    models allow for full control over the output generation, this is important as
+    many useful libraries such as [LMQL](https://lmql.ai/docs/models/openai.html#openai-api-limitations)
+    and [Guidance](https://github.com/guidance-ai/guidance?tab=readme-ov-file#vertex-ai)
+    work better with locally hosted models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Variety**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As of writing, there are over 600k models in HuggingFace, including the models
+    posted by major players such as Meta and Google and individual contributors who
+    publish their own variants. Some variants are fine-tuned for specific purposes/tasks,
+    which can be used out of the box. Users can simply reuse these models instead
+    of fine-tuning their own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, [AiSingapore’s SEA-LION](https://huggingface.co/aisingapore/sea-lion-7b)
+    model is instruct-tuned for the Southeast Asia (SEA) region languages, where its
+    training dataset consists of diverse languages from Malay to Thai. Utilising this
+    model would save the effort in obtaining large amounts of datasets in different
+    languages and computational cost of fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Blockers for Hosting Open-source LLMs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Language Models come in many shapes and sizes, popular models range from TinyLlama
+    (1.1B) to the upcoming Llama-3 400B+. While Small Language Models (SLM) like TinyLlama
+    works well for smaller and more straightforward use cases, complex use cases usually
+    require the “smarter” Large Language Models (LLM). It goes without saying that
+    all GenAI applications would benefit from having better output quality from the
+    larger LLMs, however with extra size also comes with extra tradeoffs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To maximise the speed of inference, models have to be fully loaded in GPU memory
+    as any movement between disk and GPU memory or CPU and GPU memory would introduce
+    overheads that can substantially slow down inference speeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs require massive amounts of memory to host, the bigger the LLM, the more
+    GPU memory is required to host it. Most large models demand multiple GPUs to fully
+    host in memory, making it an extremely resource intensive and expensive task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Naturally, as the size of the model increases, more computation is required
+    for each inference task. Consequently, the larger the LLMs, the lower the inference
+    speed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d20e7536584ab714bc1046d07f70ab2e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Transformers BF16 Inference Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Just how big are these models?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The size of these LLMs can be estimated with the following formula (Note, this
+    is a naive estimation and model sizes are almost always slightly larger.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90355390f5ae733ad064c1f1a40e2472.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Simplified Formula for Calculating Model Size by Author, Inspired by* [*https://www.substratus.ai/blog/calculating-gpu-memory-for-llm/*](https://www.substratus.ai/blog/calculating-gpu-memory-for-llm/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the formula we can estimate the model size for some popular models:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9ef3247db8e9f4a67f14bbb4dd1be710.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Table of Model Sizes for Popular Models by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: The formula merely estimates the model size, real world GPU requirements
+    will certainly be much larger and are different depending on other factors. (As
+    you will see in the later section on Benchmarks, the actual GPU requirements completely
+    blows these estimates out of the water). “BF16” stands for the number format brain
+    float 16, while “FP16” stands for floating point 16.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The upcoming Meta’s Llama-3 400B+ will be one of the biggest open-source models
+    available when it is released. We can estimate that this beast would be as big
+    as 800 GB. For context, 800 GB would require at least 10 x A100 80GB GPU cards
+    to host even if we naively assume zero hosting overheads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another popular but more reasonably sized model — Llama-3 70B published at bf16
+    or 16 bits per weight (bpw) precision, would still require 141.2 GB of GPU memory
+    to host for inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Why is Large GPU Memory Requirements an issue?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As GPUs are in short supply and high demand currently, it’s not easy to find
+    multiple GPU chips for cheap. Hosting LLMs in their raw and unquantised format
+    can thus be a very expensive business that is only available to the privileged
+    few that can afford it. This can be limiting for projects that require the wisdom
+    of LLMs but is not valuable enough to warrant the use of multiple scarce and expensive
+    GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Slower inference speeds from larger LLM sizes also results in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Worse user experience due to slow output.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Reduced total possible throughput that can be extracted by downstream applications.
+    For applications that are heavy on token usage such as text-summarisation or report
+    generation, the reduced throughput can seriously hurt the viability of the application.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Slow inference and expensive costs are debilitating factors for production-grade
+    use cases, hence each GenAI application will need to make the tradeoff between
+    output quality, inference speed and cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. What is quantisation and how can it help?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**What is Quantisation?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*For a more rigorous explanation on Quantisation, please refer to to these
+    two fantastic guides:* [*https://www.tensorops.ai/post/what-are-quantized-llms*](https://www.tensorops.ai/post/what-are-quantized-llms)*,*
+    [*https://www.semianalysis.com/p/neural-network-quantization-and-number*](https://www.semianalysis.com/p/neural-network-quantization-and-number)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For simplicity, the following section will only refers to Post-Training Quantisation
+    (PTQ)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In simple terms, in the domain of AI/ML, Quantisation is a technique for reducing
+    the size of a model. Underneath the hood, model weights are stored as numbers.
+    Typically these weights are stored in number formats like floating point 16 (FP16)
+    or brain float 16 (BF16), which as the name suggests, takes 16 bits to store a
+    number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantisation reduces the number of bits required to store each number, this
+    allows the storage size of the model to be reduced as less bits are used to store
+    each model weight.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, using fewer bits per weight means the precision of the weights is reduced.
+    This is why Quantisation is aptly described by most articles as “reducing the
+    precision of model weights”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For visual learners here is **π** represented in different precisions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/89bce72766d2c9c1a3fdddc9d2dd25dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Representation of* **π** *in different precisions by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can try for yourself using this [*floating point calculator*](https://observablehq.com/@benaubin/floating-point)*.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: Modern quantisation methods may use bespoke number formats rather than
+    FP series to quantise models. These can go as low as 1 bit quantisation (Q1).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As seen in the table, the precision of **π** is reduced as the number of bits
+    decreases. This not only affects the number of decimal places, but also in the
+    approximation of the number itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, 3.141592502593994 cannot be represented exactly in FP8, so it has
+    to be rounded off to the nearest possible value that FP8 can represent — 3.125,
+    this is also known as Floating Point Error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**How does it help?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As the number of bits per weight decreases, total GPU memory requirement is
+    also reduced. For instance, a FP16 to 8-bit Quantisation (Q8) reduces the amount
+    of bits required to store each number from 16 bits to 8 bits. This reduces the
+    size of the model by 50%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To put this in an example, an unquantised FP16 Mistral 7B is estimated to be
+    about 14.48 GB in size, while a Q8 Mistral 7B is only 7.24 GB. A Q4 Mistral 7b
+    will only be a mere 3.62 GB, making it possible to load into some mobile devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only does reduction in memory reduce the minimum computation requirements
+    to host a model, it also improves inference speeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/908427595f63835aba24552068d2ac8a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*7B Model benchmarked in Various Quants by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What’s the catch?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Of course there is no free lunch in this world! Reduction in precision will
+    impact the output quality of the model. Relating to our previous Table on Representation
+    of **π**, a **π** represented in FP16 would probably be accurate enough for passing
+    a math test, but a FP8 **π** will give you an F.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Luckily most LLMs are not too sensitive to reduction at higher precisions. As
+    a general rule of thumb, 8-bit Quantisation or Q8 models are nearly as good as
+    the raw ones. This is shown in the following benchmarks from “[*How Good Are Low-bit
+    Quantized LLAMA3 Models? An Empirical Study*](https://arxiv.org/pdf/2404.14047)”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7da740454cc39e235647f639308254d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Extracted table of 8-bit Quantised Llama-3 against benchmarks, Source:* [*https://arxiv.org/pdf/2404.14047*](https://arxiv.org/pdf/2404.14047)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In short, this means that you can get a **50% reduction in model size for almost
+    free** just by quantising model weights to Q8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44f12ec6af5c6a5efed577e63df93413.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Extracted table of 4-bit Quantised Llama-3 against benchmarks, Source:* [*https://arxiv.org/pdf/2404.14047*](https://arxiv.org/pdf/2404.14047)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a 75% reduction in model size, i.e Q4, the model is still decent using the
+    smarter quantisation techniques like AWQ, albeit with visible loss in quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c0a10cc584a8a836c5f300ca8f506d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Extracted table of 3-bit Quantised Llama-3 against benchmarks, Source:* [*https://arxiv.org/pdf/2404.14047*](https://arxiv.org/pdf/2404.14047)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anything below Q4 and you may run into severe degradation of model output quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do note that the effects of quantisation on model quality may vary from model
+    to model. The best way to determine the best quantisation level is really based
+    on your own usage and testing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What Quantisation Framework to choose?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*For more rigorous discourse on choosing Quantisation frameworks please see:*
+    [*https://oobabooga.github.io/blog/posts/gptq-awq-exl2-llamacpp/*](https://oobabooga.github.io/blog/posts/gptq-awq-exl2-llamacpp/)
+    *,* [*https://www.reddit.com/r/LocalLLaMA/comments/1anb2fz/guide_to_choosing_quants_and_engines/*](https://www.reddit.com/r/LocalLLaMA/comments/1anb2fz/guide_to_choosing_quants_and_engines/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many quantisation frameworks available, some of the more popular ones
+    are GGUF, GPTQ, EXL2 and AWQ. The best quantisation framework for you will depend
+    on your use case. The following are my personal recommendations from what I’ve
+    observed in my usage. What’s best for you will depend on your use case and your
+    mileage may vary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GGUF**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Created by [Georgi Gerganov](https://github.com/ggerganov/llama.cpp) with the
+    goal of enabling LLM inference with minimal setup and state-of-the-art performance
+    on any hardware locally or in the cloud, GGUF has become a mainstay for AI/ML
+    enthusiasts looking to host LLMs due to its ease of use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you need to host models on commodity hardware or CPU only systems, then GGUF
+    is the most suitable as it is the only framework that has CPU hosting support.
+    GGUF also allows you to run newer models on older GPUs as well. GGUF is also the
+    most stable framework due to how it packages the model weights as a single file
+    in a unified format. If you need to host a quantised model reliably on any machine
+    i.e. even your laptop, then GGUF is the way to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The caveat for GGUF is that it’s older quants (Qx_0) uses more simple methods
+    of quantisation such as round-to-nearest (RTN) quantisation. This may reduce model
+    output quality to some extent, but it’s less affected at higher quantisation levels.
+    Newer quantisation methods in GGUF (Qx_K or IQx_S) are better at preserving model
+    quality at lower quantisation levels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GPTQ, EXL2 and AWQ**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPTQ, EXL2 and AWQ are specialised for GPU usage, they are all based on the
+    GPTQ format. These frameworks tend to be much faster than GGUF as they are specially
+    optimised for running on GPU. EXL2 allows for mixing quantisation levels within
+    a model. AWQ tends to have the best output quality as it uses even “smarter” quantisation
+    techniques than GPTQ. Both EXL2 and AWQ attempt to reduce degradation at lower
+    quantisation levels. GPTQ tends to be the most supported for downstream inference
+    engines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, choose GGUF for ease of hosting, EXL2 for mixed quantisation
+    levels, AWQ for output quality and GPTQ if your choice of inference engine does
+    not support the rest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. How do AWS Sagemaker Endpoints work?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we understand what quantisation is, how do we bring it into our users
+    on AG’s AWS Sagemaker so that they will be able to host their own production-ready
+    models inference endpoints for their use case?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What are Sagemaker Endpoints?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'AWS Sagemaker Endpoints are the native tools within AWS Sagemaker to host model
+    inference. Its advantages are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Easy to configure Auto Scaling**: It only takes a few lines to add auto scaling
+    to existing endpoints.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Zero Downtime Updates**: Updates to Sagemaker Endpoints uses BlueGreen Deployment
+    by default.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Flexibility & Customisation**: Sagemaker Endpoints are able to use customised
+    containers.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Access to AWS Services**: Sagemaker Endpoints are able to access AWS services
+    like S3 which can allow for more flexibility in adding additional steps to process
+    inference requests.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This helps to save time and expertise for users who just want to deploy a model
+    and not think about the engineering work required to manage it on a production
+    scale, turning what could be days/weeks of work into mere minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**How does Sagemaker Endpoints work?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Underneath the hood, Sagemaker Endpoints utilises special inference containers
+    based on the [Sagemaker-Inference-Toolkit](https://github.com/aws/sagemaker-inference-toolkit)
+    library for hosting model APIs. These containers provide a quick and easy method
+    of running inference without needing to build your own container images and supports
+    many different frameworks from simple scikit-learn models using their scikit-learn
+    container to even complex LLMs (and also their AWQ/GPTQ quantised variants) using
+    the [TensorRT-LLM](https://github.com/aws/deep-learning-containers/blob/master/available_images.md)
+    container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However GGUF and EXL2 quants will still require heavy customised inference
+    frameworks. Thankfully, Sagemaker provides the flexibility to use custom containers
+    and Sagemaker Endpoints make it very simple to do so. There are only a few details
+    to keep in mind to make this work:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Container must listen on port 8080.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Container must respond to /ping and /invocations
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Container will be run with the *‘docker run <image> serve’* command, containers
+    are expected to use ENTRYPOINT instead of CMD
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Model artifacts are brought into the ‘/opt/ml/model’ direction by specifying
+    the S3 path to a tar.gz containing the model artifacts. This happens right before
+    the runtime of the container.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/8fdb800e571624302a550ec307f56da5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visual representation of Custom Sagemaker Container Requirements by Author,
+    Inspired by [https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Customise for an open-source inference engine**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The above diagram represents a container pre-packed with Sagemaker-Inference-Toolkit.
+    To use our own serving engine, we can simply replace the pre-packed packages with
+    our own custom packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, one of the custom containers we curated enables users to host
+    GGUF models through using Abetlen’s [Llama-cpp-python](https://github.com/abetlen/llama-cpp-python)
+    as the inference engine. This library is open-source and under the permissive
+    MIT license.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our dockerfile, we only needed to write a few lines of code to conform to
+    sagemaker endpoint requirements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Change listening port to 8080
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add routes for /ping and /invocations
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Run on ENTRYPOINT
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 6\. Hosting a Quantised Model in AG Sagemaker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Using the custom containers, hosting a quantised LLM in AG’s Sagemaker environment
+    is reduced down to a few lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s it, short and simple. With this, our users can focus on developing their
+    LLM use cases without being encumbered by the complexity behind the scenes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. Benchmarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The following are some benchmarks for the average tokens generated per second
+    based on single query inference tested 5 times over 30 prompts i.e. each candidate
+    is based on an average of 150 tests. For all tests, we used the CodeLlama model
+    as it is available in many sizes, namely 7, 13, 34 and 70 billion parameters.
+    We tested both quantised and unquantised models with different inference engines,
+    using Transformers as the baseline as it’s typically the normal way for running
+    unquantised models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following are the specifications for the benchmarking:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7347e3a11bf2fdb6cbcfc801cedd13b8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Benchmark specifications by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note ExllamaV2 refers to the inference engine, while EXL2 is the quantisation
+    format native to the ExllamaV2, in this case, ExllamaV2 also supports inference
+    for GPTQ. ExllamaV2 will only be benchmarked with Q4_0 as some Q8_0 quants are
+    not found on HuggingFace.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Unquantised via Transformers (Baseline)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**BF16:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9cad550d302275d1fb63d80b3eda99ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Transformers BF16 Inference Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All multiples in the following tests are based on using Transformers as a baseline.
+    For instance, the GPTQ 7b Q4_0 model has a “(3.42x)” multiple in the “Tokens per
+    second” column, this means that GPTQ is 3.42 times as fast as the Transformers
+    baseline for the 7b model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GGUF via Llama-cpp-python**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*GGUF can support hosting on older Nvidia T4s from the g4dn instance families,
+    so we added extra tests that optimises for cost using g4dn instance types when
+    possible:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q4_0
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4fedaab4ea800417fe750538a56b471e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*GGUF Q4_0 Inference (Minimised Cost) Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q8_0
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b85997ee93e5411a97f96efccde3f9ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*GGUF Q8_0 Inference (Minimised Cost) Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Using newer Nvidia A10g from the g5 instance family:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q4_0
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/54d8f6e23d74914cd6672b0751417cd7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*GGUF Q4_0 Inference Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q8_0
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/14d5790a9458f501defae9e52bfcdad9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*GGUF Q8_0 Inference Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In every single case, GGUF can run the Models much cheaper or at the same price
+    but significantly faster. For instance, the Q8 13B model is 74% faster than the
+    baseline but at one fifth the cost!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GPTQ — Via ExllamaV2**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*ExllamaV2 only supports the newer hosting on the newer Nvidia A10g from the
+    g5 instance family and not the g4dn instance family.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q4_0
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9559a0e2f5026a85a7dc9c5bf48cf8f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*GPTQ Q4_0 Inference Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPTQ on ExllamaV2 takes the performance improvements to a whole new level, with
+    **more than** **triple** the speeds from the baseline for every model size quantised
+    in Q4_0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AWS Sagemaker Jumpstart**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Natively AWS also provides a service called JumpStart that allows deployment
+    of pretrained models with a few clicks. These AWS Sagemaker containers implement
+    the Sagemaker Inference Toolkit and have various inference engines pre-installed.
+    In this case, it’s using the HuggingFace’s Text Generation Inference (TGI) Framework
+    as the inference engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BF16:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c021db0da5c3b01e942d9a59c822e6e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*AWS Jumpstart TGI BF16 Inference Benchmark by Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how 13B is faster than 7B. This is because the TGI container is able
+    to utilise more GPU memory to increase the speed of inference. On larger parameter
+    sizes like 34B and 70B, using AWS Sagemaker Jumpstart with TGI containers can
+    even outperform GPTQ on ExllamaV2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Quantisation offers substantial benefits for LLMs as it reduces memory requirements
+    for hosting them. The reduction in memory requirements increases inference speeds
+    and reduces costs. Higher bit quantisation can be achieved with almost zero loss
+    in output quality, substantial gains in speed and reduced cost — essentially a
+    Pareto improvement over using unquantised LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With auxiliary functionalities provided by AG on top of AWS Sagemaker Endpoints,
+    agencies across the entire public sector can easily access capabilities to create
+    and manage production-ready quantised Open LLM APIs. By streamlining the process
+    of deploying quantised large language models, AG significantly lowers the barrier
+    of entry for producing efficient and cost-effective GenAI applications, allowing
+    government agencies to focus on innovating and developing technology for public
+    good.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dovetailing with this, AG will continue to further its GenAI endeavours by providing
+    access to closed-source models like Azure OpenAI and VertexAI’s Gemini via secured
+    cross-cloud integration, alongside our existing services with AWS Bedrock. Through
+    robust and comprehensive offerings, AG empowers users to rightsize models for
+    their use cases, resulting in better, faster and cheaper GenAI applications in
+    the public sector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Sau Sheong, Programming with AI — Open LLMs (2024), [https://sausheong.com/programming-with-ai-open-llms-28091f77a088](https://sausheong.com/programming-with-ai-open-llms-28091f77a088)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] S. Stoelinga, Calculating GPU memory for serving LLMs (2023), [*https://www.substratus.ai/blog/calculating-gpu-memory-for-llm/*](https://www.substratus.ai/blog/calculating-gpu-memory-for-llm/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] M.C. Neves, What are Quantized LLMs? (2023), [*https://www.tensorops.ai/post/what-are-quantized-llms*](https://www.tensorops.ai/post/what-are-quantized-llms)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] D. Patel, Neural Network Quantization & Number Formats From First Principles
+    (2024), [https://www.semianalysis.com/p/neural-network-quantization-and-number](https://www.semianalysis.com/p/neural-network-quantization-and-number)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] W. Huang, How Good Are Low-bit Quantized LLAMA3 Models? An Empirical Study
+    (2024), [https://arxiv.org/pdf/2404.14047](https://arxiv.org/pdf/2404.14047)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Oobabooga, A detailed comparison between GPTQ, AWQ, EXL2, q4_K_M, q4_K_S,
+    and load_in_4bit: perplexity, VRAM, speed, model size, and loading time. (N.A.),
+    [*https://oobabooga.github.io/blog/posts/gptq-awq-exl2-llamacpp/*](https://oobabooga.github.io/blog/posts/gptq-awq-exl2-llamacpp/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Sgsdxzy, Guide to choosing quants and engines (2024), [*https://www.reddit.com/r/LocalLLaMA/comments/1anb2fz/guide_to_choosing_quants_and_engines/*](https://www.reddit.com/r/LocalLLaMA/comments/1anb2fz/guide_to_choosing_quants_and_engines/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Amazon Web Services, Use Your Own Inference Code with Hosting Services
+    (N.A.), [https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html](https://docs.aws.amazon.com/sagemaker/latest/dg/your-algorithms-inference-code.html)'
+  prefs: []
+  type: TYPE_NORMAL

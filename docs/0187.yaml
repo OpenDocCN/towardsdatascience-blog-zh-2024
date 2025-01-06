@@ -1,0 +1,605 @@
+- en: Map-Matching for Speed Prediction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/map-matching-for-speed-prediction-f1a534626368?source=collection_archive---------6-----------------------#2024-01-19](https://towardsdatascience.com/map-matching-for-speed-prediction-f1a534626368?source=collection_archive---------6-----------------------#2024-01-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How fast will you drive?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@joao.figueira?source=post_page---byline--f1a534626368--------------------------------)[![João
+    Paulo Figueira](../Images/54e4176f66e4ab0324d86ec71d8b033d.png)](https://medium.com/@joao.figueira?source=post_page---byline--f1a534626368--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f1a534626368--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f1a534626368--------------------------------)
+    [João Paulo Figueira](https://medium.com/@joao.figueira?source=post_page---byline--f1a534626368--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f1a534626368--------------------------------)
+    ·14 min read·Jan 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7afc8f369f6eb24fe5c635ffc56dc59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Julian Hochgesang](https://unsplash.com/@julianhochgesang?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: When planning future vehicle routes, you trust the digital map providers for
+    accurate speed predictions. You do this when picking your phone up to prepare
+    for a car trip or, in a professional setting, when planning routes for your vehicle
+    fleet. The forecasted speeds are an essential component of the trip’s cost, especially
+    as they are one of the fundamental drivers of energy consumption in electric and
+    combustion vehicles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The digital mapping service providers collect information from live traffic
+    and historical records to estimate how fast you can drive along a specific road
+    at any given time. With this data and intelligent algorithms, they estimate how
+    quickly an average vehicle will travel through the planned route. Some services
+    will accept each vehicle’s features to tune the route path and the expected trip
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what about specific vehicles and drivers like yours? Do these predictions
+    apply? Your cars and drivers might have particular requirements or habits that
+    do not fit the standardized forecasts. Can we do better than the digital map service
+    providers? We have a chance if you keep a good record of your historical telematics
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we will improve the quality of speed predictions from digital
+    map providers by leveraging the historical speed profiles from a telematics database.
+    This database contains records of past trips that we use to modulate the standard
+    speed inferences from a digital map provider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Central to this is map-matching, the process by which we “snap” the observed
+    GPS locations to the underlying digital map. This correcting step allows us to
+    bring the GPS measurements in line with the map’s road network representation,
+    thus making all location sources comparable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Road Network
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A road network is a mathematical concept that supports most digital mapping
+    applications. Usually implemented as a [directed multi-graph](https://en.wikipedia.org/wiki/Multigraph),
+    each node represents a known geospatial location, usually some noteworthy landmark
+    such as an intersection or a defining point on a road bend, and the connecting
+    directed edges represent straight-line paths along the road. **Figure 1** below
+    illustrates the concept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8da38c3b7d740969b46410ce73f6739.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 1** — The diagram above shows the simplified representation of a road
+    segment as represented by a digital map. Each node, represented by a red dot,
+    corresponds to a known geospatial location defined by latitude, longitude, and
+    altitude coordinates. Each connecting line is an edge, and digital maps use these
+    to represent the roads (the travel direction is omitted here). When we ask a digital
+    map provider for directions, we get a long sequence of these nodes and edges and
+    an estimate of the time it will take to travel such roads. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we request a route from a digital map provider, we get a sequence of road
+    network nodes and their connecting edges. The service also provides the estimated
+    travel times and corresponding speeds between all pairs of nodes (in some cases,
+    the speed estimates cover a range of nodes). We get the total trip duration by
+    adding all the partial times together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we get better estimates for these times, we will also have better speed estimates
+    and a better route prediction overall. The source for these better estimates is
+    your historical telematics data. But knowing the historic speeds is just a part
+    of the process. Before we can use these speeds, we must make sure that we can
+    project them onto the digital map, and for this, we use map-matching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map-Matching
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Map-matching](https://en.wikipedia.org/wiki/Map_matching) projects sequences
+    of GPS coordinates sampled from a moving object’s path to an existing road graph.
+    The matching process uses a [Hidden Markov Model](https://medium.com/@joao.figueira/list/hmm-9940e39b81d9)
+    to map the sampled locations to the most likely graph edge sequence. As a result,
+    this process produces both the edge projections and the implicit node sequence.
+    You can read a more detailed explanation in my previous article on map matching:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/map-matching-for-trajectory-prediction-be307a1547f0?source=post_page-----f1a534626368--------------------------------)
+    [## Map-Matching for Trajectory Prediction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where are you going? Should you be going that way?
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/map-matching-for-trajectory-prediction-be307a1547f0?source=post_page-----f1a534626368--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After reading the above article, you will understand that the [Valhalla](https://valhalla.github.io/valhalla/)
+    map-matching algorithm projects the sampled GPS locations into road network edges,
+    not to the nodes. The service may also return the matched poly-line defined in
+    terms of the road network nodes. So, we can get both edge projections and the
+    implicit node sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, when retrieving a route plan from the same provider, we also
+    get a sequence of road network nodes. By matching these nodes to the previously
+    map-matched ones, we can overlay the known telematics information to the newly
+    generated route and thus improve the time and speed estimates with actual data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before using the map-matched locations to infer actual speeds, we must project
+    them to the nodes and adjust the known travel times, as illustrated in **Figure
+    2** below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06535e699f86a2d8135667d9726725f9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 2** — The diagram above illustrates the challenge of mapping the implicit
+    speeds of sampled GPS locations, displayed as green dots, to the speeds between
+    the map nodes, represented as red dots. The orange diamonds represent the map-matched
+    sampled GPS locations. In this problem, we know the average speeds between the
+    green dots and want to infer the average speeds between the red dots. (Image source:
+    Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a prerequisite, we must correctly sequence both sets of locations, the nodes,
+    and the map matches. This process is depicted in **Figure 2** above, where the
+    map matches, represented by the orange diamonds, are sequenced along with the
+    road network nodes, represented as red dots. The travel sequence is obviously
+    from left to right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We assume the time differences between the GPS locations are the same as the
+    map-matched ones. This assumption, illustrated by **Figure 3** below, is essential
+    because there is no way to infer what effect in time the map matching has. This
+    assumption simplifies the calculation while keeping a good approximation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f75f570ad3f325ec79cdfb99a7119eaf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 3** — We assume that the time differences between consecutive samples
+    are the same as the corresponding map-matched ones. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we know the time differences between consecutive orange diamonds, our
+    challenge is to use this information to infer the time differences between consecutive
+    red dots (nodes). **Figure 4** below shows the relationship between the two sequences
+    of time differences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2ffe8d3f5a9e098781f0d9bdb86ab20.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 4** — The diagram above helps us understand how we interpolate the
+    time differences between road network nodes (red dots) using the time differences
+    from the sequence of map-matched locations (orange diamonds). (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can safely assume that the *average speeds* between consecutive orange diamonds
+    are constant. This assumption is essential for what comes next. But before we
+    proceed, let’s define some terminology. We will use some simplifications due to
+    Medium’s typesetting limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to deal with two fundamental quantities: distances and timespans. Using
+    **Figure 4** above as a reference, we define the distance between the orange diamond
+    one and red dot one as *d(n1, m1)*. Here, the letter “*m*” stands for “map-matched,”
+    and the letter “*n*” stands for node. Similarly, the corresponding timespan is
+    *t(n1, m1)*, and the average speed is *v(n1, m1)*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us focus on the first two nodes and see how we can derive the average speed
+    (and the corresponding timespan) using the known timespans from orange diamonds
+    one to four. The average speed of travel between the first two map-matched locations
+    is thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8f3327843f5029f436555f7519e2b5d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Because the average speed is constant, we can now compute the first timespan.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b94d68d33cacaedd0d1ffd808be12b6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The second timespan is just *t(m2, m3)*. For the final period, we can repeat
+    the process above. The total time is thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9afe8ec325448a286630b196446e8916.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We must repeat this process, adapting it to the sequence of nodes and map matches
+    to calculate the projected trip times between all nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have seen how to project measured speeds onto a digital map let’s
+    see where to get the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Telematics Database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This article uses a telematics database to infer unknown road segment average
+    speeds. All the geospatial data in the database is already map-matched to the
+    underlying digital map. This characteristic helps us match future service-provided
+    routes to the known or projected road segment speeds using the abovementioned
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we will use a tried-and-true open-source telematics database I have been
+    exploring lately and presented in a previously published article, the [Extended
+    Vehicle Energy Dataset](https://arxiv.org/pdf/2203.08630.pdf#:~:text=We%20present%20an%20eVED%20dataset,vehicle%20behavior%20and%20traffic%20dynamics.)
+    (EVED), licensed under Apache 2.0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/travel-time-estimation-using-quadkeys-ecf6d54823b4?source=post_page-----f1a534626368--------------------------------)
+    [## Travel Time Estimation Using Quadkeys'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article explains how to estimate travel times using known speed vectors
+    indexed by quadkeys.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/travel-time-estimation-using-quadkeys-ecf6d54823b4?source=post_page-----f1a534626368--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Proposed Solution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We develop the solution in two steps: data preparation and prediction. In the
+    data preparation step, we traverse all known trips in the telematics database
+    and project the measured trip times to the corresponding road network edges. These
+    computed edge traversal times are then stored in another database using maximum
+    resolution [H3](https://h3geo.org/docs/) indices for faster searches during exploration.
+    At the end of the process, we have collected traversal time distributions for
+    the known edges, information that will allow us to estimate travel speeds in the
+    prediction phase.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prediction phase requires a source route expressed as a sequence of road
+    network nodes, such as what we get from the Valhalla route planner. We query each
+    pair of consecutive nodes' corresponding traversal time distribution (if any)
+    from the speed database and use its mean (or median) to estimate the local average
+    speed. By adding all edge estimates, we get the intended result, the expected
+    total trip time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Preparation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To prepare the data and generate the reference time distribution database, we
+    must iterate through all the trips in the source data. Fortunately, the source
+    database makes this easy by readily identifying all the trips (see the article
+    above).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us look at the [code](https://github.com/joaofig/eved-explore/blob/main/compute-seg-speed.py)
+    that prepares the edge traversal times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 5**— The code above shows the main loop for the data preparation script.
+    (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code in **Figure 5** above shows the main loop of the data preparation code.
+    We use the previously created EVED database and save the output data to a new
+    speed database. Each record is a time traversal sample for a single road network
+    edge. For the same edge, a set of these samples makes up for a statistical time
+    distribution, for which we calculate the average, median, and other statistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The call on line 5 retrieves a list of all the known trips in the source database
+    as triplets containing the trajectory identifier (the table sequential identifier),
+    the vehicle identifier, and the trip identifier. We need these last two items
+    to retrieve the trip’s signals, as shown in line 10.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lines 10 to 16 contain the code that retrieves the trip’s trajectory as a sequence
+    of latitude, longitude, and timestamps. These locations do not necessarily correspond
+    to road network nodes; they will mostly be projections into the edges (the orange
+    diamonds in **Figure 2**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can ask the Valhalla map-matching engine to take these points and return
+    a poly-line with the corresponding road network node sequence, as shown in lines
+    18 to 25\. These are the nodes that we store in the database, along with the projected
+    traversal times, which we derive in the final lines of the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The traversal time projection from the map-matched locations to the node locations
+    occurs in two steps. First, line 27 creates a “compound trajectory” object that
+    merges the map-matched locations and the corresponding nodes in the trip sequence.
+    The object stores each map-matched segment separately for later joining. **Figure
+    6** below shows the object constructor ([source file](https://github.com/joaofig/eved-explore/blob/main/common/models.py)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 6** — The compound trajectory constructor receives the map-matched
+    trajectory and the map nodes as separate arrays of latitudes and longitudes. The
+    code merges both trajectories into a list of segments and later converts these
+    to a trajectory list. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The compound trajectory constructor starts by merging the sequence of map-matched
+    points to the corresponding road network nodes. Referring to the symbols in **Figure
+    2** above, the code combines the orange diamond sequence with the red dot sequence
+    so they keep the trip order. In the first step, listed in **Figure 7** below,
+    we create a list of sequences of orange diamond pairs with any red dots in between.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 7** — The above function merges the map-matched trajectory points
+    with the corresponding road network node sequence. The function tries to assign
+    sequential nodes, if any, between each pair of trajectory points. A list collects
+    all merged sequences for a final consolidation step. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once merged, we convert the trajectory segments to node-based trajectories,
+    removing the map-matched endpoints and recomputing the traversal times. **Figure
+    8** below shows the function that computes the equivalent between-node traversal
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 8** — The conversion from a segment to a trajectory requires calculating
+    the equivalent times between road network nodes. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the symbology of **Figure 2**, the code above uses the traversal times
+    between two orange diamonds and calculates the times for all sub-segment traversals,
+    namely between node-delimited ones. This way, we can later reconstruct all between-node
+    traversal times through simple addition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final conversion step occurs on line 28 of **Figure 5** when we convert
+    the compound trajectory to a simple trajectory using the functions listed in **Figure
+    9** below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Figure 9** — The final reconstruction step concatenates the projected trajectory
+    segments. Note how arrays with more than two elements are clipped. The clipped
+    elements correspond to the map-matched positions and are thus removed. Arrays
+    with only two components have map-matched positions that coincide with road network
+    nodes. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final step of the code in **Figure 5** (lines 30–32) is to save the computed
+    edge traversal times to the database for posterior use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Quality
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: How good is the data that we just prepared? Does the EVED allow for good speed
+    predictions? Unfortunately, this database was not designed for this purpose so
+    that we will see some issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first issue is the number of single-edge records in the final database,
+    in this case, a little over two million. The total number of rows is over 5.6
+    million, so the unusable single-edge records represent a sizable proportion of
+    the database. Almost half the rows are from edges with ten or fewer records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second issue is trips with very low frequencies. When querying an ad-hoc
+    trip, we may fall into areas of very low density, where edge time records are
+    scarce or nonexistent. In such conditions, the prediction code tries to compensate
+    for the data loss using a simple heuristic: assume the same average speed as in
+    the last edge. For larger road sections, and as we see below, we may even copy
+    the data from the Valhalla route predictor.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The bottom line is that some of these predictions will be bad. A better use
+    case for this algorithm would be to use a telematics database from fleets that
+    frequently travel through the same routes. It would be even better to get more
+    data for the same routes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prediction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To explore this time-prediction enhancement algorithm, we will use two different
+    scripts: one interactive [Streamlit](https://streamlit.io/) application that allows
+    you to freely use the map and an analytics script that tries to assess the quality
+    of the predicted times by comparing them to known trip times in a [LOOCV](/what-is-cross-validation-622d5a962231)
+    type of approach.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Interactive Map**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You run the interactive application by executing the following command line
+    at the project root:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The [interactive application](https://github.com/joaofig/eved-explore/blob/main/speed-predict.py)
+    allows you to specify endpoints of a route for Valhalla to predict. **Figure 10**
+    below shows what the user interface looks like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/151e29d40c95efecadca610c445af475.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 10** — The picture above displays a screenshot of the interactive
+    application. See the text below for instructions on how to use it. (Image source:
+    Author using Folium and OpenStreetMap imagery)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To operate the application, use the drawing button below the zoom control to
+    select the source, destination, and optional waypoints. The application draws
+    the sequence as a blue line, as depicted. Next, press the “Predict” button on
+    the top left, under the title. The application calls the Valhalla route predictor
+    and draws its result as a red line. To the left, you see some of the output, namely
+    the time estimates of the map provider and the two below from the algorithm described
+    here. The first estimate uses the average of the matching edge time distributions,
+    and the second uses the median. For missing data, the algorithm uses the map estimate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the application draws a black rectangle around the area where data
+    is available. Outside of that area, all predictions will be the same as the map’s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Accuracy Estimator**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To estimate the accuracy of this time predictor, we will test it against known
+    trips taken from the database. We will match the edge projections to the corresponding
+    map nodes for each sampled trip and then query their duration distributions, excluding
+    the data from the trip we want to estimate. This is a process akin to the known
+    Leave-One-Out Cross Validation process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use the following command line to invoke the accuracy estimator script:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: When finished, the script outputs the estimates to a CSV file that you can use
+    for accuracy analysis, as illustrated in **Figure 11** below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2cf66f979637bf3f5531fca38a348ffa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Figure 11** — The output CSV file contains four columns with estimates for
+    the total trip time: minimum, average, median, and maximum. The sample shown above
+    displays the validation for the first twenty trajectories. The four rightmost
+    columns were computed directly in the spreadsheet, containing accuracy and data
+    quality measures. (Image source: Author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The output CSV file contains columns with the computed estimates for the trip
+    time, including the minimum, average, median, and maximum times. These statistics
+    deserve an explanation. The algorithm computes the average time using the average
+    of each edge time distribution. It uses the same process to calculate the median.
+    The minimum and maximum values derive from the limits of a two-sigma range, ensuring
+    that the minimum value never goes below zero. The maximum is 𝜇+2𝜎, and the minimum
+    is 𝜇-2𝜎 provided that this value is positive. When negative, the algorithm replaces
+    it with the minimum value of the time range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the image above, the column with the prediction calculated using the average
+    is green, while the column with the actual times is blue. To the right of it are
+    three columns that help assess the quality of the underlying data. The first column
+    counts the number of trip edges with no time data. You can compare it to the next
+    column, which contains the number of queried edges for that trip. The ratio is
+    in the "***quality***" computed column to the right. Lower values of this metric,
+    such as in rows 7 and 12, reflect the lack of edge traversal time data. The final
+    column contains the absolute relative error (computed against the average). Values
+    in this column tend to have extreme values that negatively correlate to the data
+    quality values, but this is just a hint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the very nature of this algorithm, the more data, the better it should predict
+    trip times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, I presented a data-based alternative to improve the trip duration
+    predictions of digital map service providers using a telematics database and map
+    matching. The principle behind this solution is using a telematics database with
+    data from the vehicles we want to model and their existing time distributions
+    to project a planned trip.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This data-intensive process requires the collection of several samples of travel
+    times between the most essential elements of a digital map: the edges between
+    each node. We alleviate the search process using H3 indices, enabling simple indexation
+    techniques.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quality of the prediction will depend a lot on how adequate the data is
+    for this process. We expect the best results with telematics databases from fleets
+    with repeatable and stable routes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future Work
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the areas for improvement of this prediction method is the data availability
+    from past telematics. If you run a fleet that travels through repeated trajectories,
+    data will be OK, but this might be an issue if your routes are more varied.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A possible line of research would be to find a way to extrapolate known time
+    distributions to other road network edges with missing or insufficient data. Can
+    we derive similarity measures between edges, or groups of edges, within the same
+    road network? If so, and in case of missing data, we could use time distributions
+    from other similar edges in the network to calculate the time prediction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another area that deserves some attention is the nature of the time distributions.
+    This article assumes that no other factors impact the time distributions, which
+    is likely untrue. We all know that traffic times vary throughout the day and week
+    (to mention just two cycles). We should expect better results by studying and
+    incorporating these behaviors into the predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, it would be very valuable for future development to include a provision
+    for conditioning the edge time distributions along parameters such as the vehicle
+    type, driver profile, or other relevant parameters. The algorithm would better
+    predict trip times for the relevant conditions through conditioning and abundant
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Licensing Information
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Extended Vehicle Energy Dataset is licensed under Apache 2.0, like its originator,
+    the [Vehicle Energy Dataset](https://github.com/gsoh/VED).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reference Material
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[joaofig/eved-explore: An exploration of the Extended Vehicle Energy Dataset
+    (github.com)](https://github.com/joaofig/eved-explore)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Vehicle Energy Dataset](https://ieeexplore.ieee.org/document/9262035)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Extended vehicle energy dataset (eVED): an enhanced large-scale dataset for
+    deep learning on vehicle trip energy consumption](https://github.com/zhangsl2013/eVED)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[H3 | H3 (h3geo.org)](https://h3geo.org/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: João Paulo Figueira is a Data Scientist at [tb.lx by Daimler Truck](https://tblx.io/)
+    in Lisbon, Portugal.
+  prefs: []
+  type: TYPE_NORMAL

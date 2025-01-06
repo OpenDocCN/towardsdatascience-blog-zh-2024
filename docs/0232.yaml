@@ -1,0 +1,174 @@
+- en: Numpy’s random choice in GoLang
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/numpys-random-choice-in-go-d65bc2838191?source=collection_archive---------12-----------------------#2024-01-23](https://towardsdatascience.com/numpys-random-choice-in-go-d65bc2838191?source=collection_archive---------12-----------------------#2024-01-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://mlefarov.medium.com/?source=post_page---byline--d65bc2838191--------------------------------)[![Max
+    Lefarov](../Images/cb8c4df2e894bf4957f0206ee3df7e5f.png)](https://mlefarov.medium.com/?source=post_page---byline--d65bc2838191--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d65bc2838191--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d65bc2838191--------------------------------)
+    [Max Lefarov](https://mlefarov.medium.com/?source=post_page---byline--d65bc2838191--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d65bc2838191--------------------------------)
+    ·5 min read·Jan 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8b5ef60ccf65bdd8b82b5bb8edf3698.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated with ChatGPT
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recently I’ve assisted with implementing some logic in Java that could easily
+    be achieved with a single call of Numpy’s `random.choice`. It ended up being one
+    of those tasks that allow looking into things you’re using every day but never
+    have time to fully understand how they work. Also for quite some time I wanted
+    to start learning Go, so why not kill two birds with one stone and reimplement
+    `random.choice` once again this time in Go?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`random.choice` allows us to sample N elements from a provided collection according
+    to the specified probabilities. Importantly (for the use case that motivated this
+    work), it allows us to sample these elements without replacements. I.e. if an
+    element of collection was already sampled it won’t be sampled again. For example,
+    if we have a collection [A, B, C] with associated probabilities [0.1, 0.7, 0.2]
+    and we want to sample 3 elements without replacements, most of the time we’ll
+    get [B, C, A] as an output. If we sample with replacement, the expected output
+    would be [B, B, B].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s define the signature of the Go function. We want to keep it as
+    close to Numpy’s counterpart as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A few things to notice about the function signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’re using the generic type T. It allows calling this function for arrays of
+    different types (as long as it satisfies the type constraint, which is none in
+    our case). This should mimic the Pythonic semantics of `random.choice`, i.e. it
+    doesn’t care about the type of elements stored in the input array.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We also pass the pointer to a random number generator (rng) object that we’ll
+    use for sampling. I’ve picked up this style of defining random functions (compared
+    to accessing the global instance of rng) from Jax. In my experience, it simplifies
+    testing and reproducibility.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The function has two returns, one is the array of samples, and the second one
+    of the type `error` . That’s the way to handle the “exception” execution flow
+    in Go (Go doesn’t have assertions or exceptions).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now we need to figure out how to sample elements from the discrete probability
+    distribution defined by the `probs` argument using only float random numbers sampled
+    uniformly between [0, 1] returned by the rng. Luckily there’s a method for doing
+    exactly that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CDF Inversion Method
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First of, CDF stands for cumulative distribution function. In the discrete case,
+    it can be represented as the array where an element at index `i` is equal to the
+    sum of all input probabilities up to and including the position `i`. Let’s materialize
+    this formulation in a simple helper function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With CDF of the discrete probability distribution and the random number generator,
+    we can sample elements from the input collection by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample a random float between [0, 1] from the Unirofrm distribution.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Find the first index where the CDF value is ≥ to the random float.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Return the element of the original collection at this index.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To understand why it works, we can do a simple visual experiment. We can think
+    about values in the CDF array being the right borders of the bins placed on the
+    interval between [0, 1]. The width of a bin is proportional to the input probability.
+    When generating the uniform random float between [0, 1] we can think about randomly
+    throwing the ball on the interval and choosing the bin that we hit. The probability
+    of hitting the bin is then proportional to the input probability (exactly what
+    we need). Here’s the visual demonstration for our last example of collection [A,
+    B, C] with associated probabilities [0.1, 0.7, 0.2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a22c4e1bb87c7c5af9188bff8d5a420.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Created by the author in Excalidraw
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get the index of the bin we can return the index of the first right border
+    that is greater or equal to the sampled value. Again, a simple helper function
+    for doing exactly this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting everything together
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'With that, we have everything to implement `random.choice` with repetitions.
+    Sampling without repetitions requires one more trick. To ensure that we don’t
+    draw the element that was already sampled, we can mask its probability with 0
+    after sampling. This, however, will invalidate our discrete probability distribution
+    because its sum will no longer amount to 1\. To correct for that we need to re-normalize
+    the probabilities by dividing them by the new total sum. As a bonus, we can perform
+    re-normalization directly on CDF instead of re-normalizing input probabilities
+    and then computing CDF. Putting everything together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Again, a few things to pay attention to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we sample without replacement we can’t sample more than the initial size
+    of an input collection.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go passes “slices” (arrays without defined size) as mutable arguments. Thus,
+    we make a copy the of input probabilities for not to mess up the original array
+    with masking.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And the driver code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s it, feel free to drop a question in the comments.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,788 @@
+- en: Practical Computer Simulations for Product Analysts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/practical-computer-simulations-for-product-analysts-4d3a17957f64?source=collection_archive---------7-----------------------#2024-04-30](https://towardsdatascience.com/practical-computer-simulations-for-product-analysts-4d3a17957f64?source=collection_archive---------7-----------------------#2024-04-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Part 2: Using bootstrap for observations and A/B tests'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://miptgirl.medium.com/?source=post_page---byline--4d3a17957f64--------------------------------)[![Mariya
+    Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--4d3a17957f64--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4d3a17957f64--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4d3a17957f64--------------------------------)
+    [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--4d3a17957f64--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4d3a17957f64--------------------------------)
+    ·21 min read·Apr 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/203b2849d9accb8982770f471c74a6a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by DALL-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [the first part](https://medium.com/towards-data-science/practical-computer-simulations-for-product-analysts-90b5deb6a54e)
+    of this series, we've discussed the basic ideas of computer simulations and how
+    you can leverage them to answer "what-if" questions. It's impossible to talk about
+    simulations without bootstrap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bootstrap in statistics is a practical computer method for estimating the statistics
+    of probability distributions. It is based on the repeated generation of samples
+    using the Monte Carlo method from an existing sample. This method allows for simple
+    and fast estimation of various statistics (such as confidence intervals, variance,
+    correlation, etc.) for complex models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When I learned about bootstrap in the statistics course, it felt a bit hacky.
+    Instead of learning multiple formulas and criteria for different cases, you can
+    just write a couple of lines of code and get confidence interval estimations for
+    any custom and complicated use case. It sounds like magic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And it really is. Now, when even your laptop can run thousands of simulations
+    in minutes or even seconds, bootstrap is a powerful tool in your analytical toolkit
+    that can help you in many situations. So, I believe that it's worth learning or
+    refreshing your knowledge about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will talk about the idea behind bootstrap, understand when
+    you should use it, learn how to get confidence intervals for different metrics
+    and analyse the results of A/B tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is bootstrap?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Actually, bootstrap is exceptionally straightforward. We need to run simulations
+    drawing elements from our sample distribution with replacement, and then we can
+    make conclusions based on this distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s look at the simple example when we have four elements: 1, 2, 3 and 4\.
+    Then, we can simulate many other collections of 4 elements where each element
+    might be 1, 2, 3 or 4 with equal probabilities and use these simulations to understand,
+    for example, how the mean value might change.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92dd778412b7a02e18fa442f7acb1b72.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The statistical meaning behind bootstrap is that we consider that the actual
+    population has precisely the same distribution as our sample (or the population
+    consists of an infinite number of our sample copies). Then, we just assume that
+    we know the general population and use it to understand the variability in our
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, when using a classical statistical approach, we assume that our variable
+    follows some known distribution (for example, normal). However, we don't need
+    to make any assumptions regarding the nature of the distribution in Bootstrap.
+    It's pretty handy and helps to analyse even very complex custom metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It's almost impossible to mess up the bootstrap estimations. So, in many cases,
+    I would prefer it to the classical statistical methods. The only drawback is computational
+    time. If you're working with big data, simulations might take hours, while you
+    can get classical statistics estimations within seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, there are cases when it''s pretty challenging to get estimations without
+    bootstrap. Let''s discuss the best use cases for bootstrap:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if you have [outliers or influential points](/linear-regression-models-and-influential-points-4ee844adac6d)
+    in your data;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if your sample is relatively small (roughly less than 100 cases);
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if your data distribution is quite far from normal or other theoretical distribution,
+    for example, it has several modes;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: if you're working with custom metrics (for example, the share of cases closed
+    within SLA or percentiles).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bootstrap is a wonderful and powerful statistical concept. Let's try to use
+    it for descriptive statistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working with observational data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, let's start with the observational data and work with a synthetic dataset.
+    Imagine we are helping a fitness club to set up a new fitness program that will
+    help clients prepare for the London Marathon. We got the first trial group of
+    12 customers and measured their results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is the data we have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ac17472b9283e4e11147d5428164d721.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We collected just three fields for each of the 12 customers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`races_before` — numbers of races customers had before our program,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`kms_during_program` — kilometres clients run during our program,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`finished_marathon` — whether the program was successful and a customer has
+    finished the London Marathon.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We aim to set up a goal-focused fair program that incentivises our clients
+    to train with us more and achieve better results. So, we would like to return
+    the money if the client has run at least 150 kilometres during the preparation
+    but couldn''t complete the marathon. However, before launching this program, we
+    would like to make some estimations: what distance clients cover during preparation
+    and the estimated share of refunds. We need it to ensure that our business is
+    profitable and sustainable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating average
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's start with estimating the average distance. We can try to leverage our
+    knowledge of mathematical statistics and use formulas for confidence intervals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do so, we need to make an assumption about the distribution of this variable.
+    The most commonly used is a normal distribution. Let's try it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The other option often used with real-life data is t-test distribution, which
+    gives a broader confidence interval (since it assumes fatter tales than normal
+    distribution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We have a few examples in our sample. Also, there''s an outlier: a client with
+    12 races who managed to run almost 600 km preparing for the marathon, while most
+    other clients run less than 200 km.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f875275a3782cd77b94ddb1006ae8ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, it's an excellent case to use the bootstrap technique to understand the
+    distribution and confidence interval better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s create a function to calculate and visualise the confidence interval:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We run `num_batches` simulations, doing samples with replacement, and calculating
+    the average distance.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then, based on these variables, we can get a 95% confidence interval: 2.5%
+    and 97.5% percentiles of this distribution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we can visualise the distribution on a chart.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's start with a small number of batches to see the first results quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/63d618d07ccafb044e63995f57c17217.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We got a bit narrower and skewed to the right confidence interval with bootstrap,
+    which is in line with our actual distribution: `(139.31, 297.99)` vs `(102.72,
+    269.69)`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, with 100 bootstrap simulations, the distribution is not very clear.
+    Let's try to add more iterations. We can see that our distribution consists of
+    multiple modes — for samples with one occurrence of outliers, two occurrences,
+    three, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c3a6753c398f62c7e3c54bd0b3e9491.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With more iterations, we can see more modes (since more occurrences of the outlier
+    are rarer), but all the confidence intervals are pretty close.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of bootstrap, adding more iterations doesn't lead to overfitting
+    (because each iteration is independent). I would think about it as increasing
+    the resolution of your image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since our sample is small, running many simulations doesn't take much time.
+    Even 1 million bootstrap iterations take around 1 minute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating custom metrics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we discussed, bootstrap is handy when working with metrics that are not as
+    straightforward as averages. For example, you might want to estimate the median
+    or share of tasks closed within SLA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might even use bootstrap for something more unusual. Imagine you want to
+    give customers discounts if your delivery is late: 5% discount for 15 minutes
+    delay, 10% — for 1 hour delay and 20% — for 3 hours delay.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting a confidence interval for such cases theoretically using plain statistics
+    might be challenging, so bootstrap will be extremely valuable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's return to our running program and estimate the share of refunds (when
+    a customer ran 150 km but didn't manage to finish the marathon). We will use a
+    similar function but will calculate the refund share for each iteration instead
+    of the mean value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Even with 12 examples, we got a 2+ times smaller confidence interval. We can
+    conclude with 95% confidence that less than 42% of customers will be eligible
+    for a refund.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3e12dd8de15bd4f9eb3f8ec61586b0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: That's a good result with such a small amount of data. However, we can go even
+    further and try to get an estimation of causal effects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimation of effects
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have data about the previous races before this marathon, and we can see how
+    this value is correlated with the expected distance. We can use bootstrap for
+    this as well. We only need to add the linear regression step to our current process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can look at the distribution. The confidence interval is above 0, so we can
+    say there's an effect with 95% confidence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/010875e9356554ca9c7fb98b1b8bc0e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'You can spot that distribution is bimodal, and each mode corresponds to one
+    of the scenarios:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The component around 12 is related to samples without an outlier — it's an estimation
+    of the effect of previous races on the expected distance during the program if
+    we disregard the outlier.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second component corresponds to the samples when one or several outliers
+    were in the dataset.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, it's super cool that we can make even estimations for different scenarios
+    if we look at the bootstrap distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've learned how to use bootstrap with observational data, but its bread and
+    butter is A/B testing. So, let's move on to our second example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simulations for A/B testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The other everyday use case for bootstrap is designing and analysing A/B tests.
+    Let's look at the example. It will also be based on a synthetic dataset that shows
+    the effect of the discount on customer retention. Imagine we are working on an
+    e-grocery product and want to test whether our marketing campaign with a 20 EUR
+    discount will affect customers' spending.
+  prefs: []
+  type: TYPE_NORMAL
+- en: About each customer, we know his country of residence, the number of family
+    members that live with them, the average annual salary in the country, and how
+    much money they spend on products in our store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06501e237f7f3ae792bd396a38e63d11.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Power analysis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, we need to design the experiment and understand how many clients we need
+    in each experiment group to make conclusions confidently. This step is called
+    power analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's quickly recap the basic statistical theory about A/B tests and main metrics.
+    Every test is based on the null hypothesis (which is the current status quo).
+    In our case, the null hypothesis is "*discount does not affect customers' spending
+    on our product*". Then, we need to collect data on customers' spending for control
+    and experiment groups and estimate the probability of seeing such or more extreme
+    results if the null hypothesis is valid. This probability is called the p-value,
+    and if it's small enough, we can conclude that we have enough data to reject the
+    null hypothesis and say that treatment affects customers' spending or retention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this approach, there are three main metrics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**effect size** — the minimal change in our metric we would like to be able
+    to detect,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**statistical significance** equals the false positive rate (probability of
+    rejecting the null hypothesis when there was no effect). The most commonly used
+    significance is 5%. However, you might choose other values depending on your false-positive
+    tolerance. For example, if implementing the change is expensive, you might want
+    to use a lower significance threshold.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**statistical power** shows the probability of rejecting the null hypothesis
+    given that we actually had an effect equal to or higher than the effect size**.**
+    People often use an 80% threshold, but in some cases (i.e. you want to be more
+    confident that there are no negative effects), you might use 90% or even 99%.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We need all these values to estimate the number of clients in the experiment.
+    Let's try to define them in our case to understand their meaning better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will start with effect size:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: we expect the retention rate to change by at least 3% points as a result of
+    our campaign,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we would like to spot changes in customers' spending by 20 or more EUR.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For statistical significance, I will use the default 5% threshold (so if we
+    see the effect as a result of A/B test analysis, we can be confident with 95%
+    that the effect is present). Let's target a 90% statistical power threshold so
+    that if there's an actual effect equal to or bigger than the effect size, we will
+    spot this change in 90% of cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with statistical formulas that will allow us to get estimations
+    quickly. Statistical formulas imply that our variable has a particular distribution,
+    but they can usually help you estimate the magnitude of the number of samples.
+    Later, we will use bootstrap to get more accurate results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For retention, we can use the standard test of proportions. We need to know
+    the actual value to estimate the normed effect size. We can get it from the historical
+    data before the experiment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We used a one-sided test because there's no difference in whether there's a
+    negative or no effect from the business perspective since we won't implement this
+    change. Using a one-sided instead of a two-sided test increases the statistical
+    power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can similarly estimate the sample size for the customer value, assuming the
+    normal distribution. However, the distribution is not normal actually, so we should
+    expect more precise results from bootstrap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62466b93bdc08c3c004a1b41c77eda9f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's write code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We got estimations for the needed sample sizes for each test. However, there
+    are cases when you have a limited number of clients and want to understand the
+    statistical power you can get.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose we have only 5K customers (2.5K in each group). Then, we will be able
+    to achieve 72.2% statistical power for retention analysis and 58.7% — for customer
+    value (given the desired statistical significance and effect sizes).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The only difference in the code is that this time, we've specified `nobs1 =
+    2500` and left `power` as `None`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, it's time to use bootstrap for the power analysis, and we will start with
+    the customer value test since it's easier to implement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ada854ce8bf8eda594fcef32e652f4da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's discuss the basic idea and steps of power analysis using bootstrap. First,
+    we need to define our goal clearly. We want to estimate the statistical power
+    depending on the sample size. If we put it in more practical terms, we want to
+    know the percentage of cases when there was an increase in customer spending by
+    20 or more EUR, and we were able to reject the null hypothesis and implement this
+    change in production. So, we need to simulate a bunch of such experiments and
+    calculate the share of cases when we can see statistically significant changes
+    in our metric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's look at one experiment and break it into steps. The first step is to generate
+    the experimental data. For that, we need to get a random subset from the population
+    equal to the sample size, randomly split these customers into control and experiment
+    groups and add an effect equal to the effect size for the treatment group. All
+    this logic is implemented in `get_sample_for_value` function below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can treat this synthetic experiment data as we usually do with A/B test
+    analysis, run a bunch of bootstrap simulations, estimate effects, and then get
+    a confidence interval for this effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will be using linear regression to estimate the effect of treatment. As discussed
+    in [the previous article](https://medium.com/towards-data-science/linear-regressions-for-causal-conclusions-34c6317c5a11),
+    it's worth adding to linear regression features that explain the outcome variable
+    (customers' spending). We will add the number of family members and average salary
+    to the regression since they are positively correlated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ada854ce8bf8eda594fcef32e652f4da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We will put all the logic of doing multiple bootstrap simulations and estimating
+    treatment effects into the `get_ci_for_value` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next step is to put this logic together, run a bunch of such synthetic experiments,
+    and save results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's run this simulation for `sample_size = 100` and see the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We've got the following data for 20 simulated experiments. We know the confidence
+    interval for each experiment, and now we can estimate the power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8d3def66d5ffc6d720061e145fb7631d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We would have rejected the null hypothesis if the lower bound of the confidence
+    interval was above zero, so let's calculate the share of such experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7f1b330a368956463c81ccda4aa3ada7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We've started with just 20 simulated experiments and 1000 bootstrap simulations
+    to estimate their confidence interval. Such a few simulations can help us get
+    a low-resolution picture quite quickly. Keeping in mind the estimation we got
+    from the classic statistics, we should expect that numbers around 10K will give
+    us the desired statistical power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: We got results similar to those of our theoretical estimations. Let's try to
+    run estimations with more simulated experiments (100 and 500 experiments). We
+    can see that 12.5K clients will be enough to achieve 90% statistical power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I've added all the power analysis results to the chart so that we can see the
+    relation clearly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9cfd0affee2e30603d64edd2a7ab2f89.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In that case, you might already see that bootstrap can take a significant amount
+    of time. For example, accurately estimating power with 500 experiment simulations
+    for just 3 sample sizes took me almost 2 hours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/18a54f89d1ddcc2b1fe53735207068ad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now, we can estimate the relationship between effect size and power for a 12.5K
+    sample size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see that if the actual effect on customers’ spending is higher than 20
+    EUR, we will get even higher statistical power, and we will be able to reject
+    the null hypothesis in more than 90% of cases. But we will be able to spot the
+    10 EUR effect in less than 50% of cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bf5823e1bf3c00693153435d78223891.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's move on and conduct power analysis for retention as well. The complete
+    code is structured similarly to the customer spending analysis. We will discuss
+    nuances in detail below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, since we have a binary outcome for retention (whether the customer returns
+    next month or not), we will use a logistic regression model instead of linear
+    regression. We can see that retention is correlated with the size of the family.
+    It might be the case that when you buy many different types of products for family
+    members, it's more difficult to find another service that will cover all your
+    needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1ddeb7384347e3d71911c74ac2721967.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Also, the function`get_sample_for_retention` has a bit trickier logic to adjust
+    results for the treatment group. Let's look at it step by step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we are fitting a logistic regression on the whole population data and
+    using this model to predict the probability of retaining using this model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we got a random sample equal to the size and split it into a control and
+    test group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the treatment group, we increase the probability of retaining by the expected
+    effect size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The last step is to define, based on probability, whether the customer is retained
+    or not. We used uniform distribution (random number between 0 and 1) for that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: if a random value from a uniform distribution is below probability, then a customer
+    is retained (it happens with specified probability),
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: otherwise, the customer has churned.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can run a few simulations to ensure our sampling function works as intended.
+    For example, with this call, we can see that for the control group, retention
+    is equal to 64% like in the population, and it's 93.7% for the experiment group
+    (as expected with `effect_size = 0.3` )
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can also run simulations to see the optimal number of samples to reach
+    90% of statistical power for retention. We can see that the 12.5K sample size
+    also will be good enough for retention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7331f964aa85e0d71b4d54ce62ba00f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Analysing results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can use linear or logistic regression to analyse results or leverage the
+    functions we already have for bootstrap CI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/853fb14a89e81f475b7005a0bcb024dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, we got the statistically significant result for the customer spending equal
+    to 25.84 EUR with a 95% confidence interval equal to `(16.82, 34.87)` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the bootstrap function, the CI will be pretty close.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similarly, we can use logistic regression for retention analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/50b7ae6e1f8999db0b45baacf8f01883.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Again, the bootstrap approach gives close estimations for CI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With logistic regression, it might be tricky to interpret the coefficient.
+    However, we can use a hacky approach: for each customer in our dataset, calculate
+    probability in case the customer was in control and treatment using our model
+    and then look at the average difference between probabilities.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, we can estimate the effect on retention to be 2.8%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Congratulations! We’ve finally finished the full A/B test analysis and were
+    able to estimate the effect both on average customer spending and retention. Our
+    experiment is successful, so in real life, we would start thinking about rolling
+    it to production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the full code for this example on [GitHub](https://github.com/miptgirl/miptgirl_medium/tree/main/simulations).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let me quickly recap what we’ve discussed today:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main idea of bootstrap is simulations with replacements from your sample,
+    assuming that the general population has the same distribution as the data we
+    have.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bootstrap shines in cases when you have few data points, your data has outliers
+    or is far from any theoretical distribution. Bootstrap can also help you estimate
+    custom metrics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can use bootstrap to work with observational data, for example, to get confidence
+    intervals for your values.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also, bootstrap is broadly used for A/B testing analysis — both to estimate
+    the impact of treatment and do a power analysis to design an experiment.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thank you a lot for reading this article. If you have any follow-up questions
+    or comments, please leave them in the comments section.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*All the images are produced by the author unless otherwise stated.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article was inspired by the book [“Behavioral Data Analysis with R and
+    Python”](https://www.oreilly.com/library/view/behavioral-data-analysis/9781492061366/)
+    by Florent Buisson.
+  prefs: []
+  type: TYPE_NORMAL

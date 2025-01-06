@@ -1,0 +1,379 @@
+- en: 'Unveiling the Inner Workings of LLMs: A Singular Value Perspective'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14](https://towardsdatascience.com/unveiling-the-inner-workings-of-llms-a-singular-value-perspective-74c0c831e819?source=collection_archive---------5-----------------------#2024-06-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A singular values analysis on Llama3–8B projection matrices
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Louis
+    Owen](../Images/88faba8be8c36bf7e62233e7b78fbaae.png)](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)
+    [Louis Owen](https://louisowen6.medium.com/?source=post_page---byline--74c0c831e819--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--74c0c831e819--------------------------------)
+    ·9 min read·Jun 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d185588d8f57d93c7b3f9cd3a737c399.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Afif Ramdhasuma](https://unsplash.com/@javaistan?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have you ever thought of how well-trained an LLM is? Given the huge number of
+    parameters, are those parameters capturing the information or knowledge from the
+    training data to the maximum capacity? If not, can we remove the not-useful parameters
+    from the LLM to make it more efficient?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we’ll try to answer those questions by doing a deep analysis
+    of the Llama-3–8B model from the Singular Values point of view. Without further
+    ado, make ourselves comfortable, and be ready to apply SVD on analyzing Llama-3–8B
+    matrices quality!
+  prefs: []
+  type: TYPE_NORMAL
+- en: SVD Revisited
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In Singular Value Decomposition (SVD), a matrix A is decomposed into three
+    other matrices:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A=U Σ V_t
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A is the original matrix.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: U is a matrix whose columns are the left singular vectors of A.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Σ is a diagonal matrix containing the singular values of A. These values are
+    always non-negative and usually ordered from largest to smallest.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: V_t is the transpose of V, where the columns of V are the right singular vectors
+    of A.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In simpler terms, SVD breaks down the complex transformation of a matrix into
+    simpler, understandable steps involving rotations and scaling. The singular values
+    in Σ tell us the scaling factors and the singular vectors in U and V_t tell us
+    the directions of these scalings before and after applying the matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can think of the singular values as a way to measure how much a matrix stretches
+    or shrinks in different directions in space. Each singular value corresponds to
+    a pair of singular vectors: one right singular vector (direction in the input
+    space) and one left singular vector (direction in the output space).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, singular values are the scaling factor that represents the “**magnitude**”,
+    while the U and V_t matrices represent the “**directions**” in the transformed
+    space and original space, respectively.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If singular values of matrices exhibit a rapid decay (the largest singular values
+    are significantly larger than the smaller ones), then it means the effective rank
+    of the matrix (the number of significant singular values) is much smaller than
+    the actual dimension of the matrix. This implies that the matrix can be approximated
+    well by a lower-rank matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The large singular values capture most of the important information and variability
+    in the data, while the smaller singular values contribute less.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In the context of LLMs, the weight matrices (e.g., those in the attention mechanism
+    or feedforward layers) transform input data (such as word embeddings) into output
+    representations. The dominant singular values correspond to the directions in
+    the input space that are most amplified by the transformation, indicating the
+    directions along which the model is most sensitive or expressive. The smaller
+    singular values correspond to directions that are less important or less influential
+    in the transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The distribution of singular values can impact the model’s ability to generalize
+    and its robustness. A slow decay (many large singular values) can lead to overfitting,
+    while a fast decay (few large singular values) can indicate underfitting or loss
+    of information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Llama-3 Architecture Revisited
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The following is the `config.json` file of the `meta-llama/Meta-Llama-3–8B-Instruct`model.
+    It is worth noting that this LLM utilizes Grouped Query Attention with `num_key_value_heads`
+    of 8, which means the group size is 32/8=4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Singular Values Analysis on (Q, K, V, O) Matrices
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now, let’s jump into the real deal of this article. Analyzing (Q, K, V, O) matrices
+    of Llama-3–8B-Instruct model via their singular values!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s first import all necessary packages needed in this analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, let’s download the model and save it into our local `/tmp`directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you’re GPU-rich, the following code might not be relevant for you. However,
+    if you’re GPU-poor like me, the following code will be really useful to load only
+    specific layers of the LLama-3–8B model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The reason we do this is because the free tier of Google Colab GPU is not enough
+    to load LLama-3–8B even with `fp16` precision. Furthermore, this analysis requires
+    us to work on `fp32` precision due to how the `np.linalg.svd` is built. Next,
+    we can define the main function to get singular values for a given `matrix_type`
+    , `layer_number` , and `head_number`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is worth noting that we can extract the weights for the specified head on
+    the K, Q, and V matrices by doing row-wise slicing because of how it is implemented
+    by [HuggingFace](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py#L262-L264).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7d918b9dcef2b68bd73db2bbc0666d63.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Q, K, V Matrices Implementation in HuggingFace. Note that in PyTorch the matrix
+    dimension will be in `(d_out,d_in)`. Source: Image by Author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As for the O matrix, we can do column-wise slicing to extract the weights for
+    the specified head on the O weight thanks to linear algebra! Details can be seen
+    in the following figure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b6f2589f4a2b568f84d4478ede921d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Reasoning on why we can extract the specified head on the O weight matrix by
+    doing column-wise slicing. Source: Image by Author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To do the analysis, we need to run the `get_singular_values()` function across
+    different heads, layers, and matrix types. And in order to be able to compare
+    across all those different combinations, we also need to define several helper
+    metrics for our analysis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Top-10 Ratio` : the ratio between the sum of top-10 singular values and sum
+    of all singular values'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`First/Last Ratio` : the ratio between the highest and lowest singular values.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Least-10 Ratio` : the ratio between the sum of least-10 singular values and
+    sum of all singular values'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(Layer 0, Head 0) Analysis**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad046ce133b1148b8e7ce45d84f05143.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Singular Values Distribution at Layer-0 Head-0\. Source: Image by Author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Q(query) matrix has the largest initial singular value (~ 10), followed
+    by the K(key) matrix (~ 8). These 2 matrices have significantly higher initial
+    singular values than the initial singular values for V(value) and O(output) matrices.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not only initial singular value, if we check the `Top-10 Ratio`and `First/Last
+    Ratio` for the Q and K matrices, these two have much higher values compared to
+    V and O matrices. This suggests that the information captured by Q **and K matrices
+    mostly focuses on a few dimensions**, while for v and o matrices, information
+    is captured in a more dispersed manner across components.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If we look at the `Least-10 Ratio`metric, we can also see that for Q and K matrices,
+    the singular values are near zero and relatively much lower compared to the Vand
+    O matrices’. This is one piece of evidence that indicates Q **and K matrices have
+    low-rank structure**, which indicates that those dimensions contribute little
+    to the overall performance of the model. These weights can **potentially be pruned**
+    structurally without significantly impacting the model’s accuracy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(Layer 0, Multiple heads) Analysis**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/97770dcd424cc5927921570cbbbb5237.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Singular Values Distribution at Layer-0 for across Different Heads. Source:
+    Image by Author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the `head_number` increases, the `Top-10 Ratio` for Q and K matrices tends
+    to increase at a much higher rate compared to V and O matrices. This insight also
+    applies to the `Least-10 Ratio` of Q and K matrices where they are becoming nearer
+    to 0 as the `head_number` increases, while not for the V and O matrices.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This indicates that Q and K matrices for **heads with higher** `**head_number**`
+    **even have a lower rank structure** compared to heads with lower `head_number`.
+    In other words, as the `head_number` increases, the Q and K matrices tend to store
+    information in even lesser dimensions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Cross-Layers Analysis**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9b3d7c725d1844704e1269635ae0e3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Singular Values Distribution across Different Layers and Heads. Source: Image
+    by Author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we go to deeper layers, we found that **initial values of the Q and K matrices
+    are decreasing**, but still relatively higher compared to the V and O matrices.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we go to deeper layers, there is a downtrend pattern found for the `Top-10
+    Ratio` and `First/Last Ratio` of the Q and K matrices for a particular head. There
+    is also a slight uptrend pattern for the `Least-10 Ratio` metric. This suggests
+    that Q **and K matrices in deeper layers are more well-trained compared to lower
+    layers**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However, there’s an anomaly found in Layer 1 where the `First/Last Ratio`for
+    Q and K matrices are incredibly high, not following the downtrend pattern as we
+    go to deeper layers.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/e7e76f1ada578ebe62b7acb6aa3969c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Singular Values Distribution across Different Heads and Layers. Source: Image
+    by Author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pattern across heads within the same layer that we found in the “Layer 0,
+    Multiple Heads” section is not clear when we go to deeper layers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Summing Up**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The K and Q matrices have relatively lower ranks compared to the V and O matrices.
+    If we want to perform pruning or dimensionality reduction methods, we can focus
+    more on the K and Q matrices.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The deeper the layers, the more well-trained all (K, Q, V, O) matrices are.
+    If we want to perform pruning or dimensionality reduction methods, we can focus
+    more on lower layers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Besides pruning, it’s also interesting to experiment by doing full finetuning
+    only on several initial layers, or we can even do this with LoRA.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Final Words
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/9c5497365494cd53d20f0be96f3f4967.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Quino Al](https://unsplash.com/@quinoal?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Congratulations on keeping up to this point! Hopefully, you have learned something
+    new from this article. It is indeed interesting to apply old good concepts from
+    linear algebra to understand how well-trained an LLM is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you love this type of content, please kindly follow my Medium account to
+    get notifications for other future posts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: About the Author
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Louis Owen](https://louisowen6.github.io/) is a data scientist/AI research
+    engineer from Indonesia who is always hungry for new knowledge. Throughout his
+    career journey, he has worked in various fields of industry, including NGOs, e-commerce,
+    conversational AI, OTA, Smart City, and FinTech. Outside of work, he loves to
+    spend his time helping data science enthusiasts to become data scientists, either
+    through his articles or through mentoring sessions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, Louis is an NLP Research Engineer at Yellow.ai*,* the world’s leading
+    CX automation platform. Check out [Louis’ website](http://louisowen6.github.io/)
+    to learn more about him! Lastly, if you have any queries or any topics to be discussed,
+    please reach out to Louis via [LinkedIn](https://www.linkedin.com/in/louisowen/).
+  prefs: []
+  type: TYPE_NORMAL

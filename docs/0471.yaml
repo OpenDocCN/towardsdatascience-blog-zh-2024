@@ -1,0 +1,490 @@
+- en: Using IPython Jupyter Magic Commands to Improve the Notebook Experience
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/using-ipython-jupyter-magic-commands-to-improve-the-notebook-experience-f2c870cab356?source=collection_archive---------2-----------------------#2024-02-19](https://towardsdatascience.com/using-ipython-jupyter-magic-commands-to-improve-the-notebook-experience-f2c870cab356?source=collection_archive---------2-----------------------#2024-02-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A post on creating a custom IPython Jupyter Magic command
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)[![Stefan
+    Krawczyk](../Images/150405abaad9590e1dc2589168ed2fa3.png)](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------)
+    [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--f2c870cab356--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f2c870cab356--------------------------------)
+    ·12 min read·Feb 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2795ea522a2ce09a38aa5c62dc372b90.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Learn to apply some magic to your notebooks. Image by author using DALL-E-3\.
+    A version of this post originally appeared [here](https://blog.dagworks.io/p/using-ipython-jupyter-magic-commands).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Jupyter Notebooks are commonplace in data science. They allow a mixture of “read,
+    evaluate, print, [in a] loop” (REPL) code writing and documentation in a single
+    place. They’re most commonly used for analysis and brainstorming purposes, but
+    also, more contentiously, some prefer notebooks to scripts to run production code
+    (but we won’t focus on that here).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Invariably, the code written in notebooks will be repetitive in some way such
+    as setting up a database connection, displaying an output, saving results, interacting
+    with an internal platform tool, etc. It’s best to store this code as functions
+    and/or modules to make them reusable and more easily manage them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the notebook experience is not always improved when you do that. For
+    instance, you still need to import and call these functions throughout your notebook,
+    which doesn’t change the notebook experience much at all. So what is the answer
+    to augmenting the notebook development experience itself? [IPython Jupyter Magic
+    Commands](https://ipython.readthedocs.io/en/stable/interactive/magics.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: IPython Jupyter Magic commands (e.g. lines in notebook cells starting with `%`
+    or `%%`) can decorate a notebook cell, or line, to modify its behavior. Many are
+    available by default, including `%timeit` to measure the execution time of the
+    cell and `%bash` to execute shell commands, and others are provided by extensions
+    [such as](https://pypi.org/project/ipython-sql/) `%sql` [to write SQL queries](https://pypi.org/project/ipython-sql/)
+    directly in a cell of your notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we’ll show how your team can turn any utility function(s) into
+    reusable IPython Jupyter magics for a better notebook experience. As an example,
+    we’ll use [Hamilton](https://github.com/dagworks-inc/hamilton), an open source
+    library we created, to motivate the creation of a magic that facilitates better
+    development ergonomics for using it. You needn’t know what Hamilton is to understand
+    this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note. Nowadays, there are many flavors of notebooks (*[*Jupyter*](https://jupyter.org/)*,*
+    [*VSCode*](https://code.visualstudio.com/docs/datascience/jupyter-notebooks)*,*
+    [*Databricks*](https://docs.databricks.com/en/notebooks/index.html)*, etc.), but
+    they’re all built on top of IPython. Therefore, the Magics developed should be
+    reusable across environments.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding IPython Jupyter Magics
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: IPython Jupyter Magics (which we’ll shorten to just Magics) are bits of code
+    that can be dynamically loaded into your notebooks. They come in two flavors,
+    line and cell magics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Line magic***, as it suggests, operates on a single line. That is, it only
+    takes in as input what is specified on the same line. They are denoted by a single
+    `%` in front of the command.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***Cell magic***, as it suggests, takes the entire contents of a cell. They
+    are denoted by a double ``%%``in front of the command.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Jupyter comes with [several in-built magic commands](https://ipython.readthedocs.io/en/stable/interactive/magics.html).
+    You can think of them as “command line” tools that have access to the entire notebook
+    context. This allows them to interact with the notebook output (e.g., printing
+    results, displaying a PNG, rendering HTML), but also to modify the state of existing
+    variables and write to other code and markdown cells!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is great for developing internal tooling because it can abstract away and
+    hide from the user unnecessary complexities, making the experience “magical”.
+    This is a powerful tool to develop your own “platform efforts”, especially for
+    MLOps and LLMOps purposes, as you can hide what is being integrated with from
+    having to be exposed in the notebook. It therefore also means that notebooks don’t
+    need to be updated if this abstracted code changes under-the-hood, since it can
+    all be hidden in a python dependency upgrade.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Workflow example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Magic commands have the potential to make your workflow simpler and faster.
+    For example, if you prefer to develop in a notebook before moving your code to
+    a Python module, this can involve error-prone cutting & pasting. For this purpose,
+    the magic `%%writefile my_module.py` will directly create a file and copy your
+    cell content into it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the opposite hand, you might prefer developing in `my_module.py` in your
+    IDE and then load it into a notebook to test your functions. This usually involves
+    restarting the notebook kernel to refresh the module imports, which can be tedious.
+    In that case, `%autoreload` will automatically reload every module imports before
+    every cell execution, removing this friction point!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Need for Custom Magic Commands
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the post [How well-structured should your data code be?](https://blog.dagworks.io/p/how-well-structured-should-your-data),
+    it is argued that standardization/centralization/“platform” efforts, should change
+    the shape of the “move quickly vs. built-to-last” trade-off curve for the better.
+    A concrete tactic to change this trade-off is to implement better tooling. Better
+    tooling should make what used to be complex, simpler and accessible. Which is
+    exactly what you can achieve with your own custom Magic commands, which translates
+    to less of a trade-off to be made.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Hamilton Magic Command
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*For those unfamiliar with Hamilton we point readers to the many TDS articles
+    with it (e.g.* [*origin story*](/functions-dags-introducing-hamilton-a-microframework-for-dataframe-generation-more-8e34b84efc1d)*,*
+    [*Production prompt engineering*](/llmops-production-prompt-engineering-patterns-with-hamilton-5c3a20178ad2)*,*
+    [*Simplifying Airflow DAG Creation & Maintenance*](https://medium.com/towards-data-science/simplify-airflow-dag-creation-and-maintenance-with-hamilton-in-8-minutes-e6e48c9c2cb0),[*Tidy
+    Production Pandas*](https://medium.com/towards-data-science/tidy-production-pandas-with-hamilton-3b759a2bf562),
+    *etc.) as well as* [*https://www.tryhamilton.dev/*](https://www.tryhamilton.dev/)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Hamilton](https://github.com/dagworks-inc/hamilton) is an open source tool
+    that we created at Stitch Fix back in 2019\. Hamilton helps data scientists and
+    engineers define testable, modular, self-documenting dataflows, that encode lineage
+    and metadata. Hamilton achieves these traits in part by requiring Python functions
+    to be curated into modules.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Nonetheless, the typical Jupyter notebook usage pattern leads to code residing
+    in the notebook and nowhere else posing a developer ergonomics challenge:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***How can we enable someone to create Python modules easily and quickly from
+    a notebook, while also improving the development experience?***'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The Hamilton developer loop looks like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b08c25854dbcff9a783f416a19bac357.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hamilton development loop. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a minute to read this loop. The loop shows that anytime a code change is
+    made, the user would need to not only re-import the Python module, but also recreate
+    the Driver object as well. Since notebooks allow cell execution in any order,
+    it can become difficult for the user to track which version is loaded for each
+    module and what is currently loaded in a Driver. This burden lies on the user
+    and might require restarting the kernel, which would lose other computations (thankfully,
+    Hamilton can be set up to execute complex dataflows and resume where you left-off…),
+    which is less than ideal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s how we could improve this loop using Magics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a “temporary” Python module from the functions defined in a cell, and
+    import this new module directly in the notebook.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Automatically visualize the directed acyclic graph (DAG) defined by the functions
+    to reduce visualization boilerplate code.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Rebuild all Hamilton Drivers found in the notebook with updated modules, saving
+    the user time to have to remember to manually recreate drivers to pick up the
+    change.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What we’re going to implement
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We would like a command that looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And cause the following behavior after running the cell:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a module with the name my_module in the notebook.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Display the DAG constructed by the functions within the cell.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Rebuild any downstream drivers that used my_module in *other cells,* saving
+    the user having to re-run those cells.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As you can see this is a non-trivial Magic command, since we’re adjusting output
+    of the cell and state of the notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a Custom Magic Command
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here we lay out step by step how to create a Magic Command. To avoid only showing
+    a trivial “hello world” example, we’ll explain how we built Hamilton’s `%%cell_to_module`
+    magic as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Setting up your code'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Create a new Python module where we’ll write the magic code and a jupyter notebook
+    to try it. The name of this module (i.e., `.py` file) will be the name of the
+    extension you’ll need to load.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If Jupyter notebook is installed, you have all the required Python dependencies
+    already. Then, add libraries you will need for your Magic, in our case Hamilton
+    (``pip install sf-hamilton[visualization]``).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Define your Magic Command'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To define a simple Magic command, you can use functions or objects ([see these
+    docs](https://ipython.readthedocs.io/en/stable/config/custommagics.html)). For
+    more complex Magics where state is needed, you will need the class approach. We’ll
+    use the class based approach here. To start we need to import IPython modules/functions
+    and then define a class that inherits `magic.Magics`. Each method decorated with
+    `@cell_magic` or `@line_magic` defines a new magic, and the class can house however
+    many of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To start, your code should look like this at a high level:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: For stateful magic, it can be useful to add an `__init__()` method (i.e. constructor).
+    It is not needed in our case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By inheriting from `magic.Magics`, this class has access to several important
+    fields including self.shell, which is the [IPython InteractiveShell](https://ipython.readthedocs.io/en/stable/api/generated/IPython.core.interactiveshell.html#IPython.core.interactiveshell.InteractiveShell)
+    that underlies the notebook. Using it allows you to pull and introspect variables
+    loaded in the active Jupyter notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our Hamilton Magic Command will start off looking like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 3: Parsing input arguments'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next, we specify what arguments will be passed and how to parse them. For each
+    argument, add a *@argument*, and add a *@magic_arguments()* decorator on top.
+    They follow a similar pattern to [argparse](https://docs.python.org/3/library/argparse.html)
+    arguments if you’re familiar, but they aren’t quite as fully featured. Within
+    the function, you need to call the *parse_argstring()* function. It receives the
+    function itself to read instructions from the decorators, and `*line*` (the one
+    with `%` or `%%`) which contains the arguments values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our command would start to look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note, for required arguments, there is no facility in *magic_arguments()* for
+    that, so you need to manually check in the body of the function for correctness,
+    etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Continuing our dissection of the Hamilton Magic example, the method on the
+    class now looks like the following; we use many optional arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note, the extra arguments to *@argument* are useful for when someone uses `?`
+    to query what the magic does. I.e. `?%%cell_to_module` will show documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Implement the Command’s Logic'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we have parsed the arguments, we can implement the logic of the magic
+    command. There aren’t any particular constraints here and you can write any Python
+    code. Skipping a generic example (you have enough to get started from the prior
+    step), let’s dig into our Hamilton Magic example. For it, we want to use the arguments
+    to determine the desired behavior for the command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the Python module with *module_name*.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If *— rebuild-driver*, rebuild the drivers, passing in verbosity.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If *— config* is present, get that ready.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If *— display*, display the DAG.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'See comments in the code for explanations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how we use `self.shell`. This allows us to update and inject variables
+    into the notebook. The values returned by the function will be used as “cell output”
+    (where you see printed values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 5: Register your Magic Command'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Lastly, we need to tell IPython and the notebook about the Magic Command. Our
+    module where our Magic is defined must have the following function to register
+    our Magic class, and be able to load our extension. If doing anything stateful,
+    this is where you’d instantiate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the argument `ipython` here is the same InteractiveShell available
+    through `self.shell` in the class method we defined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: See the full [Hamilton Magic Command here](https://github.com/DAGWorks-Inc/hamilton/blob/main/hamilton/plugins/jupyter_magic.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try it out
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To load your magic in the notebook, try the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`%load_ext my_magic`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'in the case of our Hamilton Magic we’d load it via:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`%load_ext hamilton.plugins.jupyter_magic`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While you’re developing, use this to reload your updated magic without having
+    to restart the notebook kernel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`%reload_ext my_magic`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can then invoke the magic commands defined on a per line or cell basis.
+    So for the Hamilton one we’d now be able to do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`%%?cell_to_module`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example use of it, with it injecting the visualization:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d7005592ce1910bd5c6144271f319361.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example showing the magic in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/678f3c262e4d8d42f81b65d8bcee585f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Animated gif of adding functions and hitting enter to refresh the image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What you’d do next
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a real world use case, you would most likely version and package your magic
+    likely into a library, that you can then manage easily in python environments
+    as required. With the Hamilton Magic Command it’s packaged into the Hamilton library,
+    and thus to get it, one need only install sf-hamilton and loading the magic command
+    would become accessible in the notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To close
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we showed you the steps required to create and load your own IPython
+    Jupyter Magic Command. Hopefully you’re now thinking of the common cells/task/actions
+    that you perform in a notebook setting, which could be enhanced/simplified/or
+    even removed with the addition of a simple Magic!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To demonstrate a real-life example, we motivated and showed the internals of
+    a Hamilton Magic Command to show a command that was built to improve the developer
+    experience within a Jupyter notebook, by augmenting the output and changing internal
+    state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We hope that this post helps you get over the hump and create something more
+    ergonomic and useful for you and your teams’ Jupyter Notebook experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some other resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Built-in magic commands — IPython 8.21.0 documentation](https://ipython.readthedocs.io/en/stable/interactive/magics.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Defining custom magics — IPython 8.21.0 documentation](https://ipython.readthedocs.io/en/stable/config/custommagics.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[1.4\. Creating an IPython extension with custom magic commands](https://ipython-books.github.io/14-creating-an-ipython-extension-with-custom-magic-commands/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

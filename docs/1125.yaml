@@ -1,0 +1,446 @@
+- en: On Handling Precalculated Hierarchical Data in Power BI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03](https://towardsdatascience.com/on-handling-precalculated-hierarchical-data-in-power-bi-4a215b96b99c?source=collection_archive---------12-----------------------#2024-05-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**While hierarchies are a familiar concept with data, some sources deliver
+    their data in an unusual format. Usually, we get our values at the lowest level.
+    But what happens when we get pre-aggregated values? Here, I will dive into this
+    topic.**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--4a215b96b99c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4a215b96b99c--------------------------------)
+    ·8 min read·May 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/45a1401ef7a0f5ec3fdf498000e02d6b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction and the Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s set the scenario: We have an organization with administrative expenses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The expenses can happen at the country, state, and store level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look at the following table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dce67aeea8c01e4ae3050904b2f33e34.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Data with the value in the expected place (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We see two rows for expenses for the two Stores and one for the organizational
+    expenses for the State of South Carolina.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I can use this data to calculate the sum of the expenses and get the total expenses
+    for all stores in South Carolina.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what when the source system delivers the data in a different form?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ddddf77439bedfee5575a5da2680a495.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Data with pre-aggregated values for South Carolina (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third row contains the pre-aggregated sum for the two stores in South Carolina
+    plus the organizational expenses for the State of South Carolina.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A simple sum of these three rows would return a wrong result, as the result
+    would contain the expenses for the two stores twice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/134946f9f906a1cabb2f97d570761f53.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Wrong result when aggregating the data with the pre-aggregated values
+    (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The challenge is: How can I calculate the correct result for each level in
+    the hierarchy?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My approach to the solution must consider the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I cannot change the data at the source.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I must add some calculations in the data model to correct the result.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I must perform different calculations at each level of the hierarchy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But where and how can I do it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I have three possibilities to solve this issue:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add a calculated column to get the correct result.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Add a Measure that calculates the correct result.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use Visual calculations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Calculated columns
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: OK, let’s start adding some calculated columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, I need to know at which level each row is within the hierarchy. For this,
+    I need a column named “Path Length”. Such a column is usually used when handling
+    Parent-Child hierarchies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, I add two new columns to be able to navigate the hierarchy better:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b632fd803b5bd49043bcd3f945b5a8c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Additional calculated column for hierarchy navigation (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I used the following expression to calculate the HierachyPath column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, I used the [PATHLENGHTH()](https://dax.guide/pathlength/) function to
+    calculate the “Path Length” column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, I can write an expression to perform the following steps for each row
+    in the table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get the value for the current position.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Get the sum of values below the current position in the hierarchy.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Detract the sum from step 2 from the value in the current row.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The result is a column containing the values in the first picture above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The key here is the expression for the variable “ChildExpenses”. This expression
+    calculates the sum of all rows below the current position but with the same parent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Be aware that calling [CALCULATE()](https://dax.guide/calculate/) for a calculated
+    column in Power BI triggers a Context Transition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are not familiar with the concept of Context Transition, make sure to
+    read the article where I explain it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
+    [## What’s fancy about context transition in DAX'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Row and filter context are well-known concepts in DAX. But we can switch between
+    these two with context transition.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/whats-fancy-about-context-transition-in-dax-efb5d5bc4c01?source=post_page-----4a215b96b99c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the result for the column:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/27ec7282310a6d995e3c4357a76feb3a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Result of calculated column to get the correct result (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This column replaces the original Expenses column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will rename the original Expenses column “Expense_Original” and the calculated
+    column “Expenses”. The column Expense_Original is hidden in the Data model, as
+    it is useless for the report.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I can create the report intuitively:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e76f5adc863aa25672ceb98b9dcdfcd4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 -The renamed Original Expenses and the calculated column side-by-side
+    in Power BI (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the needed result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But let’s see if I can create a measure to calculate the correct result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Measures
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To write a Measure, I must handle each hierarchy level separately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I cannot use the same method as with the calculated column, as there are multiple
+    rows at the Store level for each level above (Country or State).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The result is the following DAX Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have added extensive comments within the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, I refrain from explaining each step of the Measure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this approach is very complicated and is no match to the simplicity
+    of the approach with the calculated column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visual calculations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Lastly, I can use one of the latest features in Power BI: [Visual Calculations](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visual calculations can be used to add calculations directly to a Visual without
+    adding a Measure to the Data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This opens up some exciting possibilities and removes the need for Measures
+    written to fulfill the requirements of one specific visual.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have added some links to this topic in the References section below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, I tried using the new feature to implement a simple solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, I couldn’t find a working solution after much research and trial and
+    error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I found a solution to calculate the correct result for each Store but not for
+    the States and the Countries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the result of this formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/07e9815be2b0f5a70546481d7198baa0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Result of the Visual calculation (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I tried to find a solution to calculate the State and Country results. But I
+    wasn’t successful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One crucial detail is that we don’t get a grand total with this approach. It
+    might be an artifact of the incomplete formula. But it’s an important detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regardless of the lack of success with this specific scenario, I would include
+    this new feature in my skill set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And I encourage you to look at this new, exciting feature. It offers new possibilities
+    for finding solutions to calculate results specific to one Visual that will not
+    be reused otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Amit Chandak](https://medium.com/u/fff358c001e0?source=post_page---user_mention--4a215b96b99c--------------------------------)
+    has written an introduction to this topic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/microsoft-power-bi/understanding-visual-calculations-in-power-bi-revolutionizing-data-analysis-1c15c943243e?source=post_page-----4a215b96b99c--------------------------------)
+    [## Understanding Visual Calculations in Power BI: Revolutionizing Data Analysis'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In February 2024, Power BI introduced a game-changing feature currently in
+    preview: Visual Calculations. This…'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/microsoft-power-bi/understanding-visual-calculations-in-power-bi-revolutionizing-data-analysis-1c15c943243e?source=post_page-----4a215b96b99c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When I started writing this piece, I intended to provide you with three working
+    solutions for the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I found two working solutions. The first is the most straightforward and efficient,
+    while the second is a good exercise in working with hierarchies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some time ago, I have written a short piece about why pre-aggregated data is
+    bad for us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
+    [## Pre-calculated aggregations for Power BI — Why should you avoid them'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of my clients always wants to pre-calculate aggregation in his Excel filesfor
+    his reports. Here’s why we should…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/pre-calculated-aggregations-for-power-bi-why-should-you-avoid-them-371abdec5bb4?source=post_page-----4a215b96b99c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, I have one more example of why I was right when I wrote that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One important takeaway is that preparing and formatting the data to support
+    easy solutions is essential, even when this means going the extra mile to find
+    the solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here are some references about the new Visual calculations feature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Visual calculations (preview) on the MS Power Blog (February 2024)](https://powerbi.microsoft.com/en-us/blog/visual-calculations-preview/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Using visual calculations (preview)](https://learn.microsoft.com/en-us/power-bi/transform-model/desktop-visual-calculations-overview)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[SQLBI Articles page (Contains several articles on this topic with more to
+    come)](https://www.sqlbi.com/articles/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I use the Contoso sample dataset, as I did in my previous articles. You can
+    download the ContosoRetailDW Dataset for free from Microsoft [here](https://www.microsoft.com/en-us/download/details.aspx?id=18279).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Contoso Data can be freely used under the MIT License, as described [here](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I extracted a subset of the data and manipulated it to get the needed data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Please consider Following me and Subscribe to get E-Mails as soon as I add
+    new content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----4a215b96b99c--------------------------------)
+    [## Get an email whenever Salvatore Cagliari publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
+    create a Medium account if you don't…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----4a215b96b99c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I make my articles accessible to everyone, even though Medium has a paywall.
+    This allows me to earn a little for each reader, but I turn it off so you can
+    read my pieces without cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work, which I do during my free time, through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

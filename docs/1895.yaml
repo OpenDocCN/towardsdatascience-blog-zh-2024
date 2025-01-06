@@ -1,0 +1,662 @@
+- en: Predicting metadata for humanitarian datasets with LLMs part 2 — An alternative
+    to fine-tuning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/predicting-metadata-for-humanitarian-datasets-with-llms-part-2-an-alternative-to-fine-tuning-953a49c657cf?source=collection_archive---------5-----------------------#2024-08-03](https://towardsdatascience.com/predicting-metadata-for-humanitarian-datasets-with-llms-part-2-an-alternative-to-fine-tuning-953a49c657cf?source=collection_archive---------5-----------------------#2024-08-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)[![Matthew
+    Harris](../Images/4fa3264bb8a028633cd8d37093c16214.png)](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------)
+    [Matthew Harris](https://medium.com/@astrobagel?source=post_page---byline--953a49c657cf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--953a49c657cf--------------------------------)
+    ·29 min read·Aug 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0002f919edfe77b2a945716650c673f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: GPT-4o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TL;DR
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*In the humanitarian response world there can be tens of thousands of tabular
+    (CSV and Excel) datasets, many of which contain critical information for helping
+    save lives. Data can be provided by hundreds of different organizations with different
+    naming conventions, languages and data standards, so having information (metadata)
+    about what each column represents in tables is important for finding the right
+    data and understanding how it fits together. Much of this metadata is set manually,
+    which is time-consuming and error prone, so any automatic method can have a real
+    effect towards helping people. In this article we revisit a previous analysis
+    “*[*Predicting Metadata of Humanitarian Datasets with GPT 3*](https://medium.com/towards-data-science/predicting-metadata-for-humanitarian-datasets-using-gpt-3-b104be17716d)*”
+    to see how advances in the last 18 months open the way for more efficient and
+    less time-consuming methods for setting metadata on tabular data.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Using metadata-tagged CSV and Excel datasets from the* [*Humanitarian Data
+    Exchange*](https://data.humdata.org/) *(HDX) we show that fine-tuning GPT-4o-mini
+    works well for predicting* [*Humanitarian Exchange Language*](https://hxlstandard.org/)
+    *(HXL) tags and attributes for the most common tags related to location and dates.
+    However, for less well-represented tags and attributes the technique can be a
+    bit limited due to poor quality training data where humans have made mistakes
+    in manually labelling data or simply aren’t using all possible HXL metadata combinations.
+    It also has the limitation of not being able to adjust when the metadata standard
+    changes, since the training data would not reflect those changes.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Given more powerful LLMs are now available, we tested a technique to directly
+    prompt GPT-4o or GPT-4o-mini rather than fine-tuning, providing the full HXL core
+    schema definition in the system prompt now that larger context windows are available.
+    This approach was shown to be more accurate than fine-tuning when using GPT-4o,
+    able to support rarer HXL tags and attributes and requiring no custom training
+    data, making it easier to manage and deploy. It is however more expensive, but
+    not if using GPT-4o-mini, albeit with a slight decrease in performance. Using
+    this approach we provide a simple Python class in a* [*GitHub Gist*](https://gist.github.com/dividor/e693997c1fc7e0d94f8228cebc397014)
+    *that can be used in data processing pipelines to automatically add HXL metadata
+    tags and attributes to tabular datasets.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generative AI moves fast!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: About 18 months ago I wrote a blog post [Predicting Metadata of Humanitarian
+    Datasets with GPT 3](https://medium.com/towards-data-science/predicting-metadata-for-humanitarian-datasets-using-gpt-3-b104be17716d).
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s right, with GPT 3, not even 3.5! 🙂
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even so, back then Large Language Model (LLM) fine-tuning produced great performance
+    for predicting [Humanitarian Exchange Language](https://hxlstandard.org/) (HXL)
+    metadata fields for tabular datasets on the amazing [Humanitarian Data Exchange](https://data.humdata.org/)
+    (HDX). In that study, the training data represented the distribution of HXL data
+    on HDX and so was comprised of the most common tags relating to location and dates.
+    These are very important for linking different datasets together in location and
+    time, a crucial factor in using data to optimize humanitarian response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The LLM field has since advanced … a *LOT*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So in this article, we will revisit the technique, expand it to cover less frequent
+    HXL tags and attributes and explore other options now available to us for situations
+    where a complex, high-cardinality taxonomy needs to be applied to data. We will
+    also explore the ability to predict less frequent HXL standard tags and attributes
+    not currently represented in the human-labeled training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'You can follow along with this analysis by opening these notebooks in [Google
+    Colab](https://colab.research.google.com/) or running them locally:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[generate-test-train-data.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/generate-test-train-data.ipynb)
+    — A notebook for creating test and training datasets'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[openai-hxl-prediction.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/openai-hxl-prediction.ipynb)
+    — Notebook exploring fine-tuning and prompting for predicting HXL datasets'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Please refer to the [README](https://github.com/datakind/hxl-metadata-prediction/blob/main/README.md)
+    in the repo for installation instructions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HXL Data from the Humanitarian Data Exchange
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this study, and with help from the HDX team, we will use data extracted
+    from the HDX platform using a crawler process they run to track the use of HXL
+    metadata tags and attributes on the platform. You can find great HXL resources
+    on [GitHub](https://github.com/HXLStandard), but if you want to follow along with
+    this analysis I have also saved the source data on Google Drive as the crawler
+    will take days to process the hundreds of thousands of tabular datasets on HDX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data looks like this, with one row per HXL-tagged table column …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1d1abdc669b37dc43cb697223ff9d3f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of data used in this study, with a row per tabular data column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core HXL Schema
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [HXL postcard](https://hxlstandard.org/standard/1-1final/postcards/) is
+    a really great overview of the most common HXL tags and attributes in the core
+    schema. For our analysis, we will apply the full standard as found on [HDX](https://data.humdata.org/dataset/hxl-core-schemas)
+    which provides a [spreadsheet](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?usp=sharing)
+    of supported tags and attributes …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c72d8b2f6bce80bae6e654de56ba7af0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Excerpt of the “Core HXL Schema” used for this study, as found on the [Humanitarian
+    Data Exchange](https://data.humdata.org/dataset/hxl-core-schemas)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Processing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The [generate-test-train-data.ipynb](https://github.com/datakind/hxl-metadata-prediction/blob/main/generate-test-train-data.ipynb)
+    notebook provides all the steps taken to create test and training datasets, but
+    here are some key points to note:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1\. Removal of automatic pipeline repeat HXL data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this study, I removed duplicate data created by automated pipelines that
+    upload data to HDX, by using an MDF hash of column names in each tabular dataset
+    (CSV and Excel files). For example, a CSV file of population statistics created
+    by an organization is often very similar for each country-specific CSV or Excel
+    file, so we only take one example. This has a balancing effect on the data, providing
+    more variation of HXL tags and attributes by removing very similar repeat data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2\. Constraining data to valid HXL**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: About 50% of the HDX data with HXL tags uses a tag or attribute which are not
+    specified in the [HXL Core Schema](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?usp=sharing),
+    so this data is removed from training and test sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3\. Data enrichment**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a (mostly!) human being, when deciding what HXL tags and attributes to use
+    on a column, I take a peek at the data for that column and also the data as a
+    whole in the table. For this analysis we do the same for the LLM fine-tuning and
+    prompt data, adding in data excerpts for each column. A table description is also
+    added using an LLM (GPT-3.5-Turbo) summary of the data to make them consistent,
+    as summaries on HDX can vary in form, ranging from pages to a few words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4\. Carefully splitting data to create train/test sets**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many machine learning pipelines split data randomly to create training and test
+    sets. However, for HDX data this would result in columns and files from the same
+    organization being in train and test. I felt this was a bit too easy for testing
+    predictions and so instead split the data by organizations to ensure organizations
+    in the test set were not in the training data. Additionally, subsidiaries of the
+    same parent organization — eg “ocha-iraq” and “ocha-libya” — were not allowed
+    to be in both the training and test sets, again to make the predictions more realistic.
+    My aim was to test prediction with organizations as if their data had never been
+    seen before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After all of the above and down-sampling to save costs, we are left with **2,883**
+    rows in the training set and **485** rows in the test set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating JSONL fine-tuning prompt files
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In my original article I opted for using a completion model, but with the release
+    of [GPT-4o-mini](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/)
+    I instead generated prompts appropriate for fine-tuning a *chat* model (see [here](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned)
+    for more information about the available models).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each prompt has the form …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: The above has been formatted for clarity, but JSONL will have everything
+    in one line per record.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the data excerpts, LLM_generated table description, column name we collated,
+    we can now generate prompts which look like this …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fine-tuning GPT-4o-mini
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We now have test and training files in the right format for fine-tuning an OpenAI
+    chat model, so let’s tune our model …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the above we are using the new [GPT-4-mini model](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/),
+    which from OpenAI is currently free to fine-tune …
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Now through September 23, GPT-4o mini is free to fine-tune up to a daily limit
+    of 2M training tokens. Overages over 2M training tokens will be charged at $3.00/1M
+    tokens. Starting September 24, fine-tuning training will cost $3.00/1M tokens.
+    Check out the [fine-tuning docs](http://url3243.email.openai.com/ls/click?upn=u001.IQLfsj4kk-2BK7JhymNusRMkuuWNTB2xtKMTOzsaHXXCxL87wc9xXN3T3-2B7A50MnxBgM-2FSPU6KI18qmN7e0qEq7w-3D-3DYSY8_HWAk4DGcP5bOseprwmP7vlMwrd2PVXgyuPjLpW3O5VwKbv89B-2BC2CHyio6JopT7iV9PDDQbS-2BN2x-2FOMYyECPpE2WpDWUaqXamxCNxLNFb3Rwb-2BHV-2FnmELwjcwafGYmpXvFXZ3a1UDAGj-2FI8RPRJ92m05wFP91cNzwWmQw2EWFsPrLyLakbHisdbOdu-2B4S0ScKBkmbmuJc7Ib-2Ftz7vKHoD5rdIHoytDF68pW1ivyzpO5isDzndxqHjHSEoXNrAMaOs0RnmRsG-2Btwq2onQS1WmIokXr00y08IHtcHQMGB8k2caZ5qZ1FzXlQ7tM-2F42kCwNCt4-2BmFy-2Bt8mm9-2BtTS6Qd9pEf9tpuFFcI14VFgdiiUINrbkZX-2BvxRqD924FparfXWICjMx3q6U3F78-2B0okeN23HKQddDiZ9ufm5tITBwbvTYG4vXxKkrvM1fg-2BY-2FSI1Zgu7AMY95FNOKhHZjjVYIXSEFJh5oN0U3K3ceVerRfgU0o1sp8yLH-2F4yaMjmyNjp9gAL5CiSYfTqIx0hHAETq3DyTWqiJMx5Fpsg8sAiqHj3Dgwqj5hydZgeMopCnrf3Cfo7Uf09kxixficprhjJLtC-2BOYDB9QH3AyxBxKCpKupl026DU1bx7HoE0Rcytak3Zy6lolc6PczWAxmgGmi8bkEWsMxj8VS-2BhSSPF7qHIr0a-2BP020bgEng-2BZL0HUgfiJpig0i4DhENBp-2BQokwZMcgMdFpOhJVou0cF-2BcxDprFi2U2xhrxn5es5vY0TTwpQjqAhs-2BoK-2FZpbE0zkuyQ9tTtlInaU26DOBv1RHaiFTN-2F8GTEHoxvkJ1OHhhds3ATTWUCGwOhUOZ-2Fl5JjWzYdCDPeOgqnxlQd8b1i-2BJuaBRnhUjpQ7TzPnWkCur4qMtI-2BYKM3tD2d0RxTYTYfQ3GoNsZ-2FBo5Mf4Rb3lKQt59vxsLqKYe33qRjeFo12Ke3dS20gxD7Zxtpu57q1z0xuMgwj9uDDqrPTZh9qbUDYGc1IsbRhOAjL5z4kAYR2jGvTi2SFq9f2AiA1swOO3CORlZpwn5Y6BA-3D-3D)
+    for more details on free access.”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Even at $3.00/1 Million tokens, the costs are quite low for this task, coming
+    out at about $7 a fine-tuning run for just over 2 million tokens in the test file.
+    Bearing in mind, fine-tuning should be a rare event for this particular task,
+    once we have such a model it can be reused.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fine-tuning produces the following output …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: It took about 45 minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing our fine-tuned model to predict HXL
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have a nice new shiny fine-tuned model for predicting HXL tags and
+    attributes, we can use the test file to take it for a spin …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Noting in the above that all predictions are filtered for allowed tags and attributes
+    as defined in the HXL standard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This gives the following results …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '‘Just HXL Tags’ means predicting the first part of the HXL, for example if
+    the full HXL is #affected+infected+f, the model correctly got the #affected part
+    correct. ‘Tags and attributes’ means predicting the full HXL string, ie ‘#affected+infected+f’,
+    a much harder challenge due to all the combinations possible.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The performance isn’t perfect, but not that bad, especially as we have balanced
+    the dataset to reduce the number of location and date tags and attributes (ie
+    made this study a bit more challenging). There are tens of thousands of humanitarian
+    response tables without HDX, even the above performance would likely add value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look into cases where predictions didn’t agree with human-labeled data
+    …
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reviewing the Human Labeled HXL Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The predictions were saved to a spreadsheet, and I manually went through most
+    of the predictions that didn’t agree with the labels. You can find this analysis
+    [here](https://docs.google.com/spreadsheets/d/19BfVEU4hQJYUrliRKzfu5rXagK8CjoDH/edit?usp=sharing&ouid=107814789436940136200&rtpof=true&sd=true)
+    and summarized below …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dfbd71d99ab9103a6ad4e7e1673cdcbb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'What’s interesting is that in some cases the LLM is actually correct, for example
+    in adding *additional* HXL attributes which the human labeled data doesn’t include.
+    There are also cases where the human labeled HXL was perfectly reasonable, but
+    the LLM predicted another tag or attribute that could also be interpreted as correct.
+    For example a #region can also be an #admin1 in some countries, and whether something
+    is an +id or +code is sometimes difficult to decide, both are appropriate.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the above categories, I created a new test set where the expected HXL
+    tags were corrected. On re-running the prediction we get improved results …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Predicting HXL without Fine-tuning, instead only prompting GPT-4o
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The above shows that the human-labeled data itself can be incorrect. The HXL
+    standard is designed excellently, but can be a challenge to memorize for developers
+    and data scientists when setting HXL tags and attributes on data. There are some
+    [amazing tools](https://hxlstandard.org/tools/) already provided by the HXL team,
+    but sometimes the HXL is still incorrect. This introduces a problem to the fine-tuning
+    approach which relies on this human-labeled data for training, especially for
+    less well represented tags and attributes that humans are not using very often.
+    It also has the limitation of not being able to adjust when the metadata standard
+    changes, since the training data would not reflect those changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the initial analysis 18 months ago various LLM providers have advanced
+    their models significantly. OpenAI of course released [GPT-4o](https://openai.com/index/hello-gpt-4o/)
+    as their flagship product, which importantly has a context window of 128k tokens
+    and is another data point suggesting costs of foundational models are decreasing
+    (see for example GPT-4-Turbo compared to GPT-4o [here](https://huggingface.co/spaces/philschmid/llm-pricing)).
+    Given these factors, I wondered …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***If models are becoming more powerful and less expensive to use, could we
+    avoid fine-tuning altogether and use them to predict HXL tags and attributes by
+    prompting alone?***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only could this mean less engineering work to clean data and fine-tune models,
+    it may have a big advantage in being able to include HXL tags and attributes which
+    are not included in the human-labeled training data but are part of the HXL standard.
+    This is one potentially huge advantage of powerful LLMs, being able to classify
+    with zero- and few-shot prompting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a prompt for predicting HXL
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Models like GPT-4o are trained on web data, so I thought I’d first do a test
+    using one of our prompts to see if it already knew everything there was to know
+    about HXL tags …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b39b540c5990d5719eae62d8834191e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What we see is that it seems to know about HXL syntax, but the answer is incorrect
+    (the correct answer is ‘#affected+infected’), and it has chosen tags and attributes
+    that are not in the HXL standard. It’s actually similar to what we see with human-tagged
+    HXL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How about we provide the most important parts of the [HXL standard](https://docs.google.com/spreadsheets/d/1En9FlmM8PrbTWgl3UHPF_MXnJ6ziVZFhBbojSJzBdLI/edit?pli=1&gid=319251406#gid=319251406)
+    in the system prompt?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gives us a prompt like this …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s pretty long (the above has been truncated), but encapsulates the HXL standard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another advantage of the direct prompt method is that we can also ask for the
+    LLM to provide its reasoning when predicting HXL. This can of course include hallucination,
+    but I’ve always found it useful for refining prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the user prompt, we will use the same information that we used for fine-tuning,
+    to include excerpt and LLM-generated table summary …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting it all together, and prompting both GPT-4o-mini and GPT-4o for comparison
+    …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]json","").replace("[PRE11]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We get …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a reminder, the fine-tuned model produced the following results …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*How does prompting-only GPT-4o compare with GPT-4o-mini?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the above, we see that GPT-4o-mini prompting-only predicts just tags
+    with 77% accuracy, which is less than GPT-4o-mini fine-tuning (83%) and GPT-4o
+    prompting-only (86%). That said the performance is still good and would improve
+    HXL coverage even if used as-is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*How does prompting-only compare with the fine-tuned model?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPT-4o prompting-only gave the best results of all models, with 86% accuracy
+    on tags and 71% on tags and attributes. In fact, the performance could well be
+    better after a bit more analysis of the test data to correct incorrect human-labeled
+    tags,.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take a closer look at the times GPT-4o got it wrong …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how we now have a ‘Reasoning’ field to indicate why the tags were chosen.
+    This is useful and would be an important part for refining the prompt to improve
+    performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the sample above, we see some familiar scenarios that were found
+    when analyzing the fine-tuned model failed predictions …
+  prefs: []
+  type: TYPE_NORMAL
+- en: +id and +code ambiguity
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '#region and #adm1 used interchangeably'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '#event versus more detailed tags like #cause'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These seem to fall into the category where two tags are possible for a given
+    column given their HXL definition. But there are some real discrepancies which
+    would need more investigation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That said, using GPT-4o to predict HXL tags and attributes yields the best results,
+    and I believe at an acceptable level given a lot of data is missing HXL metadata
+    altogether and many of the datasets which have it have incorrect tags and attributes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cost Comparison
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s see how costs compare with each technique and model …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which gives …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: the above is only for the inference cost, there will be a very small
+    additional cost in generating table data summaries with GPT-3.5.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the test set, predicting HXL for **458 columns** …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fine-tuning**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As expected, inference costs for the fine-tuned GPT-4o mini model (which cost
+    about $7 to fine-tune) are very low about $0.02.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prediction-only**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPT-4o prediction only is expensive, because of the HXL standard being passed
+    in to the system prompt every time, and comes out at $13.44.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GPT-4o-mini, albeit with reduced performance, is a more reasonable $0.40.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So ease of use comes with a cost if using GPT-4o, but GPT-4o-mini is an attractive
+    alternative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, it’s worth noting that in many cases, setting HXL tags might not to
+    be real time, for example for a crawler process that corrects already uploaded
+    datasets. This would mean that the new [OpenAI batch API](https://platform.openai.com/docs/guides/batch/overview)
+    could be used, reducing costs by 50%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Python class for predicting HXL Tags
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Putting this all together, I created a Github gist [hxl_utils.py](https://gist.github.com/dividor/e693997c1fc7e0d94f8228cebc397014).
+    Check this out from GitHub and place the file in your current working directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s download a file to test it with …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f4d88e404896f574504c6d75b455d9cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And using this dataframe, let’s predict HXL tags …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/33bafdfd979641e3cc932f24d4992577.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And there we have it, some lovely HXL tags!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s see how well GPT-4o-mini does …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which gives …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/551db548c232ea8e6d577b657dee9021.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Pretty good! gpt-4o gave “#affected+killed+num” for the last column, where “gpt-4o-mini”
+    gave “#affected+num”, but this could likely be resolved with some deft prompt
+    engineering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Admittedly this wasn’t a terribly challenging dataset, but it was able to correctly
+    predict tags for events and fatalities, which are less frequent than location
+    and dates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future Work
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I think a big takeaway here is that the direct-prompting technique produces
+    good results without the need for training. Yes, more expensive for inference,
+    but maybe not if a data scientist is required to curate incorrectly human-labeled
+    fine-tuning data. It would depend on the organization and metadata use-case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are some areas that might be considered in future work …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Improved test data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This analysis did a quick review of the test set to correct HXL tags which were
+    incorrect in the data or had multiple possible values. More time could be spent
+    on this, as always in machine learning, ground truth is key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt engineering and hyperparameter tuning**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above analysis uses very basic prompts with no real engineering or strategies
+    applied, these could definitely be improved for better performance. With an evaluation
+    set and a framework such as [Promptflow](https://github.com/microsoft/promptflow),
+    prompt variants could be tested. Additionally we might add more context data,
+    for example in deciding administrative levels, which can vary per country. Finally,
+    we have used fixed hyperparameters for temperature and top_p, as well as completion
+    token length. All these could be tuned leading to better performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cost optimization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prompting-only approach definitely appears to be a strong option and simplifies
+    how an organization can automatically set HXL tags on their data using GPT-4o.
+    There are of course cost implications with this model, being a more expensive,
+    but predictions occur only on low-volume schema changes, not when the underlying
+    data itself changes, and with new options for [batch submission](https://openai.com/api/pricing/)
+    on OpenAI and ever decreasing LLM costs, this technique appears viable for many
+    organizations. GPT-4o-mini also performs well and is a fraction of the cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Application to other metadata standards**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be interesting to apply this technique to other metadata and labeling
+    standards, I’m sure many organizations are already using LLMs for this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Please like this article if inclined and I’d be delighted if you followed
+    me! You can find more articles* [*here*](https://medium.com/@astrobagel)*.*'
+  prefs: []
+  type: TYPE_NORMAL

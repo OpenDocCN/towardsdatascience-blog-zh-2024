@@ -1,0 +1,414 @@
+- en: 'Florence-2: Advancing Multiple Vision Tasks with a Single VLM Model'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?source=collection_archive---------2-----------------------#2024-10-14](https://towardsdatascience.com/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?source=collection_archive---------2-----------------------#2024-10-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'A Guided Exploration of Florence-2''s Zero-Shot Capabilities: Captioning, Object
+    Detection, Segmentation and OCR.'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)[![Lihi
+    Gur Arie, PhD](../Images/7a1eb30725a95159401c3672fa5f43ab.png)](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------)
+    [Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--435d251976d0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--435d251976d0--------------------------------)
+    ·7 min read·Oct 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d06dac442af9954dd35b05fe0f06a790.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image annotations by Author. Original image from [Pexels](https://www.pexels.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In recent years, the field of computer vision has witnessed the rise of foundation
+    models that enable image annotation without the need for training custom models.
+    We’ve seen models like [CLIP](/clip-creating-image-classifiers-without-data-b21c72b741fa?sk=88fdd2c1a132538015968df3f49b64b1)
+    [2] for classification, [GroundingDINO](/automatic-labeling-of-object-detection-datasets-using-groundingdino-b66c486656fe?sk=7c98df89b60ea49a6de9efd5278f645e)
+    [3] for object detection, and SAM [4] for segmentation — each excelling in its
+    domain. But what if we had a single model capable of handling all these tasks
+    together?
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t have a paid Medium account, you can read for free [here](/florence-2-mastering-multiple-vision-tasks-with-a-single-vlm-model-435d251976d0?sk=e25bdee736a9aa9ace1ca80b98a036a4).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In this tutorial we introduce Florence-2 [1]— a novel, open-source Vision-Language
+    Model (VLM) designed to handle a diverse range of vision and multimodal tasks,
+    including captioning, object detection, segmentation and OCR.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accompanied by a Colab notebook, we’ll explore Florence-2’s zero-shot capabilities
+    to annotate an image of an old camera.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Florence-2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Background**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Florence-2 was released by Microsoft in June 2024\. It was designed to perform
+    multiple vision tasks within a single model. It is an open-source model, available
+    on [Hugging Face](https://huggingface.co/microsoft/Florence-2-large) under the
+    permissive MIT licence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite its relatively small size, with versions of 0.23B & 0.77B parameters,
+    Florence-2 achieves state-of-the-art (SOTA) performance. Its compact size enables
+    efficient deployment on devices with limited computing resources, while ensuring
+    fast inference speeds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model was pre-trained on an enormous, high quality dataset called FLD-5B,
+    consisting of 5.4B annotations on 126 million images. This allows Florence-2 to
+    excel in zero-shot performance on many tasks without requiring additional training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The original open-source weights of the Florence-2 model support the following
+    tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional unsupported tasks can be added by fine-tuning the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Task Format**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inspired by Large Language Models (LLMs), Florence-2 was designed as a sequence-to-sequence
+    model. It takes an image and text instructions as inputs, and outputs text results.
+    The input or output text may represent plain text or a region in the image. The
+    region format varies depending on the task:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bounding Boxes:** `''<X1><Y1><X2><Y2>’` for object detection tasks. The tokens
+    represent the coordinates of the top-left and bottom-right corners of the box.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Quad Boxes**: `''<X1><Y1><X2><Y2><X3><Y3><X4><Y4>’` for text detection, using
+    the coordinates of the four corners that enclose the text.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Polygon**: `''<X1><Y1>...,<Xn><Yn>’` for segmentation tasks, where the coordinates
+    represent the vertices of the polygon in clockwise order.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Architecture**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Florence-2 is built using a standard encoder-decoder transformer architecture.
+    Here’s how the process works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The input image is embedded by a DaViT vision encoder [5].
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The text prompt is embedded using BART [6], utilizing an extended tokenizer
+    and word embedding layer.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Both the vision and text embeddings are concatenated.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: These concatenated embeddings are processed by a transformer-based multi-modal
+    encoder-decoder to generate the response.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: During training, the model minimizes the cross-entropy loss, similar to standard
+    language models.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/83b1b171555b8ba0c1e9513a11913d8f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'An illustration of Florence-2''s architecture. Source: [link](https://arxiv.org/abs/2311.06242)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Loading Florence-2 model and a sample image**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After installing and importing the necessary libraries (as demonstrated in
+    the accompanying Colab notebook), we begin by loading the Florence-2 model, processor
+    and the input image of a camera:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Auxiliary Functions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this tutorial, we will use several auxiliary functions. The most important
+    is the `run_example` core function, which generates a response from the Florence-2
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `run_example` function combines the task prompt with any additional text
+    input (if provided) into a single prompt. Using the `processor`, it generates
+    text and image embeddings that serve as inputs to the model. The magic happens
+    during the `model.generate` step, where the model’s response is generated. Here’s
+    a breakdown of some key parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**max_new_tokens=1024**: Sets the maximum length of the output, allowing for
+    detailed responses.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**do_sample=False**: Ensures a deterministic response.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**num_beams=3**: Implements beam search with the top 3 most likely tokens at
+    each step, exploring multiple potential sequences to find the best overall output.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**early_stopping=False**: Ensures beam search continues until all beams reach
+    the maximum length or an end-of-sequence token is generated.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lastly, the model’s output is decoded and post-processed with `processor.batch_decode`
+    and `processor.post_process_generation` to produce the final text response, which
+    is returned by the `run_example` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally, we utilize auxiliary functions to visualize the results (`draw_bbox`
+    ,`draw_ocr_bboxes` and `draw_polygon`) and handle the conversion between bounding
+    boxes formats (`convert_bbox_to_florence-2` and `convert_florence-2_to_bbox`).
+    These can be explored in the attached Colab notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tasks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Florence-2 can perform a variety of visual tasks. Let’s explore some of its
+    capabilities, starting with image captioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***1\. Captioning Generation Related Tasks:***'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**1.1 Generate Captions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Florence-2 can generate image captions at various levels of detail, using the
+    `'<CAPTION>'` , `'<DETAILED_CAPTION>'` or `'<MORE_DETAILED_CAPTION>'` task prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The model accurately describes the image and its surrounding. It even identifies
+    the camera’s brand and model, demonstrating its OCR ability. However, in the `'<MORE_DETAILED_CAPTION>'`
+    task there are minor inconsistencies, which is expected from a zero-shot model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1.2 Generate Caption for a Given Bounding Box**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Florence-2 can generate captions for specific regions of an image defined by
+    bounding boxes. For this, it takes the bounding box location as input. You can
+    extract the category with `'<REGION_TO_CATEGORY>'` or a description with `'<REGION_TO_DESCRIPTION>'`
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: For your convenience, I added a widget to the Colab notebook that enables you
+    to draw a bounding box on the image, and code to convert it to Florence-2 format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this case, the `'<REGION_TO_CATEGORY>'` identified the lens, while the `'<REGION_TO_DESCRIPTION>'`
+    was less specific. However, this performance may vary with different images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. Object Detection Related Tasks:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**2.1 Generate Bounding Boxes and Text for Objects**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Florence-2 can identify densely packed regions in the image, and to provide
+    their bounding box coordinates and their related labels or captions. To extract
+    bounding boxes with labels, use the `’<OD>’`task prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To extract bounding boxes with captions, use `''<DENSE_REGION_CAPTION>''` task
+    prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0efcbdf15dc83e62153b6a752144f800.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The image on the left shows the results of the ’<OD>’ task prompt, while the
+    image on the right demonstrates ‘<DENSE_REGION_CAPTION>’
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2.2 Text Grounded Object Detection**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Florence-2 can also perform text-grounded object detection. By providing specific
+    object names or descriptions as input, Florence-2 detects bounding boxes around
+    the specified objects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/4a18ac8e5ecfafaded830f3246ee3953.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'CAPTION_TO_PHRASE_GROUNDING task with the text input: “lens. camera. table.
+    logo. flash.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3\. Segmentation Related Tasks:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Florence-2 can also generate segmentation polygons grounded by text (`''<REFERRING_EXPRESSION_SEGMENTATION>''`)
+    or by bounding boxes (`''<REGION_TO_SEGMENTATION>''`):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d3545d83b63447e4043f6d333e0c4d17.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The image on the left shows the results of the REFERRING_EXPRESSION_SEGMENTATION
+    task with ‘camera’ text as input. The image on the right demonstrates REGION_TO_SEGMENTATION
+    task with a bounding box around the lens provided as input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. OCR Related Tasks:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Florence-2 demonstrates strong OCR capabilities. It can extract text from an
+    image with the `''<OCR>''` task prompt, and extract both text and its location
+    with `''<OCR_WITH_REGION>''` :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/3cab509233de43f25be60c54ce24c3a2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Concluding Remarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Florence-2 is a versatile Vision-Language Model (VLM), capable of handling multiple
+    vision tasks within a single model. Its zero-shot capabilities are impressive
+    across diverse tasks such as image captioning, object detection, segmentation
+    and OCR. While Florence-2 performs well out-of-the-box, additional fine-tuning
+    can further adapt the model to new tasks or improve its performance on unique,
+    custom datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Congratulations on making it all the way here. Click 👍 to show your appreciation
+    and raise the algorithm self esteem 🤓
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Want to learn more?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**Explore**](https://medium.com/@lihigurarie) additional articles I’ve written'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[**Subscribe**](https://medium.com/@lihigurarie/subscribe)to get notified when
+    I publish articles'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Follow me on [**Linkedin**](https://www.linkedin.com/in/lihi-gur-arie/)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Full Code as Colab notebook:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[0] Code on Colab Notebook: [link](https://gist.github.com/Lihi-Gur-Arie/427ecce6a5c7f279d06f3910941e0145)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Florence-2: [Advancing a Unified Representation for a Variety of Vision
+    Tasks](https://arxiv.org/pdf/2311.06242).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] CLIP: [Learning Transferable Visual Models From Natural Language Supervision](https://arxiv.org/pdf/2103.00020v1).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Grounding DINO: [Marrying DINO with Grounded Pre-Training for Open-Set
+    Object Detection](https://arxiv.org/abs/2303.05499).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] SAM2: [Segment Anything in Images and Videos](https://arxiv.org/pdf/2408.00714).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] DaViT: [Dual Attention Vision Transformers](https://arxiv.org/abs/2204.03645).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] BART: [Denoising Sequence-to-Sequence Pre-training for Natural Language
+    Generation, Translation, and Comprehension](https://arxiv.org/pdf/1910.13461).'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,331 @@
+- en: Diving Deeper with Structured Outputs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/diving-deeper-with-structured-outputs-b4a5d280c208?source=collection_archive---------1-----------------------#2024-09-03](https://towardsdatascience.com/diving-deeper-with-structured-outputs-b4a5d280c208?source=collection_archive---------1-----------------------#2024-09-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Helping enhance your understanding and optimal usage of structured outputs and
+    LLMs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@armin.catovic?source=post_page---byline--b4a5d280c208--------------------------------)[![Armin
+    Catovic](../Images/046042098f3fec885e756f7f8ee94e6a.png)](https://medium.com/@armin.catovic?source=post_page---byline--b4a5d280c208--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4a5d280c208--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4a5d280c208--------------------------------)
+    [Armin Catovic](https://medium.com/@armin.catovic?source=post_page---byline--b4a5d280c208--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4a5d280c208--------------------------------)
+    ·8 min read·Sep 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2d1b5f51320c152d86373c947974ac13.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — steps that are executed both explicitly, as well as implicitly, from
+    the user’s perspective, when applying structured outputs; image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous article](https://medium.com/towards-data-science/structured-outputs-and-how-to-use-them-40bd86881d39),
+    we were introduced to **structured outputs** using OpenAI. Since the general availability
+    release in ChatCompletions API ([v1.40.0](https://github.com/openai/openai-python/releases/tag/v1.40.0)),
+    structured outputs have been applied across dozens of use cases, and spawned numerous
+    threads on [OpenAI forums](https://community.openai.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, our aim is to provide you with an even deeper understanding,
+    dispel some misconceptions, and give you some tips on how to apply them in the
+    most optimal manner possible, across different scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structured outputs overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Structured outputs are a way of enforcing the output of an LLM to follow a pre-defined
+    schema — usually a JSON schema. This works by transforming the schema into a [context
+    free grammar (CFG)](https://en.wikipedia.org/wiki/Context-free_grammar), which
+    during the token sampling step, is used together with the previously generated
+    tokens, to inform which subsequent tokens are valid. It’s helpful to think of
+    it as creating a [regex](https://en.wikipedia.org/wiki/Regular_expression) for
+    token generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenAI API implementation actually tracks a limited subset of JSON schema features.
+    With more general structured output solutions, such as [Outlines](https://github.com/outlines-dev/outlines),
+    it is possible to use a somewhat larger subset of the JSON schema, and even define
+    completely custom non-JSON schemas — as long as one has access to an open weight
+    model. For the purpose of this article, we will assume the OpenAI API implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JSON Schema and Pydantic
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: According to [JSON Schema Core Specification](https://json-schema.org/draft/2020-12/json-schema-core),
+    *“JSON Schema asserts what a JSON document must look like, ways to extract information
+    from it, and how to interact with it”*. JSON schema defines six primitive types
+    — null, boolean, object, array, number and string. It also defines certain keywords,
+    annotations, and specific behaviours. For example, we can specify in our schema
+    that we expect an `array` and add an annotation that `minItems` shall be `5` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pydantic is a Python library that implements the JSON schema specification.
+    We use Pydantic to build robust and maintainable software in Python. Since Python
+    is a dynamically typed language, data scientists do not necessarily think in terms
+    of **variable types** — these are often **implied** in their code. For example,
+    a fruit would be specified as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…while a function declaration that returns “fruit” from some piece of data
+    would often be specified as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Pydantic on the other hand allows us to generate a JSON-schema compliant class,
+    with properly annotated variables and **type hints**, making our code more readable/maintainable
+    and in general more robust, i.e.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: OpenAI actually [strongly recommends](https://platform.openai.com/docs/guides/structured-outputs/avoid-json-schema-divergence)
+    the use of Pydantic for specifying schemas, as opposed to specifying the “raw”
+    JSON schema directly. There are several reasons for this. Firstly, Pydantic is
+    guaranteed to adhere to the JSON schema specification, so it saves you extra pre-validation
+    steps. Secondly, for larger schemas, it is less verbose, allowing you to write
+    cleaner code, faster. Finally, the `openai` Python package actually does some
+    housekeeping, like setting `additionalProperties` to `False` for you, whereas
+    when defining your schema “by-hand” using JSON, you would need to [set these manually](https://platform.openai.com/docs/guides/structured-outputs/additionalproperties-false-must-always-be-set-in-objects),
+    for every object in your schema (failing to do so results in a rather annoying
+    API error).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we alluded to previously, the ChatCompletions API provides a limited subset
+    of the full JSON schema specification. There are numerous [keywords that are not
+    yet supported](https://platform.openai.com/docs/guides/structured-outputs/some-type-specific-keywords-are-not-yet-supported),
+    such as `minimum` and `maximum` for numbers, and `minItems` and `maxItems` for
+    arrays — annotations that would be otherwise very useful in reducing hallucinations,
+    or constraining the output size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Certain formatting features are also unavailable. For example, the following
+    Pydantic schema would result in API error when passed to `response_format` in
+    ChatCompletions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: It would fail because `openai` package has no format handling for `datetime`
+    , so instead you would need to set `date_published` as a `str` and perform format
+    validation (e.g. ISO 8601 compliance) post-hoc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Other key limitations include the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Hallucinations are still possible** — for example, when extracting product
+    IDs, you would define in your response schema the following: `product_ids: List[str]`
+    ; while the output is guaranteed to produce a list of strings (product IDs), the
+    strings themselves may be hallucinated, so in this use case, you may want to validate
+    the output against some pre-defined set of product IDs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The output is capped** at 16,384 tokens (**NOTE:** thanks Peter Edmonds for
+    the correction!), or the lesser number you set within the `max_tokens` parameter
+    — so even though the schema will be followed precisely, if the output is too large,
+    it will be truncated and produce an invalid JSON — especially annoying on very
+    large [Batch API](https://platform.openai.com/docs/guides/batch) jobs!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Deeply nested schemas with many object properties** may yield API errors
+    — there is a [limitation on the depth and breadth](https://platform.openai.com/docs/guides/structured-outputs/objects-have-limitations-on-nesting-depth-and-size)
+    of your schema, but in general it is best to stick to flat and simple structures—
+    not just to avoid API errors but also to squeeze out as much performance from
+    the LLMs as possible (LLMs in general have trouble attending to deeply nested
+    structures).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Highly dynamic or arbitrary schemas are not possible** — even though [recursion
+    is supported](https://platform.openai.com/docs/guides/structured-outputs/recursive-schemas-are-supported),
+    it is not possible to create a highly dynamic schema of let’s say, a list of arbitrary
+    key-value objects, i.e. `[{"key1": "val1"}, {"key2": "val2"}, ..., {"keyN": "valN"}]`
+    , since the “keys” in this case **must** be pre-defined; in such a scenario, the
+    best option is not to use structured outputs at all, but instead opt for standard
+    JSON mode, and provide the instructions on the output structure within the system
+    prompt.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tips and tricks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With all this in mind, we can now go through a couple of use cases with tips
+    and tricks on how to enhance the performance when using structured outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating flexibility using optional parameters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s say we are building a web scraping application where our goal is to collect
+    specific components from the web pages. For each web page, we supply the raw HTML
+    in the user prompt, give specific scraping instructions in the system prompt,
+    and define the following Pydantic model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We would then call the API as follows…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…with the following response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Response schema supplied to the API using structured outputs **must** return
+    all the specified fields. However, we can “emulate” optional fields and add more
+    flexibility using the `Optional` type annotation. We could actually also use `Union[List[str],
+    None]` — they are syntactically exactly the same. In both cases, we get a conversion
+    to `anyOf` keyword as per the JSON schema spec. In the example above, since there
+    are no `<a></a>` tags present on the web page, the API still returns the `links`
+    field, but it is set to `None` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reducing hallucinations using enums and a two-phased approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We mentioned previously that even if the LLM is guaranteed to follow the provided
+    response schema, it may still hallucinate the actual values. Adding to this, a
+    [recent paper](https://arxiv.org/pdf/2408.02442v1) found that enforcing a fixed
+    schema on the outputs, actually causes the LLM to hallucinate, or degrade in terms
+    of its reasoning capabilities (interestingly enough, classification performance
+    improves 🤔).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to overcome these limitations, is to try and utilize enums as much as
+    possible. Enums constrain the output to a very specific set of tokens, placing
+    a probability of zero on everything else. For example, let’s assume you are trying
+    to re-rank product similarity results between a **target product** that contains
+    a `description` and a unique `product_id` , and **top-5 products** that were obtained
+    using some vector similarity search (e.g. using a cosine distance metric). Each
+    one of those top-5 products also contain the corresponding textual description
+    and a unique ID. In your response you simply wish to obtain the re-ranking 1–5
+    as a list (e.g. `[1, 4, 3, 5, 2]` ), instead of getting a list of re-ranked product
+    ID strings, which may be hallucinated or invalid. We setup our Pydantic model
+    as follows…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '…and run the API like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The final result is simply:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: So the LLM ranked the Sony LED TV (i.e. item number “3” in the list), and the
+    BenQ PC Monitor (i.e. item number “5”), as the two most similar product candidates,
+    i.e. the first two elements of the `ordered_ranking` list!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In theory, enums should completely eliminate hallucinations across those specific
+    fields, since only the tokens specified in the enum set will pass through the
+    token mask, i.e. all other tokens will have a probability of zero. However, users
+    have also [reported seeing hallucinations even across enums](https://community.openai.com/t/structured-outputs-deep-dive/930169/18),
+    particularly on the “mini” models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So another approach is a **two-phased approach**, which is in line with the
+    findings of the [aforementioned paper](https://arxiv.org/pdf/2408.02442v1):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Send a reasoning/extraction task to the mini model **without** enforcing structure,
+    i.e. the response will be a flat string.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a 2nd request to the mini model, this time sending the output of the
+    previous step, together with the response schema
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using this approach we separate out the task into a reasoning step, and a structuring
+    step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this article we gave a thorough deep-dive into structured outputs. We introduced
+    the JSON schema and Pydantic models, and connected these to OpenAI’s ChatCompletions
+    API. We walked through a number of examples and showcased some optimal ways of
+    resolving those using structured outputs. To summarize some key takeaways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Structured outputs as supported by OpenAI API, and other 3rd party frameworks,
+    implement only a **subset of the JSON schema specification** — getting better
+    informed in terms of its features and limitations will help you make the right
+    design decisions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using **Pydantic** or similar frameworks that track JSON schema specification
+    faithfully, is highly recommended, as it allows you to create valid and cleaner
+    code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Whilst hallucinations are still expected, there are different ways of mitigating
+    those, either by a choice of response schema design; for example, by **utilizing
+    enums** where appropriate; or by creating a **two-phased approach** where we send
+    two API requests — one for reasoning, and the 2nd one simply for output re-structuring.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: About the Author
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**Armin Catovic**](https://medium.com/@armin.catovic) is a Secretary of the
+    Board at [Stockholm AI](https://www.stockholm.ai/), and a Vice President and a
+    Senior ML/AI Engineer at the [EQT Group](https://eqtgroup.com/), with 18 years
+    of engineering experience across Australia, South-East Asia, Europe and the US,
+    and a number of patents and top-tier peer-reviewed AI publications.'
+  prefs: []
+  type: TYPE_NORMAL

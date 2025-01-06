@@ -1,0 +1,837 @@
+- en: 'Mastering Sensor Fusion: LiDAR Obstacle Detection with KITTI Data — Part 1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/sensor-fusion-kitti-lidar-based-obstacle-detection-part-1-9c5f4bc8d497?source=collection_archive---------4-----------------------#2024-12-25](https://towardsdatascience.com/sensor-fusion-kitti-lidar-based-obstacle-detection-part-1-9c5f4bc8d497?source=collection_archive---------4-----------------------#2024-12-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to use Lidar data for obstacle detection with unsupervised learning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@eroltak?source=post_page---byline--9c5f4bc8d497--------------------------------)[![Erol
+    Çıtak](../Images/621dc247f6fdbf5e25b74fdc07d25f7b.png)](https://medium.com/@eroltak?source=post_page---byline--9c5f4bc8d497--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9c5f4bc8d497--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9c5f4bc8d497--------------------------------)
+    [Erol Çıtak](https://medium.com/@eroltak?source=post_page---byline--9c5f4bc8d497--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9c5f4bc8d497--------------------------------)
+    ·20 min read·Dec 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sensor fusion, multi-modal perception, autonomous vehicles** — if these keywords
+    pique your interest, this Medium blog is for you. Join me as I explore the fascinating
+    world of LiDAR and color image-based environment understanding, showcasing how
+    these technologies are combined to enhance obstacle detection and decision-making
+    for autonomous vehicles. This blog and the following series dive into practical
+    implementations and theoretical insights, offering an engaging read for all curious
+    eyes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this Medium blog series, we will examine the KITTI 3D Object Detection dataset
+    [1][3] in three distinct parts. In the first article, which is this one, we will
+    be talking about the KITTI Velodyne Lidar sensor and single-mode obstacle detection
+    with this sensor only. In the second article of the series, we will be working
+    on detection studies on color images with a uni-modal approach. In the last article
+    of the series, we will work on multi-modal object detection, which can be called
+    sensor fusion. During that process, both the Lidar and the Color Image sensors
+    come into play to work together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One last note before we get into the topic! I promise that I will provide all
+    the theoretical information about each subtopic at a basic level throughout this
+    series :) However, I will also be leaving very high-quality references for each
+    subtopic without forgetting those who want more in-depth information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: KITTI or KITTI Vision Benchmark Suite is a project created in collaboration
+    with Karlsruhe Institute of Technology and Toyota Research Institute. We can say
+    that it is a platform that includes many different test scenarios, including 2D/3D
+    object detection, multi-object tracking, semantic segmentation, and so forth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For 3D object detection, which is the subject of this article series, there
+    are 7481 training and 7518 test data from different sensors, which are Velodyne
+    Lidar Sensor and Stereo Color Image Sensors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/093310bd95e8a099953e0ee4c0850ee6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample image for 3D Object Detection [3] (Image Taken from [https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d))
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, we will perform obstacle detection using Velodyne Lidar point
+    clouds. In this context, reading point clouds, visualization, and segmentation
+    with the help of unsupervised machine learning algorithms will be the main topics.
+    In addition to these, we will talk a lot about camera calibration and its internal
+    and external parameters, the RANSAC algorithm for vehicle path detection, and
+    basic evaluation metrics to measure the performance of the outputs that we will
+    need while performing these steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, I will be using Python language throughout this series, but don’t worry,
+    I will share with you the information about the virtual environment I use. This
+    way, you can quickly get your own environment up and running. Please check the
+    Github repo to get the **requirements.txt** file.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Problem Definition**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main goal of this blog post is to detect obstacles in the environment detected
+    by the sensor using the unsupervised learning method on point clouds obtained
+    with the Veloydne Lidar in the KITTI dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within this scope, I am sharing an example Lidar point cloud image below to
+    visualize the problem. If we analyze the following sample point cloud, we can
+    easily recognize some cars at the left bottom or some other objects on the road.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31b4f75729eac8a14edf8da70fe4eb61.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample Lidar point cloud [3] ( from KITTI dataset)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make it more visible, let me draw some arrows and boxes to show them. In
+    the following image, red arrows indicate cars, orange arrows stand for pedestrians,
+    and red boxes are drawn for street lambs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a5609b489f7b3e2806d3169d93368ddf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample Lidar point cloud [3] ( from KITTI dataset)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, you may wonder and ask this question ***“Wouldn’t we also say that there
+    are other objects around, perhaps walls or trees?”*** The answer is YES! The proof
+    of my answer can be obtained from the color image corresponding to this point
+    cloud. As can be seen from the image below, there are people, a car, street lights,
+    and trees on the scene.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71fa96542279146571ee9bc73e0227d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample color image [3] ( from KITTI dataset)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After this visual analysis, we come to a subject that careful readers will immediately
+    notice. While the Lidar point cloud provides a 360-degree view of the scene, color
+    image only provides a limited wide perception of the scene. The following blog
+    will be taking only this colored image into consideration for object detection
+    and the last one will try to fuse Lidar point cloud and color image sensors to
+    handle the problem ***(I hope they will be available soon!)***
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sensor Setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Then let’s talk about the sensors and their installations and so on. The KITTI
+    3D object detection dataset was collected using a specially modified Volkswagen
+    Passat B6\. Data recording was handled by an eight-core i7 computer with a RAID
+    system, running Ubuntu Linux alongside a real-time database for efficient data
+    management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following sensors were used for data collection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Inertial Navigation System (GPS/IMU):** OXTS RT 3003'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Lidar Sensor:** Velodyne HDL-64E'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Grayscale Cameras:** Two Point Grey Flea 2 (FL2–14S3M-C), each with 1.4 Megapixels'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Color Cameras:** Two Point Grey Flea 2 (FL2–14S3C-C), each with 1.4 Megapixels'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Varifocal Lenses:** Four Edmund Optics NT59–917 (4–8 mm)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The visualization of the aforementioned setup is presented in the following
+    figure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a76a762e1083e1a660dde606ddf0009.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: KITTI dataset setup visualization [3] ( Image Taken from KITTI)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Velodyne Lidar sensor and the Color cameras are installed on top of the
+    car but their height from the ground and their coordinates are different than
+    each other. No worries! As promised, we will go step by step. It means that, before
+    getting the core of the algorithm of this blog post, we need to revisit the camera
+    calibration topic first!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Camera Calibration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Cameras, or sensors in a broader sense, provide perceptual outputs of the surrounding
+    environment in different ways. In this concept, let’s take an RGB camera, it could
+    be your webcam or maybe a professional digital compact camera. It projects 3D
+    points in the world onto a 2D image plane using two sets of parameters; the intrinsic
+    and extrinsic parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/609246ec696c69c18964161d7ba54c02.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Projection of 3D points in the world to the 2D image plane ( Image taken from:
+    [https://de.mathworks.com/help/vision/ug/camera-calibration.html](https://de.mathworks.com/help/vision/ug/camera-calibration.html))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the extrinsic parameters are about the location and the orientation of
+    the camera in the world frame domain, the intrinsic parameters map the camera
+    coordinates to the pixel coordinates in the image frame.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this concept, the camera extrinsic parameters can be represented as a matrix
+    like T = [R | t ] where R stands for the rotation matrix, which is 3x3 and t stands
+    for the translation vector, which is 3x1\. As a result, the T matrix is a 3x4
+    matrix that takes a point in the world and maps it to the ‘camera coordinate’
+    domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, the camera's intrinsic parameters can be represented as a
+    3x3 matrix. The corresponding matrix, K, can be given as follows. While fx and
+    fy represent the focal length of the camera, cx and cy stand for principal points,
+    and s indicates the skewness of the pixel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a9d8c128ffe6502e63edba0f1a8f298.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The camera’s intrinsic parameters
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, any 3D point can be projectable to the 2D image plane via following
+    complete camera matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc45b8f23bdd6444edd26494941da738.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The complete camera matrix to project a 3D world point into the image plane
+  prefs: []
+  type: TYPE_NORMAL
+- en: I know that camera calibration seems a little bit complicated especially if
+    you encounter it for the first time. But I have searched for some really good
+    references for you. Also, I will be talking about the applied camera calibration
+    operations for our problem in the following sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'References for the camera calibration topic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*— Carnegie Mellon University,* [*https://www.cs.cmu.edu/~16385/s17/Slides/11.1_Camera_matrix.pdf*](https://www.cs.cmu.edu/~16385/s17/Slides/11.1_Camera_matrix.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*— Columbia University,* [*https://www.youtube.com/watch?v=GUbWsXU1mac*](https://www.youtube.com/watch?v=GUbWsXU1mac)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*— Camera Calibration Medium Post,* [*https://yagmurcigdemaktas.medium.com/visual-perception-camera-calibration-9108f8be789*](https://yagmurcigdemaktas.medium.com/visual-perception-camera-calibration-9108f8be789)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataset Understanding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After a couple of terminologies and the required basic theory, now we are able
+    to get into the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, I highly suggest you download the dataset from here [2] for the
+    following ones;
+  prefs: []
+  type: TYPE_NORMAL
+- en: Left Color Images (size is 12GB)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Velodyne Point Cloud (size is 29GB)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Camera Calibration Matrices of the Object Dataset (size is negligible)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Training Labels (size is negligible)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The data that we are going to analyze is the ground truth (G.T.)label files.
+    G.T. files are presented in ‘.txt’ format and each object is labeled with 15 different
+    fields. No worries, I prepared a detailed G.T. file read function in my Github
+    repo as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The color images are presented as files in the folder and they can be read
+    easily, which means without any further operations. As a result of this operation,
+    it can be that ***# of training and testing images: 7481 / 7518***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next data that we will be taking into consideration is the calibration files
+    for each scene. As I did before, I prepared another function to parse calibration
+    files as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The final data is the Velodyne point cloud and they are presented in ‘.bin’
+    format. In this format, each point cloud line consists of the location of x, y,
+    and z plus the reflectivity score. As before, the corresponding parse function
+    is as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: At the end of this section, all the required files will be loaded and ready
+    to be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the sample scene, which was presented at the top of this post in the ‘Problem
+    Definition’ section, there are 122794 points in the point cloud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But since that amount of information could be hard to analyze for some systems
+    in terms of CPU or GPU power, we may want to reduce the number of points in the
+    cloud. To make it possible we can use the “Voxel Downsampling” operation, which
+    is similar to the “Pooling” operation in deep neural networks. Roughly it divides
+    the complete point cloud into a grid of equally sized voxels and chooses a single
+    point from each voxel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output of this downsampling looks like this;
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Points before downsampling: 122794'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Points after downsampling: 33122'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But it shouldn’t be forgotten that reducing the number of points may cause to
+    loss of some information as might be expected. Also, the voxel grid size is a
+    hyper-parameter that we can choose is another crucial thing. Smaller sizes return
+    a high number of points or vice versa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, before getting into the road segmentation by RANSAC, let's quickly re-visit
+    the Voxel Downsampling operation together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Voxel Downsampling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Voxel Downsampling is a technique to create a downsampled point cloud. It highly
+    helps to reduce some noise and not-required points. It also reduces the required
+    computational power in light of the selected voxel grid size hyperparameter. The
+    visualization of this operation can be given as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ecc3d606cb1364f65fb83effc4485c82.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The illustration of Voxel Downsampling (Image taken from [https://www.mdpi.com/2076-3417/14/8/3160](https://www.mdpi.com/2076-3417/14/8/3160))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides that, the steps of this algorithm can be presented as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f6eebbf332cd7806759832551cba58c7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To apply this function, we will be using the “open3d” library with a single
+    line;
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the above single-line code, it can be observed that the voxel size is chosen
+    as 0.2
+  prefs: []
+  type: TYPE_NORMAL
+- en: RANSAC
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step will be segmenting the largest plane, which is the road for our
+    problem. RANSAC, Random Sample Consensus, is an iterative algorithm and works
+    by randomly sampling a subset of the data points to hypothesize a model and then
+    evaluating its fit to the entire dataset. It aims to find the model that best
+    explains the inliers while ignoring the outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the algorithm is highly robust to the extreme outliers, it requires to
+    sample of *n* points at the beginning (n=2 for a 2D line or 3 for a 3D plane).
+    Then evaluates the performance of the mathematical equation with respect to it.
+    Then it means;
+  prefs: []
+  type: TYPE_NORMAL
+- en: — the chosen points at the beginning are so crucial
+  prefs: []
+  type: TYPE_NORMAL
+- en: — the number of iterations to find the best values is so crucial
+  prefs: []
+  type: TYPE_NORMAL
+- en: — it may require some computation power, especially for large datasets
+  prefs: []
+  type: TYPE_NORMAL
+- en: But it’s a kind of de-facto operation for many different cases. So first let's
+    visualize the RANSAC to find a 2D line then let me present the key steps of this
+    algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bdb851b12132c171ecc93373df50273f.png)![](../Images/e9ccf091fbab0098c74cd8a79051d028.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The key steps and working flow of the RANSAC algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: After reviewing the concept of RANSAC, it is time to apply the algorithm on
+    the point cloud to determine the largest plane, which is a road, for our problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output of this process will show the outside of the road in red and the
+    road will be colored in a mixture of Green and Blue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ed299ba9ce94bff26bece9e1afb7b4df.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The output of the RANSAC algorithm (Image taken from KITTI dataset [3])
+  prefs: []
+  type: TYPE_NORMAL
+- en: DBSCAN — a density-based clustering non-parametric algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this stage, the detection of objects outside the road will be performed using
+    the segmented version of the road with RANSAC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this context, we will be using unsupervised learning algorithms. However,
+    the question that may come to mind here is **“Can’t a detection be made using
+    supervised learning algorithms?”** The answer is very short and clear: Yes! However,
+    since we want to introduce the problem and get a quick result with this blog post,
+    we will continue with DBSCAN, which is a segmentation algorithm in the unsupervised
+    learning domain. If you would like to see the results with a supervised learning-based
+    object detection algorithm on point clouds, please indicate this in the comments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Anyway, let’s try to answer these three questions: What is DBSCAN and how does
+    it work? What are the hyper-parameters to consider? How do we apply it to this
+    problem?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'DBSCAN also known as a density-based clustering non-parametric algorithm, is
+    an unsupervised clustering algorithm. Even if there are some other unsupervised
+    clustering algorithms, maybe one of the most popular ones is K-Means, DBSCAN is
+    capable of clustering the objects in arbitrary shape while K-Means asumes the
+    shape of the object is spherical. Moreover, probably the most important feature
+    of DBSCAN is that it does not require the number of clusters to be defined/estimated
+    in advance, as in the K-Means algorithm. If you would like to analyze some really
+    good visualizations for some specific problems like “2Moons”, you can visit here:
+    [*https://www.kaggle.com/code/ahmedmohameddawoud/dbscan-vs-k-means-visualizing-the-difference*](https://www.kaggle.com/code/ahmedmohameddawoud/dbscan-vs-k-means-visualizing-the-difference)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'DBSCAN works like our eyes. It means it takes the densities of different groups
+    in the data and then makes a decision for clustering. It has two different hyper-parameters:
+    “Epsilon” and “MinimumPoints”. Initially, DBSCAN identifies *core points*, which
+    are points with at least a minimum number of neighbors (*minPts*) within a specified
+    radius (*epsilon*). Clusters are then formed by expanding from these core points,
+    connecting all reachable points within the density criteria. Points that cannot
+    be connected to any cluster are classified as noise. To get in-depth information
+    about this algorithm like ‘Core Point’, ‘Border Point’ and ‘Noise Point’ please
+    visit there: *Josh Starmer,* [*https://www.youtube.com/watch?v=RDZUdRSDOok&t=61s*](https://www.youtube.com/watch?v=RDZUdRSDOok&t=61s)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06993b7230ebdbcb4ca4979cf6964103.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample clustering result of the DBSCAN algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: For our problem, while we can use DBSCAN from the SKLearn library, let's use
+    the open3d as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we can see, ‘epsilon’ was chosen as 0.45, and ‘MinPts’ was chosen as 10\.
+    A quick comment about these. Since they are hyper-parameters, there are no best
+    “numbers” out there. Unfortunately, it’s a matter of trying and measuring success.
+    But no worries! After you read the last chapter of this blog post, “Evaluation
+    Metrics”, you will be able to measure your algorithm’s performance in total. Then
+    it means you can apply GridSearch *( ref:* [*https://www.analyticsvidhya.com/blog/2021/06/tune-hyperparameters-with-gridsearchcv/*](https://www.analyticsvidhya.com/blog/2021/06/tune-hyperparameters-with-gridsearchcv/)*)*
+    to find the best hyper-param pairs!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yep, then let me visualize the output of DBCAN for our point cloud then let's
+    move to the next step!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/49c147bb85328c988cd4578517547d34.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The output of the DBSCAN clustering algorithm (Image taken from KITTI dataset
+    [3])
+  prefs: []
+  type: TYPE_NORMAL
+- en: To recall, we can see that some of the objects that I first showed and marked
+    by hand are separate and in different colors here! This shows that these objects
+    belong to different clusters (as it should be).
+  prefs: []
+  type: TYPE_NORMAL
+- en: G.T. Labels and Their Calibration Process
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now it’s time to analyze G.T. labels and Calibration files of the KITTI 3D Object
+    Detection benchmark. In the previous section, I shared some tips about them like
+    how to read, how to parse, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But now I want to mention the relation between the G.T. object and the Calibration
+    matrices. First of all, let me share a figure of the G.T. file and the Calibration
+    file side by side.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04e7940cc9b9d1ad687b7f4b4bb56eaf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample training label file in .txt format
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we discussed before, the last element of the training label refers to the
+    rotation of the object around the y-axis. The three numbers before the rotation
+    element (1.84, 1.47, and 8.41) stand for the 3D location of the object’s centroid
+    in the camera coordinate system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ca6a2d76848a8253ad7dbc32e718d6d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A sample calibration file in .txt format
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the calibration file side; *P0, P1, P2*, and *P3* are the camera projection
+    matrices for their corresponding cameras. In this blog post, as we indicated before,
+    we are using the ‘Left Color Images’ which is equal to *P2*. Also, *R0_rect* is
+    a rectification matrix for aligning stereo images. As can be understood from their
+    names, *Tr_velo_to_cam* and *Tr_imu_to_velo* are transformation matrices that
+    will be used to provide the transition between different coordinate systems. For
+    example, *Tr_velo_to_cam* is a transformation matrix converting Velodyne coordinates
+    to the unrectified camera coordinate system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After this explanation, I really paid attention to which matrix or which label
+    in the which coordinate system, now we can mention the transformation of G.T.
+    object coordinates to the Velodyne coordinate system easily. It’s a good point
+    to both understand the use of matrices between coordinate systems and evaluate
+    our predicted bounding boxes and G.T. object bounding boxes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first thing that we will be doing is computing the G.T. object bounding
+    box in 3D. To do so, you can reach out to the following function in the repo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Given an object’s dimensions (`height`, `width`, `length`) and position (`x,
+    y, z`) in the camera coordinate system, this function first rotates the bounding
+    box based on its orientation (`rotation_y`) and then computes the corners of the
+    box in 3D space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This computation is based on the transformation that uses a matrix that is capable
+    of transferring any point from the camera coordinate system to the Velodyne coordinate
+    system. But, wait? We don’t have the camera to Velodyne matrix, do we? Yes, we
+    need to calculate it first by taking the inverse of the *Tr_velo_to_cam* matrix,
+    which is presented in the calibration files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No worries, all this workflow is presented by these functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the end, we can easily see the G.T. objects and project them into the Velodyne
+    point cloud coordinate system. Now let's visualize the output and then jump into
+    the evaluation section!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fbaed431d6042557ca876c4ad2910dfd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The projected G.T. object bounding boxes (Image taken from KITTI dataset [3])
+  prefs: []
+  type: TYPE_NORMAL
+- en: (I know the green bounding boxes can be a little hard to see, so I added arrows
+    next to them in black.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation Metrics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we have the predicted bounding boxes by our pipeline and G.T. object boxes!
+    Then let's calculate some metrics to evaluate our pipeline. In order to perform
+    the hyperparameter optimization that we talked about earlier, we must be able
+    to continuously monitor our performance for each parameter group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But before getting into the evaluation metric I need to mention two things.
+    First of all, KITTI has different evaluation criteria for different objects. For
+    example, while a 50% match between the labels produced for pedestrians and G.T.
+    is sufficient, it is 70% for vehicles. Another issue is that while the pipeline
+    we created performs object detection in a 360-degree environment, the KITTI G.T.
+    labels only include the label values ​​of the objects in the viewing angle of
+    the color cameras. Consequently, we can detect more bounding boxes than presented
+    in G.T. label files. So what to do? Based on the concepts I will talk about here,
+    you can reach the final result by carefully analyzing KITTI’s evaluation criteria.
+    But for now, I will not do a more detailed analysis in this section for the continuation
+    posts of this Medium blog post series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To evaluate the predicted bounding boxes and G.T. bounding boxes, we will be
+    using the TP, FP, and FN metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TP represents the predicted boxes that match with G.T. boxes, FP stands for
+    the predicted boxes that do NOT match with any G.T. boxes, and FN is the condition
+    that there are no corresponding predicted bounding boxes for G.T. bounding boxes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this context, of course, we need to find a tool to measure how a predicted
+    bounding box and a G.T. bounding box match. The name of our tool is IOU, intersected
+    over union.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can easily reach out to the IOU and evaluation functions as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let me finalize this section by giving predicted bounding boxes (RED) and G.T.
+    bounding boxes (GREEN) over the point cloud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35cd707ba8068c92b4b7499567027efb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Predicted bounding boxes and G.T. bounding boxes are presented together on the
+    point cloud (Image taken from KITTI dataset [3])
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Yeah, it’s a little bit long, but we are about to finish it. First, we have
+    learned a couple of things about the KITTI 3D Object Detection Benchmark and some
+    terminology about different topics, like camera coordinate systems and unsupervised
+    learning, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now interested readers can extend this study by adding a grid search to find
+    the best hyper-param elements. For example, the number of minimum points in segmentation,
+    or maybe the # of iteration RANSAC or the voxel grid size in Voxel Downsampling
+    operation, all could be possible improvement points.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s next?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The next part will be investigating object detection on ONLY Left Color Camera
+    frames. This is another fundamental step of this series cause we will be fusing
+    the Lidar Point Cloud and Color Camera frames in the last part of this blog series.
+    Then we will be able to make a conclusion and answer this question: *“Does Sensor
+    Fusion reduce the uncertainty and improve the performance in KITTI 3D Object Detection
+    Benchmark?”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Any comments, error fixes, or improvements are welcome!**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '***Thank you all and I wish you healthy days.***'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '********************************************************************************************************************************************************'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Github link***: [https://github.com/ErolCitak/KITTI-Sensor-Fusion/tree/main/lidar_based_obstacle_detection](https://github.com/ErolCitak/KITTI-Sensor-Fusion/tree/main)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] — [https://www.cvlibs.net/datasets/kitti/](https://www.cvlibs.net/datasets/kitti/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] — [https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d](https://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] — Geiger, Andreas, et al. “Vision meets robotics: The kitti dataset.” *The
+    International Journal of Robotics Research* 32.11 (2013): 1231–1237.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disclaimer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The images used in this blog series are taken from the KITTI dataset for education
+    and research purposes. If you want to use it for similar purposes, you must go
+    to the relevant website, approve the intended use there, and use the citations
+    defined by the benchmark creators as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the **stereo 2012**, **flow 2012**, **odometry**, **object detection,**
+    or **tracking benchmarks**, please cite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '@inproceedings{[Geiger2012CVPR](https://www.cvlibs.net/publications/Geiger2012CVPR.pdf),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: author = {[Andreas Geiger](https://www.cvlibs.net/) and [Philip Lenz](http://www.mrt.kit.edu/mitarbeiter_lenz.php)
+    and [Raquel Urtasun](http://ttic.uchicago.edu/~rurtasun)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: title = {Are we ready for Autonomous Driving? The KITTI Vision Benchmark Suite},
+  prefs: []
+  type: TYPE_NORMAL
+- en: booktitle = {Conference on Computer Vision and Pattern Recognition (CVPR)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: year = {2012}
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the **raw dataset**, please cite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '@article{[Geiger2013IJRR](https://www.cvlibs.net/publications/Geiger2013IJRR.pdf),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: author = {[Andreas Geiger](https://www.cvlibs.net/) and [Philip Lenz](http://www.mrt.kit.edu/mitarbeiter_lenz.php)
+    and [Christoph Stiller](http://www.mrt.kit.edu/mitarbeiter_stiller.php) and [Raquel
+    Urtasun](http://ttic.uchicago.edu/~rurtasun)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'title = {Vision meets Robotics: The KITTI Dataset},'
+  prefs: []
+  type: TYPE_NORMAL
+- en: journal = {International Journal of Robotics Research (IJRR)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: year = {2013}
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the **road benchmark**, please cite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '@inproceedings{[Fritsch2013ITSC](https://www.cvlibs.net/publications/Fritsch2013ITSC.pdf),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: author = {Jannik Fritsch and Tobias Kuehnl and [Andreas Geiger](https://www.cvlibs.net/)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: title = {A New Performance Measure and Evaluation Benchmark for Road Detection
+    Algorithms},
+  prefs: []
+  type: TYPE_NORMAL
+- en: booktitle = {International Conference on Intelligent Transportation Systems
+    (ITSC)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: year = {2013}
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the **stereo 2015**, **flow 2015,** and **scene flow 2015 benchmarks**,
+    please cite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '@inproceedings{[Menze2015CVPR](https://www.cvlibs.net/publications/Menze2015CVPR.pdf),'
+  prefs: []
+  type: TYPE_NORMAL
+- en: author = {[Moritz Menze](http://www.ipi.uni-hannover.de/tmm.html) and [Andreas
+    Geiger](https://www.cvlibs.net/)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: title = {Object Scene Flow for Autonomous Vehicles},
+  prefs: []
+  type: TYPE_NORMAL
+- en: booktitle = {Conference on Computer Vision and Pattern Recognition (CVPR)},
+  prefs: []
+  type: TYPE_NORMAL
+- en: year = {2015}
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL

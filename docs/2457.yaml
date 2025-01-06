@@ -1,0 +1,241 @@
+- en: From Set Transformer to Perceiver Sampler
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/from-set-transformer-to-perceiver-sampler-2f18e741d242?source=collection_archive---------9-----------------------#2024-10-08](https://towardsdatascience.com/from-set-transformer-to-perceiver-sampler-2f18e741d242?source=collection_archive---------9-----------------------#2024-10-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: On multi-modal LLM Flamingo’s vision encoder
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--2f18e741d242--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2f18e741d242--------------------------------)
+    ·5 min read·Oct 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing Multi-modal LLM is hard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The state-of-the-art multi-modal LLMs are primarily based on existing LLM architectures,
+    with modifications specifically addressing different sources of input, and that’s
+    where the difficulty comes from. The latest [Nvidia paper](https://arxiv.org/abs/2409.11402)
+    divides the commonly used multi-modal architectures into two categories:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: decoder-based;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cross-attention-based.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One of my [previous medium article](https://medium.com/towards-data-science/transformer-diffusion-transfusion-d18d219f2a12)s
+    discussed [the latest paper from Meta](https://www.arxiv.org/pdf/2408.11039),
+    using **decoder-based architecture**, which converts an input image into a latent
+    vector using a VAE encoder to address the issue that the image space is continuous
+    and different from the discrete text space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the problem with **cross-attention-based architecture** is different.
+    For example, in the multi-modal LLM model [Flamingo](https://arxiv.org/abs/2204.14198),
+    the critical issue is converting the vision embedding from a generic vision model
+    of varying temporal and spatial dimensions into the cross-attention layer to match
+    the language input dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, I will dive deep into Flamingo’s unique design on top of the vision
+    encoder, the Perceiver Resampler, to explain how this issue was solved. Furthermore,
+    I will explore the Perceiver Resampler’s origin — the Induced Set Attention Block
+    from [Set Transformer](https://arxiv.org/abs/1810.00825), which further inspired
+    [DeepMind’s Perceiver model](https://arxiv.org/abs/2103.03206) for learning fixed-length
+    latent embeddings from generic input data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/089422242834b9a1e1fa9c9fb3c0a5c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/1399240](https://pxhere.com/en/photo/1399240)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set Transformer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Published in 2019, the Set Transformer work extended the [original Transformer
+    model](https://arxiv.org/abs/1706.03762.) on sets to solve permutation-invariant
+    problems like Set Anomaly Detection, Point Cloud Classification, etc. Inspired
+    by the sparse Gaussian process where [a small set of inducing variables could
+    adequately approximate the posterior of an input](https://krasserm.github.io/2020/12/12/gaussian-processes-sparse/),
+    the Set Transformer uses the Induced Set Attention Blocks (ISAB) defined below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4e9bb54ec30707d2a2a4f04209ec5814.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Induced Set Attention Blocks (ISAB). Equantion source: [https://arxiv.org/pdf/1810.00825](https://arxiv.org/pdf/1810.00825)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MAB(X, Y) is the transformers' original multi-head attention block, where query
+    = X, key/value = Y. The ISAB block is almost identical to two stacked multi-head
+    attention blocks, except that the input key/value is replaced by the inducing
+    matrix I. The original set X is of dimension N*D, and I is of dimension M*D, representing
+    M 1*D inducing points. A visualization is shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a15880a7934d389807800b0eb6cabfb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A visualization of multi-head attention block and induced set attention block.
+    Image source: [https://arxiv.org/pdf/1810.00825](https://arxiv.org/pdf/1810.00825)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the design of the ISAB is to save computational cost. The reason is
+    that the M could be much smaller than the original N dimension, which makes the
+    time complexity of ISAB O(N*d) much smaller than the original self-attention complexity
+    O(N**2*d).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Perceiver
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Inspired by the use of inducing points as query matrix from Set Transformer,
+    the Perceiver model, proposed by DeepMind, separated the query matrix as a short
+    sequence of learnable latent embeddings (e.g., N=512) while the key and value
+    pair to be a byte array that is an ultra-long sequence input (e.g., M=224*224
+    pixels).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ba1ae736683c76b2041e21af8d4031c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Perceiver model architecture. Image source: [https://arxiv.org/abs/2103.03206](https://arxiv.org/abs/2103.03206)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The **cross attention** is borrowed from the decoder part of the original transformer,
+    where the query and key/value come from different sources, and in this case, unlearnable
+    representations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35c9299a993440a1f087726092cbb974.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multi-head attention and cross attention. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since K and V are input “constants,” the Perceiver transformer layer computational
+    complexity becomes only relative to the latent space, which is O(N**2), and is
+    also called a **latent transformer.** Decoupled from the input size, the latent
+    transformers could quickly scale up to 48 layers, which is a great advantage over
+    traditional transformer designs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flamingo’s Vision Encoder and Perceiver Resampler
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instead of applying the Perceiver directly, Flamingo first uses a pre-trained,
+    CNN-based, weight-frozen [Normalizer-Free ResNet](https://arxiv.org/abs/2102.06171)
+    (NFNet) to extract image/video features, then adds a learnable temporal positional
+    embedding and flattens them to the 1D sequence. The Perceiver Resampler is attached
+    to the vision encoder to learn a fixed-size latent embedding before being passed
+    into the cross-attention layer of the leading architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/89ebd5f6b78de69897120f9f31289ba1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Flamingo architecture. Image source: [https://arxiv.org/pdf/2204.14198](https://arxiv.org/pdf/2204.14198)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Like DeepMind’s Preceiver model, the Percerver Resampler uses constant input
+    embeddings as keys/values and the learnable latent vectors as queries. Note that
+    no spatial encoding is used here, and the rationale is that the previous vision
+    encoder, NFNet, is a convolution-based model with spatial information embedded
+    in the channel information. To increase performance, the learnable vectors are
+    concatenated to the key/value vectors in the cross-attention computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f032a413534acc3fb788e0157f468165.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Preceiver Resampler architecture. Image source: [https://arxiv.org/abs/2204.14198](https://arxiv.org/abs/2204.14198)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The detailed algorithm is given below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d78e5420e6b40063d9253e8efba05146.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Perceiver Resampler algorithm. Algorithm source: [https://arxiv.org/abs/2204.14198](https://arxiv.org/abs/2204.14198)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This article gives a detailed walk-through of the vision encoder part of the
+    Flamingo architecture. The vision encoder has a unique design, the Perceiver Resampler,
+    which originated from the Set Transformer and the Perceiver model and could minimize
+    the cross-attention computation cost while leveraging information from both the
+    spatial and temporal domains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Dai et al., NVLM: Open Frontier-Class Multimodal LLMs. arXiv 2024.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Zhou et al., Transfusion: Predict the Next Token and Diffuse Images with One
+    Multi-Modal Model. arXiv 2024.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alayrac et al., Flamingo: a Visual Language Model for Few-Shot Learning. NeurIPS
+    2022.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Jaegle et al., Perceiver: General Perception with Iterative Attention. ICML
+    2021.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Brock at al., High-Performance Large-Scale Image Recognition Without Normalization.
+    arXiv 2021.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Lee et al., Set Transformer: A Framework for Attention-based Permutation-Invariant
+    Neural Networks. ICML 2019\. [Slides](https://icml.cc/media/icml-2019/Slides/4842.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vaswani et al., Attention Is All You Need. NeurIPS 2017.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Stanford CS25: V1 I DeepMind’s Perceiver and Perceiver IO: new data family
+    architecture, [https://www.youtube.com/watch?v=wTZ3o36lXoQ](https://www.youtube.com/watch?v=wTZ3o36lXoQ)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: HuggingFace, Perceiver Model Doc. [https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/perceiver](https://huggingface.co/docs/transformers/v4.34.0/en/model_doc/perceiver)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

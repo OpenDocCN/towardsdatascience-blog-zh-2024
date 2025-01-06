@@ -1,0 +1,602 @@
+- en: Fine-Tune the Audio Spectrogram Transformer with Hugging Face Transformers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/fine-tune-the-audio-spectrogram-transformer-with-transformers-73333c9ef717?source=collection_archive---------4-----------------------#2024-08-21](https://towardsdatascience.com/fine-tune-the-audio-spectrogram-transformer-with-transformers-73333c9ef717?source=collection_archive---------4-----------------------#2024-08-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Learn how to fine-tune the Audio Spectrogram Transformer model for audio classification
+    of your own data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@marius_s?source=post_page---byline--73333c9ef717--------------------------------)[![Marius
+    Steger](../Images/9dff217a20fc1542eac8e52d32048114.png)](https://medium.com/@marius_s?source=post_page---byline--73333c9ef717--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--73333c9ef717--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--73333c9ef717--------------------------------)
+    [Marius Steger](https://medium.com/@marius_s?source=post_page---byline--73333c9ef717--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--73333c9ef717--------------------------------)
+    ·13 min read·Aug 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7f8ad4be45f2ff60c16110e638acb74c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fine-tuning an audio classification model instead of training from scratch can
+    be more data efficient, leading to better results on the downstream task | *Image
+    by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Audio classification is one of the key tasks in audio understanding with Machine
+    Learning and serves as a building block for many AI systems. It powers industry
+    applications for [test data evaluation](https://renumics.com/use-cases/test-data)
+    in the engineering domain, error and anomaly detection, or predictive maintenance.
+    Pre-trained transformer models, like the Audio Spectrogram Transformer (AST)[1],
+    provide a powerful foundation for these applications, offering robustness and
+    flexibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While training an AST model from scratch would require a huge amount of data,
+    using a pretrained model that has already learned audio-specific features can
+    be more efficient. Fine-tuning these models with data specific to our use case
+    is essential to enable their use for our particular application. This process
+    adapts the model’s capabilities to the unique characteristics of our dataset,
+    such as classes and data distribution, ensuring the relevance of the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/895d4939ab3d1eb6e2da381a10bcfbe0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Audio Spectrogram Transformer predicts a class for an audio sample based
+    on its spectrogram | *Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: The AST model, integrated with the Hugging Face 🤗 [Transformers](https://huggingface.co/docs/transformers/index)
+    library, has become a popular choice due to its ease of use and strong performance
+    in audio classification tasks. This guide will take us through the entire process
+    of fine-tuning a pretrained AST model (“[*MIT/ast-finetuned-audioset-10–10–0.4593*](https://huggingface.co/MIT/ast-finetuned-audioset-10-10-0.4593)*”*)
+    using our own data, demonstrated with the [ESC50 dataset](https://github.com/karolpiczak/ESC-50)[2].
+    Using tools from the Hugging Face ecosystem and PyTorch as the backend, we will
+    cover everything from data preparation and preprocessing to model configuration
+    and training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I am writing this guide based on my professional experience with the AST model
+    and the Hugging Face ecosystem over the past years.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This tutorial will guide us through the process of fine-tuning the AST on our
+    own audio classification dataset with tooling from the Hugging Face ecosystem.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We will load the data (1), preprocess the audios (2), setup audio augmentations
+    (3), configure and initialize the AST model (4) and finally, configure and start
+    a training (5).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Step-by-Step Guide to Fine-Tune the AST
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we start, install all the required packages with pip:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 1\. Load Our Data in the Correct Format
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To start, we’ll use the Hugging Face 🤗 [Datasets](https://huggingface.co/docs/datasets/index)
+    library to manage our data. This library will assist us in preprocessing, storing,
+    and accessing data during training, as well as performing waveform transformations
+    and encoding into spectrograms on the fly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our data should be loaded into a `Dataset` object with the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the following two sections I will demonstrate how to load a prepared dataset
+    from the 🤗 Hub and also create a `*Dataset*` from local audio data and labels.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Loading a Dataset from the Hugging Face Hub:** If we don’t have an audio
+    dataset locally, we can conveniently load one from the Hugging Face Hub using
+    the `load_dataset` function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this guide we will load the ESC50 Audio Classification dataset for demonstration
+    purposes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d311793e7f3a774f4c6cbf257a504f74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The spectrograms (top) and waveforms (bottom) of different classes from the
+    ESC50 Dataset | *Image by author (created with* [*Spotlight*](https://github.com/Renumics/spotlight)*)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Loading Local Audio Files and Labels:** We can load our audio files and associated
+    labels into a `Dataset` object using a dictionary or a pandas DataFrame that contains
+    file paths and labels. If we have a mapping of class names (strings) to label
+    indices (integers), this information can be included during dataset construction.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a practical example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Audio` feature class automatically handles audio file loading and processing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`ClassLabel` helps manage categorical labels, making it easier to handle classes
+    during training and evaluation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Note:** For more information on loading audio with Hugging Face, have a look
+    at the Datasets library [Docs](https://huggingface.co/docs/datasets/audio_load).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Inspecting the Dataset:** Once the dataset is successfully loaded, each audio
+    sample is accessible via an `Audio` feature class, which optimizes data handling
+    by loading it into memory only when needed. This efficient management saves computational
+    resources and speeds up the training process.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get a better understanding of the data structure and ensure everything is
+    loaded correctly, we can inspect individual samples in the dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Output example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This output shows the path, waveform data array, and the sampling rate for the
+    audio file, along with its corresponding label.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the following steps, you can either use a prepared dataset as demo like
+    we do or continue with your own dataset.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 2\. Preprocess the audio data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'If our dataset is from the Hugging Face Hub, we cast the `*audio*` and `*labels*`
+    columns to the correct feature types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Audio Casting**: The `Audio` feature handles loading and processing audio
+    files, resampling them to the desired sampling rate (16kHz in this case, sampling
+    rate of the `ASTFeatureExtractor`).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**ClassLabel Casting**: The `ClassLabel` feature maps integers to labels and
+    vice versa.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/5406a4f6a58ec46f62f5875bafeab4cb.png)![](../Images/113a08208bca4a7f8e5b2e3d018054c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An audio array as waveform (left) and as spectrogram (right) | *Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Preparing for AST Model Inputs:** The AST model requires spectrogram inputs,
+    so we need to encode our waveforms into a format that the model can process. This
+    is achieved using the `ASTFeatureExtractor`, which is instantiated from the configuration
+    of the pretrained model we intend to fine-tune on our dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note:** It is important to set the **mean** and **std** values for **normalization**
+    in the feature extractor to the **values of our dataset**. We can calculate the
+    values using the following block of code:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Applying Transforms for Preprocessing:** We create a function to preprocess
+    the audio data by encoding the audio arrays into the `input_values` format expected
+    by the model. This function is set up to be applied dynamically, meaning it processes
+    the data on-the-fly as each sample is loaded from the dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Inspecting Transformed Data**: If we load a sample now, it will be transformed
+    on the fly and the encoded audios are yielded as `*input_values*`*:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note**: It is crucial to verify that the transformation process maintains
+    data integrity and that the spectrograms are correctly formed to avoid any issues
+    during model training.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Splitting the Dataset:** As last data preprocessing step, we split the dataset
+    into a `train`and `test`-setwhile utilizing the labels for stratification. This
+    ensures to maintain class distribution across both sets.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3\. Add audio augmentations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Augmentations play a crucial role in increasing the robustness of machine learning
+    models by introducing variability into the training data. This simulates different
+    recording conditions and helps the model to better generalize to unseen data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before diving into the setup, here’s a visual comparison showing the **original**
+    spectrogram of an audio file and its augmented version using the **AddBackgroundNoise**
+    transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d3f6385a1580e5879d6a036094c54a5f.png)![](../Images/b3fa731cbc376356c42569f444f90b76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The original spectrogram of an audio file (left) and the same audio with the
+    AddBackgroundNoise transformation from [Audiomentations](https://github.com/iver56/audiomentations)
+    library (right) | *Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** Augmentations are a very effective tool for increasing the robustness
+    of training and reducing overfitting in machine learning models.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: However, it’s important to **carefully consider the potential impact of each
+    transformation**. For example, adding noise may be appropriate for speech datasets,
+    as it can simulate real-world scenarios where background noise is present. However,
+    for tasks such as sound classification, such enhancements could lead to class
+    confusion, resulting in poor model performance.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Setting Up Audio Augmentations:** To create a set of audio augmentations,
+    we use the `Compose` class from the [Audiomentations](https://iver56.github.io/audiomentations/)
+    library, which allows us to chain multiple augmentations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s how to set it up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this setup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `p=0.8` parameter specifies that each augmentation in the `Compose` sequence
+    has an 80% chance of being applied to any given audio sample. This probabilistic
+    approach ensures variability in the training data, preventing the model from becoming
+    overly dependent on any specific augmentation pattern and improving its ability
+    to generalize.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `shuffle=True` parameter randomizes the order in which the augmentations
+    are applied, adding another layer of variability.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For a better understanding of these augmentations and detailed configuration
+    options, check out the [**Audiomentations’** **docs**](https://iver56.github.io/audiomentations/).
+    Additionally, there’s a great [🤗 **Space**](https://phrasenmaeher-audio-transformat-visualize-transformation-5s1n4t.streamlit.app/)
+    where we can experiment with these audio transformations and hear and see their
+    effects on the spectrograms.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Integrating Augmentations into the Training Pipeline:** We apply these augmentations
+    during the `preprocess_audio` transformation where we also encode the audio data
+    into spectrograms.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The new preprocessing with augmentation is given by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function applies the defined augmentations to each waveform and then uses
+    the `ASTFeatureExtractor` to encode the augmented waveforms into model inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Setting Transforms for Training and Validation Splits:** Finally, we set
+    these transformations to be applied during the training and evaluation phases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4\. Configure and Initialize the AST for Fine-Tuning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To adapt the AST model to our specific audio classification task, we will need
+    to adjust the model’s configuration. This is because our dataset has a different
+    number of classes than the pretrained model, and these classes correspond to different
+    categories. It requires replacing the pretrained classifier head with a new one
+    for our multi-class problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The weights for the new classifier head will be randomly initialized, while
+    the rest of the model’s weights will be loaded from the pretrained version. In
+    this way, we benefit from the learned features of the pretraining and fine-tune
+    on our data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s how to set up and initialize the AST model with a new classification
+    head:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Expected Output:** We will see warnings indicating that some weights, especially
+    those in the classifier layers, are being reinitialized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 5\. Setup Metrics and Start Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the final step we will configure the training process with the 🤗 [Transformers](https://github.com/huggingface/transformers)
+    library and use the 🤗 [Evaluate](https://github.com/huggingface/evaluate) library
+    to define the evaluation metrics to assess the model’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1\. Configure Training Arguments:** The `TrainingArguments` class helps set
+    up various parameters for the training process, such as learning rate, batch size,
+    and number of epochs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**2\. Define Evaluation Metrics:** Define metrics such as accuracy, precision,
+    recall, and F1 score to evaluate the model’s performance. The `compute_metrics`
+    function will handle the calculations during training.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**3\. Setup the Trainer:** Use the `Trainer` class from Hugging Face to handle
+    the training process. This class integrates the model, training arguments, datasets,
+    and metrics.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With everything configured, we initiate the training process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/e14d2383267ae80949cd038f1e0f21b5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example log of a training with audio-augmentations applied to the train-split
+    | *Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Not so optional:) Evaluate The Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To understand our model’s performance and find potential areas for improvement,
+    it is essential to evaluate its predictions on train and test data. During training,
+    metrics such as accuracy, precision, recall, and F1 score are logged to [TensorBoard](https://www.tensorflow.org/tensorboard),
+    which allows us to inspect the model’s progress and performance over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Starting TensorBoard**: To visualize these metrics, initiate TensorBoard
+    by running the following command in your terminal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: This provides a graphical representation of the model’s learning curve and metric
+    improvements over time, helping to identify potential overfitting or underperformance
+    early in the training process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For **more detailed insights**, we can inspect the model’s predictions using
+    [Renumics](https://renumics.com/)’ open-source tool, [**Spotlight**](https://renumics.com/open-source/spotlight).
+    Spotlight enables us to explore and visualize the predictions alongside the data,
+    helping us to identify patterns, potential biases, and miss-classifications on
+    the level of single data points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/07e84100feee6c38d3dbde8ed89c2a7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The ESC50 dataset with audio embeddings and model predictions loaded in Spotlight.
+    Try it yourself in this Hugging Face [Space](https://huggingface.co/spaces/renumics/spotlight-esc50-clap)
+    | *Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Installing and Using Spotlight**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started with Spotlight, install it using pip and load your dataset for
+    exploration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And load the ESC50 dataset for **interactive exploration** with one line of
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: This tutorial focuses on setting up the fine-tuning pipeline. For a comprehensive
+    **evaluation**, including **using Spotlight**, please refer to the other tutorials
+    and resources provided below and at the end of this guide (Useful Links).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here are some examples of how to use Spotlight for model evaluation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A blog post with demo on **Hands-On Voice Analytics with Transformers:** [Blog](https://renumics.com/blog/voice-analytics-with-transformers)
+    & 🤗 [Space](https://huggingface.co/spaces/renumics/emodb-model-comparison)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A blog post and short example on **Fine-tuning image classification models from
+    image search:** [Blog](https://itnext.io/image-classification-in-2023-8ab7dc552115)
+    & [Use Case](https://renumics.com/next/docs/use-cases/image-fine-tuning)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'A blog post and short example on **How to Automatically Find and Remove Issues
+    in Your Image, Audio, and Text Classification Datasets**: [Blog](https://medium.com/@daniel-klitzke/finding-problematic-data-slices-in-unstructured-data-aeec0a3b9a2a)
+    & [Use Case](https://renumics.com/next/docs/use-cases/audio-classification)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By following the steps outlined in this guide, we’ll be able to fine-tune the
+    Audio Spectrogram Transformer (AST) on any audio classification dataset. This
+    includes setting up data preprocessing, applying effective audio augmentations,
+    and configuring the model for the specific task. After training, we can evaluate
+    the model’s performance using the defined metrics, ensuring it meets our requirements.
+    Once the model is fine-tuned and validated, it can be used for inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More on the Topic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the second in a **series of tutorials and blog posts** on the Audio
+    Spectrogram Transformer for industrial audio classification use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Have a look at **part one**: [*How to Use SSAST Model Weigths in the HuggingFace
+    Ecosystem?*](https://medium.com/itnext/how-to-use-ssast-model-weigths-in-the-huggingface-ecosystem-0f3fdc8d38da),'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and watch [this list](https://medium.com/@marius_s/list/audio-classification-for-industry-use-cases-cb6d169a7d80)
+    for upcoming posts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stay tuned for further posts in this series, where we will examine specific
+    challenges from real use cases and how to adapt the AST to handle them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Useful Links
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Download** **this guide** asnotebook from the Renumics [**Resource Page**](https://renumics.com/open-source/resources)**.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A tutorial on how to use **Spotlight for audio model evaluation:** [**Blog**](https://renumics.com/blog/voice-analytics-with-transformers)
+    & **🤗** [**Space**](https://huggingface.co/spaces/renumics/emodb-model-comparison)
+    (Demo)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'A tutorial on how to **train an acoustic event detection** **system** with
+    Spotlight: [**Blog**](https://renumics.com/blog/acoustic-event-detection-annotation)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The **official 🤗 audio course**: [**Introduction**](https://huggingface.co/learn/audio-course/chapter0/introduction)
+    & [**Fine-Tuning**](https://huggingface.co/learn/audio-course/chapter4/fine-tuning)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Thanks for reading! My name is [Marius Steger](https://www.linkedin.com/in/marius-steger/),
+    I’m a Machine Learning Engineer @[Renumics](https://renumics.com/) — We have developed
+    [Spotlight](https://github.com/Renumics/spotlight), an Open Source tool that takes
+    your data-centric AI workflow to the next level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cc655344170c51a9f0d18fa1a30b1164.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Yuan Gong, Yu-An Chung, James Glass: [AST: Audio Spectrogram Transformer](https://arxiv.org/abs/2104.01778)
+    (2021), arxiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Piczak, Karol J.: [ESC: Dataset for Environmental Sound Classification](https://dl.acm.org/doi/10.1145/2733373.2806390)
+    (2015), ACM Press'
+  prefs: []
+  type: TYPE_NORMAL

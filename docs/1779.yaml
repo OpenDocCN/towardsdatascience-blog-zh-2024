@@ -1,0 +1,298 @@
+- en: LangChain’s Parent Document Retriever — Revisited
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/langchains-parent-document-retriever-revisited-1fca8791f5a0?source=collection_archive---------4-----------------------#2024-07-22](https://towardsdatascience.com/langchains-parent-document-retriever-revisited-1fca8791f5a0?source=collection_archive---------4-----------------------#2024-07-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Enhance retrieval with context using your vector database only
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)[![Omri
+    Eliyahu Levy](../Images/7200edb7c45b097970034fc6f740a8bd.png)](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------)
+    [Omri Eliyahu Levy](https://medium.com/@omri-levy?source=post_page---byline--1fca8791f5a0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1fca8791f5a0--------------------------------)
+    ·6 min read·Jul 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TL;DR** — We achieve the same functionality as LangChains’ Parent Document
+    Retriever ([link](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/))
+    by utilizing metadata queries. You can explore the code [here](https://gist.github.com/omriel1/7243ce233eb2986ed2749de6ae79ecb7).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to RAG
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Retrieval-augmented generation (RAG) is currently one of the hottest topics
+    in the world of LLM and AI applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In short, RAG is a technique for grounding a generative models’ response on
+    chosen knowledge sources. It comprises two phases: retrieval and generation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the retrieval phase, given a user’s query, we retrieve pieces of relevant
+    information from a predefined knowledge source.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Then, we insert the retrieved information into the prompt that is sent to an
+    LLM, which (ideally) generates an answer to the user’s question based on the provided
+    context.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A commonly used approach to achieve efficient and accurate retrieval is through
+    the usage of embeddings. In this approach, we preprocess users’ data (let’s assume
+    plain text for simplicity) by splitting the documents into chunks (such as pages,
+    paragraphs, or sentences). We then use an embedding model to create a meaningful,
+    numerical representation of these chunks, and store them in a vector database.
+    Now, when a query comes in, we embed it as well and perform a similarity search
+    using the vector database to retrieve the relevant information
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bba1888e550d749b3f7d751f75b4661a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are completely new to this concept, I’d recommend [deeplearning.ai](https://www.deeplearning.ai/)
+    great course, [LangChain: Chat with Your Data](https://www.deeplearning.ai/short-courses/langchain-chat-with-your-data/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is “Parent Document Retrieval”?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: “Parent Document Retrieval” or “Sentence Window Retrieval” as referred by others,
+    is a common approach to enhance the performance of retrieval methods in RAG by
+    providing the LLM with a broader context to consider.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In essence, we divide the original documents into relatively small chunks, embed
+    each one, and store them in a vector database. Using such small chunks (a sentence
+    or a couple of sentences) helps the embedding models to better reflect their meaning
+    [1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, **at retrieval time, we do not return the most similar chunk as found
+    by the vector database only, but also its surrounding context** (chunks) **in
+    the original document**. That way, the LLM will have a broader context, which,
+    in many cases, helps generate better answers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'LangChain supports this concept via Parent Document Retriever [2]. The Parent
+    Document Retriever allows you to: (1) retrieve the full document a specific chunk
+    originated from, or (2) pre-define a larger “parent” chunk, for each smaller chunk
+    associated with that parent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s explore the example from [LangChains’ docs](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In my opinion, there are two disadvantages of the LangChains’ approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The need to manage external storage to benefit from this useful approach, either
+    in memory or another persistent store. Of course, for real use cases, the InMemoryStore
+    used in the various examples will not suffice.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The “parent” retrieval isn’t dynamic, meaning we cannot change the size of the
+    surrounding window on the fly.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Indeed, a few questions have been raised regarding this issue [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here I’ll also mention that Llama-index has its own [SentenceWindowNodeParser](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/)
+    [4], which generally has the same disadvantages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In what follows, I’ll present another approach to achieve this useful feature
+    that addresses the two disadvantages mentioned above. In this approach, we’ll
+    be only using the vector store that is already in use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternative Implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To be precise, we’ll be using a vector store that supports the option to perform
+    metadata queries only, without any similarity search involved. Here, I’ll present
+    an implementation for **ChromaDB** and **Milvus**. This concept can be easily
+    adapted to any vector database with such capabilities. I’ll refer to **Pinecone**
+    for example in the end of this tutorial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The general concept**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The concept is straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Construction:** Alongside each chunk, save in its metadata the *document_id*
+    it was generated from and also the *sequence_number* of the chunk.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Retrieval:** After performing the usual similarity search (assuming for simplicity
+    only the top 1 result), we obtain the *document_id* and the *sequence_number*
+    of the chunk from the metadata of the retrieved chunk. Retrieve all chunks with
+    surrounding sequence numbers that have the same *document_id*.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For example, assuming you’ve indexed a document named ***example.pdf*** in
+    80 chunks. Then, for some query, you find that the closest vector is the one with
+    the following metadata:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can easily get all vectors from the same document with sequence numbers
+    from 15 to 25.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s see the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here, I’m using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The only interesting thing to notice below is the metadata associated with each
+    chunk, which will allow us to perform the search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, lets implement the actual retrieval in Milvus and Chroma. Note that I’ll
+    use the LangChains’ objects and not the native clients. I do this because I assume
+    developers might want to keep LangChains’ useful abstraction. On the other hand,
+    it will require us to perform some minor hacks to bypass these abstractions in
+    a database-specific way, so you should take that into consideration. Anyway, the
+    concept remains the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, let’s assume for simplicity we want only the most similar vector (“top
+    1”). Next, we’ll extract the associated document_id and its sequence number. This
+    will allow us to retrieve the surrounding window.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, for the window/parent retrieval, we’ll dig under the Langchain abstraction,
+    in a database-specific way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For Milvus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For Chroma:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and don’t forget to sort it by the sequence number:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: For your convenience, you can explore the full code [here](https://gist.github.com/omriel1/7243ce233eb2986ed2749de6ae79ecb7).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pinecone (and others)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As far as I know, there’s no native way to perform such a metadata query in
+    Pinecone, but you can natively fetch vectors by their ID ([https://docs.pinecone.io/guides/data/fetch-data](https://docs.pinecone.io/guides/data/fetch-data)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Hence, we can do the following: each chunk will get a unique ID, which is essentially
+    a concatenation of the document_id and the sequence number. Then, given a vector
+    retrieved in the similarity search, you can dynamically create a list of the IDs
+    of the surrounding chunks and achieve the same result.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It’s worth mentioning that vector databases were not designed to perform “regular”
+    database operations and usually not optimized for that, and each database will
+    perform differently. Milvus, for example, will support building indices over scalar
+    fields (“metadata”) which can optimize these kinds of queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, note that it requires additional query to the vector database. First we
+    retrieved the most similar vector, and then we performed additional query to get
+    the surrounding chunks in the original document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And of course, as seen from the code examples above, the implementation is vector
+    database-specific and is not supported natively by the LangChains’ abstraction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this blog we introduced an implementation to achieve sentence-window retrieval,
+    which is a useful retrieval technique used in many RAG applications. In this implementation
+    we’ve used only the vector database which is already in use anyway, and also support
+    the option to modify dynamically the the size of the surrounding window retrieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] ARAGOG: Advanced RAG Output Grading, [https://arxiv.org/pdf/2404.01037](https://arxiv.org/pdf/2404.01037),
+    section 4.2.2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/](https://python.langchain.com/v0.1/docs/modules/data_connection/retrievers/parent_document_retriever/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Some related issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- [https://github.com/langchain-ai/langchain/issues/14267](https://github.com/langchain-ai/langchain/issues/14267)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- [https://github.com/langchain-ai/langchain/issues/20315](https://github.com/langchain-ai/langchain/issues/20315)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- [https://stackoverflow.com/questions/77385587/persist-parentdocumentretriever-of-langchain](https://stackoverflow.com/questions/77385587/persist-parentdocumentretriever-of-langchain)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_window/)'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,806 @@
+- en: Exploring Location Data Using a Hexagon Grid
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-location-data-using-a-hexagon-grid-3509b68b04a2?source=collection_archive---------4-----------------------#2024-03-14](https://towardsdatascience.com/exploring-location-data-using-a-hexagon-grid-3509b68b04a2?source=collection_archive---------4-----------------------#2024-03-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A comprehensive guide on how to use Uber’s H3 hexagon grid in data analysis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sktahtin?source=post_page---byline--3509b68b04a2--------------------------------)[![Sara
+    Tähtinen](../Images/008c3202246e04d225a60d3b6fbcaea4.png)](https://medium.com/@sktahtin?source=post_page---byline--3509b68b04a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3509b68b04a2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3509b68b04a2--------------------------------)
+    [Sara Tähtinen](https://medium.com/@sktahtin?source=post_page---byline--3509b68b04a2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3509b68b04a2--------------------------------)
+    ·16 min read·Mar 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Uber’s global H3 hexagonal grid system can be used for two purposes: first,
+    it is a user-friendly and practical tool for spatial data analysis. Second, it
+    can be used to anonymize location data by aggregating geographic information to
+    hexagonal regions such that no precise locations are disclosed. In this article,
+    we use Helsinki city bike data to showcase how hexagons can help data scientists
+    in their work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/16e707eb316e1c945918d989ea8981b2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many services nowadays produce data that contains events that have occurred
+    in a certain location. For example there’s a lot of different courier services
+    that might want to understand where and when their services have been used, or
+    teleoperator companies that want to know how big load their network must tolerate
+    at certain times at different parts of their cover area. Also location data can
+    be highly sensitive and reveal unnecessary exact information on users whereabouts.
+    For example, openly available New York taxi data contains exact information on
+    the pick-up and drop-off dates, times and locations of all taxi rides in New York.
+    By using information from paparazzis on where and when celebrities have been seen
+    getting in and out of the cabs, the tabloid magazines have used the taxi data
+    to track celebs’ visits to bars and strip clubs ([source](https://www.fastcompany.com/3036573/nyc-taxi-data-blunder-reveals-which-celebs-dont-tip-and-who-frequents-strip-clubs)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For these reasons it is convenient to bucket location data points into larger
+    groups. However, defining these location clusters is not entirely straightforward.
+    Sometimes one can use countries, counties, cities or districts to group data points
+    together but often there’s a need for finer regions. For this purpose Uber developed
+    an open-sourced geospatial grid system called H3 that covers the entire Earth
+    with repetitive tiling. The building block in the grid system is a hexagon and
+    one can choose from 16 different hexagon sizes that vary from an area of a large
+    country to an area of a small side table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will use Helsinki city bike data to demonstrate how one
+    can utilise H3 hexagons to analyse spatial data. First, we provide an introduction
+    to the H3 hexagon grid and its resolutions. Next, we delve into the main functionalities
+    of the H3 library. Following that, we illustrate how a hexagon grid can enhance
+    data analysis. Finally, we address some issues associated with hexagonal grids.
+    All the notebooks used in this analysis can be found [on this GitHub repository](https://github.com/sktahtin4/Helsinki-city-bikes).
+    All images in this article, unless otherwise noted, are by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/24eb02d7dcb52b56e5a81a48aa7ebd31.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot from the data analysis notebook. The purple dots indicate the positions
+    of city bike stations, while the hexagons of varying sizes correspond to resolutions
+    6 (the largest hexagon), 7, and 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Uber’s H3 hexagon system — great for visualising, exploring and optimising spatial
+    data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Every day and every minute, Uber receives multiple requests in their marketplace.
+    Each event happens at a specific location, for example a rider asks for a ride
+    in one location and a driver accepts the drive in a nearby location. Deriving
+    information and insights from the data, for example setting dynamical pricing
+    that is based on the demand, requires analyzing data across an entire city. But
+    as cities are geographically very diverse, this analysis must happen in fine granularity.
+    With the H3 hexagon grid system, each data point can be bucketed to one hexagon
+    area or cell, and then one Uber can calculate supply and demand for surge pricing
+    on each hexagon in all the cities where they have services. The hexagons come
+    in different sizes so one must choose the resolution that best fits the purpose
+    of the analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/51f5425d05c9bfb57a5744e880353d11.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figures show how the hexagon grid covers the whole Earth and city areas with
+    repetitive tiling. The user can subdivide the areas into smaller and smaller hexagons,
+    and the area of each finer resolution hexagon is roughly one seventh of the coarser
+    hexagon. Note that in order to cover the whole Earth with the hexagon tiling,
+    a few pentagons (shapes with 5 sides) are also needed (more of this later in this
+    article). If one looks carefully at the image, they can see a couple of pentagons
+    in the image as well, for example on top of Sweden and Norway. Image from [https://github.com/seanhandley/h3_ruby](https://github.com/seanhandley/h3_ruby).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Technically one could build a global grid system using any kind of building
+    block that facilitates a complete tiling throughout the 3D globe. For example
+    one could use triangles (3 sides) or squares (4 sides) instead of hexagons (6
+    sides) to cover the whole Earth. However, using hexagons has many advantages.
+    For example, the centerpoint of a triangle has three and a square has two different
+    distances to its neighbors’ centerpoints whereas the centerpoint of a hexagon
+    has equal distance to all of its neighbors’ which makes it a convenient system
+    to approximate radiuses (see image below).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/394a42575c7eceaa378e148dbf2a00f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The distance of the center points to their neighbors. Out of these, hexagons
+    are the best for approximating radiuses. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the world cannot be divided completely into hexagons so few pentagons
+    (five sides) are needed as well (12 to be exact, on each resolution). The pentagons
+    introduce discontinuities to the grid but often they are located far away from
+    the land so it causes problems for mainly marine data analysis. Despite the presence
+    of a few pentagons, the hexagon grid offers the advantage of providing building
+    blocks that are relatively uniform in size on the 3D spherical surface. In case
+    one wants to read more about the geometrics of a hexagon grid, [here’s a good
+    source for it](http://webpages.sou.edu/~sahrk/sqspc/pubs/gdggs03.pdf). Note that
+    defining the hexagon regions is highly arbitrary, and they do not follow any natural
+    features such as lakes, rivers, mountains or country borders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8045e278a6085e7259d282d1971368ea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The edge length of a hexagon (L) can be used to estimate the radius of the building
+    block. One hexagon contains six equilateral triangles (all sides in the triangle
+    have the same length) and the maximum distance of two points inside of a hexagon
+    is two times the edge length of the hexagon. H3 supports sixteen different hexagon
+    resolutions. Each hexagon at finer resolution is roughly one seventh of the hexagon
+    in coarser resolution. Note that hexagons cannot be perfectly subdivided into
+    seven smaller hexagons so the finer cells only approximately contain their parent
+    cell. As the areas do not overlap perfectly, the count of events in the parent
+    cell might not be equal to the count of events in its children cells. Images by
+    author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The H3 library is open source, available on GitHub and written in C. It has
+    bindings available on multiple languages, for example on Python, C, Java and Javascript.
+    H3 comes with a hierarchical indexing system which makes it very efficient. One
+    can examine the hexagons further using an online [H3 hexagon data viewer](https://wolf-h3-viewer.glitch.me/).
+    The table below summarizes the properties of the 16 different resolutions that
+    H3 provides.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3aa47437c6604bfe4c0dbe283e6982cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Table: Average hexagon area and average edge length from https://h3geo.org/docs/core-library/restable/.
+    Author used Chat-GPT to get examples of different sized areas.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we will introduce some of the most important functionalities of the H3
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: H3 library and its main functions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article we will use the H3 hexagon system to cluster location data into
+    hexagons. The documentation of H3 library can be found [here.](https://www.uber.com/en-FI/blog/h3/)
+    There are two main versions of this library, versions 3 and 4, and in our notebooks
+    we will use version 3.7.6\. Note that there are significant differences in function
+    names between version 3.x and 4.x as listed in [here](https://h3geo.org/docs/library/migration-3.x/functions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'H3 Python package is easy to install for example with pip:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you want to specify which version you want to use, add there the version
+    number, for example h3==3.7.6\. Then import H3 to your Python notebook with
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we will introduce some of the most important functions of the H3 library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hexagon index
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'H3 uses a hierarchical indexing system, which transforms latitude and longitude
+    pairs to a 64-bit H3 index that identifies each grid cell. With given coordinates
+    (latitude and longitude) and with selected resolution, we get the hexagon index:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: For example
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: returns index *‘861126d37ffffff’*. If you want, you can use a[n online H3 hexagon
+    data viewer](https://wolf-h3-viewer.glitch.me/) to check where this hexagon is
+    located.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So when we know the precise coordinates for a data point, we can determine its
+    hexagon index at various resolutions and associate it with hexagons of different
+    sizes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hexagon boundaries
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To use hexagons in our plots, we must determine the hexagon boundaries from
+    the hexagon index. Note that coordinates in some systems are presented as (lng,
+    lat), while in others, they follow the format (lat, lng). The geo_json=True/False
+    option allows you to swap these coordinates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: For example
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: These six coordinate pairs correspond to the starting and ending points of the
+    hexagon edges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neighboring hexagons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes we need to identify the neighbors of a specific hexagon, or “kring”
+    around the hexagon. With k=0 the function returns the origin index, with k=1 it
+    returns the origin index and its all neighboring indices, and with k=2 it returns
+    the origin index, its neighboring and next-to-neighboring indices, and so forth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Also there’s a function that can be used to calculate the grid distance between
+    two cells:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can use these functions in the following way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Plotting the hexagons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are multiple ways on how to plot hexagons on a map but some of them are
+    quite stiff, time consuming to use and not well-documented. For simplicity, we
+    are mainly using matplotlib for visualizations but we also experiment and take
+    screenshots of visualizations with folium maps. More details on these plotting
+    methods can be found from the GitHub repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ecfb63cc2e24ea1ca9ad66123e0a0d00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Examples of two different plotting options: on the left we use matplotlib for
+    plotting and on the right we use folium maps.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the left in the above figure we use matplotlib for plotting the hexagons.
+    We utilize the GADM library to fetch the multipolygon representing the Helsinki
+    region and plot it with green color. We use blue in the background to represent
+    bodies of water. Additionally, we include a marker denoting the Helsinki city
+    center on the map. The hexagons are easily rendered using the plot_polygon function
+    from the shapely library and data points can be added to the plot by using scatterplot.
+    This makes the plotting very easy and quick.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also experimented with other plotting methods, such as using folium maps
+    that allows us to create an interactive HTML map that allows us to zoom in and
+    out in the map. On the right in the above figure we show a screenshot of such
+    a map. Even though the result is aesthetically nice, it is very time consuming
+    to add new features (such as colorbars or heatmaps) to the map so it’s not the
+    best tool for exploratory data analysis. The notebook for plotting the interactive
+    folium maps [can be found in here](https://github.com/sktahtin4/Helsinki-city-bikes/blob/main/City-bikes-data-analysis-with-folium-maps.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Helsinki city bike data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/fbef34643ec07c9a8434c03c7333be3b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Helsinki city bikes near Helsinki railway station (2023).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we use H3 hexagons to analyze Helsinki city bike usage. The
+    data contains all the journeys undertaken between 2016 and 2021, as well as information
+    on the stations available in the city bike network. City bikes are available nearly
+    throughout Helsinki and in parts of Espoo, and the station network is dense, particularly
+    in central Helsinki.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The city bike system works such that a user can grab a city bike from any station
+    and return it to any city bike station, even if they are at full capacity. Typically,
+    city bike trips are brief, such as commuting from a metro station to a specific
+    destination, and the purpose of the city bikes is to make public transport more
+    appealing by offering a quick way to transit between two locations. City bikes
+    are available approximately from March to October, and a full season costs 35
+    euros (less than 40 US dollars). With this fixed fee, users can use city bikes
+    as much as they want as long as the trip lasts less than 30 minutes. If a trip
+    exceeds 30 minutes, the user must pay an additional charge of 1 euro for every
+    subsequent 30 minutes. All in all, clean and simple, and very convenient for short
+    trips!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The data contains two files: station (©HSL 2021) and journey data (©City bike
+    Finland 2021). Both datasets are downloaded from [HSL open data](https://www.hsl.fi/en/hsl/open-data)
+    and they have [Creative Commons BY 4.0 International licence](https://creativecommons.org/licenses/by/4.0/deed.en).
+    In the following section, we will provide a brief introduction to these datasets.
+    The analysis and cleaning notebooks can be found from [a GitHub repository](https://github.com/sktahtin4/Helsinki-city-bikes).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stations data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To begin, let’s take a closer look at the data. As always in data science projects,
+    the dataset needs some cleaning before we can use it. For example, the column
+    names are a mixture of Finnish, Swedish and English and for clarity, we want to
+    rename them. The notebook detailing our data cleaning process can be found [at
+    this link](https://github.com/sktahtin4/Helsinki-city-bikes/blob/main/City-bikes-data-cleaning.ipynb).
+    In the cleaned dataset, we have 457 stations, and the first rows looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e81fd0b3cb38d348401a65a0b47f79b5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The station’s dataframe includes station ID, station name, address, city, capacity
+    of the station, and geographical coordinates; longitude and latitude. Our objective
+    is to cluster these stations based on their spatial location using the H3 hexagon
+    system. Initially, the optimal hexagon size for analysis is unknown, prompting
+    us to experiment with four different resolutions: 6, 7, 8, and 9\. These resolutions
+    correspond to edge lengths of 3.7 km, 1.4 km, 500 m, and 200 m, respectively.
+    Once latitude, longitude, and resolution is given, we can employ the H3 library
+    to determine the corresponding H3 hexagon index as shown above in this article.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once we have retrieved the four hexagon IDs at different resolutions for all
+    the stations, we obtain the following data table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fc8027bd9577e6127a961d90f54b2c65.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With the station ID, we can merge this data table with the journey data, which
+    enables us to categorize trips into distinct hexagons and analyze the outcomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Journey data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The journey data contains all city bike trips taken between 2016 and 2021\.
+    It includes information such as the names and IDs of the departure and return
+    stations, departure and return times, trip duration, and distance traveled. Note
+    that each journey must start and end at one of the city bike stations. Initially,
+    the dataset contains 15 million trips, but data cleaning drops 3.5% of the rows
+    so we are left with 14.5 million trips. The notebook detailing the data cleaning
+    process is available in the same GitHub repository. Let’s examine the first few
+    rows from the trip data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eebe0a80e507e6d7287370a09467fcab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With the station IDs we can merge station data with the journey data and append
+    the hexagon IDs of both departure and return stations to the dataset. So next
+    we can start the data analysis that utilizes the H3 hexagons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data insights with the hexagons
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A fundamental aspect of being a data scientist involves extracting meaningful
+    insights from the available data. This typically requires data transformations,
+    so creating new features from the existing ones in order to aggregate the data.
+    For example we might want to extract the day of the week from dates, segment continuous
+    variables into fixed-sized bins, or group data points into clusters or categories.
+    In this section, we will showcase the types of data insights that can be obtained
+    from location data, whether utilizing hexagons or not. Details of the data analysis
+    can be found from the data cleaning and data analysis notebooks within the GitHub
+    repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A. Data analysis without hexagons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s begin by exploring what kind of analysis we can conduct without relying
+    on hexagons. Since our data spans from 2016 to 2021, a key aspect is understanding
+    how the data has evolved over time. Some questions we might ask include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where are the city bike stations located?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is the typical length of a bike trip in terms of both duration and distance?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How has the city bike station network expanded over the years?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How has the number of trips changed over the years?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To address these questions, we start by plotting the station locations on a
+    map by using the provided latitude and longitude coordinates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/af110102ca8dfdbe3deacc34c4b90d94.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the left figure, we see that the stations from 2021 are primarily located
+    in Helsinki but partly in Espoo too. Some station names are displayed on the map
+    to help identify different locations. On the right we categorize trip durations
+    and distances into four bins and calculate their respective frequencies. Nearly
+    half of the trips last less than 10 minutes and only a small percentage exceed
+    30 minutes (note that the user needs to pay extra charges beyond this duration).
+    The city bikes are typically employed for short-distance travels so it’s not surprising
+    that the majority of the trips are less than 3 kilometers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we can analyze how the data have changed over the years.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e799ecb7bec4b614f7d43b91f35db8a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The left figure displays all city bike stations and the years they were incorporated
+    into the network. The first city bike stations were introduced in 2016 and they
+    were located in central Helsinki. With each passing year, the city bike network
+    expanded, enabling bike usage in areas further away from central Helsinki. The
+    top-right figure shows the number of stations in each year. Lastly, the bottom-right
+    figure reveals the annual number of trips made with city bikes. Peak usage occurred
+    in 2019 with approximately 3.7 million trips, followed by a decline of 17% in
+    the next year, despite the increasing number of stations. The drop in 2020 and
+    2021 is likely influenced by the COVID-19 pandemic, but also partly due to commercial
+    scooters that became available in Helsinki in 2019 and that quickly gained popularity
+    especially in short-distance travel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To delve deeper into statistics derived from the city bike data, we will now
+    incorporate hexagons in our analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: B. Using hexagon grid to analyze city bike data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Hexagons offer us a tool for detailed analysis of the city bike usage. The
+    questions we aim to address using hexagons include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where do we have a lot of city bike stations?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In which areas of the city do we observe the highest number of departures or
+    returns?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is the average trip length in different parts of Helsinki?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However, before tackling these questions, we need to decide the size of the
+    hexagon we use in our analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/10f0a400e137264c0ca2a4bcd93e5ea2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We start by examining hexagons at resolutions 6, 7, and 8, corresponding to
+    radii of approximately 3.7 km, 1.4 km, and 500m, respectively. From these plots
+    it is difficult to visually assess the station density, especially with the smallest
+    hexagons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s compute the station count within each hexagon and plot the hexagons with
+    colors that reflect the number of stations within each respective hexagon:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c901e44980503082ab4fec091cb5058b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The hexagons are rather large at resolution 6 and the station count per hexagon
+    varies a lot so this resolution is probably too large for our needs. Resolutions
+    7 and 8 exhibit fewer variations in station numbers, and that can potentially
+    make them more suitable for our analysis. However, there’s no rule of thumb for
+    determining the ideal resolution as it depends on the specific insights we’re
+    seeking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hexagons help to visualize location-related insights, such as identifying the
+    busiest parts of the town for the service. If we wouldn’t use hexagons, an alternative
+    approach could involve calculating the average daily number of departures per
+    station and plotting the result using circles of varying size, as shown in the
+    figure below. However, the stations are so close to each other especially at the
+    central Helsinki that it becomes challenging to accurately comprehend the daily
+    number of departures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0bdb15ab29b9c13e7f76afdc082fd9c3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hexagon grid helps us perceive location specific data quicker. In the left image,
+    we calculate the average number of daily departures per each station and use the
+    size of each circle to represent the calculated average. In central Helsinki the
+    stations are so closely spaced that it becomes challenging to discern the volume
+    of departures in that area. Whereas on the right, we utilize hexagons of resolution
+    8 to plot the average number of daily departures in different parts of the city.
+    With this approach it is a way easier to see the volume of departures in different
+    parts of Helsinki. For example, we can see from the image that there are numerous
+    areas with fewer than 100 daily departures on average, whereas in central Helsinki
+    the average exceeds 900 daily departures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the hexagon grid we can also visualize various other insights from the
+    data, such as the following graphs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/67696120556bd3110ce7f08a565b55f6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On the left, we plot the average number of daily returns in each hexagon area.
+    The result closely resembles the average of daily departures. On the right, we
+    visualize the average distance traveled to the return station. The average trip
+    length fluctuates across the city, with the longest trips occurring in areas with
+    less frequent public transportation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: C. Selecting one hexagon and getting location specific insights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Sometimes we are interested in extracting more detailed insights from a specific
+    region. By selecting one hexagon we can dive deeper into the data within that
+    specific area and seek answers to questions such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are the peak usage times for city bikes in that area?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How does bike usage vary between weekdays and weekends in that region?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Where are users heading from that location?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To showcase how we could answer these questions, we opt for the following hexagon
+    in the Helsinki city center:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7264c5960da389a3022b450136e7ce93.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For a more in-depth analysis, we choose the highlighted hexagon situated in
+    the Helsinki city center.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s begin examining the data from that specific area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cdd5df5e6dccbfe615414dfbdff53a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On the left we plot the average number of departures for each weekday and hour
+    to provide us with insights on the busiest times. In Finland, typical work hours
+    are from 8–16 or 9–17, and we can see a clear peak on weekdays around 7 a.m. as
+    people commute to work and at 4–5 p.m. when they leave work. Interestingly, it’s
+    more common to grab a city bike after work than in the mornings. Notably, there’s
+    a significant peak in usage on Friday and Saturday nights as people return home
+    from bars and parties. Additionally, we can plot the trip length and duration
+    for each weekday to identify potential variations between weekdays and weekends
+    but the graphs on the right reveal only minor differences between different days.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also visualize the destinations of trips originating from the selected
+    hexagon to determine where users are heading from that area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c4af244157d8531c2741c5d2ef6f5bf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On the left, we display a hexagon map showing the destination of the trips originating
+    from the selected hexagon. On the right, we compute the grid distance between
+    the selected hexagon and the destination hexagon where a distance of 0 signifies
+    that the return and departure hexagons are the same. This analysis reveals that
+    approximately 40% of the bike trips from the selected hexagon start and end within
+    the same hexagon. Additionally, nearly 50% of the trips end in neighboring hexagons,
+    indicating that the majority of bike trips from the Helsinki city center are directed
+    to other areas within the city center.
+  prefs: []
+  type: TYPE_NORMAL
+- en: D. Selecting one location and analyzing data in the area around it
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At times, we aim to gain insights around a specific location. For instance,
+    we might want to understand city bike usage around a metro station that we frequently
+    use, such as Kamppi metro station in this example. If we seek insights within
+    a radius of approximately ~1 km, we might be tempted to choose the hexagon of
+    resolution 7 containing the station, as the radius of that hexagon is roughly
+    1.4 km. However, as shown in the left image below, the selected station is not
+    at the center of the hexagon, thus not effectively covering the ~1 km area around
+    the data point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b8c1f7404296b6bba60bfb2ee794a8c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: When we seek insights within a ~1 km radius around a specific data point, such
+    as Kamppi metro station, we should not simple choose a hexagon that is roughly
+    the size of the wanted radius because the data point might not be in the middle
+    of the hexagon (as illustrated in the left image). In order to better center the
+    data point, it is advisable to opt for a smaller hexagon containing the chosen
+    station and then consider its neighboring cells as well. The neighboring hexagons
+    are very easy to find with H3’s k_ring function. The smaller hexagon we choose
+    and the more neighbors we take into account, the more effectively the selected
+    data point is centered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the selected hexagons, we could analyze data around the desired data point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: E. Anonymising the location data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After obtaining hexagon indexes through geographic coordinates, we can omit
+    the exact location data and exclusively utilise the H3 indexes. This aids in anonymizing
+    the data, as there is no need to reveal the precise user location.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f5477492c039cc84bc003290b7932fb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustration of data anonymization: on the left, we display the precise start
+    and end locations of a bike trip, which may expose sensitive user information.
+    On the right, by using hexagon indexes, we avoid disclosing the exact location
+    and instead represent the hexagon area with a radius of approximately 1.4km where
+    the bike trip starts and ends.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Issues with hexagons
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The hexagon grid provided by the H3 library proves to be a useful tool for spatial
+    data analysis. However, there are some challenges that arise when utilizing this
+    hexagon grid, which we will elaborate on below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a mathematical perspective, the definition of hexagonal zones is entirely
+    arbitrary. For this reason H3 hexagons lack alignment with any “natural elements,”
+    such as streets, rivers, lakes, islands, highways, or train tracks. When employing
+    the hexagon grid, data points are aggregated based on their proximity in straight-line
+    distance. However, these points may not always be connected by roads, potentially
+    resulting in the grouping of disparate locations into a single cluster. We show
+    an example of this below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7283db26ebced6959496807b9b016701.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For instance, if we select hexagons of resolution 6 (indicating a radius of
+    approximately ~3.7 km), the two red-marked dots belong to the same hexagon even
+    though they are not directly connected and the biking distance between these data
+    points is roughly ~11km. Analyzing statistics for this hexagon may not yield much
+    value due to the diverse nature of the different areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another challenge arises if we aim to use the hexagons for anonymizing a user’s
+    precise location. For example, instead of recording the user’s exact location,
+    we could use hexagons of resolution 7 to indicate that the data point lies within
+    an area with a radius of roughly 1.4 km. However, since the ideal hexagon resolution
+    for analysis is often unknown, there may be a desire to link the data across various
+    resolutions. But as the coarser hexagon only approximately contains its seven
+    child hexagons, we might end up disclosing the location of a data point positioned
+    close to the hexagon’s border more accurately than the specified 1.4 km radius.
+    We demonstrate this in the image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/841c8323992989a20b3a0ba300013ddb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: When employing hexagons for data anonymization, it’s crucial to recognize that
+    we may unintentionally disclose the position more accurately than intended. For
+    instance, when examining the hexagon indexes of the red data point at resolutions
+    7 and 8, we observe that the smaller hexagon is not a direct child of the larger
+    hexagons. Consequently, the data point must be situated within the overlapping
+    region highlighted in black. Instead of anonymizing the data point to a region
+    with a radius of roughly 500m, we, in fact, provided more detailed information.
+    This poses a risk when anonymizing location data that is highly sensitive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Uber’s global H3 hexagonal grid system is a user-friendly and practical tool
+    for spatial data analysis. It can also help us to anonymise sensitive location
+    data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: H3 buckets location data points into hexagonal areas that cover the whole Earth
+    with repetitive tiling. H3 library supports sixteen different hexagon resolutions,
+    with the largest hexagons being ~1300km and the smallest only ~50m. From the different
+    sizes of hexagons one must choose the resolution that best fits the purpose of
+    the analysis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each hexagon at finer resolution is roughly one seventh of the hexagon in coarser
+    resolution. However, hexagons cannot be perfectly subdivided into seven smaller
+    hexagons so the finer cells only approximately contain their parent cell. This
+    means that the count of events in the parent cell might not be equal to the count
+    of events in its children cells.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that, hexagon grid lacks alignment with any “natural elements,” such as
+    streets, rivers, lakes, islands, highways, or train tracks, so disparate locations
+    might be grouped into a single cluster.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'References:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'GitHub repository for the Helsinki city bike data analysis: [https://github.com/sktahtin4/Helsinki-city-bikes](https://github.com/sktahtin4/Helsinki-city-bikes)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Uber blog on H3: [https://www.uber.com/en-FI/blog/h3/](https://www.uber.com/en-FI/blog/h3/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'H3 documentation: [https://h3geo.org/](https://h3geo.org/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Table of statistics of the different hexagon resolutions: [https://h3geo.org/docs/core-library/restable/](https://h3geo.org/docs/core-library/restable/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'More info on the global grid systems: [http://webpages.sou.edu/~sahrk/sqspc/pubs/gdggs03.pdf](http://webpages.sou.edu/~sahrk/sqspc/pubs/gdggs03.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Data viewer for the hexagons: [https://wolf-h3-viewer.glitch.me](https://wolf-h3-viewer.glitch.me/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'HSL open data: [https://www.hsl.fi/en/hsl/open-data](https://www.hsl.fi/en/hsl/open-data)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,318 @@
+- en: 'Tune In: Decision Threshold Optimization with scikit-learn’s TunedThresholdClassifierCV'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/tune-in-decision-threshold-optimization-with-scikit-learns-tunedthresholdclassifiercv-7de558a2cf58?source=collection_archive---------0-----------------------#2024-05-27](https://towardsdatascience.com/tune-in-decision-threshold-optimization-with-scikit-learns-tunedthresholdclassifiercv-7de558a2cf58?source=collection_archive---------0-----------------------#2024-05-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Use cases and code to explore the new class that helps tune decision thresholds
+    in scikit-learn
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)[![Kevin
+    Arvai](../Images/8ffd1f1983e911183009c9040f3dbf87.png)](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------)
+    [Kevin Arvai](https://medium.com/@arvkevi?source=post_page---byline--7de558a2cf58--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7de558a2cf58--------------------------------)
+    ·10 min read·May 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 1.5 release of scikit-learn includes a new class, [TunedThresholdClassifierCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.TunedThresholdClassifierCV.html),
+    making optimizing decision thresholds from scikit-learn classifiers easier. A
+    decision threshold is a cut-off point that converts predicted probabilities output
+    by a machine learning model into discrete classes. The default decision threshold
+    of the `.predict()` method from scikit-learn classifiers in a binary classification
+    setting is 0.5\. Although this is a sensible default, it is rarely the best choice
+    for classification tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post introduces the TunedThresholdClassifierCV class and demonstrates how
+    it can optimize decision thresholds for various binary classification tasks. This
+    new class will help bridge the gap between data scientists who build models and
+    business stakeholders who make decisions based on the model’s output. By fine-tuning
+    the decision thresholds, data scientists can enhance model performance and better
+    align with business objectives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This post will cover the following situations where tuning decision thresholds
+    is beneficial:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Maximizing a metric**: Use this when choosing a threshold that maximizes
+    a scoring metric, like the F1 score.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Cost-sensitive learning**: Adjust the threshold when the cost of misclassifying
+    a false positive is not equal to the cost of misclassifying a false negative,
+    and you have an estimate of the costs.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Tuning under constraints**: Optimize the operating point on the ROC or precision-recall
+    curve to meet specific performance constraints.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The code used in this post and links to datasets are available on [GitHub](https://github.com/arvkevi/tunein-blog).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s get started! First, import the necessary libraries, read the data, and
+    split training and test data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Maximizing a metric
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before starting the model-building process in any machine learning project,
+    it is crucial to work with stakeholders to determine which metric(s) to optimize.
+    Making this decision early ensures that the project aligns with its intended goals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using an accuracy metric in fraud detection use cases to evaluate model performance
+    is not ideal because the data is often imbalanced, with most transactions being
+    non-fraudulent. The F1 score is the harmonic mean of precision and recall and
+    is a better metric for imbalanced datasets like fraud detection. Let’s use the
+    `TunedThresholdClassifierCV` class to optimize the decision threshold of a logistic
+    regression model to maximize the F1 score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll use the [Kaggle Credit Card Fraud Detection dataset](https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud)
+    to introduce the first situation where we need to tune a decision threshold. First,
+    split the data into train and test sets, then create a scikit-learn pipeline to
+    scale the data and train a logistic regression model. Fit the pipeline on the
+    training data so we can compare the original model performance with the tuned
+    model performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: No tuning has happened yet, but it’s coming in the next code block. The arguments
+    for `TunedThresholdClassifierCV` are similar to other `CV` classes in scikit-learn,
+    such as [GridSearchCV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.GridSearchCV.html).
+    At a minimum, the user only needs to pass the original estimator and `TunedThresholdClassifierCV`
+    will store the decision threshold that maximizes balanced accuracy (default) using
+    5-fold stratified K-fold cross-validation (default). It also uses this threshold
+    when calling `.predict()`. However, any scikit-learn metric (or callable) can
+    be used as the `scoring` metric. Additionally, the user can pass the familiar
+    `cv` argument to customize the cross-validation strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create the `TunedThresholdClassifierCV` instance and fit the model on the training
+    data. Pass the original model and set the scoring to be "f1". We'll also want
+    to set `store_cv_results=True` to access the thresholds evaluated during cross-validation
+    for visualization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now that we’ve found the threshold that maximizes the F1 score check `tuned_fraud_model.best_score_`
+    to find out what the best average F1 score was across folds in cross-validation.
+    We can also see which threshold generated those results using `tuned_fraud_model.best_threshold_`.
+    You can visualize the metric scores across the decision thresholds during cross-validation
+    using the `objective_scores_` and `decision_thresholds_` attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/967d617803ff0bc789b203705c3f0314.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ve used the same underlying logistic regression model to evaluate two different
+    decision thresholds. The underlying models are the same, evidenced by the coefficient
+    equality in the assert statement above. Optimization in `TunedThresholdClassifierCV`
+    is achieved using post-processing techniques, which are applied directly to the
+    predicted probabilities output by the model. However, it's important to note that
+    `TunedThresholdClassifierCV` uses cross-validation by default to find the decision
+    threshold to avoid overfitting to the training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cost-sensitive learning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Cost-sensitive learning is a type of machine learning that assigns a cost to
+    each type of misclassification. This translates model performance into units that
+    stakeholders understand, like dollars saved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use the [TELCO customer churn dataset](https://accelerator.ca.analytics.ibm.com/bi/?perspective=authoring&pathRef=.public_folders%2FIBM%2BAccelerator%2BCatalog%2FContent%2FDAT00148&id=i9710CF25EF75468D95FFFC7D57D45204&objRef=i9710CF25EF75468D95FFFC7D57D45204&action=run&format=HTML&cmPropStr=%7B%22id%22%3A%22i9710CF25EF75468D95FFFC7D57D45204%22%2C%22type%22%3A%22reportView%22%2C%22defaultName%22%3A%22DAT00148%22%2C%22permissions%22%3A%5B%22execute%22%2C%22read%22%2C%22traverse%22%5D%7D),
+    a binary classification dataset, to demonstrate the value of cost-sensitive learning.
+    The goal is to predict whether a customer will churn or not, given features about
+    the customer’s demographics, contract details, and other technical information
+    about the customer’s account. The motivation to use this dataset (and some of
+    the code) is from [Dan Becker’s course on decision threshold optimization](https://www.wandb.courses/courses/decision-optimization).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Set up a basic pipeline for processing the data and generating predicted probabilities
+    with a random forest model. This will serve as a baseline to compare to the `TunedThresholdClassifierCV`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The choice of preprocessing and model type is not important for this tutorial.
+    The company wants to offer discounts to customers who are predicted to churn.
+    During collaboration with stakeholders, you learn that giving a discount to a
+    customer who will not churn (a false positive) would cost $80\. You also learn
+    that it’s worth $200 to offer a discount to a customer who would have churned.
+    You can represent this relationship in a cost matrix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also wrapped the cost function in a scikit-learn custom scorer. This scorer
+    will be used as the `scoring` argument in the TunedThresholdClassifierCV and to
+    evaluate profit on the test set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The profit is higher in the tuned model compared to the original. Again, we
+    can plot the objective metric against the decision thresholds to visualize the
+    decision threshold selection on training data during cross-validation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5d73ef40feb776f93b8e029027e09427.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In reality, assigning a static cost to all instances that are misclassified
+    in the same way is not realistic from a business perspective. There are more advanced
+    methods to tune the threshold by assigning a weight to each instance in the dataset.
+    This is covered in [scikit-learn’s cost-sensitive learning example](https://scikit-learn.org/stable/auto_examples/model_selection/plot_cost_sensitive_learning.html#sphx-glr-auto-examples-model-selection-plot-cost-sensitive-learning-py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tuning under constraints
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This method is not covered in the scikit-learn documentation currently, but
+    is a common business case for binary classification use cases. The tuning under
+    constraint method finds a decision threshold by identifying a point on either
+    the ROC or precision-recall curves. The point on the curve is the maximum value
+    of one axis while constraining the other axis. For this walkthrough, we’ll be
+    using the Pima Indians diabetes dataset. This is a binary classification task
+    to predict if an individual has diabetes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine that your model will be used as a screening test for an average-risk
+    population applied to millions of people. There are an estimated 38 million people
+    with diabetes in the US. This is roughly 11.6% of the population, so the model’s
+    specificity should be high so it doesn’t misdiagnose millions of people with diabetes
+    and refer them to unnecessary confirmatory testing. Suppose your imaginary CEO
+    has communicated that they will not tolerate more than a 2% false positive rate.
+    Let’s build a model that achieves this using `TunedThresholdClassifierCV`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this part of the tutorial, we’ll define a constraint function that will
+    be used to find the maximum true positive rate at a 2% false positive rate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Build two models, one logistic regression to serve as a baseline model and the
+    other, `TunedThresholdClassifierCV` which will wrap the baseline logistic regression
+    model to achieve the goal outlined by the CEO. In the tuned model, set `scoring=max_tpr_at_tnr_scorer`.
+    Again, the choice of model and preprocessing is not important for this tutorial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Compare the difference between the default decision threshold from scikit-learn
+    estimators, 0.5, and one found using the tuning under constraint approach on the
+    ROC curve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/a6f0205e940bce68a563041a655b45e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tuned under constraint method found a threshold of 0.80, which resulted
+    in an average sensitivity of 19.2% during cross-validation of the training data.
+    Compare the sensitivity and specificity to see how the threshold holds up in the
+    test set. Did the model meet the CEO’s specificity requirement in the test set?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The new `TunedThresholdClassifierCV` class is a powerful tool that can help
+    you become a better data scientist by sharing with business leaders how you arrived
+    at a decision threshold. You learned how to use the new scikit-learn `TunedThresholdClassifierCV`
+    class to maximize a metric, perform cost-sensitive learning, and tune a metric
+    under constraint. This tutorial was not intended to be comprehensive or advanced.
+    I wanted to introduce the new feature and highlight its power and flexibility
+    in solving binary classification problems. Please check out the scikit-learn documentation,
+    user guide, and examples for thorough usage examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A huge shoutout to [Guillaume Lemaitre](https://github.com/glemaitre) for his
+    work on this feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading. Happy tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data Licenses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Credit card fraud: DbCL'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pima Indians diabetes: CC0'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TELCO churn: [commercial use OK](https://developer.ibm.com/terms/download-of-content-agreement/)'
+  prefs: []
+  type: TYPE_NORMAL

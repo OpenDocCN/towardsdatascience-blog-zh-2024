@@ -1,0 +1,797 @@
+- en: 'Everything you need to know about Voronoi Diagrams: Analyze Service Areas of
+    Transit Stations in Tokyo'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/data-snack-use-voronoi-to-analyze-service-areas-of-transit-stations-in-tokyo-b1179b9dc2a3?source=collection_archive---------10-----------------------#2024-08-16](https://towardsdatascience.com/data-snack-use-voronoi-to-analyze-service-areas-of-transit-stations-in-tokyo-b1179b9dc2a3?source=collection_archive---------10-----------------------#2024-08-16)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Discover Data Science techniques while acquiring slightly interesting statistical
+    insights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@martin-jurran?source=post_page---byline--b1179b9dc2a3--------------------------------)[![Martin
+    Jurran](../Images/f34f11741f9a7b8c0ccb42ef0509a04a.png)](https://medium.com/@martin-jurran?source=post_page---byline--b1179b9dc2a3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b1179b9dc2a3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b1179b9dc2a3--------------------------------)
+    [Martin Jurran](https://medium.com/@martin-jurran?source=post_page---byline--b1179b9dc2a3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b1179b9dc2a3--------------------------------)
+    ·12 min read·Aug 16, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/562cb2e9d7365d3590a0a42f89bd5988.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Data Science and Mass Transit: A dream team. (Image by author, illustrations
+    by [Takashi Mifune under free use](https://www.irasutoya.com/p/terms.html))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the world becoming increasingly urbanized [[1](https://www.un.org/development/desa/pd/content/urbanization-0)],
+    public transport has become an omnipresent part of urban life. The probably most
+    urban place in the world is Tokyo [[2]](http://www.demographia.com/db-worldua.pdf)
+    — a bustling Megapolis of an unmatched size where most people primarily rely on
+    public transport [[3](http://demographia.com/db-htld-rail.htm)] in their everyday
+    lives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article introduces you to the concept of the *Voronoi diagram* in an urban
+    planning context and uses it to divide the service area of train stations in Tokyo.
+    We will use the acquired service areas to obtain various, maybe slightly interesting,
+    statistics about the train station’s surroundings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/c701b6cb07e92d80d99c6aaa39fb9691.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A Voronoi diagram (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Voronoi diagrams and Delaunay triangulations find wide application in many branches
+    of science. [[4](https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping)]
+    *Voronoi diagrams*, also known as *Voronoi grids*, are used to divide a flat surface
+    into distinct areas that correspond to specific points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This problem is arising frequently in many varieties. [5]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some examples include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Government of Melbourne (2024-)*, when they assign students to their nearest
+    school [[6](https://www.findmyschool.vic.gov.au/)]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*John Snow (1813–1853)* when he related the outbreak of cholera in London to
+    the location of water pumps [[4](https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping)]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*René Descartes (1596–1650)* when he investigated the distribution of matter
+    relative to fixed stars [[4](https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping)]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Today, Voronoi diagrams are being used in many areas, including computer science,
+    geography, and especially urban planning. Urban planning is the field I would
+    like to introduce to you in more detail — we will determine service areas of mass
+    transit stations in world’s largest metropolis: Tokyo.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Components of Voronoi**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6aa97fa52adfe9062d90e7353ffebd24.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The components of a Voronoi Diagram (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Voronoi diagram consists out of multiple different result sets with distinct
+    names and usage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🔵 *Voronoi Site* is the reference location the *Voronoi Region* is calculated
+    for.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟣 *Voronoi Region* contains all the points on the surface closer to the related
+    *Voronoi site* than any other.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟢 *Voronoi Arc* is the straight line segment that is a boundary between two
+    *Voronoi Regions* [[4](https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping)]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟠 *Voronoi Vertex* is a point where Voronoi Arcs intersect.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The Distance Functions for Voronoi**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/678430fa5c98b7310f8a171e805c9432.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparing various distance functions (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The *Voronoi diagram* in a city planning context is usually based on a distance/reference
+    system relationship. The distance is calculated based on certain measures, such
+    as literal distance or travel time. There are multiple methods for calculating
+    said distance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d682df59903ad8d0b9bd5f5443526d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overview of Euclidean Distance (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Euclidean Distance.* Is the air-line distance between two points in a coordinate
+    system. It is assuming an open space between two points with nothing blocking
+    them in between. It is the most basic way to calculate distance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/82372e4d5d03a26f8a931745933c9fca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overview of Manhattan Distance (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Manhattan distance.* Ignores the air-line distance and introduces a distance
+    function to approximate travel times in a city grid — just like in Manhattan.
+    It is better suited for certain city environments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f1043738887a6ad8ba8c64e16b43aaca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overview of Time-based Distance (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Time-based distance.* The most accurate measure, but also the one most complicated
+    to acquire.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, time based distances may cause anomalies, as travel times between
+    areas might not be linear to their distance and therefore could cause the Voronoi
+    Regions to unevenly split up [[10](http://alumni.cs.ucr.edu/~weiw/paper/VD_highways.pdf)]—
+    just like in the example below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4e4f1e256ce46e16a9d03437448eed0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 5\. Voronoi diagrams of selected areas for geographical (a), road (b),
+    and travel time distances ©. The wide blue line is the Warta river, while the
+    magenta blocks are locations of bridges [[11](https://www.researchgate.net/figure/Voronoi-diagrams-of-selected-areas-for-geographical-a-road-b-and-travel-time_fig5_336071639)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we have all the basics for starting with our real life use case — Tokyo’s
+    public transport. Let’s get started!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assessing the Tokyo Transit System
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most important aspects of urban planning are mass transit networks
+    — especially in a place like Tokyo. Tokyo is a place that many people are longing
+    for — especially public transport enthusiasts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, Tokyo provides us with the perfect example to use Voronoi diagrams with
+    a real life use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Concept**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Imagine a city map dotted with public transit stations. Each station serves
+    its surrounding area, called a service zone. But how can we determine these zones?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To better understand how to achieve our goal of acquiring service areas of
+    public transport stations, I put the *Voronoi diagram* into our mass transit perspective:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/622c635ce9ac00ffb30daac9d0467482.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A concept on how to use Voronoi diagrams for acquiring service zones (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🔵 *Voronoi site* is now a train station in Tokyo
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟢 *Voronoi Arc* is now the border dividing service areas of train stations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 🟣 *Voronoi Region* is now the area serviced by one specific train station based
+    on our distance function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: That’s what *Voronoi Diagrams* can offer us. By dividing the map into regions
+    based on the distance to the nearest station, we have a very simple approach defining
+    service areas of train stations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, as the concept is clear, let’s get started with the actual implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identitifying Tokyo
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We need to define the area we would like to create our *Voronoi Diagram* for.
+    That process is usually referred to as defining the *Bounding Box*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9022ef03f0c371ca3036efef86dc8e25.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Difference between Tokyo City and Tokyo Prefecture (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: When someone says “Tokyo”, it can mean different things to different people.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some may think of it as a:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1) Bustling city (Tokyo City)** with towering skyscrapers and vibrant street
+    culture, while others may view it as a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2) Prefecture (Tokyo Prefecture)** with scenic landscapes and natural beauty,
+    while someone else might refer to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3) Greater Tokyo Area**, which is the most populous metropolitan area in
+    the world [[8](https://en.wikipedia.org/wiki/Greater_Tokyo_Area)], that consists
+    out of multiple standalone cities (e.g. Tokyo, Saitama, Yokohama, ..).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**However, it’s important to define what we mean by “Tokyo” in order to avoid
+    confusion.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Using the prefecture definition** allows us to differentiate Tokyo from its
+    neighboring cities like Saitama, Chiba, and Yokohama while including most locations
+    which people generally refer to as “in Tokyo”.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Tokyo Prefecture* will be our base border box for all subsequent *Voronoi*
+    calculations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For acquiring geospatial information about Tokyo prefecture, we resort to official
+    government sources, as referenced below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Dataset:** [National Land Numerical Information | Administrative Boundaries
+    Data (mlit.go.jp)](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N03-v2_3.html),
+    Licensed under the Open Data Policy, allowing commercial use. [利用規約 (mlit.go.jp)](https://nlftp.mlit.go.jp/ksj/other/agreement.html#agree-01)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locating Train Stations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/2926ee4e8b8f5c7cec14c9a7ce5edb2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visually checking our dataset. I located Takadanobaba in it’s correct position.
+    (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Japanese Government provides a reliable source for information about train
+    stations. Their website offers a detailed dataset containing all train stations
+    across the country, along with other related metadata.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**It is worth noting that the dataset focuses solely on train stations as per
+    Japan government’s definition and may exclude modes of mass transit like metro
+    and monorail while including modes of transit people generally wouldn’t refer
+    to as trains, such as specific cable cars.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There might be opportunities to increase the correctness of data retrieved through
+    combining additional data sources. [[9](https://www.odpt.org/)] In this article,
+    I will continue with the governmental dataset without further enhancements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Dataset:** [National Land Numerical Information | Railway Data (mlit.go.jp)](https://nlftp.mlit.go.jp/ksj/gml/datalist/KsjTmplt-N02-2023.html),
+    Licensed under the Open Data Policy, allowing commercial use. [利用規約 (mlit.go.jp)](https://nlftp.mlit.go.jp/ksj/other/agreement.html#agree-01)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Obtaining Service Zones
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have established the borders of Tokyo and a list of relevant train
+    stations, we can proceed with calculating our service zones. We will be utilizing
+    [*KNIME*](https://www.knime.com/), a powerful tool for scientific computations
+    that minimizes the need for in-depth math knowledge or coding, by abstracting
+    much of the complexity away.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.knime.com/?source=post_page-----b1179b9dc2a3--------------------------------)
+    [## Open for Innovation | KNIME'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Free and open source with all your data analysis tools. Create data science
+    solutions with the visual workflow builder…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.knime.com](https://www.knime.com/?source=post_page-----b1179b9dc2a3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1\. Extract data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start with connecting our data sources to the tool. Fortunately, KNIME provides
+    a set of tools for Geospatial operations, which we can use out of the box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We proceed by creating two nodes for importing our data. [*GeoFile Reader node*](https://hub.knime.com/center%20for%20geographic%20analysis%20at%20harvard%20university/extensions/sdl.harvard.features.geospatial/latest/org.knime.python3.nodes.extension.ExtensionNodeSetFactory$DynamicExtensionNodeFactory:4e3ecfd9)
+    is capable of handling both Shapefile and geojson data types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0e07d7f55bc76255df7694a371b711c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data import in KNIME (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To use the two datasets, some preparation is necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We remove some fields due to an excess number within each dataset with the [*Column
+    Filter node*](https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.filter.column.DataColumnSpecFilterNodeFactory).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To enhance readability, we rename certain columns within the datasets with the
+    [*Column Renamer node*](https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To avoid confusion later on, identical columns within each dataset are given
+    unique names with the [*Column Renamer node*](https://hub.knime.com/knime/extensions/org.knime.features.base/latest/org.knime.base.node.preproc.column.renamer.ColumnRenamerNodeFactory).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/1035ae6b32b6e4e713e6b72b1fd26712.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data extraction in KNIME (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Having completed the data extraction and preparation, we can now move forward
+    with our computations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2\. Work with data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our next objective is to obtain the Voronoi polygons for each station, thereby
+    enabling us to derive their respective service zones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We create a bounding box for our Voronoi diagram, using our Tokyo Prefecture
+    dataset, with the [*Bounding Box node*](https://hub.knime.com/center%20for%20geographic%20analysis%20at%20harvard%20university/extensions/sdl.harvard.features.geospatial/latest/org.knime.python3.nodes.extension.ExtensionNodeSetFactory$DynamicExtensionNodeFactory:381035ea).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In order to perform our calculations, we need points instead of polygon representations
+    for the stations. The [*Geometry to Point node*](https://hub.knime.com/center%20for%20geographic%20analysis%20at%20harvard%20university/extensions/sdl.harvard.features.geospatial/latest/org.knime.python3.nodes.extension.ExtensionNodeSetFactory$DynamicExtensionNodeFactory:f470594)
+    is used to convert them.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We perform the Voronoi calculation using the [*Voronoi (Thiessen) Polygon node*](https://hub.knime.com/center%20for%20geographic%20analysis%20at%20harvard%20university/extensions/sdl.harvard.features.geospatial/latest/org.knime.python3.nodes.extension.ExtensionNodeSetFactory$DynamicExtensionNodeFactory:bfd518e5),
+    which produces polygons and associated IDs. However, since we also require station
+    metadata, we must join the Voronoi polygons with this information again using
+    the [*Spatial Join node*](https://hub.knime.com/center%20for%20geographic%20analysis%20at%20harvard%20university/extensions/sdl.harvard.features.geospatial/latest/org.knime.python3.nodes.extension.ExtensionNodeSetFactory$DynamicExtensionNodeFactory:38149a19).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/4a847d621c712c0555af3a43b88ad6ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The entire workspace in KNIME (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s everything we need to obtain station service zones in KNIME. Let’s take
+    a look on the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Service Zones (V1)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can see that the Voronoi diagram has divided our map, assigning a unique
+    area to each station.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bbedd47befa295fc8b47898a9d891c5f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: One station has multiple service areas — something went wrong. Visualized with
+    QGIS (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We should keep in mind that certain stations like Takadanobaba look like one
+    station in person, but actually consist of multiple stations in reality. Because
+    of this, we need to do some extra work to make sure our calculations reflect this
+    accurately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Cleaning Data and Service Zones (V2)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The station dataset contains an additional ID that groups stations by their
+    public name and/or real-life appearance. By utilizing this ID and the [*Group
+    By node*](https://hub.knime.com/knime/extensions/org.knime.features.database/latest/org.knime.database.node.manipulation.groupby.DBGroupByNodeFactory),
+    we can join the individual stations into a single one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7335f675e26162e737b9c3165c25edef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The entire workspace in KNIME (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After consolidating the individual stations, we were able to create a more accurate
+    dataset of service zones that better reflects how people see stations in the real
+    world. Look at Takadanobaba — it’s located in a single Voronoi region now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2d8ae7a96186e3583555e197d470071.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Cleaned up dataset: Now we have one service area per station, visualized with
+    QGIS (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Result**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have completed our calculations and obtained service zones that can provide
+    useful insights and statistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To explore the results yourself, you can find everything in this GitHub repository:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/martinjurran/KNIME-Tokyo-StationServiceAreas/tree/main?source=post_page-----b1179b9dc2a3--------------------------------)
+    [## GitHub - martinjurran/KNIME-Tokyo-StationServiceAreas: KNIME workflow for
+    calculating service areas…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: KNIME workflow for calculating service areas of Tokyo train stations and restaurant
+    density analysis. …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/martinjurran/KNIME-Tokyo-StationServiceAreas/tree/main?source=post_page-----b1179b9dc2a3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we will obtain some real-life statistics that we can derive from our service
+    zones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Statistics Example — Restaurant Density
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/2bd7652543f4fe708ffc710115e264c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Finding restaurants isn’t hard in Japan — but where is their highest density?
+    (Illustrations by [Takashi Mifune under free use](https://www.irasutoya.com/p/terms.html))
+  prefs: []
+  type: TYPE_NORMAL
+- en: When it comes to planning a vacation, one of the biggest hassles is figuring
+    out where to stay. I mean, you want to pick a location that is close to all the
+    restaurants, shops and other cool stuff, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But with so many options out there, it can be confusing to find the perfect
+    spot. That’s where our newly acquired *Transit Station Service Areas* can help
+    us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Goal: Identifying the station with the most POI in it’s surroundings. To make
+    things easy, we will focus on restaurants.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Acquiring Data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data valuable for business purposes seems to frequently be protected and hard
+    to retrieve. In the case of restaurants, there is no official source available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most accurate sources, such as Business Registrations or Google Maps, are
+    either associated with a steep price tag or just aren’t approved for large scale
+    processing usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [Overpass API](https://overpass-api.de/) offered by the OpenStreetMap foundation,
+    is one of the only sources that offers the data we need. With a simple query in
+    [Overpass Turbo](https://overpass-turbo.eu/), we can acquire all restaurants in
+    Tokyo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The data is being displayed in Overpass Turbo right away and is available for
+    export to a file type of our choice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2b3bb30c4e013072ee7ad9990420bac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overpass Turbo UI (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have a full dataset on all restaurants in Tokyo. It’s coming with it’s
+    limitations, as the data is crowd sourced, not validated and might also be centered
+    around the most popular spots in the city, as that is where people usually contribute
+    to on their platform. As it is the best data available in our case, we continue
+    using it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Dataset:** [overpass turbo (overpass-turbo.eu)](https://overpass-turbo.eu/),
+    Data licensed under [Open Database License (ODbL)](https://en.wikipedia.org/wiki/Open_Database_License)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Matching Points of Interest (POI) to their service zone**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To calculate the individual amount of restaurants in a station’s service zone,
+    we need to match the POI to their respective service zones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have imported the station service zones as a layer in QGIS. That application
+    offers us to calculate node counts within areas out of the box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/53918a6c0cf5a1cb84d89a1405e940ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Counting points inside polygons in QGIS (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The number of restaurants in each service zone does not meet our requirements,
+    as some large zones have many restaurants — but with long distances to cover in
+    between them. Therefore, we need to develop a new metric to address this scenario.
+    The easiest approach would be to determine the density of restaurants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Formula for POI density**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a simple ranking, *restaurants/km² per service zone* might be a good representation.
+    That way, we can find the service zone with the highest density of restaurants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some cases, service zones may be small yet have a large number of restaurants,
+    which could inflate their score. However, in our situation, this is not a concern.
+    Small service zones might indicate the presence of another station and more restaurants
+    in close proximity.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'There is a formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ca9fb5f647135a8ed7bae1d430f9c45.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Formula for calculating POI density
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'where:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*R* = POI density factor in n/km²'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*A* = area of polygon in km²'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*n* = number of POI'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We import the *dataset with POI Count/service area* into KNIME and run our formula
+    for each and every service zone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6ffa4fcf12e97bbc1c36b373d60498f3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Calculating POI density in KNIME (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we acquired the zones with the highest density of restaurants. Let’s
+    take a look at the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The top 20 station service areas with the highest density of restaurants are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c317dcf86a0814fff2ac2020b4b5e065.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The top 25 stations sorted by restaurant density, visualized with Tableau Public
+    (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also view our results on a map to get more insights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cabb631cba516074773ea236a045829c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The top 20 stations sorted by restaurant density, visualized with Tableau Public
+    (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see, that the areas with the highest density are appearing in clusters.
+    I did some more research and found out that Tokyo is made out of individual cities
+    (e.g. Taito City, Shibuya City, Chiyoda). These clusters do represent the individual
+    cities Tokyo is made out of in some way — interesting!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9dff015895841adf2f3df4d096904418.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The high restaurant-density clusters identified (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s important to note that our dataset is crowd-sourced and may not be entirely
+    representative or complete, as it could be biased towards areas that have been
+    particularly well-surveyed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**However, based on the data we have, Ueno-Okachimachi Station is the clear
+    winner.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The station service zone with the highest restaurant density: Ueno-okachimachi
+    Station'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you’re interested in exploring the data further, you can check out the Tableau
+    Public page, where you can interact with the visualization and delve deeper into
+    the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://public.tableau.com/app/profile/martin.jurran/viz/Tokyo-RestaurantDensity/Map#1](https://public.tableau.com/app/profile/martin.jurran/viz/Tokyo-RestaurantDensity/Map#1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/cdba6c676a009e9b3679bd2620c7eb91.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The station service zone with the highest density. Ameya Yokocho is a part of
+    the Ueno-okachimachi station service zone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Voronoi diagrams are more versatile and useful than we often realize. They enable
+    us to uncover insights, such as **identifying Ueno-okachimachi station as having
+    the highest restaurant density in Tokyo Prefecture**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even major companies like Uber likely use Voronoi diagrams to efficiently assign
+    drivers to pick-up locations. Their wide range of applications makes them valuable
+    across various industries, especially since they can be computed with minimal
+    resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I encourage you to explore the capabilities of Voronoi diagrams and see how
+    they can benefit you. By including them into your toolset, you can enhance your
+    data analysis skills and gain access to more insightful statistics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[[1](https://www.un.org/development/desa/pd/content/urbanization-0)] United
+    Nations (2018, September 13), Urbanization, [https://www.un.org/development/desa/pd/content/urbanization-0](https://www.un.org/development/desa/pd/content/urbanization-0#:~:text=The%20world%20is%20becoming%20increasingly,around%20two%2Dthirds%20in%202050.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[2](http://www.demographia.com/db-worldua.pdf)] Demographia (2023, January
+    24), World Urban Areas 19th Annual, [http://www.demographia.com/db-worldua.pdf](http://www.demographia.com/db-worldua.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[3](http://demographia.com/db-htld-rail.htm)] Demographia (2003, January 1),
+    Where Rail Transit Works, and Why, [http://demographia.com/db-htld-rail.htm](http://demographia.com/db-htld-rail.htm)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[4](https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping)]
+    Vera Galishnikova, Peter Jan Pahl (2018, Mar 15), Constained Construction of Planar
+    Delaunay Triangulations without flipping, [https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping](https://www.researchgate.net/publication/325582898_Constrained_Construction_of_Planar_Delaunay_Triangulations_without_Flipping)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Liebling T.M., Pournin L. (2010), Voronoi Diagrams and Delaunay Triangulations:
+    Ubiquitous Siamese Twins. Documenta Mathematica. Mathematics Subject Classification:
+    01A65, 49- 03, 52C99, 68R99, 70–08, 92–08'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[6](https://www.findmyschool.vic.gov.au/)] Government of Melbourne (2024),
+    School Catchment Map, [https://www.findmyschool.vic.gov.au/](https://www.findmyschool.vic.gov.au/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[7](https://en.wikipedia.org/wiki/Taxicab_geometry)] Wikipedia (2024), Taxicab
+    geometry, [https://en.wikipedia.org/wiki/Taxicab_geometry](https://en.wikipedia.org/wiki/Taxicab_geometry)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Wikipedia (2024), Greater Tokyo Area, [https://en.wikipedia.org/wiki/Greater_Tokyo_Area](https://en.wikipedia.org/wiki/Greater_Tokyo_Area)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[9](https://www.odpt.org/)] Public Transportation Open Data Center (2024),
+    Dataset — 公共交通オープンデータセンター データカタログサイト,[ttps://www.odpt.org/](https://www.odpt.org/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[10](http://alumni.cs.ucr.edu/~weiw/paper/VD_highways.pdf)] D.T. Lee, Chung-Shou
+    Liao, Wei-Bung Wang (N/A), TIme-based Voronoi Diagram, [http://alumni.cs.ucr.edu/~weiw/paper/VD_highways.pdf](http://alumni.cs.ucr.edu/~weiw/paper/VD_highways.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[11](https://www.researchgate.net/figure/Voronoi-diagrams-of-selected-areas-for-geographical-a-road-b-and-travel-time_fig5_336071639)]
+    Solutions for Planning Smart Hybrid Public Transportation System — Poznan Agglomeration
+    as a Case Study of Satellite Towns’ Connections — Scientific Figure on ResearchGate.
+    [https://www.researchgate.net/figure/Voronoi-diagrams-of-selected-areas-for-geographical-a-road-b-and-travel-time_fig5_336071639](https://www.researchgate.net/figure/Voronoi-diagrams-of-selected-areas-for-geographical-a-road-b-and-travel-time_fig5_336071639)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pictograms by [かわいいフリー素材集 いらすとや (irasutoya.com)](https://www.irasutoya.com/),
+    © Takashi Mifune
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cda231b38af31aa11c49c38bee9c0acc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (Image by author, Illustrations by [Takashi Mifune under free use](https://www.irasutoya.com/p/terms.html))
+  prefs: []
+  type: TYPE_NORMAL

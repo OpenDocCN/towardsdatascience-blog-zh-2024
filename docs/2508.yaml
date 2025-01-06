@@ -1,0 +1,417 @@
+- en: Bringing Structure to Your Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/bringing-structure-to-your-data-9acbd1051a1f?source=collection_archive---------4-----------------------#2024-10-14](https://towardsdatascience.com/bringing-structure-to-your-data-9acbd1051a1f?source=collection_archive---------4-----------------------#2024-10-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Testing assumptions with path models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@doriandrost?source=post_page---byline--9acbd1051a1f--------------------------------)[![Dorian
+    Drost](../Images/1795395ad0586eafd83d3e2f7b975ca8.png)](https://medium.com/@doriandrost?source=post_page---byline--9acbd1051a1f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9acbd1051a1f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9acbd1051a1f--------------------------------)
+    [Dorian Drost](https://medium.com/@doriandrost?source=post_page---byline--9acbd1051a1f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9acbd1051a1f--------------------------------)
+    ·11 min read·Oct 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/699faed9c69cc5392024f88bcb54515a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In complicated path models, it might become difficult to find your way. Photo
+    by [Deva Darshan](https://unsplash.com/@darshan394?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Scientists often collect a multitude of variables and search for relationships
+    between them. During this journey, it is helpful to have assumptions and hypotheses
+    on how exactly variables relate to each other. Does a student’s motivation to
+    study for the next exam influence their grades? Or do good grades lead to motivation
+    to study at all? And what exactly are the behavioral patterns that motivated people
+    show that lead to good grades in the end?
+  prefs: []
+  type: TYPE_NORMAL
+- en: To give some structure to questions like the aforementioned and to provide a
+    tool to test them empirically, I want to explain **path models**, also called
+    **Structural Equation Models** (**SEM**s) in this article. While in social sciences
+    like psychology path models are commonly used, I feel they are not that prominent
+    in other areas like data science and computer science. Hence I want to give an
+    overview of the main concept of **path analysis** and introduce **semopy**, which
+    is a package for applying path analysis in python. Throughout this article, we
+    will analyze artificial data to showcase typical problems that can be solved with
+    path models and introduce the concepts of **moderators** and **mediators**. Be
+    aware that this data has been generated for demonstration purposes and may not
+    be realistic in every detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Research question
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/6cdfe9a9cc52258ea24150f4549a83c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Before analysing data, we need to have an idea what we search for. Photo by
+    [Ansia Lasa](https://unsplash.com/@ansia_lasa?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we want to analyze data, we need to have a research question in mind that
+    we want to investigate. For this article, let us investigate school children and
+    the grades they achieve. We might be interested in factors that foster learning
+    and achieving good grades. That could be the amount of fun they have in school,
+    their feeling of belonging to class, their interest in the subject, their number
+    of friends in the class, their relationship with the teacher, their intelligence
+    and much more. So we go into different schools and collect data by handing out
+    questionnaires on the feeling of belonging, the relationship with the teacher,
+    the interest in the topic and the fun the pupils have in school, we conduct an
+    IQ test with the pupils and we ask them how many friends they have. And of course
+    we collect their grades in the exams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It all starts with data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We now have data for all the variables shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5739918f543b62f0a6cb408917f34e52.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Our next step is to investigate, *how exactly* the variables influence the
+    grade. We can make different assumptions about the influences and we can verify
+    these assumptions with the data. Let us start with the most trivial case, where
+    we assume that each variable has a direct influence on the grades that is independent
+    of all the other variables. For example, we would assume that higher intelligence
+    leads to a better grade, no matter the interest in the topic or the fun the pupil
+    has in school. A likewise relationship with the grades we would hypothesize for
+    the other variables as well. Visually displayed, this relationship would look
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1b64a11ded44737b91d9a4448f124893.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Model assuming all variables directly influence the variable grades*. Image
+    by author.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each arrow describes an influence between the variables. We could also formulate
+    this relationship as a weighted sum, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: grades = a**feeling_of_belonging* + b**number_of_friends* + c**relationship_with_teacher*
+    + d**fun_in_school* + e**intelligence* + f**interest_in_topic*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here a,b,c,d,e and f are weights that tell us, how strong the influence of
+    the different variables is on our outcome *grades*. Okay, that is our assumption.
+    Now we want to test this assumption given the data. Let’s say we have a data frame
+    called *data*, where we have one column for each of the aforementioned variables.
+    Then we can use semopy in python like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the last lines, we create a *semopy.Model* object and fit it with the data.
+    The most interesting part is the variable *path* before. Here we specify the assumption
+    we just had, namely that the variable *grades* is a combination of all the other
+    variables. On the left part of the tilde (~) we have the variable that we expect
+    to be dependent on the variables right to the tilde. Note that we didn’t explicitly
+    specify the weights a,b,c,d,e and f. These weights are actually what we want to
+    know, so let us run the following line to get a result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/288f1d1a5a7d95f8d419748c33f4b1a8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of the assumption that all variables directly influence the variable
+    grade. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The weights a,b,c,d,e and f are what we see in the column *Estimate*. What information
+    can we extract from this table? First, we see that some weights are bigger and
+    some are smaller. For example, the *feeling_of_belonging* has the biggest weight
+    (0.40), indicating that it has the strongest influence. *Interest_in_topic*, for
+    example, has a much lower influence (0.08) and other variables like *intelligence*
+    and *number_of_friends* have a weight of (almost) zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, take a look at the *p-value* column. If you are familiar with statistical
+    tests, you may already know how to interpret this. If not, don’t worry. There
+    is a vast pile of literature on how to understand the topic of [**significance**](https://en.wikipedia.org/wiki/Statistical_significance)
+    (this is what this column indicates) and I encourage you to deepen your knowledge
+    about it. However, for the moment, we can just say that this column gives us some
+    idea of how likely it is, that an effect we found is just random noise. For example,
+    the influence of *number_of_friends* on grades is very small (-0.01) and it is
+    very likely (0.42), that it is just a coincidence. Hence we would say there is
+    **no effect**, although the weight is not exactly zero. The other way round, if
+    the p-value is (close to) zero, we can assume that we indeed found an effect that
+    is not just coincidence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Okay, so according to our analysis, there are three variables that have an influence
+    on the grade, that are *interest_in_topic* (0.08), *feeling_of_belonging* (0.40)
+    and *relationship_with_teacher* (0.19). The other variables have no influence.
+    Is this our final answer?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is not! Remember, that the calculations performed by semopy were influenced
+    by the assumptions we gave it. We said that we assume all variables to directly
+    influence the grades independent of each other. But what if the actual relationship
+    looks different? There are many other ways variables could influence each other,
+    so let us come up with some different assumptions and thereby explore the concepts
+    of **mediators** and **moderators**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mediators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/4c0a1f6a78fb9ba86852b4021058d8f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Mediators can be like billard balls, where the one pushes the other. Photo by
+    [Steve Mushero](https://unsplash.com/@steve_mushero?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of saying that both *number_of_friends* and *feeling_of_belonging*
+    influence grades directly, let us think in a different direction. If you don’t
+    have any friends in class, you would not feel a sense of belonging to the class,
+    would you? This feeling of (not) belonging might then influence the grade. So
+    the relationship would rather look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8330d79ef552182c20b9da174ccac5bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Model assuming that number_of_friends influences feeling_of_belongig which in
+    turn influences grades. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note that the direct effect of *number_of_friends* on *grades* has vanished
+    but we have an influence of *number_of_friends* on *feeling_of_belonging*, which
+    in turn influences *grades*. We can take this assumption and let semopy test it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we said that *feeling_of_belonging* depends on *number_of_friends* and
+    that *grades* depends on *feeling_of_belonging*. You see the output in the following.
+    There is still a weight of 0.40 between *feeling_of_belonging* and *grades*, but
+    now we also have a weight of 0.29 between *number_of_friends* and *feeling_of_belonging*.
+    Looks like our assumption is valid. The number of friends influences the feeling
+    of belonging and this, in turn, influences the grade.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1f378a7e073ab5a5a4d63537cf4de2cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of the assumption of number_of_friends influencing feeling_of_belonging.
+    Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The kind of influence we have modelled here is called a **mediator** because
+    one variable mediates the influence of another. In other words, *number_of_friends*
+    does not have a direct influence on *grades*, but an indirect one, mediated through
+    the *feeling_of_belonging*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mediations can help us understand the exact ways and processes by which some
+    variables influence each other. Students who have clear goals and ideas of what
+    they want to become are less likely to drop out of high school, but what exactly
+    are the behavioral patterns that lead to performing well in school? Is it learning
+    more? Is it seeking help if one doesn’t understand a topic? These could both be
+    mediators that (partly) explain the influence of clear goals on academic achievement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moderators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/9815aa6f25875b7f31257e1b1e824262.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A moderator can be like a valve, that only allows a certain throughput. Photo
+    by [Igal Ness](https://unsplash.com/@igalness?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We just saw that assuming a different relationship between the variables helped
+    describe the data more effectively. Maybe we can do something similar to make
+    sense of the fact that intelligence has no influence on the grade in our data.
+    This is surprising, as we would expect more intelligent pupils to reach higher
+    grades on average, wouldn’t we? However, if a pupil is just not interested in
+    the topic they wouldn’t spend much effort, would they? Maybe there is not a direct
+    influence of intelligence on the grades, but there is a joint force of intelligence
+    and interest. If pupils are interested in the topics, the more intelligent ones
+    will receive higher grades, but if they are not interested, it doesn’t matter,
+    because they don’t spend any effort. We could visualize this relationship like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b1518740959175a4cbe2918fc9a8721.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Model assuming that interest_in_topic moderatues the influence of intelligence
+    on grades. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is, we assume there is an effect of *intelligence* on the *grades*, but
+    this effect is influenced by *interest_in_topic*. If interest is high, pupils
+    will make use of their cognitive abilities and achieve higher grades, but if interest
+    is low, they will not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we want to test this assumption in semopy, we have to create a new variable
+    that is the product of *intelligence* and *interest_in_topic*. Do you see how
+    multiplying the variables reflects the ideas we just had? If *interest_in_topic*
+    is near zero, the whole product is close to zero, no matter the *intelligence*.
+    If *interest_in_topic* is high though, the product will be mainly driven by the
+    high or low *intelligence*. So, we calculate a new column of our dataframe, call
+    it *intelligence_x_interest* and feed semopy with our assumed relationship between
+    this variable and the grades:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And we find an effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/caccfe4c42e37ed16aa2ed026cb363b1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Result of the assumption of the product of intelligence and interest influencing
+    grades. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Previously, *intelligence* had no effect on *grades* and *interest_in_topic*
+    had a very small one (0.08). But if we combine them, we find a very big effect
+    of 0.81\. Looks like this combination of both variables describes our data much
+    better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This interaction of variables is called **moderation**. We would say that *interest_in_topic*
+    moderates the influence of *intelligence* on *grades* because the strength of
+    the connection between *intelligence* and *grades* depends on the *interest*.
+    Moderations can be important to understand how relations between variables differ
+    in different circumstances or between different groups of participants. For example,
+    longer experience in a job influences the salary positively, but for men, this
+    influence is even stronger than for women. In this case, gender is the moderator
+    for the effect of work experience on salary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summing up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If we combine all the previous steps, our new model looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6b6afe9978fc8a769b9bd5e1137ca139.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Full model with all the previous assumptions. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/136f86dc292ae0b157a2e61087332838.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of the full model. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we have a more sophisticated and more plausible structure for our data.
+    Note that *fun_in_school* still has no influence on the *grades* (hence I gave
+    it a dashed line in the visualization above). Either there is none in the data,
+    or we just did not find the correct interplay with the other variables yet. We
+    might even be missing some interesting variables. Just like *intelligence* only
+    made sense to look at in combination with *interest_in_topic*, maybe there is
+    another variable that is required to understand the influence *fun_in_school*
+    has on the grades. This shows you, that for path analysis, it is important to
+    make sense of your data and have an idea what you want to investigate. It all
+    starts with assumptions which you derive from theory (or sometimes from gut feeling)
+    and which you then test with the data to better understand it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is what path models are about. Let us sum up what we just learned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Path models allow us to test assumptions on how exactly variables influence
+    each other.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Mediations** appear, if a variable *a* does not have a direct influence on
+    a variable *c*, but influences another variable *b*, which then influences *c*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We speak of **moderations** if the influence of a variable *a* on a variable
+    *c* becomes stronger or less strong depending on another variable *b*. This can
+    be modelled by calculating the product of variables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Semopy** can be used to test path models with given data in python.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I hope I have been able to convince you of the usefulness of path models. What
+    I showed you is just the very beginning of it though. Many more sophisticated
+    assumptions can be tested with path models or other models derived from them,
+    that go way beyond the scope of this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'You can find semopy here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://semopy.com/index.html](https://semopy.com/index.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If you want to learn more about path analysis, Wikipedia can be a good entry
+    point:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://en.wikipedia.org/wiki/Structural_equation_modeling](https://en.wikipedia.org/wiki/Structural_equation_modeling)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'I use this book for statistical background (unfortunately, it is available
+    in German only):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eid, M., Gollwitzer, M., & Schmitt, M. (2015). Statistik und Forschungsmethoden.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This is how the data for this article has been generated:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Like this article?* [*Follow me*](https://medium.com/@doriandrost) *to be
+    notified of my future posts.*'
+  prefs: []
+  type: TYPE_NORMAL

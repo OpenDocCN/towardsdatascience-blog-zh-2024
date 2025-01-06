@@ -1,0 +1,415 @@
+- en: Evaluation-Driven Development for agentic applications using PydanticAI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/evaluation-driven-development-for-agentic-applications-using-pydanticai-d9293ac81d91?source=collection_archive---------0-----------------------#2024-12-21](https://towardsdatascience.com/evaluation-driven-development-for-agentic-applications-using-pydanticai-d9293ac81d91?source=collection_archive---------0-----------------------#2024-12-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An open-source, model-agnostic agentic framework that supports dependency injection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://lakshmanok.medium.com/?source=post_page---byline--d9293ac81d91--------------------------------)[![Lak
+    Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--d9293ac81d91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d9293ac81d91--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d9293ac81d91--------------------------------)
+    [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--d9293ac81d91--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d9293ac81d91--------------------------------)
+    ·12 min read·Dec 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ideally, you can evaluate agentic applications even as you are developing them,
+    instead of evaluation being an afterthought. For this to work, though, you need
+    to be able to mock both internal and external dependencies of the agent you are
+    developing. I am extremely excited by PydanticAI because it supports dependency
+    injection from the ground up. It is the first framework that has allowed me to
+    build agentic applications in an evaluation-driven manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6786f9e4942182ffc3b8b875a045bfd6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image of Krakow Cloth Hall, generated using Google Imagen by the author. This
+    building was built in phases over the centuries, with improvements based on where
+    the current building was falling short. Evaluation-driven development, in other
+    words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I’ll talk about the core challenges and demonstrate developing
+    a simple agent in an evaluation-driven way using PydanticAI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Challenges when developing GenAI applications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Like many GenAI developers, I’ve been waiting for an agentic framework that
+    supports the full development lifecycle. Each time a new framework comes along,
+    I try it out hoping that this will be the One — see, for example, my articles
+    about [DSPy](/building-an-ai-assistant-with-dspy-2e1e749a1a95), [Langchain](/four-approaches-to-build-on-top-of-generative-ai-foundational-models-43c1a64cffd5),
+    [LangGraph, and Autogen](https://www.linkedin.com/pulse/how-implement-genai-agent-using-autogen-langgraph-lakshmanan-cwx4c/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I find that there are core challenges that a software developer faces when developing
+    an LLM-based application. These challenges are typically not blockers if you are
+    building a simple PoC with GenAI, but they will come to bite you if you are building
+    LLM-powered applications in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What challenges?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(1) **Non-determinism**: Unlike most software APIs, calls to an LLM with the
+    exact same input could return different outputs each time. How do you even begin
+    to test such an application?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(2) **LLM limitations**: Foundational models like GPT-4, Claude, and Gemini
+    are limited by their training data (e.g., no access to enterprise confidential
+    information), capability (e.g., you can not invoke enterprise APIs and databases),
+    and can not plan/reason.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '(3) **LLM flexibility**: Even if you decide to stick to LLMs from a single
+    provider such as Anthropic, you may find that you need a different LLM for each
+    step — perhaps one step of your workflow needs a low-latency small language model
+    (Haiku), another requires great code-generation capability (Sonnet), and a third
+    step requires excellent contextual awareness (Opus).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (4) **Rate of Change:** GenAI technologies are moving fast. Recently, many of
+    the improvements have come about in foundational model capabilities. No longer
+    are the foundational models just generating text based on user prompts. They are
+    now multimodal, can generate structured outputs, and can have memory. Yet, if
+    you try to build in an LLM-agnostic way, you often lose the low-level API access
+    that will turn on these features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To help address the first problem, of non-determinism, your software testing
+    needs to incorporate an evaluation framework. You will never have software that
+    works 100%; instead, you will need to be able to design around software that is
+    x% correct, build guardrails and human oversight to catch the exceptions, and
+    monitor the system in real-time to catch regressions. Key to this capability is
+    **evaluation-driven development** (my term), an extension of test-driven development
+    in software.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9db9ba18e95ae10febbe505241b7d65a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Evaluation-driven development. sketch by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The current workaround for all the LLM limitations in Challenge #2 is to use
+    **agentic architectures** like RAG, provide the LLM access to tools, and employ
+    patterns like Reflection, ReACT and Chain of Thought. So, your framework will
+    need to have the ability to orchestrate agents. However, evaluating agents that
+    can call external tools is hard. You need to be able to **inject proxies for these
+    external dependencies** so that you can test them individually, and evaluate as
+    you build.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To handle challenge #3, an agent needs to be able to invoke the capabilities
+    of different types of foundational models. Your agent framework needs to be **LLM-agnostic**
+    at the granularity of a single step of an agentic workflow. To address the rate
+    of change consideration (challenge #4), you want to retain the ability to make
+    **low-level access** to the foundational model APIs and to strip out sections
+    of your codebase that are no longer necessary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Is there a framework that meets all these criteria? For the longest time, the
+    answer was no. The closest I could get was to use Langchain, pytest’s dependency
+    injection, and deepeval with something like this (full example is [here](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/eval_weather_agent.py)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Essentially, I’d construct a Mock object (chicago_weather in the above example)
+    for every LLM call and patch the call to the LLM (retrieve_weather_data in the
+    above example) with the hardcoded object whenever I needed to mock that part of
+    the agentic workflow. The dependency injection is all over the place, you need
+    a bunch of hardcoded objects, and the calling workflow becomes extremely hard
+    to follow. Note that if you don’t have dependency injection, there is no way to
+    test a function like this: obviously, the external service will return the current
+    weather and there is no way to determine what the correct answer is for a question
+    such as whether or not it’s raining right now.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*So … is there an agent framework that supports dependency injection, is Pythonic,
+    provides low-level access to LLMs, is model-agnostic, supports building it one
+    eval-at-a-time, and is easy to use and follow?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Almost. [PydanticAI](https://ai.pydantic.dev/) meets the first 3 requirements;
+    the fourth (low-level LLM access) is not possible, but the design does not preclude
+    it. In the rest of this article, I’ll show you how to use it to develop an agentic
+    application in an evaluation-driven way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Your first PydanticAI Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s start out by building a simple PydanticAI application. This will use
+    an LLM to answer questions about mountains:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the code above, I’m creating an agent (I’ll show you how, shortly) and then
+    calling run_sync passing in the user prompt, and getting back the LLM’s response.
+    run_sync is a way to have the agent invoke the LLM and wait for the response.
+    Other ways are to run the query asynchronously, or to stream its response. ([Full
+    code](https://github.com/lakshmanok/lakblogs/blob/main/pydantic_ai_mountains/1_zero_shot.py)
+    is here if you want to follow along).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Run the code above, and you will get something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: To create the agent, create a model and then tell the agent to use that Model
+    for all its steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The idea behind default_model() is to use a relatively inexpensive but fast
+    model like Gemini Flash as the default. You can then change the model used in
+    specific steps as necessary by passing in a different model to run_sync()
+  prefs: []
+  type: TYPE_NORMAL
+- en: PydanticAI model support [looks sparse](https://ai.pydantic.dev/api/models/base/#pydantic_ai.models),
+    but the most commonly used models — the current frontier ones from OpenAI, Groq,
+    Gemini, Mistral, Ollama, and Anthropic — are all supported. Through Ollama, you
+    can get access to Llama3, Starcoder2, Gemma2, and Phi3\. Nothing significant seems
+    to be missing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Pydantic with structured outputs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The example in the previous section returned free-form text. In most agentic
+    workflows, you’ll want the LLM to return structured data so that you can use it
+    directly in programs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Considering that this API is from Pydantic, returning structured output is
+    quite straightforward. Just define the desired output as a dataclass (full code
+    is [here](https://github.com/lakshmanok/lakblogs/blob/main/pydantic_ai_mountains/2_zero_shot_structured.py)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When you create the Agent, tell it the desired output type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note also the use of the system prompt to specify units etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running this on three questions, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: But how good is this agent? Is the height of Mt. Robson correct? Is Mt. Stuart
+    really the tallest peak in the Enchantments? All of this information could have
+    been hallucinated!
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no way for you to know how good an agentic application is unless you
+    evaluate the agent against reference answers. You can not just “eyeball it”. Unfortunately,
+    this is where a lot of LLM frameworks fall short — they make it really hard to
+    evaluate as you develop the LLM application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Evaluate against reference answers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is when you start to evaluate against reference answers that PydanticAI starts
+    to show its strengths. Everything is quite Pythonic, so you can build custom evaluation
+    metrics quite simply.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, this is how we will evaluate a returned Mountain object on three
+    criteria and create a composite score ([full code](https://github.com/lakshmanok/lakblogs/blob/main/pydantic_ai_mountains/3_eval_against_reference.py)
+    is here):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we can run this on a dataset of questions and reference answers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Mt. Robson’s height is 45m off; Dragontail peak’s height was 318m off. How would
+    you fix this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s right. You’d use a RAG architecture or arm the agent with a tool that
+    provides the correct height information. Let’s use the latter approach and see
+    how to do it with Pydantic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note how evaluation-driven development shows us the path forward to improve
+    our agentic application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4a. Using a tool
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'PydanticAI supports several ways to provide tools to an agent. Here, I annotate
+    a function to be called whenever it needs the height of a mountain ([full code
+    here](https://github.com/lakshmanok/lakblogs/blob/main/pydantic_ai_mountains/4_use_tool.py)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The function, though, does something strange. It pulls an object called elev_wiki
+    out of the run-time context of the agent. This object is passed in when we call
+    run_sync:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because the Runtime context can be passed into every agent invocation or tool
+    call , we can use it to do dependency injection in PydanticAI. You’ll see this
+    in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The wiki itself just queries Wikipedia online ([code here](https://github.com/lakshmanok/lakblogs/blob/main/pydantic_ai_mountains/wikipedia_tool.py))
+    and extracts the contents of the page and passes the appropriate mountain information
+    to the agent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Indeed, when we run it, we get correct heights now:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4b. Dependency injecting a mock service
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Waiting for the API call to Wikipedia each time during development or testing
+    is a bad idea. Instead, we will want to mock the Wikipedia response so that we
+    can develop quickly and be guaranteed of the result we are going to get.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Doing that is very simple. We create a Fake counterpart to the Wikipedia service:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then, inject this fake object into the runtime context of the agent during
+    development:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This time when we run, the evaluation uses the cached wikipedia content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Look carefully at the above output — there are different errors from the zero-shot
+    example. In Section #2, the LLM picked Vancouver as the closest city to Mt. Robson
+    and Dragontail as the tallest peak in the Enchantments. Those answers happened
+    to be correct. Now, it picks Jasper and Mt. Stuart. We need to do more work to
+    fix these errors — but evaluation-driven development at least gives us a direction
+    of travel.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Current Limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'PydanticAI is very new. There are a couple of places where it could be improved:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no low-level access to the model itself. For example, different foundational
+    models support context caching, prompt caching, etc. The model abstraction in
+    PydanticAI doesn’t provide a way to set these on the model. Ideally, we can figure
+    out a kwargs way of doing such settings.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The need to create two versions of agent dependencies, one real and one fake,
+    is quite common. It would be good if we were able to annoate a tool or provide
+    a simple way to switch between the two types of services across the board.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: During development, you don’t need logging as much. But when you go to run the
+    agent, you will usually want to log the prompts and responses. Sometimes, you
+    will want to log the intermediate responses. The way to do this seems to be a
+    commercial product called Logfire. An OSS, cloud-agnostic logging framework that
+    integrates with the PydanticAI library would be ideal.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is possible that these already exist and I missed them, or perhaps they will
+    have been implemented by the time you are reading this article. In either case,
+    leave a comment for future readers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall, I like PydanticAI — it offers a very clean and Pythonic way to build
+    agentic applications in an evaluation-driven manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suggested next steps:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is one of those blog posts where you will benefit from actually running
+    the examples because it describes a process of development as well as a new library.
+    This GitHub repo contains the PydanticAI example I walked through in this post:
+    [https://github.com/lakshmanok/lakblogs/tree/main/pydantic_ai_mountains](https://github.com/lakshmanok/lakblogs/tree/main/pydantic_ai_mountains)
+    Follow the instructions in the README to try it out.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Pydantic AI documentation: [https://ai.pydantic.dev/](https://ai.pydantic.dev/)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Patching a Langchain workflow with Mock objects. My “before” solution: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/eval_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/eval_weather_agent.py)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

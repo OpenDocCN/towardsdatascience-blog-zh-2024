@@ -1,0 +1,328 @@
+- en: Differentiable and Accelerated Spherical Harmonic Transforms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1?source=collection_archive---------12-----------------------#2024-03-14](https://towardsdatascience.com/differentiable-and-accelerated-spherical-harmonic-transforms-c269393d08f1?source=collection_archive---------12-----------------------#2024-03-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In JAX and PyTorch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)[![Jason
+    McEwen](../Images/794e7e6546ed049860dab5e294535880.png)](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------)
+    [Jason McEwen](https://jasonmcewen.medium.com/?source=post_page---byline--c269393d08f1--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c269393d08f1--------------------------------)
+    ·7 min read·Mar 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Many areas of science and engineering encounter data defined on the sphere.
+    Modelling and analysis of such data often requires the spherical counterpart to
+    the Fourier transform — the spherical harmonic transform. We provide a brief overview
+    of the spherical harmonic transform and present a new differentiable algorithm
+    tailored towards acceleration on GPUs [1]. This algorithm is implemented in the
+    recently released* [*S2FFT*](https://pypi.org/project/s2fft/) *python package,
+    which supports both JAX and PyTorch.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7e7c243f31089774071add693cce6378.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Szilvia Basso](https://unsplash.com/@szilviabasso?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Increasingly often we are interested in analysing data that lives on the sphere.
+    The diversity in applications is remarkable, ranging from quantum chemistry, biomedical
+    imaging, climate physics and geophysics, to the wider cosmos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most well-known areas in which one encounters data on the sphere are within
+    the physical sciences, particularly within atmospheric science, geophysical modelling,
+    and astrophysics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ddf5911d3de49554421ad6bc18a1cecf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Examples of the most widely known cases of spherical data, such as the Earth
+    (left) and artist impression of astronomical observations (right). [Earth image
+    sourced from* [*Wikipedia*](https://en.wikipedia.org/wiki/Earth#/media/File:The_Blue_Marble_(remastered).jpg)*;
+    astrophysics image sourced from* [*Wikipedia*](https://commons.wikimedia.org/wiki/File:Observable_sphere_for_3d.png)*.]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These problems are naturally spherical as observations are made at each point
+    on the surface of a sphere: the surface of the Earth for geophysics and the sky
+    for astrophysics. Other examples come from applications like computer graphics
+    and vision, where 360° panoramic cameras capture the world around you in every
+    direction.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many cases the spherical nature of the problem at hand is fairly easy to
+    see; however, this is not always the case. Perhaps surprisingly, spherical data
+    is quite frequently encountered within the biological disciplines, though the
+    spherical aspect is often much less obvious! Since we are often concerned about
+    local directions in biological studies, such as the direction water diffuses within
+    the brain, we encounter spherical data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0dac82e7963d830f7a0aee8ffcf6c7c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Diffusion tensor imaging of neuronal connections in the human brain. Within
+    each voxel neurons are free to travel in any direction, so the problem is naturally
+    spherical. [Animation by [Alfred Anwander](https://www.youtube.com/watch?v=jrC8iY6_aZQ),
+    CC-BY licence.]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the prevalence of such data, it isn’t surprising that many spherical analysis
+    techniques have been developed. A frequency analysis of the data can be insightful,
+    often to afford a statistical summary or an effective representation for further
+    analysis or modelling. Recently geometric deep learning techniques have proven
+    highly effective for the analysis of data on complex domains [2–6], particularly
+    for highly complex problems such as molecular modelling and protein interactions
+    (see our prior post on [A Brief Introduction to Geometric Deep Learning](/a-brief-introduction-to-geometric-deep-learning-dae114923ddb)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fourier meets Legendre
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So we have data on the sphere and a variety of techniques by which spherical
+    data may be analysed, but we need mathematical tools to do so. Specifically, we
+    need to know how to decompose spherical data into frequencies efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Fourier transforms provides a frequency decomposition that is often used
+    to calculate statistical correlations within data. Many physical systems may also
+    be described more straightforwardly in frequency space, as each frequency may
+    evolve independently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To extend the standard Fourier transform to the sphere, we need the meeting
+    of minds of two 17th century French mathematicians: Joseph Fourier and Adrien-Marie
+    Legendre.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e6febed8df967a8920340d59a729ddb3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Joseph Fourier (left) and Adrien-Marie Legendre (right). Tragically, the caricature
+    of Legendre is the only known image of him. [Fourier image sourced from* [*Wikipedia*](https://en.wikipedia.org/wiki/Joseph_Fourier#/media/File:Fourier2_-_restoration1.jpg)*.
+    Legendre image sourced from* [*Wikipedia*](https://en.wikipedia.org/wiki/Adrien-Marie_Legendre#/media/File:Legendre.jpg)*.]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s consider how to decompose Euclidean data into its various frequencies.
+    Such a transformation of the data was first derived by Joseph Fourier and is given
+    by
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8f4bec303a92c421588d95ccd18b3c39.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'which is found almost everywhere and is a staple of undergraduate physics for
+    a reason! This works by projecting our data *f(x)* onto a set of trigonometric
+    functions, called a *basis*. One can do effectively the same thing on the sphere,
+    but the basis functions are now given by the spherical harmonics *Y*ₗₘ:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/141c7fe048f6d114981acce3a02afecf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where *(θ, ϕ)* are the usual spherical polar co-ordinates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f74cf4e9478035b41c9cd47006913c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Spherical harmonic basis functions (real component). [Sourced from* [*Wikipedia*](https://en.wikipedia.org/wiki/Spherical_harmonics#/media/File:Rotating_spherical_harmonics.gif)*.]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The spherical harmonics (shown above) can be broken down further into the product
+    of an exponential and Legendre polynomials — à la Adrien-Marie Legendre — as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c018bd30e66612955ad031cd008a6b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And so the spherical harmonic transform can be written as a Fourier transform
+    followed by an associated Legendre transform. The real difficulty comes in evaluating
+    the Legendre part of the transform: it is either computationally expensive or
+    memory hungry, depending on the method one chooses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The importance of being differentiable
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The growth of [differentiable programming](https://en.wikipedia.org/wiki/Differentiable_programming)
+    is opening up many new types of analysis. In particular, many applications require
+    spherical transforms that are differentiable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Machine learning models on the sphere require differentiable transforms so that
+    models may be trained by gradient-based optimisation algorithms, *i.e.* through
+    back-propagation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Emerging physics-enhanced machine learning approaches [7] for hybrid data-driven
+    and model-based approaches [8] also require differentiable physics models, which
+    in many cases themselves require differentiable spherical transforms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this in mind it is clear that for modern applications an efficient algorithm
+    for the spherical harmonic transform is necessary but not enough. Differentiability
+    is key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A software package named S2FFT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is all well and good, but how does one efficiently evaluate the spherical
+    harmonic transform? A variety of algorithms have been developed, with some great
+    software packages. However for modern applications we need one that is differentiable,
+    can run on hardware accelerators like GPUs, and is computationally scalable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By redesigning the core algorithms from the ground up (as described in depth
+    in our corresponding paper [[1](https://arxiv.org/abs/2311.14670)]), we recently
+    developed a python package called [S2FFT](https://astro-informatics.github.io/s2fft/)
+    that should fit the bill.
+  prefs: []
+  type: TYPE_NORMAL
+- en: S2FFT is implemented in [JAX](https://jax.readthedocs.io/en/latest/), a differentiable
+    programming language developed by Google, and also includes a [PyTorch](https://pytorch.org)
+    frontend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1d5e836033551ce7e77b706564bc752c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[*S2FFT*](https://github.com/astro-informatics/s2fft) *is a Python package
+    implementing differentiable and accelerated spherical harmonic transforms, with
+    interfaces in JAX and PyTorch. [Image created by authors.]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'S2FFT provides two operating modes: precompute the associated Legendre functions,
+    which are then accessed at run time; or compute them on-the-fly during the transform.
+    The pre-compute approach is just about as fast as you can get, but the memory
+    required to store all Legendre function values scales cubicly with resolution,
+    which can be a problem! The second approach we provide instead recursively computes
+    Legendre terms on-the-fly, and so can be scaled to very high resolutions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, S2FFT also supports a hybrid automatic and manual differentiation
+    approach so that gradients can be computed efficiently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The package is designed to support multiple different sampling schemes on the
+    sphere. At launch, equiangular ([McEwen & Wiaux](https://arxiv.org/abs/1110.6298)
+    [9], [Driscoll & Healy](https://www.sciencedirect.com/science/article/pii/S0196885884710086)
+    [10]), Gauss-Legendre, and [HEALPix](https://healpix.jpl.nasa.gov/) [11] sampling
+    schemes are supported, although others may easily be added in future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ff8eb88b0cdba3b35cfad460f1af674.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Different sampling schemes on the sphere supported by* [*S2FFT*](https://github.com/astro-informatics/s2fft)*.
+    [Original figure created by authors.]*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The S2FFT package is available on [PyPi](https://pypi.org/project/s2fft/) so
+    anyone can install it straightforwardly by running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Or to pick up PyTorch support by running:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: From here the top-level transforms can be called simply by
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: These functions can be picked up out of the box and integrated as layers within
+    existing models, both in JAX and PyTorch, with full support for both forward and
+    reverse mode differentiation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future perspectives
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With researchers becoming increasingly interested in differentiable programming
+    for scientific applications, there is a critical need for modern software packages
+    that implement the foundational mathematical methods on which science is often
+    based, like the spherical harmonic transform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We hope [S2FFT](https://github.com/astro-informatics/s2fft) will be of great
+    use in coming years and are excited to see what people will use it for!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Price & McEwen, *Differentiable and accelerated spherical harmonic and
+    Wigner transforms*, [arxiv:2311.14670](https://arxiv.org/abs/2311.14670) (2023).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Bronstein, Bruna, Cohen, Velickovic, *Geometric Deep Learning: Grids, Groups,
+    Graphs, Geodesics, and Gauges*, [arXix:2104.13478](https://arxiv.org/abs/2104.13478)
+    (2021).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Ocampo, Price & McEwen, *Scalable and equivariant spherical CNNs by discrete-continuous
+    (DISCO) convolutions*, [ICLR](https://arxiv.org/abs/2209.13603) (2023).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Cobb, Wallis, Mavor-Parker, Marignier, Price, d’Avezac, McEwen, *Efficient
+    Generalised Spherical CNNs*, [ICLR](https://arxiv.org/abs/2010.11661) (2021).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Cohen, Geiger, Koehler, Welling, *Spherical CNNs*, [ICLR](https://arxiv.org/abs/1801.10130)
+    (2018).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Jumper et al., *Highly accurate protein structure prediction with AlphaFold*,
+    [Nature](https://www.nature.com/articles/s41586-021-03819-2) (2021).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Karniadakis et al, *Physics-informed machine learning*, [Nature Reviews
+    Physics](https://www.nature.com/articles/s42254-021-00314-5) (2021).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Campagne et al., *Jax-cosmo: An end-to-end differentiable and GPU accelerated
+    cosmology library*, [arXiv:2302.05163](https://arxiv.org/abs/2302.05163) (2023).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] McEwen & Wiaux, *A novel sampling theorem on the sphere*, [IEEE TSP](https://arxiv.org/abs/1110.6298)
+    (2012).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10] Driscoll & Healy, *Computing Fourier Transforms and Convolutions on the
+    2-Sphere*, [AAM](https://www.sciencedirect.com/science/article/pii/S0196885884710086)
+    (1994).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11] Gorski et al., *HEALPix: a Framework for High Resolution Discretization,
+    and Fast Analysis of Data Distributed on the Sphere*, [ApJ](https://arxiv.org/abs/astro-ph/0409513)
+    (2005).'
+  prefs: []
+  type: TYPE_NORMAL

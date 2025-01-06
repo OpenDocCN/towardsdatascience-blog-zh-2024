@@ -1,0 +1,682 @@
+- en: How Did Open Food Facts Fix OCR-Extracted Ingredients Using Open-Source LLMs?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-did-open-food-facts-use-open-source-llms-to-enhance-ingredients-extraction-d74dfe02e0e4?source=collection_archive---------4-----------------------#2024-10-06](https://towardsdatascience.com/how-did-open-food-facts-use-open-source-llms-to-enhance-ingredients-extraction-d74dfe02e0e4?source=collection_archive---------4-----------------------#2024-10-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Delve into an end-to-end Machine Learning project to improve the quality of
+    the Open Food Facts database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jeremyarancio?source=post_page---byline--d74dfe02e0e4--------------------------------)[![Jeremy
+    Arancio](../Images/37c4c41e71eb91cfffc7e4ff2bb4394a.png)](https://medium.com/@jeremyarancio?source=post_page---byline--d74dfe02e0e4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d74dfe02e0e4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d74dfe02e0e4--------------------------------)
+    [Jeremy Arancio](https://medium.com/@jeremyarancio?source=post_page---byline--d74dfe02e0e4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d74dfe02e0e4--------------------------------)
+    ·13 min read·Oct 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/36288a16e720c9435e278bbc7b280c5a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image generated with Flux1
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open Food Facts’ purpose is to create the largest **open-source food database
+    in the world**. To this day, it has collected over 3 millions products and their
+    information thanks to its contributors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nutritional value, eco-score, product origins,… Various data that define each
+    product and give consumers and researchers insights about what they put in their
+    plates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This information is provided by the community of users and contributors, who
+    actively add products data, take pictures, and fill any missing data into the
+    database through the [mobile app](https://play.google.com/store/apps/details?id=org.openfoodfacts.scanner&hl=en_US&pli=1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the product picture, Open Food Facts extracts the ingredients list, typically
+    located on the back of the packaging, through Optical Character Recognition (OCR).
+    The product composition is then parsed and added to the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c922462d16ef15165355663e856bf04.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: List of ingredients on the product packaging
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it often appears that the text extraction doesn’t go well…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: These typos may seem minimal, but when the list is parsed to extract individual
+    ingredients, **such errors create unrecognized ingredients,** which harm the quality
+    of the database. Light reflections, folded packaging, low-quality pictures, and
+    other factors all complicate the ingredient parsing process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd0d3821089e8b68007112d12a755161.png)![](../Images/6074f6e9c6d559cc94eab9cbd049ab7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Examples of packaging pictures where the OCR fails (from the Open Food Facts
+    database)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Open Food Facts has tried to solve this issue for years using Regular Expressions
+    and existing solutions such as Elasticsearch’s corrector, without success. Until
+    recently.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks to the latest advancements in artificial intelligence, we now have access
+    to powerful **Large Language Models**, also called **LLMs**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By training our own model, we created the **Ingredients Spellcheck** and managed
+    to not only outperform proprietary LLMs such as **GPT-4o** or **Claude 3.5 Sonnet**
+    on this task, but also to reduce the number of unrecognized ingredients in the
+    database by **11%**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**This article walks you through the different stages of the project and shows
+    you how we managed to improve the quality of the database using Machine Learning.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enjoy the reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define the problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When a product is added by a contributor, its pictures go through a series of
+    processes to extract all relevant information. One crucial step is the extraction
+    of the **list of ingredients**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a word is identified as an ingredient, it is cross-referenced with a **taxonomy**
+    that contains a predefined list of recognized ingredients. If the word matches
+    an entry in the taxonomy, it is tagged as an ingredient and added to the product’s
+    information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This tagging process ensures that ingredients are standardized and easily searchable,
+    providing accurate data for consumers and analysis tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**But if an ingredient is not recognized, the process fails.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f91a23509ebc0f515c471094f2bf15bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The ingredient “Jambon do porc” (Pork ham) was not recognized by the parser
+    (from the Product Edition page)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this reason, we introduced an additional layer to the process: the **Ingredients
+    Spellcheck**, designed to correct ingredient lists before they are processed by
+    the ingredient parser.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simpler approach would be the [Peter Norvig algorithm](https://norvig.com/spell-correct.html),
+    which processes each word by applying a series of character deletions, additions,
+    and replacements to identify potential corrections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, this method proved to be insufficient for our use case, for several
+    reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Special Characters and Formatting**: Elements like commas, brackets, and
+    percentage signs hold critical importance in ingredient lists, influencing product
+    composition and allergen labeling *(e.g., “salt (1.2%)”).*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Multilingual Challenges**: the database contains products from all over the
+    word with a wide variety of languages. This further complicates a basic character-based
+    approach like Norvig’s, which is language-agnostic.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Instead, we turned to the latest advancements in Machine Learning, particularly
+    **Large Language Models (LLMs)**, which excel in a wide variety of **Natural Language
+    Processing (NLP)** tasks, including spelling correction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the path we decided to take.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluate
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can’t improve what you don’t measure.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**What is a good correction? And how to measure the performance of the corrector,
+    LLM or non-LLM?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our first step is to understand and catalog the diversity of errors the Ingredient
+    Parser encounters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally, it’s essential to assess whether an error should even be corrected
+    in the first place. Sometimes, trying to correct mistakes could do more harm than
+    good:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: For these reasons, we created the **Spellcheck Guidelines**, a set of rules
+    that limits the corrections. *These guidelines will serve us in many ways throughout
+    the project, from the dataset generation to the model evaluation.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: The guidelines was notably used to create the [**Spellcheck Benchmark**](https://huggingface.co/datasets/openfoodfacts/spellcheck-benchmark),
+    a curated dataset containing approximately 300 lists of ingredients manually corrected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This benchmark is the **cornerstone of the project**. It enables us to evaluate
+    any solution, Machine Learning or simple heuristic, on our use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It goes along the **Evaluation algorithm**, a custom solution we developed that
+    transform a set of corrections into measurable metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Evaluation Algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most of the existing metrics and evaluation algorithms for text-relative tasks
+    compute the similarity between a reference and a prediction, such as [BLEU](https://en.wikipedia.org/wiki/BLEU)
+    or [ROUGE](https://en.wikipedia.org/wiki/ROUGE_(metric)) scores for language translation
+    or summarization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, in our case, these metrics fail short.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We want to evaluate how well the Spellcheck algorithm recognizes and fixes
+    the right words in a list of ingredients. Therefore, we adapt the **Precision**
+    and **Recall** metrics for our task:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Precision** = Right corrections by the model / ​Total corrections made by
+    the model'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Recall** = Right corrections by the model / ​Total number of errors'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'However, we don’t have the fine-grained view of which words were supposed to
+    be corrected… We only have access to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The *original*: the list of ingredients as present in the database;**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The *reference*: how we expect this list to be corrected;**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**The *prediction*: the correction from the model.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Is there any way to calculate the number of errors that were correctly corrected,
+    the ones that were missed by the Spellcheck, and finally the errors that were
+    wrongly corrected?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The answer is yes!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the example above, we can easily spot which words were supposed to be
+    corrected: `The` , `is` and `fridge` ; and which words were wrongly corrected:
+    `on` into `in`. Finally, we see that an additional word was added: `big` .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we align these 3 sequences in pairs, `original-reference` and `original-prediction`
+    , we can detect which words were supposed to be corrected, and those that weren’t.
+    This alignment problem is typical in bio-informatic, called [Sequence Alignment](https://en.wikipedia.org/wiki/Sequence_alignment),
+    whose purpose is to identify regions of similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a perfect analogy for our spellcheck evaluation task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: By labeling each pair with a `0` or `1` whether the word changed or not, we
+    can calculate how often the model correctly fixes mistakes **(True Positives —
+    TP)**, incorrectly changes correct words **(False Positives — FP)**, and misses
+    errors that should have been corrected **(False Negatives — FN).**
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, we can calculate the **Precision** and **Recall** of the Spellcheck!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now have a robust algorithm that is capable of evaluating any Spellcheck
+    solution!
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the algorithm in the [project repository](https://github.com/openfoodfacts/openfoodfacts-ai/blob/develop/spellcheck/src/spellcheck/evaluation/evaluator.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Large Language Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Large Language Models (LLMs) have proved being great help in tackling Natural
+    Language task in various industries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They constitute a path we have to explore for our use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many LLM providers brag about the performance of their model on leaderboards,
+    but how do they perform on correcting error in lists of ingredients? Thus, we
+    evaluated them!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We evaluated **GPT-3.5** and **GPT-4o** from **OpenAI**, **Claude-Sonnet-3.5**
+    from **Anthropic**, and **Gemini-1.5-Flash** from **Google** using our custom
+    benchmark and evaluation algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We prompted detailed instructions to orient the corrections towards our custom
+    guidelines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/83eadd9bceeee0e567b618410e3800c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLMs evaluation on our benchmark (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GPT-3.5-Turbo** delivered the best performance compared to other models,
+    both in terms of metrics and manual review. Special mention goes to **Claude-Sonnet-3.5**,
+    which showed impressive error corrections (high Recall), but often provided additional
+    irrelevant explanations, lowering its Precision.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Great! We have an LLM that works! Time to create the feature in the app!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Well,*** not so fast…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using private LLMs reveals many challenges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Lack of Ownership**: We become dependent on the providers and their models.
+    New model versions are released frequently, altering the model’s behavior. This
+    instability, primarily because the model is designed for general purposes rather
+    than our specific task, complicates long-term maintenance.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Model Deletion Risk**: We have no safeguards against providers removing older
+    models. For instance, GPT-3.5 is slowly being replace by more performant models,
+    despite being the best model for this task!'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Performance Limitations**: The performance of a private LLM is constrained
+    by its prompts. In other words, our only way of improving outputs is through better
+    prompts since we cannot modify the core weights of the model by training it on
+    our own data.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***For these reasons, we chose to focus our efforts on open-source solutions
+    that would provide us with complete control and outperform general LLMs.***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Train our own model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/bb3dbfab4d007c69b8ac90063f64f12f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The model training workflow: from dataset extraction to model training (image
+    from author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Any machine learning solution starts with data. In our case, data is the corrected
+    lists of ingredients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, not all lists of ingredients are equal. Some are free of unrecognized
+    ingredients, some are just so unreadable they would be no point correcting them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, we find a perfect balance by choosing lists of ingredients having
+    between **10 and 40 percent of unrecognized ingredients**. We also ensured there’s
+    no duplicate within the dataset, but also with the benchmark to prevent any data
+    leakage during the evaluation stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We extracted 6000 uncorrected lists from the Open Food Facts database using
+    [DuckDB](https://duckdb.org/), a fast in-process SQL tool capable of processing
+    millions of rows under the second.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, those extracted lists are not corrected yet, and manually annotating
+    them would take too much time and resources…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**However, we have access to LLMs we already evaluated on the exact task. Therefore,
+    we prompted GPT-3.5-Turbo, the best model on our benchmark, to correct every list
+    in respect of our guidelines.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The process took less than an hour and cost nearly **2$**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then manually reviewed the dataset using [Argilla](https://argilla.io/),
+    an open-source annotation tool specialized in Natural Language Processing tasks.
+    This process ensures the dataset is of sufficient quality to train a reliable
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**We now have at our disposal a** [**training dataset**](https://huggingface.co/datasets/openfoodfacts/spellcheck-dataset)
+    **and an** [**evaluation benchmark**](https://huggingface.co/datasets/openfoodfacts/spellcheck-benchmark)
+    **to train our own model on the Spellcheck task.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this stage, we decided to go with **Sequence-to-Sequence Language Models**.
+    In other words, these models take a text as input and returns a text as output,
+    which suits the spellcheck process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Several models fit this role, such as the **T5 family** developed by Google
+    in 2020, or the current open-source LLMs such as **Llama** or **Mistral**, which
+    are designed for text generation and following instructions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model training consists in a succession of steps, each one requiring different
+    resources allocations, such as cloud GPUs, data validation and logging. For this
+    reason, we decided to orchestrate the training using [Metaflow](https://metaflow.org/),
+    a pipeline orchestrator designed for Data science and Machine Learning projects.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The training pipeline is composed as follow:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Configurations and hyperparameters are imported to the pipeline from config
+    yaml files;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The training job is launched in the cloud using [AWS Sagemaker](https://aws.amazon.com/sagemaker/),
+    along the set of model hyperparameters and the custom modules such as the evaluation
+    algorithm. Once the job is done, the model artifact is stored in an AWS S3 bucket.
+    All training details are tracked using [Comet ML](https://www.comet.com/site/);
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The fine-tuned model is then evaluated on the **benchmark** using the evaluation
+    algorithm. Depending on the model sizem this process can be extremely long. Therefore,
+    we used [vLLM](https://github.com/vllm-project/vllm), a Python library designed
+    to accelerates LLM inferences;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The predictions against the benchmark, also stored in AWS S3, are sent to [Argilla](https://argilla.io/)
+    for human-evaluation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: After iterating over and over between refining the data and the model training,
+    we achieved performance **comparable to proprietary LLMs** on the Spellcheck task,
+    scoring an F1-Score of **0.65**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7fdb68e96e8e460f5871149e4f6a61df.png)![](../Images/407f381cc9c76a371fa2ee8a89f453ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLMs evaluation on our benchmark (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model, a fine-tuned [Mistral-7B-Base-v0.3](https://huggingface.co/mistralai/Mistral-7B-v0.3),
+    is available on the Hugging Face platform and is publicly available, along its
+    [dataset](https://huggingface.co/datasets/openfoodfacts/spellcheck-dataset) and
+    evaluation [benchmark](https://huggingface.co/datasets/openfoodfacts/spellcheck-benchmark).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://huggingface.co/openfoodfacts/spellcheck-mistral-7b?source=post_page-----d74dfe02e0e4--------------------------------)
+    [## openfoodfacts/spellcheck-mistral-7b · Hugging Face'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We're on a journey to advance and democratize artificial intelligence through
+    open source and open science.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: huggingface.co](https://huggingface.co/openfoodfacts/spellcheck-mistral-7b?source=post_page-----d74dfe02e0e4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, **we estimated the Spellcheck reduced the number of unrecognized
+    ingredients by 11%, which is promising!**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now comes the final phase of the project: integrating the model into Open Food
+    Facts.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deployment & Integration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Our model is big!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7 billions parameters, which means **14 GB** of memory required to run it in
+    **float16**, without considering the **20% overhead factor.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, large models often mean **low throughput during inference**, which
+    can make them inappropriate for real-time serving. We need GPUs with large memory
+    to run this model in production, such as the [Nvidia L4](https://www.nvidia.com/en-us/data-center/l4/),
+    which is equipped with 24GB of VRAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**But the price of running these instances in the cloud is quite expensive…**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, a possibility to provide a real-time experience for our users, without
+    requiring GPU instances running 24/7, is **batch inference**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lists of ingredients are processed in batches by the model on a regular basis,
+    then stored in the database. **This way, we pay only for the resources used during
+    the batch processing!**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Batch Job
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We developed a batch processing system to handle large-scale text processing
+    using LLMs efficiently with [Google Batch Job](https://cloud.google.com/batch/docs/get-started).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0c7d92fc5854b223efc5af25ed260ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Batch processing system (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The process begins by extracting data from the Open Food Facts database using
+    DuckDB, which processes **43 GB of data in under 2 minutes!**
+  prefs: []
+  type: TYPE_NORMAL
+- en: The extracted data is then sent to a Google Bucket, triggering a Google Batch
+    Job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This job uses a pre-prepared Docker image containing all necessary dependencies
+    and algorithms. To optimize the resource-intensive LLM processing, we reuse vLLM
+    achieving impressive performances, **correcting 10,000 lists of ingredients in
+    20 minutes only with a GPU L4**!
+  prefs: []
+  type: TYPE_NORMAL
+- en: After successful processing, the corrected data is saved in a intermediate database
+    containing the predictions of all models in Open Food Facts, served by [Robotoff](https://github.com/openfoodfacts/robotoff).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a contributor modifies a product details, they’re presented with the spellcheck
+    corrections, **ensuring users remain the key decision-makers in Open Food Facts’
+    data quality process.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: This system allows Open Food Facts to leverage advanced AI capabilities for
+    improving data quality while preserving its community-driven approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d73441d66e04c9ab650600565b6475d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Batch jobs in GCP (image from author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conlusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we walked you through the development and the integration of
+    the **Ingredients Spellcheck**, an LLM-powered up feature to correct OCR-extracted
+    lists of ingredients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We first developed a set of rules, the **Spellcheck Guidelines**, to restrict
+    the corrections . We created a benchmark of corrected lists of ingredients that,
+    along a custom evaluation algorithm, to evaluate any solution to the problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this setup, we evaluated various private LLMs and determined that **GPT-3.5-Turbo**
+    was the most suitable model for our specific use case. However, we also demonstrated
+    that relying on a private LLM imposes significant limitations, including lack
+    of ownership and restricted opportunities to improve or fine-tune such a large
+    model (175 billion parameters).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address these challenges, we decided to **develop our own model**, fine-tuning
+    it on synthetically corrected texts extracted from the database. After several
+    iterations and experiments, we successfully achieved good performances with an
+    **open-source model**. Not only did we match private LLMs performance, it also
+    solved the ownership problem we were facing, giving us full control over our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then **integrated this model into the Open Food Facts** using **batch inference
+    deployment,** enabling us to process thousands of lists on a regular basis. The
+    predictions are stored in Robotoff database as **Insights** before being validated
+    by contributors, **leaving OFF data quality ownership to contributors**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next step
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**The Spellcheck integration is still a work in progress**. We are working
+    on designing the user interface to propose ML generated corrections and let contributors
+    accept, deny, or modify corrections. **We expect fully integrating the feature
+    by the end of the year.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4873fa37ebe6d27a18074cf083f3e87d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Spellcheck corrections validated by users built in [Hugging Face Space](https://huggingface.co/spaces/openfoodfacts/ingredients-spellcheck-annotate)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, we plan to continue refining the model through iterative improvements.
+    Its performance can be significantly enhanced by improving the quality of the
+    training data and incorporating user feedback. This approach will allow us to
+    fine-tune the model continuously, ensuring it remains highly effective and aligned
+    with real-world use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model, along its datasets, can be find in the official [Hugging Face repository](https://huggingface.co/openfoodfacts).
+    The code used to developped this model is available in the [OpenFoodFacts-ai/spellcheck](https://github.com/openfoodfacts/openfoodfacts-ai/tree/develop/spellcheck)
+    Github repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading that far! We hope you enjoyed the reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you too, you want to contribute to Open Food Facts, you can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Contribute to the Open Food Facts [GitHub](https://github.com/openfoodfacts):
+    explore open issues that align with your skills,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Download the Open Food Facts [mobile app](https://world.openfoodfacts.org/open-food-facts-mobile-app?utm_source=off&utf_medium=web&utm_campaign=search_and_links_promo_en):
+    add new products to the database or improve existing ones by simply scanning their
+    barcodes,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Join the Open Food Facts [Slack](https://slack.openfoodfacts.org/) and start
+    discussing with other contributors in the OFF community.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can’t wait to see you join the community!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Don’t hesitate to check our other articles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jeremyarancio/duckdb-open-food-facts-the-largest-open-food-database-in-the-palm-of-your-hand-0d4ab30d0701?source=post_page-----d74dfe02e0e4--------------------------------)
+    [## DuckDB & Open Food Facts: the largest open food database in the palm of your
+    hand 🦆🍊'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploit the power of DuckDB to explore the largest open database in the food
+    market.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@jeremyarancio/duckdb-open-food-facts-the-largest-open-food-database-in-the-palm-of-your-hand-0d4ab30d0701?source=post_page-----d74dfe02e0e4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,711 @@
+- en: Train/Fine-Tune Segment Anything 2 (SAM 2) in 60 Lines of Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3?source=collection_archive---------0-----------------------#2024-08-03](https://towardsdatascience.com/train-fine-tune-segment-anything-2-sam-2-in-60-lines-of-code-928dd29a63b3?source=collection_archive---------0-----------------------#2024-08-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step tutorial for fine-tuning SAM2 for custom segmentation tasks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)[![Sagi
+    eppel](../Images/7f02c03dbfb21891b95ddb8c52cb5fff.png)](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------)
+    [Sagi eppel](https://medium.com/@sagieppel?source=post_page---byline--928dd29a63b3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--928dd29a63b3--------------------------------)
+    ·13 min read·Aug 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[SAM2 (Segment Anything 2)](https://ai.meta.com/blog/segment-anything-2/) is
+    a new model by Meta aiming to segment anything in an image without being limited
+    to specific classes or domains. What makes this model unique is the scale of data
+    on which it was trained: 11 million images, and 11 billion masks. This extensive
+    training makes SAM2 a powerful starting point for training on new image segmentation
+    tasks.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The question you might ask is if SAM can segment anything why do we even need
+    to retrain it? The answer is that SAM is very good at common objects but can perform
+    rather poorly on rare or domain-specific tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, even in cases where SAM gives insufficient results, it is still possible
+    to significantly improve the model’s ability by fine-tuning it on new data. In
+    many cases, this will take less training data and give better results then training
+    a model from scratch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This tutorial demonstrates how to fine-tune SAM2 on new data in just 60 lines
+    of code (excluding comments and imports).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The full training script of the can be found in:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------)
+    [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TRAIN.py at main ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The repository provides code for training/fine tune the Meta Segment Anything
+    Model 2 (SAM 2) …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------)
+    ![](../Images/1bd74d767271c35cc608b7b62e43607d.png)
+  prefs: []
+  type: TYPE_NORMAL
+- en: SAM2 net diagram taken from [SAM2 GIT page](https://github.com/facebookresearch/segment-anything-2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**How Segment Anything works**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The main way SAM works is by taking an image and a point in the image and predicting
+    the mask of the segment that contains the point. This approach enables full image
+    segmentation without human intervention and with no limits on the classes or types
+    of segments (as discussed in [a previous post](https://faun.pub/train-pointer-net-for-segmenting-objects-parts-and-materials-in-60-lines-of-code-ca328be8cef2)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The procedure for using SAM for full image segmentation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Select a set of points in the image
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use SAM to predict the segment containing each point
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Combine the resulting segments into a single map
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: While SAM can also utilize other inputs like masks or bounding boxes, these
+    are mainly relevant for interactive segmentation involving human input. For this
+    tutorial, we’ll focus on fully automatic segmentation and will only consider single
+    points input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More details on the model are available on the [project website.](https://ai.meta.com/blog/segment-anything-2/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Downloading SAM2 and setting environment**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The SAM2 can be downloaded from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/facebookresearch/segment-anything-2?source=post_page-----928dd29a63b3--------------------------------)
+    [## GitHub - facebookresearch/segment-anything-2: The repository provides code
+    for running inference…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The repository provides code for running inference with the Meta Segment Anything
+    Model 2 (SAM 2), links for…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/facebookresearch/segment-anything-2?source=post_page-----928dd29a63b3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t want to copy the training code, you can also download my forked
+    version that already contains the TRAIN.py script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code?source=post_page-----928dd29a63b3--------------------------------)
+    [## GitHub - sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code:
+    The repository provides…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The repository provides code for training/fine tune the Meta Segment Anything
+    Model 2 (SAM 2) …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code?source=post_page-----928dd29a63b3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Follow the installation instructions on the github repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, you need Python >=3.11 and [PyTorch.](https://pytorch.org/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In addition, we will use OpenCV this can be installed using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pip install opencv-python*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading pre-trained model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'You also need to download the pre-trained model from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**https://github.com/facebookresearch/segment-anything-2?tab=readme-ov-file#download-checkpoints**](https://github.com/facebookresearch/segment-anything-2?tab=readme-ov-file#download-checkpoints)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are several models you can choose from all compatible with this tutorial.
+    I recommend using the [small model](https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_small.pt)
+    which is the fastest to train.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading training data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For this tutorial, we will use the [LabPics1 dataset](https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1)
+    for segmenting materials and liquids. You can download the dataset from this URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1](https://zenodo.org/records/3697452/files/LabPicsV1.zip?download=1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Preparing the data reader**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first thing we need to write is the data reader. This will read and prepare
+    the data for the net.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The data reader needs to produce:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An image
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Masks of all the segments in the image.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: And a [random point inside each mask](https://faun.pub/train-pointer-net-for-segmenting-objects-parts-and-materials-in-60-lines-of-code-ca328be8cef2)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Lets start by loading dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we list all the images in the dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now for the main function that will load the training batch. The training batch
+    includes: One random image, all the segmentation masks belong to this image, and
+    a random point in each mask:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first part of this function is choosing a random image and loading it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that OpenCV reads images as BGR while SAM expects RGB images. By using
+    *[…,::-1]* we change the image from BGR to RGB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SAM expects the image size to not exceed 1024, so we are going to resize the
+    image and the annotation map to this size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: An important point here is that when resizing the annotation map (*ann_map*)
+    we use *INTER_NEAREST* mode (nearest neighbors). In the annotation map, each pixel
+    value is the index of the segment it belongs to. As a result, it’s important to
+    use resizing methods that do not introduce new values to the map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next block is specific to the format of the LabPics1 dataset. The annotation
+    map (*ann_map*) contains a segmentation map for the vessels in the image in one
+    channel, and another map for the materials annotation in a different channel.
+    We going to merge them into a single map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What this gives us is a a map (*mat_map*) in which the value of each pixel
+    is the index of the segment to which it belongs (for example: all cells with value
+    3 belong to segment 3). We want to transform this into a set of binary masks (0/1)
+    where each mask corresponds to a different segment. In addition, from each mask,
+    we want to extract a single point.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We got the image (*Img*), a list of binary masks corresponding to segments in
+    the image (*masks*), and for each mask the coordinate of a single point inside
+    the mask (*points*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/29c072b8bda93b285bb87851fd68ae8f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example for a batch of training data: 1) An Image. 2) List of segments masks.
+    3) For each mask a single point inside the mask (marked red). Taken from the LabPics
+    dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loading the SAM model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now lets load the net:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'First, we set the path to the model weights in: *sam2_checkpoint* parameter.We
+    downloaded the weights earlier from [here](https://github.com/facebookresearch/segment-anything-2?tab=readme-ov-file#download-checkpoints).
+    **“sam2_hiera_small.pt”** refer to the [small model](https://dl.fbaipublicfiles.com/segment_anything_2/072824/sam2_hiera_small.pt)
+    but the code will work for any model. Whichever model you choose you need to set
+    the corresponding config file in the *model_cfg* parameter.The config files are
+    located in the sub folder***“*sam2_configs/”** of the main repository.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Segment Anything General structure
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we start training we need to understand the structure of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SAM is composed of three parts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) Image encoder, 2) Prompt encoder, 3) Mask decoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image encoder is responsible for processing the image and creating the image
+    embedding. This is the largest component and training it will demand strong GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prompt encoder processes input prompt, in our case the input point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mask decoder takes the output of the image encoder and prompt encoder and
+    produces the final segmentation masks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Setting training parameters:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can enable the training of the mask decoder and prompt encoder by setting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can enable training of the image encoder by using: “***predictor.model.image_encoder.train(True)”***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will take stronger GPU but will give the net more room to improve. If you
+    choose to train the image encoder, you must scan the SAM2 code for “***no_grad”***
+    commands and remove them. (***no_grad*** blocks the gradient collection, which
+    saves memory but prevents training).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we define the standard adamW optimizer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We also going to use mixed precision training which is just a more memory-efficient
+    training strategy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Main training loop**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now lets build the main training loop. The first part is reading and preparing
+    the data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'First we cast the data to mix precision for efficient training:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we use the reader function we created earlier to read training data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We take the image we loaded and pass it through the image encoder (the first
+    part of the net):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we process the input points using the net prompt encoder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that in this part we can also input boxes or masks but we are not going
+    to use these options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we encoded both the prompt (points) and the image we can finally predict
+    the segmentation masks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The main part in this code is the***model.sam_mask_decoder***which runs the
+    mask_decoder part of the net and generates the segmentation masks (*low_res_masks*)
+    and their scores (*prd_scores*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These masks are in lower resolution than the original input image and are resized
+    to the original input size in the ***postprocess_masks***function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives us the final prediction of the net: 3 segmentation masks (*prd_masks*)
+    for each input point we used and the masks scores (*prd_scores*). *prd_masks*
+    contains 3 predicted masks for each input point but we only going to use the first
+    mask for each point. *prd_scores* contains a score of how good the net thinks
+    each mask is (or how sure it is in the prediction).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loss functions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Segmentation loss
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we have the net predictions we can calculate the loss. First, we calculate
+    the segmentation loss, which means how good the predicted mask is compared to
+    the ground true mask. For this, we use the standard cross entropy loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we need to convert prediction masks (*prd_mask*) from logits into probabilities
+    using the sigmoid function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we convert the ground truth mask into a torch tensor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we calculate the cross entropy loss (*seg_loss*) manually using the
+    ground truth (*gt_mask*) and predicted probability maps (*prd_mask*):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: (we add 0.0001 to prevent the log function from exploding for zero values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Score loss (optional)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In addition to the masks, the net also predicts the score for how good each
+    predicted mask is. Training this part is less important but can be useful . To
+    train this part we need to first know what is the true score of each predicted
+    mask. Meaning, how good the predicted mask actually is. We are going to do it
+    by comparing the GT mask and the corresponding predicted mask using intersection
+    over union (IOU) metrics. IOU is simply the overlap between the two masks, divided
+    by the combined area of the two masks. First, we calculate the intersection between
+    the predicted and GT mask (the area in which they overlap):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use threshold *(prd_mask > 0.5)* to turn the prediction mask from probability
+    to binary mask.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we get the IOU by dividing the intersection by the combined area (union)
+    of the predicted and gt masks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We going to use the IOU as the true score for each mask, and get the score loss
+    as the absolute difference between the predicted scores and the IOU we just calculated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we merge the segmentation loss and score loss (giving much higher
+    weight to the first):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Final step: Backpropogation and saving model'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Once we get the loss everything is completely standard. We calculate backpropogation
+    and update weights using the optimizer we made earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We also want to save the trained model once every 1000 steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since we already calculated the IOU we can display it as a moving average to
+    see how well the model prediction are improving over time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: And that it, we have trained/ fine-tuned the Segment-Anything 2 in less than
+    60 lines of code (not including comments and imports). After about 25,000 steps
+    you should see major improvement .
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model will be saved to “model.torch”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can find the full training code at:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------)
+    [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TRAIN.py at main ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The repository provides code for training/fine tune the Meta Segment Anything
+    Model 2 (SAM 2) …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN.py?source=post_page-----928dd29a63b3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This tutorial used a single image per batch, a more efficient way is to use
+    several different images per batch, The code for doing this is available at:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[***https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN_multi_image_batch.py***](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TRAIN_multi_image_batch.py)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inference: Loading and using the trained model:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that the model as been fine-tuned, let’s use it to segment an image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We going to do this using the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load the model we just trained.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Give the model an image and a bunch of random points. For each point the net
+    will predict the segment mask that contain this point and a score.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Take these masks and stitch them together into one segmentation map.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The full code for doing that is available at:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------)
+    [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TEST_Net.py at main
+    ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The repository provides code for training/fine tune the Meta Segment Anything
+    Model 2 (SAM 2) …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we load the dependencies and cast the weights to float16 this makes the
+    model much faster to run (only possible for inference).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we load a sample [image](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/sample_image.jpg)
+    and a mask of the image region we want to segment (download [image](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/sample_image.jpg)/[mask](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/sample_mask.png)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Sample 30 random points inside the region we want to segment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Load the standard SAM model (same as in training)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, Load the weights of the model we just trained (model.torch):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Run the fine-tuned model to predict a segmentation mask for every point we
+    selected earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we have a list of predicted masks and their scores. We want to somehow stitch
+    them into a single consistent segmentation map. However, many of the masks overlap
+    and might be inconsistent with each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The approach to stitching is simple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we will sort the predicted masks according to their predicted scores:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now lets create an empty segmentation map and occupancy map:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we add the masks one by one (from high to low score) to the segmentation
+    map. We only add a mask if it’s consistent with the masks that were previously
+    added, which means only if the mask we want to add has less than 15% overlap with
+    already occupied areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: And this is it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*seg_mask* now contains the predicted segmentation map with different values
+    for each segment and 0 for the background.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can turn this into a color map using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And display:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9e5af0c935665898307a0372f325bb5b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example for segmentation results using fine-tuned SAM2\. Image from the LabPics
+    dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full inference code is available at:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------)
+    [## fine-tune-train_segment_anything_2_in_60_lines_of_code/TEST_Net.py at main
+    ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The repository provides code for training/fine tune the Meta Segment Anything
+    Model 2 (SAM 2) …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/sagieppel/fine-tune-train_segment_anything_2_in_60_lines_of_code/blob/main/TEST_Net.py?source=post_page-----928dd29a63b3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conclusion:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: That’s it, we have trained and tested SAM2 on a custom dataset. Other than changing
+    the data-reader, this should work for any dataset. In many cases, this should
+    be enough to give a significant improvement in performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, SAM2 can also segment and track objects in videos, but fine-tuning
+    this part is for another time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Copyright:** All images for the post are taken from the [SAM2 GIT](https://github.com/facebookresearch/segment-anything-2)
+    repository (under Apache license), and [LabPics](https://zenodo.org/records/3697452)
+    dataset (under MIT license). This tutorial code and nets are available under the
+    Apache license.'
+  prefs: []
+  type: TYPE_NORMAL

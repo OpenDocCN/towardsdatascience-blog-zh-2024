@@ -1,0 +1,426 @@
+- en: Intuitive Temporal DataFrame Filtration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/intuitive-temporal-dataframe-filtration-fa9d5da734b3?source=collection_archive---------8-----------------------#2024-05-27](https://towardsdatascience.com/intuitive-temporal-dataframe-filtration-fa9d5da734b3?source=collection_archive---------8-----------------------#2024-05-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Get rid of your ineffective code for filtering time series data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[![Yousef
+    Nami](../Images/09a0baa3fe20c858ace5b7923b7c753a.png)](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------)
+    [Yousef Nami](https://namiyousef96.medium.com/?source=post_page---byline--fa9d5da734b3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa9d5da734b3--------------------------------)
+    ·10 min read·May 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bdedd7a197a2764d9cb5c875fee21d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Carlos Muza](https://unsplash.com/@kmuza) on [Unsplash](https://unsplash.com/photos/laptop-computer-on-glass-top-table-hpjSkU2UYSU)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every time I work with time series data, I end up writing complex and non-reusable
+    code to filter it. Whether I’m doing simple filtering techniques like removing
+    weekends, or more complex ones like removing specific time windows, I always resort
+    to writing a quick and dirty function that works for the specific thing that I’m
+    filtering in the moment, but never again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I finally decided to break that horrible cycle by writing a processor that allows
+    me to filter time series no matter how complex the condition using very simple
+    and concise inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Just an example of how it works in practice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On weekdays, I want to remove < 6 am and ≥ 8 pm, and on weekends I want to remove
+    < 8 am and ≥ 10 pm
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Without processor: expressive, but verbose and non-reusable'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With processor: equally as expressive, concise and reusable'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this article I’ll explain how I came up with this solution, starting with
+    the string format I chose to define filter conditions, followed by a design of
+    the processor itself. Towards the end of the article, I’ll describe how this pipeline
+    can be used alongside other pipelines to enable complex time series processing
+    with only a few lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’re interested in the code only, skip to the end of the article for a
+    link to the repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expressive, Concise and Flexible Time Conditions?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This was by far the hardest part of this task. Filtering time series based
+    on time is conceptually easy, but it’s much harder to do with code. My initial
+    thought was to use a string pattern that is most intuitive to myself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However with this, we immediately run into a problem: we lose flexibility.
+    This is because `06:00` is ambiguous, as it could mean `min:sec` or `hr:min` .
+    So we’d almost always have to define the date format a-priori.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This prevents us from allowing complex filtering techniques, such as filtering
+    a specific time ON specific days (e.g. only remove values in `[6am, 2pm)` on a
+    Saturday).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Extending my pattern to something resembling [cron](https://crontab.guru/)
+    would not help either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above can help with selecting specific months or years, but doesn’t allow
+    flexibility of things like weekdays. Further, it is not very expressive with all
+    the X’s and it’s really verbose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I knew that I needed a pattern that allows chaining of individual time series
+    components or units. Effectively something that is just like an if-statement:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IF day == Saturday
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AND time ≥ 06:00
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AND time < 14:00
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So then I thought, why not use a pattern where you can add any conditions to
+    a time-components, with the implicit assumption that they are all AND conditions?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we have a pattern that is expressive, however it can still be ambiguous,
+    since `time` implicitly assumes a date fomat. So I decided to go further:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now to make it less verbose, I borrowed the Polars duration string [format](https://docs.pola.rs/py-polars/html/reference/dataframe/api/polars.DataFrame.group_by_dynamic.html)
+    (this is the equivalent of “frequency” if you are more familiar with Pandas),
+    and viola:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: What About Time Conditions that Need the OR Operator?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s consider a different condition: to filter anything LESS than 6 am (inclusive)
+    and > 2 pm (exclusive). A pattern like below would fail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Since we’d read it as: ≤ 6 am AND > 2 pm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No such value exists that satisfies these two conditions!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the solution to this is simple: apply AND conditions within a pattern,
+    and apply OR conditions across different patterns. So:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Would be read as: ≤ 6 am OR > 2pm'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why not allow OR statements within a pattern?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I did consider adding support for an OR statement within the pattern, e.g. using
+    `|` or alternatively to let `,` denote the difference between a “left” and “right”
+    condition. However, I found that these would be adding unnecessary complexity
+    to parsing the pattern, without making the code any more expressive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I much prefer it simple: within a pattern we apply AND, across patterns we
+    apply OR.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Edge Cases
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is one edge-cases worth discussing here. The “if-statement” like pattern
+    doesn’t always work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s consider filtering timestamps > 06:00\. If we simply defined:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then do we interpret this as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remove all values where `hour>6`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or remove all values where `time>06:00` ?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The latter makes more sense, but the current pattern doesn’t allow us to express
+    that. So to explicitly state that we which to include timestamps greater than
+    the 6th hour of the day, we must add what I call the cascade operator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Which would be read as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: hour > 6
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OR (hour == 6 AND any(minute, second, millisecond, etc… > 0)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Which would be an accurate condition to capture time>06:00!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here I highlight important design bits to create a processor for filtering time
+    series data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing Logic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Since the pattern is quite simple, parsing it is really easy. All we need to
+    do is loop over each pattern and keep track of the operator characters. What remains
+    is then a list of operators, and a list of durations that they are applied to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now for each operator and duration string, we can extract metadata that helps
+    us make the actual boolean rules later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now have, for each pattern, dictionaries for how to define the rules for
+    each of it’s components. So if we went for a complicated example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that a single pattern can be split into multiple metadata dicts because
+    it can be composed of multiple durations and operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating Rules from metadata
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Having created metadata for each pattern, now comes the fun part of creating
+    Polars rules!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember that within each pattern, we apply an AND condition, but across patterns
+    we apply an OR condition. So in the simplest case, we need a wrapper that can
+    take a list of all the metadata for a specific pattern, then apply the and condition
+    to it. We can store this expression in a list alongside the expressions for all
+    the other patterns, before applying the OR condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This looks complex… but we can convert bits of it into functions and the final
+    code looks quite clean and readable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating Rules for the cascade operator
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the above code, I had an if condition only for the “simple” conditions… how
+    do we do the cascade conditions?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember from our discussion above that a pattern of “>6h*” means:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: hour > 6 OR (hour == 6 AND any(min, s, ms, etc… > 0)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So what we need, is to know for each unit, what the subsequent smaller units
+    are.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'E.g. if I had “>6d*”, I should know to include “hour” in my **any** condition,
+    thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: day > 6 OR (day == 6 AND any(hr, min, s, ms, etc… > 0)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This is easily achieved using a dictionary that maps each unit to its “next”
+    smaller unit. E.g.: day → hour, hour → second, etc…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: The start value is necessary because the any condition isn’t always > 0\. Because
+    if I want to filter any values > February, then 2023–02–02 should be a part of
+    it, but not 2023–02–01.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this dictionary in mind, we can then easily create the any condition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Bigger Picture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A processor like this isn’t just useful for ad-hoc analysis. It can be a core
+    component your data processing pipelines. One really useful use case for me is
+    to use it along with resampling. An easy filtering step would enable me to easy
+    calculate metrics on time series with regular disruptions, or regular downtimes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further, with a few simple modifications I can extend this processor to allow
+    easy labelling of my time series. This allows me to add regressors to bits that
+    I know behave differently, e.g. if I’m modelling a time series that jumps at specific
+    hours, I can add a step regressor to only those parts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concluding Remarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article I outlined a processor that enables easy, flexible and concise
+    time series filtration on Polars datasets. The logic discussed can be extended
+    to your favourite data frame processing library, such as Pandas with some minor
+    changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only is the processor useful for ad-hoc time series analysis, but it can
+    be the backbone of data processing if chained with other operations such as resampling,
+    or if used to create extra features for modelling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I’ll conclude with some extensions that I have in mind to make the code even
+    better:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’m thinking of creating a short cut to define “weekend”, e.g. “==we”. This
+    way I don’t wouldn’t need to explicitly define “>=6wd” which can be less clear
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With proper design, I think it is possible to enable the addition of custom
+    time identifiers. For example “==eve” to denote evening, the time for which can
+    be user defined.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I’m definitely going to add support for simply labelling the data, as opposed
+    to filtering it
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And I’m going to add support for being able to define the boundaries as “keep”,
+    e.g. instead of defining [“<6h”, “>=20hr”] I can do [“>=6h<20hr”]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Where to find the code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This project is in its infancy, so items may move around. As of 23.05.2024,
+    you can find the `FilterDataBasedOnTime` under `mix_n_match/main.py` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/namiyousef/mix-n-match?source=post_page-----fa9d5da734b3--------------------------------)
+    [## GitHub - namiyousef/mix-n-match: repository for processing dataframes'
+  prefs: []
+  type: TYPE_NORMAL
+- en: repository for processing dataframes. Contribute to namiyousef/mix-n-match development
+    by creating an account on…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/namiyousef/mix-n-match?source=post_page-----fa9d5da734b3--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All code, data and images by author unless specified otherwise*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,380 @@
+- en: You’ve Got a Time Series. Now What?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/youve-got-a-time-series-now-what-38803e079175?source=collection_archive---------1-----------------------#2024-04-20](https://towardsdatascience.com/youve-got-a-time-series-now-what-38803e079175?source=collection_archive---------1-----------------------#2024-04-20)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to do exploratory data analysis of a time series
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@alexroz?source=post_page---byline--38803e079175--------------------------------)[![Aleksei
+    Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--38803e079175--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--38803e079175--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--38803e079175--------------------------------)
+    [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--38803e079175--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38803e079175--------------------------------)
+    ·8 min read·Apr 20, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92a060eae44518a5f0d674f9be8d1280.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most popular types of data is a time series. Videos, images, pixels,
+    signals, literally anything having a time component could be turned into it. Formally,
+    **a time series** is a sequence of *historical* measurements of an observable
+    variable at **equal time intervals**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article I want to suggest a small pipeline which anyone can use when
+    analyzing a time series. It could help you to derive meaningful insights about
+    the data itself, prepare it for modeling and draw some preliminary conclusions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since my favorite word is geospatial 🌏, today we will analyze a meteorological
+    time series. In particular, we will explore 2 m air temperature, total precipitation,
+    surface net solar radiation and surface pressure at the point in South-Eastern
+    Siberia over 2023 derived from hourly [ERA5 Land](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-land?tab=overview)
+    [1] climate reanalysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As always, to follow up the tutorial, you can download and run the notebook
+    [**here**](https://github.com/alexxxroz/Medium/blob/main/Time_Series_EDA.ipynb)**.**
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To accomplish the analysis we need to import several libraries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I also decided to try a new matplotlib style from two libraries, [opinionated](https://github.com/saforem2/opinionated)
+    and [ambivalent](https://github.com/saforem2/ambivalent?tab=readme-ov-file#user-content-fn-1-97838fc778b9f9f773da6819bae071bb):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 1\. Line plots
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First of all, let’s upload and visualize the data we have. To handle geospatial
+    multidimensional arrays we will use [xarray](https://docs.xarray.dev/en/stable/)
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1185e28466ddf068044199a5b20f8d4a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we need to slice the data specifically for the chosen location and convert
+    to a pandas dataframe and create a line plot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9e4ef447f5b5d88c1e3351cf263e5168.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s already clear from the line plots that all the four time series have different
+    features, so let’s investigate them using mathematical tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Decomposition and Stationarity
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Any time series has three important attributes to consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Trend**, which is a smooth long-term change in a time series;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Seasonality**, which is referred to a time series with a regular periodic
+    change in the mean of the series;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Noise (residuals),** which isa random component of a signal with a mean equal
+    to zero.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To get each of these components separately, it’s possible to produce **classical
+    decomposition** (additive or multiplicative). This operation is produced by applying
+    a convolutional filter, so then each time series component is defined as either
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1fab0b93d051c464fe77f0949360141e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Additive decomposition. Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: or
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7e7f1653141537fd4ffe0403de86f00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multiplicative decomposition. Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: where **y** — is a value from a time series, **S** — seasonal components, **T**
+    — trend component and **n** — noise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To produce decomposition, besides selecting the decomposition type, you need
+    to set a seasonal period (e.g. p=1 for annual, p=4 for quarterly, p=12 for monthly
+    data etc.).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s important to mention that the aforementioned classical decomposition is
+    a really naive and simple methods. It has significant limitations such as its
+    linearity, inability to capture dynamic seasonality and difficulty in handling
+    non-stationarity in a time series. However, for the purpose of this article this
+    method is more than enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do the classical decomposition we will use *seasonal_decompose* function
+    from statsmodels library with a period equal 24, since we are dealing with hourly
+    data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9c2814e11f60837ef7f83577d16bf39e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d544b1c9cd662ef6ebec53a0dd01671.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2eaee716dd06aa5037556f2a052b8d43.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b550fe4f8fec269dbbba972d9b9e81f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see that for all the variables seasonal component looks like a mess.
+    Since we analyze hourly data, these seasonal variations are observed within one
+    day, and not really informative. In this case, it’s worth trying to resample the
+    data to daily resolution and do the decomposition for the period of one day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8cd6a2e794670aeaab6898ec9ad8da9b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: By now some of you have probably noticed the Dickey-Fuller test label in the
+    upper-right corner of the plot. This is a **stationarity** test, which was done
+    using the *adfuller* function of the same library. In case of a time series, stationarity
+    means that the properties of a time series do not change over time. Saying properties,
+    I mean variance, seasonality, trend and autocorrelation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When applying the Augmented Dickey-Fuller (ADF) test to a time series we pose
+    a null-hypothesis that the time series is non-stationary. Then we select a significance
+    level α, which is usually 5%. In essence, α is the probability of incorrectly
+    rejecting the null hypothesis when it is actually true. So in our case, α=5%,
+    there is 5% risk of concluding that the time series is stationary, when it’s actually
+    not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The test result will give us a p-value. If it’s lower than 0.05, we can reject
+    our null-hypothesis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, all 4 variables are stationary according to the ADF test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, to apply some time series forecasting models such as ARIMA and others,
+    stationarity is a must-have, so we are lucky here. Generally, meteorological and
+    climatic data are often analyzed in different time-series related learning materials,
+    since they are stationary in most cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Distributions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After concluding that all our time series are stationary, let’s have a look
+    at how they are distributed. To do that we will use the well-known seaborn library
+    and its function *pairplot*, which allows to create informative plots with hists
+    and kdes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7e170e4e1b89387902da9d18d0263fc3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s consider the example of t2m (1 row and 1 column). When analyzing the kernel
+    density estimation (kde) plot it’s clear that the distribution of this variable
+    is multimodal, meaning it has 2 or more “bells”. So during the following stages
+    of the current article we will try to transform the variable to resemble a **normal
+    distribution**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other plots in the 1st column and row are identical in terms of the information
+    they provide, but they are visualized differently. Basically, these are scatter
+    plots, which allow to identify how two variables are correlated. So the darker
+    the color of a point or the closer a point to the central circle, the higher the
+    density of points in this area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4\. Box-Cox Transformation**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since we have discovered that the air temperature time series is stationary,
+    but not normally distributed, let’s try to fix that using Box-Cox transformation.
+    To do that we will use scipy package and its function *boxcox*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1b8b07eba99a1d17396bcfb5708d1747.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The left part of the plot is our time series distribution after BoxCox transformation,
+    and as you can see, it’s still far from being called “normally” distributed. But
+    if we compare it with the one on the right, we can say it definitely got closer
+    to a normal one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another thing we can do to make sure that the performed transformation was useful
+    is to create a probability plot. In essence, we plot quantiles of a theoretical
+    distribution (in our case normal) against samples of our empirical data (i.e.
+    the time series we consider). The closer the points to the white line, the better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b5ef301fb62270b7c6e400ffceac1241.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are going to use the transformed time series for ML modeling, don’t forget
+    to apply reverse BoxCox transformation, otherwise you’ll have to deal with inadequate
+    numbers!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**5\. Autocorrelation**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: And the last step in our analysis is autocorrelation. Autocorrelation function(ACF)
+    estimates correlation between a time series and a lagged version of it. Or in
+    other words, how a specific value of a time series correlates with other prior
+    values in different time intervals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It might also be helpful to plot partial autocorrelation function (PACF), which
+    is the same as autocorrelation, but with correlation at shorter lags removed.
+    So it estimates the correlation between values within a certain timestamp, but
+    controlling the influence of other values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0dd2ecabf7f1fdb15e13be386904ee29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see there is a really strong partial autocorrelation in the surface
+    pressure time series with 1 day lag. Then it weakens significantly and after the
+    3 day lag it’s almost absent. Such an analysis might help you to better understand
+    the nature of the data you are dealing with, and hence, derive more meaningful
+    conclusions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is it, a really short and straight-forward pipeline to conduct an exploratory
+    data analysis when dealing with time series. It’s important to remember that the
+    methods you should use are highly depended on the questions you need to tackle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hopefully this article was informative and insightful for you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: ===========================================
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reference:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Muñoz Sabater, J. (2019): ERA5-Land hourly data from 1950 to present. Copernicus
+    Climate Change Service (C3S) Climate Data Store (CDS). DOI: 10.24381/cds.e2161bac
+    (Accessed on 16–04–2024)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ===========================================
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***All my publications on Medium are free and open-access, that’s why I’d really
+    appreciate if you followed me here!***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: P.s. I’m extremely passionate about (Geo)Data Science, ML/AI and Climate Change.
+    So if you want to work together on some project pls contact me in [LinkedIn](https://www.linkedin.com/in/alexxxroz/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🛰️Follow for more🛰️
+  prefs: []
+  type: TYPE_NORMAL

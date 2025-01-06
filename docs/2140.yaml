@@ -1,0 +1,1452 @@
+- en: Using Generative AI To Get Insights From Disorderly Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/using-generative-ai-to-get-insights-from-disorderly-data-af056e5910eb?source=collection_archive---------0-----------------------#2024-09-03](https://towardsdatascience.com/using-generative-ai-to-get-insights-from-disorderly-data-af056e5910eb?source=collection_archive---------0-----------------------#2024-09-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Best practices for using Large Language Models to extract actionable insights
+    even with poor metadata
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@oansari?source=post_page---byline--af056e5910eb--------------------------------)[![Omer
+    Ansari](../Images/4e1ff96eb856567b55f8e7ef7e0278a1.png)](https://medium.com/@oansari?source=post_page---byline--af056e5910eb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--af056e5910eb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--af056e5910eb--------------------------------)
+    [Omer Ansari](https://medium.com/@oansari?source=post_page---byline--af056e5910eb--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--af056e5910eb--------------------------------)
+    ·32 min read·Sep 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a79fc1bee50dacb05b4ccaac1c06b99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Best Practices checklist for analyzing messy data using genAI
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article shares some best practices on how we have used generative AI to
+    analyze our data at my firm to more effectively run operations. It took a while
+    but I was able to get approval from Marketing, Legal, Security, and PR teams at
+    Salesforce to publish this article. I hope this helps you turbo-charge your data
+    analysis as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All diagrams and figures in this article are directional and accurate to convey
+    the concepts, but the data has been anonymized.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Insights-in-a-box
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Data Filtering with LLMs:** No need to clean data at the source; use an LLM
+    to purify data mid-stream.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Python Automation with GPT:** Intermediate Python skills are typically needed
+    for data extraction, modification, and visualization, but GPT can automate and
+    speed up these tasks'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Domain-Specific Ticket Filtering:** When metadata is unreliable, filter tickets
+    by the support engineers who worked on them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Reliable Data Extraction:** Focus on extracting reliable fields like descriptions
+    and timestamps, as these are less prone to errors.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Data Anonymization with GPT:** Use GPT with open-source anonymizer libraries
+    to anonymize data before sending it to public APIs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Choosing Delimiters Carefully:** Select output delimiters thoughtfully, ensuring
+    they don’t interfere with language model processing, and sanitize input data by
+    removing the chosen delimiter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Fine-Tuning GPT prompts for Accuracy:** Evaluate and fine-tune the prompt’s
+    performance on known ticket descriptions before full analysis.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Contextual Data Limits:** Be aware of GPT’s upper processing limits for contextually
+    unrelated data chunks; stay 10% below the identified limit to avoid data loss.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Brainstorming KPIs with GPT:** After extracting metadata, use GPT to brainstorm
+    and create meaningful KPIs for visualization.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Streamlined Data Visualization:** Utilize GPT to write Python code to create
+    graphs, keeping analysis streamlined and version-controlled within one environment
+    instead of using a separate visualization tool.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Have you ever faced off against large volumes of unkempt and free form data
+    entered by human beings and tried to make sense of it? It is an extremely brain-numbing
+    and time consuming job, and unless you have dedicated time to pour over it, chances
+    are that you have ended up just sampling the data, and walked away with surface
+    insights likely using untrustworthy metadata. Typically not great mileage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is not hard to see how large language models, which specialize in making
+    sense of chaotic data, can help here. This article walks best practices gleaned
+    from such an implementation, covering a range of concepts such as the most efficient
+    method of using GPT to help you clean the data, do the analysis, and create useful
+    graphs, approaches on managing Personally Identifiable Information (PII), a production-hardened
+    prompt design, working around GPT’s ‘prefrontal cortex’ bottleneck and more!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But before all that, I’ll start with sharing how this experience completely
+    changed my own strongly-held opinion around Data Quality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used to believe that in order to improve data quality, you must fix it at
+    the source, i.e. the Systems of Engagement. For example, I used to believe that
+    for a Sales CRM, we must ensure Sales and Marketing teams are entering quality
+    data and metadata in the beginning. Similarly for customer support, we have to
+    ensure the Customer Support Engineers are selecting all the right metadata (ticket
+    cause code, customer impact, etc) associated with the ticket at the inception,
+    duration and closure of the ticket.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After my recent experiences, these beliefs have been smashed to bits. You can
+    absolutely have unruly data at the source, and with the right direction, Large
+    Language Models (LLMs) can still make sense of it resulting in meaningful insights!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***No need to clean data at source: Like a water filter, you just plug an LLM
+    in the middle of the stream and purify it!***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7da3944a3aa757e1835c3aa5724cf07.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GPT can act like a water filter, taking in information with dirty metadata and
+    purifying it so that insights can be derived from it
+  prefs: []
+  type: TYPE_NORMAL
+- en: Longer term, having processes in place to populate accurate metadata at source
+    definitely help, though keep in mind they are are time consuming coordinate and
+    audit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Operating principles
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In order to conduct this analysis, I had two simple principles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Avoid disrupting my team’s current delivery: While it would have been easier
+    for me to request someone in my team to do the analysis, it would have disrupted
+    the team’s velocity on already ongoing projects. I had to figure out how to do
+    all of the analysis myself, while doing my day job as a product development executive.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Use Generative AI for everything: Large Language Models are great in data manipulation
+    and, specifically for this use case, extracting value out of messy data. They
+    are also much better than I am in coding. It’s just easier to tell someone to
+    do things and inspect, than to get in the zone and do the work. This way, you
+    can make a dent even with part-time effort.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using GPT to write the analysis code too!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Getting data extracted, modified and visualized
+    requires intermediate level Python coding, but now, GPT can do all that for you
+    much faster, if not with higher quality. Use it!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following picture, I illustrate all the various steps (in green font)
+    for which code was needed to be written to transform the data and then call the
+    GPT API to extract insights from the ticket details. The best part is that I didn’t
+    have to write this code from scratch. I used GPT to actually write it for me!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/adeb7281b8e58274d3dda1229ac9eb41.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*All the steps involved for LLM-based ticket analysis*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How I did the coding
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'While I am reasonably decent with Python, using GPT to write code makes me
+    at least 3x better. I used a very rudimentary method in writing code through GPT:
+    I didn’t use it to execute any code. I just told GPT what the data looked like
+    and asked it to write code for me. I asked GPT to liberally insert print statements
+    to print out variables at different points in the code. Then I copied that code
+    in a Jupyter Notebook on my laptop and executed it there. For example, my prompt
+    would be something like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Me:** *Here are all the files I will use in my analysis. I’ll enumerate them
+    and call them by their number in the prompt.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*1\. “All Interacted Tickets.xlsx”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*2\. “Copy of Ticket Dump — Received from Ops.xlsx”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*3\. “verifying_accurate_list_of_ops_people_supporting_my_space.xlsx”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*They are all in the ../data/ directory.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Write python code to pull in files 1, 2, and 3 into pandas dataframes. Ignore
+    all worksheets in any file which have the word pivot in them but pull in the data
+    for the rest. Name the dataframes in snake case using the text in each of the
+    worksheet itself in each of the excel files….*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, GPT would spit out code, such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I would then take this code and run it locally. If there was an error, I would
+    paste the output (including the print statement output) into the *“same”* chat
+    as it preserves memory, and it was ‘mostly’ able to fix my issues. However, in
+    some cases, GPT would get stuck (which you can recognize when it keeps recommending
+    the same solution to an issue), I would start to interrogate it with more questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Me:** *what is df = df[1:] doing*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GPT:** *The line df = df[1:] is used to drop the first row of the dataframe,
+    which is typically the header row when the Excel file is read….*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Me:** *df = df[1:] is incorrect, I don’t want you to drop the first row.
+    this is in fact the row you want to use for the header of each dataframe.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, if you develop code using GPT out-of-band like I did, a moderate
+    knowledge of Python is useful to break through some code issues with GPT since
+    it is pretty much blind to the context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note that if you use multi-agent frameworks, there is a chance that the agents
+    would bounce the code off of each other and resolve these defects automatically.
+    In a future post, I will be showing my local environment setup for data engineering
+    and analytics which shows how to set up this multi-agent framework on your laptop.
+    Please let me know in the comments if this would be of interest.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step by Step approach on operational ticket analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I came up with the following steps after several iterations and ‘missteps’!
+    In other words, if I had to redo this analysis all over again, I would follow
+    the following structure to streamline the process. So, I present this to you so
+    you can reap the benefits. You’re welcome!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Filter out relevant tickets'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *If metadata is unreliable, then filtering tickets
+    related to your domain based on the support engineers who worked them is your
+    best option.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7f3078578aa1e40a041c4f224d7add9b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Filter out tickets for your team*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (You only need this step if you work in a medium to large organization and are
+    one of many teams which leverage a shared operations team)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reducing the working set of tickets to what is pertinent to just your department
+    or team is an important filtering step that must be taken when you have a significant
+    number of operational tickets being worked on in your firm. You will be sending
+    these tickets through LLMs, and if you’re using a paid service like GPT4, you
+    want to only be sending what is relevant to you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, deducing the working set of tickets is a problem when you have poor
+    metadata. The support engineers may not have been instructed to mark which teams
+    the tickets belonged to, or did not have good ticket categories to select from,
+    so all you have to work with is some free form data and some basic “facts” that
+    automatically got collected for these tickets. These facts range from who created
+    the ticket, who owned it, timestamps associated with ticket creation, state change
+    (if you’re lucky) , and ticket closure. There is other “subjective” data that
+    likely exists as well, such as ticket priority. It’s fine to collect it, but these
+    can be inaccurate as ticket creators tend to make everything they open as “urgent”
+    or “high priority”. In my experience deriving the actual priority through LLMs
+    is often more neutral thought it that still can be error-prone, as covered later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**So, in other words, stick to the “facts”.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Amongst the “facts” that typically help you reduce the working set are the names
+    of the support engineers that created and/or worked the ticket. Since support
+    engineers also specialize in specific domains (data technologies vs CRM vs workday
+    etc) the first step to take is to work with the support managers and identify
+    the names of all the support engineers who work on the tickets associated in your
+    domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, using an identifiable key which, such as their work email address, you
+    can filter the morass of tickets down to the subset germane to your department
+    and pull down the “fact” metadata associated with those tickets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Completing this step also gives you your first statistic: How many tickets
+    are getting opened for my space over a period of time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Extracting the “description” field and other metadata'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *While a ticket creator can get much metadata wrong,
+    she can’t afford to mess up the description field because that is the one way
+    she can communicate to the support team her issue and its business impact. This
+    is perfect, as making sense of free flow data is GPT’s specialty. Therefore, focus
+    on extracting the description field and other factual “hard to mess up data” like
+    ticket start and end time etc.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/025260409e2575cca5cc8790ed05b061.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Enrich the filtered tickets with metadata, especially the Description field*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most ticketing systems like Jira Service Management, Zendesk, Service Now etc
+    allow you to download ticket metadata, including the long, multi-line description
+    field. (I wasn’t as lucky with the homegrown system we use at my work). However,
+    almost all of them have a maximum number of tickets that can be downloaded at
+    one time. A more automated way, and the route I took, was to extract this data
+    using an API. In this case, you need to have the curated set of tickets that were
+    worked on by the support engineers supporting your teams from Step1, and then
+    loop over each ticket, calling the API to pull down its metadata.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some other systems allow you to issue SQL (or SOQL in case of Salesforce products)
+    queries through an ODBC-like interface which is cool because you can combine step
+    1 and step 2 together in one go using the WHERE clause. Here’s an example pseudo-code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: You get the idea…
+  prefs: []
+  type: TYPE_NORMAL
+- en: Save this data in MS-Excel format and store it on disk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Why MS-Excel****? I like to “serialize” tabular data into MS-Excel format
+    as that removes any issues with escaping or recurring delimiters when pulling
+    this data into Python code. The Excel format encodes each data point into its
+    own “cell” and there are no parsing errors and no column misalignment due to special
+    characters / delimiters buried inside text. Further, when pulling this data into
+    Python, I can use Pandas (a popular tabular data manipulation library) to pull
+    the Excel data into a dataframe using its simple excel import option*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Converting data into a GPT-friendly format (JSON)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *JSON is human readable, machine readable, error-safe,
+    easily troubleshot, and easily manipulated with the least error by GPT. Further,
+    as you enrich your data you can keep hydrating the same JSON structure with new
+    fields. It’s beautiful!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*The above snippet shows a sample JSON-ified ticket metadata with ticket number
+    as key, pointing to an object containing further key/value metadata. There would
+    be lots of these types of JSON blocks in the file, one for each ticket.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After some hit and trial iterations, I realized the most efficient way for GPT
+    to write data processing code for me was to convert my data into a json format
+    and share this format with GPT to operate on. There is nothing wrong with shoving
+    this data into a pandas data frame, and it may even be easier to do that step
+    to efficiently process, clean and transform this data. The big reason why I have
+    landed on eventually converting the final data set into JSON is because sending
+    tabular data into a GPT prompt is kludgy. It is hard to read for humans and also
+    introduces errors for the LLM as explained below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you’re introducing tables into a prompt, it has to be done through a comma-separated-value
+    (csv) format. There are two problems with that
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since there can be commas inside the text as well, you have to further escape
+    those commas, by putting the text inside double quotes (for example, “text one”,
+    “text, two”, “test \“hi!\”” . That introduces another problem:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: what if you have double quotes (“) inside that text block. Now you have to further
+    escape those double quotes. Matching separating these values into separate columns
+    invariably brings issues.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'And yes, while you have to escape double within JSON too (eg “key”: “value
+    has \”quotes\””) , there are absolutely no issues in aligning this value to a
+    column since the “key” uniquely identifies that. The column alignment can go off
+    in some edge cases in a csv format, and then it becomes very hard to troubleshoot
+    what went wrong.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another reason for using JSON is that you can cleanly see and differentiate
+    when you augment your metadata through GPT in future steps; it just adds more
+    key value values horizontally down. You could do that in a table too, but that
+    mostly requires a scroll towards the right in your IDE or notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Pro-tip:*** *In a future step, you will be sending this data into GPT, and
+    will ask it to return multiple fields separated by a delimiter, such as “|”. Therefore,
+    this is a good time to remove any occurrence of this delimiter from the free-form
+    field that you are passing into the JSON format. You don’t want to risk GPT sending
+    “|” out in the field itself*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Enhancing data using simple techniques (aka Basic Feature Engineering)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Simple mathematical analysis like, time deltas,
+    averages, standard deviations can easily, and more cheaply, be done using basic
+    coding, so get GPT to write code to do that and run that code locally, instead
+    of sending GPT the data to do the math for you. Language models have been shown
+    to make mathematical mistakes, so best to use them for what they’re good for.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we can enhance the ticket metadata by aggregating some of the basic information
+    in it. This is a pre-step which is better done with some simple code instead of
+    burning GPT credits for it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, we calculate the ticket duration by subtracting CreatedTime from
+    ClosedTime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aeb4719e96d239cba4db56479bca4677.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*left to right a JSON showing as getting hydrated through basic data aggregation/enhancement*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 6: The Main Entree: GPT-driven data enhancement (enhanced Feature Engineering)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we come to the main entree. How to use GPT to transform raw data and derive
+    sophisticated and structured metadata from which insights can be extracted. In
+    the world of data science, this step is called Feature Engineering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6.1: Pre-processing: Obfuscate sensitive information (optional)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Get GPT to use open source anonymizer libraries
+    and develop code to anonymize the data before you send it to a public API service.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ac37bfa07b5d49b68c3675ad9d33a925.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Kyle Glenn](https://unsplash.com/@kylejglenn?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step applies to you in case you are using openAI and not a local open source
+    LLM where the data stays on your laptop. In a future post, I will be showing my
+    local environment setup for data engineering and analytics which shows an open-source
+    LLM option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the firm I work in, we have a safe proxy gateway both to openAI as well as
+    internally trained LLMs,and it can mask Privately Identifiable Information (PII)
+    and operates the Open AI within a Trusted boundary. This is convenient because
+    I can send all internal information to this proxy and enjoy the benefits of openAI
+    cutting models in a safe way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, I realize not all companies are going to have this luxury. Therefore,
+    I’m adding an optional step here to obfuscate personally identifiable information
+    (PII) or other sensitive data. The beautiful part of all this is that GPT knows
+    about these libraries and can be used to write the code which obfuscates the data
+    too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I evaluated five libraries for this purpose, but the critical feature I was
+    looking for was the ability to convert sensitive information to anonymous data,
+    and then be able to re-convert it back as well. I found only the following libraries
+    which have this capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Microsoft Presidio [[link](https://github.com/microsoft/presidio)] (uses the
+    concept of entity mappings)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Gretel synthetics [[link](https://github.com/gretelai/gretel-synthetics)] (uses
+    the concept of “Tokenizer)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Out of these two, Presidio was my favorite. I continue to be impressed to see
+    the amount of “high quality” open source contributions Microsoft has made over
+    the last decade. This set of python libraries is no different. It has the capabilities
+    of identifying PII type data out of the box, and to customize and specify other
+    data which needs to be anonymized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'original text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Anonymized test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This can be sent to GPT for analysis. When it returns the results, you run
+    that through the mapping to de-anonymize it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Entity mappings*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Using Entity mappings the text can be de-anonymized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*de-anonymized text:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: I recommend checking out this [notebook](https://github.com/microsoft/presidio/blob/main/docs/samples/python/pseudonomyzation.ipynb),
+    which walks you on how to implement this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that apart from PII, other information that may need to be obfuscated is
+    systems information (IP addresses, DNS names etc) and database details like (names,
+    schemas etc)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have a mechanism to anonymize sensitive data, the next step was
+    to create a high quality prompt to run on this data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6.2 Pre-processing: Sanitize the input data'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Be thoughtful in choosing an output delimiter, as
+    certain special characters hold “meaning” in language models. Then, you can feel
+    secure in sanitizing the raw input by removing the delimiter you chose.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Problem:** When asking a text based interface, like an LLM, to return tabular
+    data, you have to tell it to output the data separated by delimiters (e.g. csv,
+    or tsv format). Suppose you ask GPT to output the summarized data (aka “features”)
+    in comma separated values. The challenge is that the input ticket data is raw
+    and unpredictable, and someone could have used commas in their description. This
+    technically should not have been a problem since GPT would have transformed this
+    data and thrown out the commas coming into it, but there was still a risk that
+    GPT could use part of the raw data (which included commas) in its output, say
+    in the one-liner summary. The experienced data engineering folks have probably
+    caught on to the problem by now. When your data values themselves contain the
+    delimiter that is supposed to separate them, you can have all sorts of processing
+    issues.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some may ask: Why don’t you escape all these by encapsulating the value in
+    double quotes. E.g.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“key” : “this, is the value, with all these characters !#@$| escaped” .*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s the issue with that. The user could have input double quotes in their
+    data too!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“key” : “this is a ”value” with double quotes, and it is a problem!”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yes, there are ways in solving this issue too, like using multi line regular
+    expressions, but they make your code complicated, and make it harder for GPT to
+    fix defects. So the easiest way to handle this was to choose an output delimiter,
+    which would have the least impact in losing data context if scrubbed from the
+    input, and then scrub it out of the input data!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I also played around with delimiters that would sure shot not be in the input
+    data like |%|, but I quickly realized that these ate up the output token limits
+    fast, so this was out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are a few delimiters I tested
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aca1199ad8e405e8afb806caefa6ca38.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the end, I ended up selecting the pipe “|” delimiter as this is not something
+    most stakeholders used when expressing their issues in the ticket description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After this, I got GPT to write some extra code to sanitize each ticket’s description
+    by removing “|” from the text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.3 — Prompt Performance tuning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Before running the GPT data analysis prompt, evaluate
+    its performance against a set of ticket descriptions with known output, fine tune
+    the prompt and iterate until you are getting the maximum performance scores.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/af718fc5daecca0a49290beed5fec94c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: iteratively improving the prompt using measures
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Goal:** To have GPT read the ticket description written by the customer and
+    just from that, derive the following metadata which can then be aggregated and
+    visualized later:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Descriptive title summarizing the issue
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Business Impact*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ticket Severity*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ticket Complexity
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Impacted stakeholder group
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Owning team
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ticket category
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '** based on impact and urgency if provided by customer*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Approach:** The way I worked on sharpening the main prompt was to'
+  prefs: []
+  type: TYPE_NORMAL
+- en: sample a few control tickets,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: manually classify each of them the same way I wanted GPT to do them (by Category,
+    Complexity, Stakeholder (Customer) group etc),
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: run these control tickets through a designed prompt GPT,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: cross-compare GPT results against my own manual classification,
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: score the performance of GPT’s classification against each dimension, and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: improve the GPT prompt based on whichever dimension scored lower in order to
+    improve it
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This gave me important feedback which helped me sharpen my GPT prompt to get
+    better and better scores against each dimension. For the final prompt, check out
+    [Appendix: The GPT prompt to process ticket descriptions](https://docs.google.com/document/d/1-GEMcOa0OF3-rLsVP6F1ZgVfMYcEjsltmbGIIjxbEC4/edit#heading=h.4k28p1gr2x2r).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the details around this metadata derived from raw ticket description,
+    and the overall performance scores after multiple iterations of fine-tuning the
+    prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ceb381d6fdc2ae2439dc700557c5238d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLM Performance on metadata creation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s my rationale on why certain dimensions scored low despite multiple turns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Complexity:** I did run into a challenge when scoring “Complexity” for each
+    ticket, where GPT scored the complexity of a ticket much higher than it was, based
+    on its description. When I told it to score more aggressively, the pendulum swung
+    the other direction, and, like a dog trying to please its owner, it started to
+    score complexity much lower, so it was unreliable. I suspect the out-of-the-box
+    behavior of scoring complexity higher than it is supposed to be is because of
+    the current state of the art GPT capabilities. I used GPT4, which is considered
+    to be a smart high school student, so naturally a highschool student would score
+    this complexity higher. I suspect that future versions of these frontier models
+    would bring college level and then phD level abilities, and we would be able to
+    more accurately measure the complexity of such tasks. Alternatively, to improve
+    even GPT4 complexity scoring analysis, I could have used the “few-shot” learning
+    technique here to give some examples of complexity which may have improved the
+    performance score for this dimension.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Severity:** While I asked GPT to use the impact vs urgency matrix to score
+    severity, GPT had to rely on whatever the stakeholder had provided in the ticket
+    description, which could be misleading. We are all guilty of using words designed
+    to provoke faster action, when we open internal tickets with IT. Further, the
+    stakeholder didn’t even provide any impact detail in the ticket description in
+    a non-trivial amount of cases, which lead GPT to select an erroneous severity
+    as well.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Despite some metadata dimensions scoring low, I was pleased with the overall
+    output. GPT was scoring high in some critical metadata like title, and category,
+    and I could run with that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prompt was in good shape, but I was about to run into an interesting GPT
+    limitation, its “forgetfulness”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.4 — Figuring out the limits of GPTs forgetfulness
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *When sending in contextually* **unrelated** *chunks
+    of data (such as many ticket descriptions) into a GPT prompt, the upper processing
+    limit can be much less than what you get by stuffing the maximum chunks allowed
+    by input token limit. (In my case this upper limit ranged between 20 to 30). GPT
+    was observed to consistently forget or ignore processing beyond this limit. Identify
+    this through hit and trial, stick to a number 10% below that limit to avoid data
+    loss.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4904abf7add8a68f0b719cd9d581f78d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Pierre Bamin](https://unsplash.com/@bamin?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Humans can keep 5–7 unrelated things in our prefrontal cortex, and it turns
+    out GPT can keep 30–40 unrelated things, no matter how big its context window.
+    I was only really sending the ticket number and description. The rest of the data
+    did not require any fancy inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since I had almost 3000 tickets for GPT to review, my original inclination was
+    to try to maximize my round trip runs and “pack” as many case descriptions I could
+    into each prompt. I came up with an elaborate methodology to identify average
+    token size based on the number of words (as token is a sub-word, in the transformer
+    architecture), and saw that I could fit around 130 case descriptions in each prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But then I started seeing a weird phenomena. No matter how many ticket descriptions
+    I sent into GPT to process, it consistently only processed just the first 20 to
+    30 tickets! GPT appeared to not have the capacity to handle more than this magic
+    number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8e6ee9426c5b24d82e83bc9a321cd36.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This made me change my strategy and I decided to decrease the ticket batch size
+    to maximum 10–12 tickets for each API call, based on the word count for that chunk,
+    a little below the 20–30 upper limit. While this approach certainly increased
+    the number of calls, and therefore prolonged the time for the analysis, it ensured
+    that no tickets got dropped for processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: When reviewing this with an AI architect in my firm, he did mention that this
+    is a recently observed phenomena in GPT. The large input contexts only work well
+    when you have contextually related data being fed in. It does break down when
+    you are feeding disparate chunks of information into GPT and asking it to process
+    completely unrelated pieces of data in one go. This is exactly what I observed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With an optimal ticket batch size of 10–12 tickets identified and a performant
+    prompt created, it was time to run all the batches through the prompt..
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6.5 Show time! Running all the tickets through GPT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *GPT can analyze tickets in hours when the same amount
+    can take weeks or months by humans. Also it’s extraordinarily cheaper, though
+    there is an error rate associated with GPT.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I provided GPT with the JSON format to write me code which did the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load the JSON data into a dictionary
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Iterate 10–12 tickets at a time, concatenating the GPT analysis prompt with
+    these tickets into the FULL GPT prompt, separating each ticket/description tuple
+    by ###'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sending the full prompt to the GPT API (For work, I called a safer internal
+    wrapper of this same API that my firm has built, which has security and privacy
+    embedded into it, but by using the obfuscator step earlier, you can just as safely
+    use the external GPT API.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Save the output, which came out as a pipe-separated format by concatenating
+    that into a file on disk.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running the de-anonymizer, if obfuscation was done earlier. (I didn’t need to
+    write this step due to the internal GPT wrapper API my firm has built)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Convert the output into the original JSON file as well.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Save the JSON file on disk after the full run is completed*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Print some visible queues on how many tickets had been processed
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Time some states for each API call around text processed, number of tickets,
+    start and end time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Why saving to disk after a good run is pragmatic:** *These are costly runs,
+    from a time perspective more than a money perspective. So after a successful run
+    is completed, it is wise to serialize (save) this data on this disk, so that future
+    analysis can be run on saved data and this code block in the Jupyter notebook
+    doesn’t have to be repeated. In fact, after a successful run, I commented out
+    the whole code block within my notebook, so that if I ran the full notebook start
+    to finish, it would just skip this expensive step again and instead load the JSON
+    data from disk into memory and continue on with the analysis.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s a sample output of the fully hydrated JSON. The blue entries were metadata
+    that GPT extracted from the description field
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/12724fc1e5db3af567ce6f798edb3710.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Structured metadata that GPT came up from the raw information hydrated back
+    in JSON format
+  prefs: []
+  type: TYPE_NORMAL
+- en: I ran about 3000 tickets through this cycle, and it completed in about 2.95
+    hours. 👏
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/14959c841756e19355fd7e58c3c3ea63.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Nagara Oyodo](https://unsplash.com/@nagaranbasaran?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Just to give you a comparison point on how long this would have taken if I
+    had employed human beings for this work: I had a similar experience to draw from
+    2 years ago (aka the pre-GenAI era). I had inherited an Operations team and there
+    was poor metadata in the tickets too. I needed to get situational awareness, so
+    I had to sanction 2 of my senior engineers full time for a month to laboriously
+    and meticulously go through 1500 ticket descriptions and classify them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contrast this with GPT. Even with the smaller batch size of 10-15 tickets per
+    API call, GPT did 2800 tickets in 2.95 hours! Yes, while there was an error rate
+    of 10% with GPT, it still analyzed **twice as more** tickets in 3 hours than 2
+    human beings did in 1 month.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So the time savings is clearly insane, but what about the cost comparison?
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPT4 vs human analysis cost comparison
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I asked GPT to help me with the cost comparison. Note I compared human labor
+    for 2 months to match the ticket count the GPT analyzed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt:** how much does gpt4 cost if I use its API for 2.95 hours, compared
+    to 2 senior IT software engineers one based out of the Midwest and another working
+    from India, working full time on the same project for 2 months (excluding weekends).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Salary Estimates:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Midwest (USA) Senior IT Software Engineer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Average annual salary: $120,000 (this can vary depending on the exact location
+    and company, but it’s typically lower than Silicon Valley).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Monthly salary: $120,000 / 12 = $10,000.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'India-based Senior IT Software Engineer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Average annual salary: $30,000 (this can vary, but it’s generally much lower
+    than in the USA).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Monthly salary: $30,000 / 12 = $2,500.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Cost Calculation for 2 months:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Midwest Engineer: 2 month salary: $20,000.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'India-based Engineer: 2 month salary: $5,000.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Total cost for both engineers: $25,000'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**GPT-4 API cost for 2.95 hours**: ~$6.64 assuming GPT-4–8k pricing and the
+    given token usage rate. (GPT4-o or GPT4-o mini would have been even more cheaper.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even if you added in the cost of the 20 hours I worked on this project over
+    7 days, the overall cost comparison still comes out much better. And what’s more,
+    this work is now reproducible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***So basically, using $7 and 3 hours, GPT does the same analysis humans would
+    have taken 1 month and cost $25,000 to complete***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🎤 Mic drop!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad6f00a9f6688f5826dc72d7c74a0fda.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Andrew Gaines](https://unsplash.com/@shotbygaines?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 7 : Extracting insights from the GPT-derived metadata'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Once you have extracted useful metadata using GPT,
+    turn around and brainstorm with GPT what kind of KPIs you can graph out of it.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: While there were already things I was curious to find out, I also brainstormed
+    with GPT to give me more ideas. Again, using a JSON format was very handy, I just
+    passed an anonymized sample for one ticket to GPT and asked it, *”Based on what
+    you see over here, give me some ideas on what type of graphs I can plot to derive
+    insights around my operations”*
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the end here are the ideas that we both came up with. I took some, and ignored
+    the others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8a9ccaee2d28fe3df5b62eba6bbd0fc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Brainstorming with GPT on what KPIs to visualize..
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 8 : The visualization'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Bottom-line up front:** *Thanks to GPT you can write Python code to create
+    graphs, instead of transforming data in Python and moving this data out to a visualization
+    tool. This helps keep all your analysis streamlined, version-controlled and self
+    contained in one place.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Historically, a typical pattern in Exploratory data analysis (EDA) is to extract,
+    and transform the data in Python and then store it in a file or a database and
+    then connect Tableau, Power BI , or Looker to this data to create graphs using
+    it. While having long-living dashboards in these visualization products is absolutely
+    the way to go, using these products for doing early-stage EDA can be a high friction
+    process which introduces delays. It also becomes hard to manage and match different
+    versions of the graphs with the different versions of the data transformations
+    done. However, following this two-step pattern was a necessary evil historically
+    for two reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (Pull) These visualization tools are intuitive and have a drag and drop interface,
+    meaning you can experiment and create graphs very fast.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: (Push) The de facto Python library for generating graphs is matplotlib. I don’t
+    know about you, but I find matplotlib a very unfriendly library (unlike the intuitive
+    ggplot library in R, which is a joy to use). Seaborn is better, but still, its
+    more work than the visualization tools.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: However, now that GPT can write all the matplotlib (or seaborn, or plotly,)
+    code for you, there is less of a need to move your work to a visualization tool
+    at the end. You can stay within the same Python Notebook from start to finish,
+    and that’s exactly what I did!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I did check Tableau to verify if some of the moderately complex aggregation
+    logic was correctly being computed in Python (and in fact this helped me find
+    a bug) but by and large, all the graphics I needed were built using scatter, bar
+    , line , histogram and pie plots within Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here are some examples of these graphs and tables. The text and numbers are
+    of course anonymized but the intent here is to show you the kind of insights you
+    can start extracting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***The goal for any insight is to drive deeper questions and eventually take
+    meaningful action grounded in data, which eventually results in creating value.***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The insight is what gets you curious about why the system is behaving the way
+    it is, so you can attempt to improve it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3b78ee7b1787c70a828823463ed9fd3a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How do the complexity of tickets exactly contribute to the time duration of
+    that ticket and which groups of tickets to focus on to reduce their time duration
+    and improve customer satisfaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d310bc3496219a6fb55a123c3d0f816.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Identify If there is a relation with ticket duration and the support engineer
+    working on it, so you can suss out behavioral or training issues
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b9ed493745f54112106775e817ac0d06.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Which engineering team receives the largest number of tickets and how is that
+    trend progressing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working on service requests (pure operations work) is a hidden cost to quantify
+    since it needs to be deducted from an engineering team’s sprint velocity. In absence
+    of this data, engineering teams typically allocate a ‘finger in the air’ % of
+    their time to operations work, which we all know is blunt and varies from team
+    to team. With this type of analysis you can more accurately carve capacity for
+    such operations work while not compromising the team’s product commitments or
+    burning the individuals out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ae3125d560c0e72596b89927b47ad90.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What are the trends of these tickets by category? Do we see more timeliness
+    issues vs accuracy problems?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e81cba556a2f44af96f59fbf5107e277.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Which interfaces do our customers use to open the tickets the most so we can
+    streamline and optimize those areas, perhaps inserting helpful articles for self-service.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e584b62b59d366fe872b2c231094be9e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How many tickets are 1 day old, and are there any patterns in the ops personnel
+    where some are cherry picking a lot of these simple cases than others. This can
+    help with balancing resource management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5570ade930bda38719a96ed1984c9ce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How many tickets were truly low complexity issues such as data access or systems
+    access, things for which automation and self-serve options can be put in place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future enhancements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Deeper Analysis using GPT’s Data Science capabilities:** This analysis, however
+    very insightful, was just at a surface level just visualizing the data. There
+    can be more sophisticated work that can be done by using linear or logistic regression,
+    ANOVA for predictive analysis, or using clustering methods (like KNN) to tease
+    out other patterns in the data.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Multi-Agent Framework to accelerate and improve quality:**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: I had to do a lot of rounds back and forth with GPT to write the actual code.
+    While it was still significantly faster (7 days part time) than what would have
+    taken me writing this from scratch (20-30 days full time, which means “never”!),
+    I do think using LLM-backed AI agents which can critique each other’s output and
+    come up with better ways. (This is something I’m actively experimenting with at
+    work and initial experiments are VERY encouraging. Will write more on this in
+    the future)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GPT was really blind when it came to recommending code. I copied code from it
+    and ran it locally in my jupyter notebook. A better way would have been to have
+    a MAF setup with an environment agent (perhaps powered by a [container](https://microsoft.github.io/autogen/docs/tutorial/code-executors)
+    perfectly set up with my required libraries etc), and then the AI coder agent
+    write the code, execute it , find defects, iterate and fix it. I imagine that
+    would have shaved over 50% of my development time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Breaking the analysis prompt up: While I ended up using the one mega prompt
+    to run the analysis, if I were using some chained AI agent mechanism, I could
+    have broken the analytics tasks out to different agents, powered them with different
+    LLM endpoints, with different [temperature](https://www.hopsworks.ai/dictionary/llm-temperature)
+    settings each. The lower the temperature the more precise and less creative the
+    LLM is. For example, I learnt the hard way that with the default temperature setting,
+    GPT ended up making minor changes to the categories for each ticket (like “Data
+    Completeness” or “completeness”) which just ended up creating more post-processing
+    clean-up annoying work for me.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Heck, I could have even gotten large chunks of this very document written for
+    me by a creative AI agent in my multi-agent team!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Closing thoughts from a Product Leader on Operational Tickets
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Our customers experience our products through how they interact with them day
+    to day. Through tickets, service requests they are constantly sending us signals
+    on what’s working and what’s not working, forming an impression about us by seeing
+    how receptive we are to these signals. Oftentimes though, we are fixated on product
+    development, major transformational programs underway, tracking and monitoring
+    the next flashy thing being built in the kitchen and ignore these operational
+    signals at our peril. Sure, being responsive to major incidents is the job of
+    every accountable leader, and good things emerge by working on action plans that
+    come out through those Root Cause Analysis (RCA) calls. However, I would argue
+    that there is a large quantity of moderate severity issues, and service requests
+    that our customers are opening which often goes ignored just because of its sheer
+    volume. And when, in earnest, you open this treasure trove of ticket data, it
+    is often so overwhelming and uncurated that your head starts spinning! You risk
+    walking away with a simplistic and incomplete mental model based on summary reports
+    created by someone else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My philosophy is that, as a leader, you must create the time and capabilities
+    to dig your fingers in the dirt. That is the only way you get a true feel of how
+    your business operates. This used to be very hard to do before the GenAI era.
+    Even leaders capable of doing data analysis couldn’t afford taking time away from
+    their day job. Well, not anymore!
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this article attempts to give you some of the capabilities to jump start
+    your genAI powered analysis journey into operational tickets, only you, my dear
+    reader, can create the time and space to act on them. What’s more, I’m hopeful
+    that some of the insights you’ve learnt in effectively using LLMs to turbocharge
+    your analysis will be transferable in many other areas beyond operational ticket
+    analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Appendix: A fine-tuned version of the GPT prompt'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What follows below is a scrubbed out version of the most performant prompt I
+    used to conduct the ticket analysis. I replaced our internal data quality dimensions
+    with those published by Data Management association (DAMA). If your firm has a
+    data quality policy, I encourage you to use those standards here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Below are examples of cases along with their descriptions, each separated
+    by ###. These are related to data-related technologies. Your task is to carefully
+    review each case, extract the necessary 7 data points, and present the results
+    in the specified format. Detailed instructions are as follows:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Title:*** *For each case, create a concise and descriptive title based on
+    the content of the description, ensuring it is 300 characters or less.*'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***Impact:*** *From the description, summarize the impact in a brief one-liner.
+    If the impact isn’t directly stated or implied, simply write “Impact Not Provided.”*'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***Severity:*** *Assign a severity level to each case using an urgency vs impact
+    matrix approach, considering both the urgency of the issue and its impact on the
+    system:*'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***S1:*** *High urgency and high impact, possibly causing system outages or
+    making the application unusable.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***S2:*** *High urgency but with a moderate impact or moderate urgency with
+    a high impact, affecting multiple users.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***S3:*** *Low urgency with a moderate or low impact, with minimal user disruption.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***S4:*** *Low urgency and low impact, often related to general requests (Note:
+    Access issues are not generally S4).*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Only one severity level should be assigned per case.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*4\. Complexity: Assess the complexity of the case based on your expertise
+    in the data field:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***High Complexity***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Medium Complexity***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Low Complexity***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Typically, access-related cases are low complexity, but use your judgment
+    based on the description.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***5\. Line of Business (LOB):*** *Determine the relevant line of business
+    based on the description. The options are:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Finance***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Marketing***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Sales***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Customer Support***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***HR***'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Miscellaneous:*** *If you can’t clearly identify the LOB.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Choose only one LOB per case. If multiple are mentioned, pick the most prominent.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***6\. Team:*** *Assign the appropriate team based on the description. The
+    options are:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***CDI (Central Data Ingest):*** *Any case mentioning CDI or “Central Data
+    Ingest team” should be classified under this team exclusively.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Data Engineering:*** *Cases related to data pipelines, such as extraction,
+    transformation, or loading.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Data Platform:*** *Any issues related to data platforms, including data
+    visualization or DEP.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Only one team should be assigned per case.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***7\. Ticket Category:*** *Finally, categorize the ticket based on the description,
+    using a simple 1–2 word label. Use the DAMA data quality dimensions for this classification.
+    The categories should include, but aren’t limited to:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Completeness:*** *Ensuring all necessary data is included.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Uniqueness:*** *Verifying data entries are unique and not duplicated.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Timeliness:*** *Ensuring data is up-to-date and available as expected.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Accuracy:*** *Confirming data is correct and conforms to its true values.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Consistency:*** *Ensuring data is uniform across different datasets.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Validity:*** *Ensuring data adheres to required formats or values.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Access:*** *Related to requests for accessing data or systems.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*You may create 2–3 other categories if needed, but keep them concise and consistent*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Here is an example of the output format. It should be a list with each item
+    separated by a pipe (|):*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*16477679|Descriptive title under 300 characters|Brief impact description|S2|High
+    Complexity|Finance|Data Engineering|Timeliness'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 16377679|Another descriptive title|Another brief impact description|S1|High
+    Complexity|Sales|Data Platform|Accuracy*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author
+  prefs: []
+  type: TYPE_NORMAL

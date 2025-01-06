@@ -1,0 +1,475 @@
+- en: 'Doping: A Technique to Test Outlier Detectors'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4?source=collection_archive---------2-----------------------#2024-07-09](https://towardsdatascience.com/doping-a-technique-to-test-outlier-detectors-3f6b847ab8d4?source=collection_archive---------2-----------------------#2024-07-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using well-crafted synthetic data to compare and evaluate outlier detectors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)[![W
+    Brett Kennedy](../Images/b3ce55ffd028167326c117d47c64c467.png)](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------)
+    [W Brett Kennedy](https://medium.com/@wkennedy934?source=post_page---byline--3f6b847ab8d4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3f6b847ab8d4--------------------------------)
+    ·14 min read·Jul 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article continues my series on outlier detection, following articles on
+    [Counts Outlier Detector](https://medium.com/towards-data-science/counts-outlier-detector-interpretable-outlier-detection-ead0d469557a)
+    and [Frequent Patterns Outlier Factor](https://medium.com/towards-data-science/interpretable-outlier-detection-frequent-patterns-outlier-factor-fpof-0d9cbf51b17a),
+    and provides another excerpt from my book [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we look at the issue of testing and evaluating outlier detectors,
+    a notoriously difficult problem, and present one solution, sometimes referred
+    to as *doping.* Using doping, real data rows are modified (usually) randomly,
+    but in such a way as to ensure they are likely an outlier in some regard and,
+    as such, should be detected by an outlier detector. We’re then able to evaluate
+    detectors by assessing how well they are able to detect the doped records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we look specifically at tabular data, but the same idea may
+    be applied to other modalities as well, including text, image, audio, network
+    data, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing and Evaluating other Types of Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Likely, if you’re familiar with outlier detection, you’re also familiar, at
+    least to some degree, with predictive models for regression and classification
+    problems. With these types of problems, we have labelled data, and so it’s relatively
+    simple to evaluate each option when tuning a model (selecting the best pre-processing,
+    features, hyper-parameters, and so on); and it’s also relatively easy to estimate
+    a model’s accuracy (how it will perform on unseen data): we simply use a train-validation-test
+    split, or better, use cross validation. As the data is labelled, we can see directly
+    how the model performs on a labelled test data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, with outlier detection, there is no labelled data and the problem is significantly
+    more difficult; we have no objective way to determine if the records scored highest
+    by the outlier detector are, in fact, the most statistically unusual within the
+    dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With clustering, as another example, we also have no labels for the data, but
+    it is at least possible to measure the quality of the clustering: we can determine
+    how internally consistent the clusters are and how different the clusters are
+    from each other. Using some distance metric (such as Manhattan or Euclidean distances),
+    we can measure how close records within a cluster are to each other and how far
+    apart clusters are from each other.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, given a set of possible clusterings, it’s possible to define a sensible
+    metric (such as the Silhouette score) and determine which is the preferred clustering,
+    at least with respect to that metric. That is, much like prediction problems,
+    we can calculate a score for each clustering, and select the clustering that appears
+    to work best.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With outlier detection, though, we have nothing analogous to this we can use.
+    Any system that seeks to quantify how anomalous a record is, or that seeks to
+    determine, given two records, which is the more anomalous of the two, is effectively
+    an outlier detection algorithm in itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, we could use entropy as our outlier detection method, and can then
+    examine the entropy of the full dataset as well as the entropy of the dataset
+    after removing any records identified as strong outliers. This is, in a sense,
+    valid; entropy is a useful measure of the presence of outliers. But we cannot
+    assume entropy is the definitive definition of outliers in this dataset; one of
+    the fundamental qualities of outlier detection is that there is no definitive
+    definition of outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, if we have any way to try to evaluate the outliers detected by an
+    outlier detection system (or, as in the previous example, the dataset with and
+    without the identified outliers), this is effectively an outlier detection system
+    in itself, and it becomes circular to use this to evaluate the outliers found.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consequently, it’s quite difficult to evaluate outlier detection systems and
+    there’s effectively no good way to do so, at least using the real data that’s
+    available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can, though, create synthetic test data (in such a way that we can assume
+    the synthetically-created data are predominantly outliers). Given this, we can
+    determine the extent to which outlier detectors tend to score the synthetic records
+    more highly than the real records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a number of ways to create synthetic data we cover in the [book](https://www.manning.com/books/outlier-detection-in-python),
+    but for this article, we focus on one method, doping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doping Data Records
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Doping data records refers to taking existing data records and modifying them
+    slightly, typically changing the values in just one, or a small number, of cells
+    per record.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If the data being examined is, for example, a table related to the financial
+    performance of a company comprised of franchise locations, we may have a row for
+    each franchise, and our goal may be to identify the most anomalous of these. Let’s
+    say we have features including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Age of the franchise
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Number of years with the current owner
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Number of sales last year
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Total dollar value of sales last year
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As well as some number of other features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A typical record may have values for these four features such as: 20 years
+    old, 5 years with the current owner, 10,000 unique sales in the last year, for
+    a total of $500,000 in sales in the last year.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We could create a doped version of this record by adjusting a value to a rare
+    value, for example, setting the age of the franchise to 100 years. This can be
+    done, and will provide a quick smoke test of the detectors being tested — likely
+    any detector will be able to identify this as anomalous (assuming a value is 100
+    is rare), though we may be able to eliminate some detectors that are not able
+    to detect this sort of modified record reliably.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We would not necessarily remove from consideration the type of outlier detector
+    (e.g. kNN, Entropy, or Isolation Forest) itself, but the combination of type of
+    outlier detector, pre-processing, hyperparameters, and other properties of the
+    detector. We may find, for example, that kNN detectors with certain hyperparameters
+    work well, while those with other hyperparameters do not (at least for the types
+    of doped records we test with).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, though, most testing will be done creating more subtle outliers. In
+    this example, we could change the dollar value of total sales from 500,000 to
+    100,000, which may still be a typical value, but the combination of 10,000 unique
+    sales with $100,000 in total sales is likely unusual for this dataset. That is,
+    much of the time with doping, we are creating records that have unusual combinations
+    of values, though unusual single values are sometimes created as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When changing a value in a record, it’s not known specifically how the row will
+    become an outlier (assuming it does), but we can assume most tables have associations
+    between the features. Changing the dollar value to 100,000 in this example, may
+    (as well as creating an unusual combination of number of sales and dollar value
+    of sales) quite likely create an unusual combination given the age of the franchise
+    or the number of years with the current owner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With some tables, however, there are no associations between the features,
+    or there are only few and weak associations. This is rare, but can occur. With
+    this type of data, there is no concept of unusual combinations of values, only
+    unusual single values. Although rare, this is actually a simpler case to work
+    with: it’s easier to detect outliers (we simply check for single unusual values),
+    and it’s easier to evaluate the detectors (we simply check how well we are able
+    to detect unusual single values). For the remainder of this article, though, we
+    will assume there are some associations between the features and that most anomalies
+    would be unusual combinations of values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Working with Doped Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most outlier detectors (with a small number of exceptions) have separate training
+    and prediction steps. In this way, most are similar to predictive models. During
+    the training step, the training data is assessed and the normal patterns within
+    the data (for example, the normal distances between records, the frequent item
+    sets, the clusters, the linear relationships between features, etc.) are identified.
+    Then, during the prediction step, a test set of data (which may be the same data
+    used for training, or may be separate data) is compared against the patterns found
+    during training, and each row is assigned an outlier score (or, in some cases,
+    a binary label).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given this, there are two main ways we can work with doped data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Including doped records in the training data**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'We may include some small number of doped records in the training data and
+    then use this data for testing as well. This tests our ability to detect outliers
+    in the currently-available data. This is a common task in outlier detection: given
+    a set of data, we often wish to find the outliers in this dataset (though may
+    wish to find outliers in subsequent data as well — records that are anomalous
+    relative to the norms for this training data).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing this, we can test with only a small number of doped records, as we do
+    not wish to significantly affect the overall distributions of the data. We then
+    check if we are able to identify these as outliers. One key test is to include
+    both the original and the doped version of the doped records in the training data
+    in order to determine if the detectors score the doped versions significantly
+    higher than the original versions of the same records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also, though, wish do check that the doped records are generally scored among
+    the highest (with the understanding that some original, unmodified records may
+    legitimately be more anomalous than the doped records, and that some doped records
+    may not be anomalous).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given that we can test only with a small number of doped records, this process
+    may be repeated many times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The doped data is used, however, only for evaluating the detectors in this way.
+    When creating the final model(s) for production, we will train on only the original
+    (real) data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we are able to reliably detect the doped records in the data, we can be reasonably
+    confident that we are able to identify other outliers within the same data, at
+    least outliers along the lines of the doped records (but not necessarily outliers
+    that are substantially more subtle — hence we wish to include tests with reasonably
+    subtle doped records).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2\. Including doped records only in the testing data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also possible to train using only the real data (which we can assume is
+    largely non-outliers) and then test with both the real and the doped data. This
+    allows us to train on relatively clean data (some records in the real data will
+    be outliers, but the majority will be typical, and there is no contamination due
+    to doped records).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It also allows us to test with the actual outlier detector(s) that may, potentially,
+    be put in production (depending how well they perform with the doped data — both
+    compared to the other detectors we test, and compared to our sense of how well
+    a detector should perform at minimum).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This tests our ability to detect outliers in future data. This is another common
+    scenario with outlier detection: where we have one dataset that can be assumed
+    to be reasonable clean (either free of outliers, or containing only a small, typical
+    set of outliers, and without any extreme outliers) and we wish to compare future
+    data to this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training with real data only and testing with both real and doped, we may test
+    with any volume of doped data we wish, as the doped data is used only for testing
+    and not for training. This allows us to create a large, and consequently, more
+    reliable test dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Algorithms to Create Doped Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are a number of ways to create doped data, including several covered
+    in [Outlier Detection in Python](https://www.manning.com/books/outlier-detection-in-python),
+    each with its own strengths and weaknesses. For simplicity, in this article we
+    cover just one option, where the data is modified in a fairly random manner: where
+    the cell(s) modified are selected randomly, and the new values that replace the
+    original values are created randomly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Doing this, it is possible for some doped records to not be truly anomalous,
+    but in most cases, assigning random values will upset one or more associations
+    between the features. We can assume the doped records are largely anomalous, though,
+    depending how they are created, possibly only slightly so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here we go through an example, taking a real dataset, modifying it, and testing
+    to see how well the modifications are detected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, we use a dataset available on OpenML called abalone ([https://www.openml.org/search?type=data&sort=runs&id=42726&status=active](https://www.openml.org/search?type=data&sort=runs&id=42726&status=active),
+    available under public license).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although other preprocessing may be done, for this example, we one-hot encode
+    the categorical features and use RobustScaler to scale the numeric features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We test with three outlier detectors, Isolation Forest, LOF, and ECOD, all available
+    in the popular [PyOD](https://github.com/yzhao062/pyod) library (which must be
+    pip installed to execute).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also use an Isolation Forest to clean the data (remove any strong outliers)
+    before any training or testing. This step is not necessary, but is often useful
+    with outlier detection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an example of the second of the two approaches described above, where
+    we train on the original data and test with both the original and doped data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/592ffaafb6f576b9d48038f97e15cbc7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Here, to create the doped records, we copy the full set of original records,
+    so will have an equal number of doped as original records. For each doped record,
+    we select one feature randomly to modify. If the original value is below the median,
+    we create a random value above the median; if the original is below the median,
+    we create a random value above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, we see that IF does score the doped records higher, but not
+    significantly so. LOF does an excellent job distinguishing the doped records,
+    at least for this form of doping. ECOD is a detector that detects only unusually
+    small or unusually large single values and does not test for unusual combinations.
+    As the doping used in this example does not create extreme values, only unusual
+    combinations, ECOD is unable to distinguish the doped from the original records.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This example uses boxplots to compare the detectors, but normally we would use
+    an objective score, very often the AUROC (Area Under a Receiver Operator Curve)
+    score to evaluate each detector. We would also typically test many combinations
+    of model type, pre-processing, and parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternative Doping Methods
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The above method will tend to create doped records that violate the normal
+    associations between features, but other doping techniques may be used to make
+    this more likely. For example, considering first categorical columns, we may select
+    a new value such that both:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new value is different from the original value
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The new value is different from the value that would be predicted from the other
+    values in the row. To achieve this, we can create a predictive model that predicts
+    the current value of this column, for example a Random Forest Classifier.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'With numeric data, we can achieve the equivalent by dividing each numeric feature
+    into four quartiles (or some number of quantiles, but at least three). For each
+    new value in a numeric feature, we then select a value such that both:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The new value is in a different quartile than the original
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The new value is in a different quartile than what would be predicted given
+    the other values in the row.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For example, if the original value is in Q1 and the predicted value is in Q2,
+    then we can select a value randomly in either Q3 or Q4\. The new value will, then,
+    most likely go against the normal relationships among the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a suite of test datasets
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There is no definitive way to say how anomalous a record is once doped. However,
+    we can assume that on average the more features modified, and the more they are
+    modified, the more anomalous the doped records will be. We can take advantage
+    of this to create not a single test suite, but multiple test suites, which allows
+    us to evaluate the outlier detectors much more accurately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, we can create a set of doped records that are very obvious (multiple
+    features are modified in each record, each to a value significantly different
+    from the original value), a set of doped records that are very subtle (only a
+    single feature is modified, not significantly from the original value), and many
+    levels of difficulty in between. This can help differentiate the detectors well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, we can create a suite of test sets, where each test set has a (roughly estimated)
+    level of difficulty based on the number of features modified and the degree they’re
+    modified. We can also have different sets that modify different features, given
+    that outliers in some features may be more relevant, or may be easier or more
+    difficult to detect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is, though, important that any doping performed represents the type of outliers
+    that would be of interest if they did appear in real data. Ideally, the set of
+    doped records also covers well the range of what you would be interested in detecting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If these conditions are met, and multiple test sets are created, this is very
+    powerful for selecting the best-performing detectors and estimating their performance
+    on future data. We cannot predict how many outliers will be detected or what levels
+    of false positives and false negatives you will see — these depend greatly on
+    the data you will encounter, which in an outlier detection context is very difficult
+    to predict. But, we can have a decent sense of the types of outliers you are likely
+    to detect and to not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Possibly more importantly, we are also well situated to create an effective
+    ensemble of outlier detectors. In outlier detection, ensembles are typically necessary
+    for most projects. Given that some detectors will catch some types of outliers
+    and miss others, while other detectors will catch and miss other types, we can
+    usually only reliably catch the range of outliers we’re interested in using multiple
+    detectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating ensembles is a large and involved area in itself, and is different
+    than ensembling with predictive models. But, for this article, we can indicate
+    that having an understanding of what types of outliers each detector is able to
+    detect gives us a sense of which detectors are redundant and which can detect
+    outliers most others are not able to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is difficult to assess how well any given outlier detector detects outliers
+    in the current data, and even harder to asses how well it may do on future (unseen)
+    data. It is also very difficult, given two or more outlier detectors, to assess
+    which would do better, again on both the current and on future data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are, though, a number of ways we can estimate these using synthetic data.
+    In this article, we went over, at least quickly (skipping a lot of the nuances,
+    but covering the main ideas), one approach based on doping real records and evaluating
+    how well we’re able to score these more highly than the original data. Although
+    not perfect, these methods can be invaluable and there is very often no other
+    practical alternative with outlier detection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images are from the author.
+  prefs: []
+  type: TYPE_NORMAL

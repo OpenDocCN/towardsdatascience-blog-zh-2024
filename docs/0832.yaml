@@ -1,0 +1,468 @@
+- en: 'Pandas: From Messy To Beautiful'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/pandas-from-messy-to-beautiful-b03b0c32f767?source=collection_archive---------2-----------------------#2024-03-31](https://towardsdatascience.com/pandas-from-messy-to-beautiful-b03b0c32f767?source=collection_archive---------2-----------------------#2024-03-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This is how to make your pandas code human readable & bulletproof.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)[![Anna
+    Zawadzka](../Images/bcdd9dfb9faeace44e831c057984bc63.png)](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------)
+    [Anna Zawadzka](https://medium.com/@azawadzka?source=post_page---byline--b03b0c32f767--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b03b0c32f767--------------------------------)
+    ·9 min read·Mar 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/85b2209904b2b7ed17ff3d5b5e960141.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Scripting around a pandas `DataFrame` can turn into an awkward pile of (not-so-)good
+    old spaghetti code. Me and my colleagues use this package a lot and while we try
+    to stick to good programming practices, like splitting code in modules and unit
+    testing, sometimes we still get in the way of one another by producing confusing
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have gathered some tips and pitfalls to avoid in order to make pandas code
+    clean and infallible. Hopefully you’ll find them useful too. We'll get some help
+    from Robert C. Martin's classic “Clean code” specifically for the context of the
+    pandas package. TL;DR at the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dont’s
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s begin by observing some faulty patterns inspired by real life. Later on,
+    we’ll try to rephrase that code in order to favor readability and control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mutability
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Pandas `DataFrames` are value-**mutable** [[2](https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data),
+    [3]](https://realpython.com/python-mutable-vs-immutable-types/) objects. Whenever
+    you alter a mutable object, it affects the exact same instance that you originally
+    created and its physical location in memory remains unchanged. In contrast, when
+    you modify an **immutable** object (eg. a string), Python goes to create a whole
+    new object at a new memory location and swaps the reference for the new one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the crucial point: in Python, objects get passed to the function **by
+    assignment** [[4](https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24),
+    [5]](https://realpython.com/python-pass-by-reference/)**.** See the graph: the
+    value of `df` has been assigned to variable `in_df` when it was passed to the
+    function as an argument. Both the original `df` and the `in_df` inside the function
+    point to the same memory location (numeric value in parentheses), even if they
+    go by different variable names. During the modification of its attributes, the
+    location of the mutable object remains unchanged. Now all other scopes can see
+    the changes too — they reach to the same memory location.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/388fcc4c3aa872d7d1d0775d63fd45ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Modification of a mutable object in Python memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Actually, since we have modified the original instance, it’s redundant to return
+    the `DataFrame` and assign it to the variable. This code has the exact same effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5d40a39701f5dcc10a5cad4a1a5bbbce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Modification of a mutable object in Python memory, redundant assignment removed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Heads-up: the function now returns `None`, so be careful not to overwrite the
+    `df` with `None` if you do perform the assignment: `df = modify_df(df)`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, if the object is immutable, it will change the memory location
+    throughout the modification just like in the example below. Since the red string
+    cannot be modified (strings are immutable), the green string is created on top
+    of the old one, but as a brand new object, claiming a new location in memory.
+    The returned string is not the same string, whereas the returned `DataFrame` was
+    the exact same `DataFrame`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/749363a0bcce3c499a1c18844d6814c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Modification of an immutable object in Python memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The point is, mutating `DataFrames` inside functions has a **global effect**.
+    If you don’t keep that in mind, you may:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: accidentally modify or remove part of your data, thinking that the action is
+    only taking place inside the function scope — it is not,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: lose control over what is added to your `DataFrame` and when it's added, for
+    example in nested function calls.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Output arguments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ll fix that problem later, but here is another `don't` before we pass to
+    `do`'s
+  prefs: []
+  type: TYPE_NORMAL
+- en: The design from the previous section is actually an anti-pattern called **output
+    argument** [1 p.45]. Typically, **inputs** of a function will be used to create
+    an **output** value. If the sole point of passing an argument to a function is
+    to modify it, so that the input argument changes its state, then it’s challenging
+    our intuitions. Such behavior is called **side effect** [1 p.44] of a function
+    and those should be well documented and minimized because they force the programmer
+    to remember the things that go in the background, therefore making the script
+    error-prone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*When we read a function, we are used to the idea of information going in to
+    the function through arguments and out through the return value. We don’t usually
+    expect information to be going out through the arguments. [1 p.41]*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Things get even worse if the function has a double responsibility: to modify
+    the input **and** to return an output. Consider this function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: It does return a value as you would expect, but it also permanently modifies
+    the original `DataFrame`. The side effect takes you by surprise - nothing in the
+    function signature indicated that our input data was going to be affected. In
+    the next step, we'll see how to avoid this kind of design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do’s
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Reduce modifications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To eliminate the side effect, in the code below we have created a new temporary
+    variable instead of modifying the original `DataFrame`. The notation `lengths:
+    pd.Series` indicates the datatype of the variable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function design is better in that it encapsulates the intermediate state
+    instead of producing a side effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another heads-up: please be mindful of the differences between **deep and shallow
+    copy** [[6]](https://realpython.com/copying-python-objects/) of elements from
+    the `DataFrame`. In the example above we have modified each element of the original
+    `df["name"]` `Series`, so the old `DataFrame` and the new variable have no shared
+    elements. However, if you directly assign one of the original columns to a new
+    variable, the underlying elements still have the same references in memory. See
+    the examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can print out the `DataFrame` after each step to observe the effect. Remember
+    that creating a deep copy will allocate new memory, so it’s good to reflect whether
+    your script needs to be memory-efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Group similar operations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Maybe for whatever reason you want to store the result of that length computation.
+    It’s still not a good idea to append it to the `DataFrame` inside the function
+    because of the **side effect** breach as well as the accumulation of **multiple
+    responsibilities** inside a single function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I like the **One Level of Abstraction per Function** rule that says:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*We need to make sure that the statements within our function are all at the
+    same level of abstraction.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Mixing levels of abstraction within a function is always confusing. Readers
+    may not be able to tell whether a particular expression is an essential concept
+    or a detail. [1 p.36]*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Also let’s employ the **Single responsibility principle** [1 p.138] from OOP,
+    even though we’re not focusing on object-oriented code right now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Why not prepare your data beforehand? Let’s split data preparation and the
+    actual computation in separate functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The individual task of creating the `name_len` column has been outsourced to
+    another function. It does not modify the original `DataFrame` and it performs
+    **one task at a time**. Later we retrieve the max element by passing the new column
+    to another dedicated function. Notice how the aggregating function is generic
+    for `Collections`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s brush the code up with the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We could use `concat` function and extract it to a separate function called
+    `prepare_data`, which would group all data preparation steps in a single place,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We could also make use of the `apply` method and work on individual texts instead
+    of `Series` of texts,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s remember to use shallow vs. deep copy, depending on whether the original
+    data should or should not be modified:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reusability
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The way we have split the code really makes it easy to go back to the script
+    later, take the entire function and reuse it in another script. We like that!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is one more thing we can do to increase the level of reusability: pass
+    column names as parameters to functions. The refactoring is going a little bit
+    over the top, but sometimes it pays for the sake of flexibility or reusability.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Testability
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Did you ever figure out that your preprocessing was faulty after weeks of experiments
+    on the preprocessed dataset? No? Lucky you. I actually had to repeat a batch of
+    experiments because of broken annotations, which could have been avoided if I
+    had tested just a couple of basic functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Important scripts should be **tested** [1 p.121, 7]. Even if the script is
+    just a helper, I now try to test at least the crucial, most low-level functions.
+    Let’s revisit the steps that we made from the start:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1\. I am not happy to even think of testing this, it’s very redundant and we
+    have paved over the side effect. It also tests a bunch of different features:
+    the computation of name length and the aggregation of result for the max element.
+    Plus it fails, did you see that coming?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 2\. This is much better — we have focused on one single task, so the test is
+    simpler. We also don’t have to fixate on column names like we did before. However,
+    I think that the format of the data gets in the way of verifying the correctness
+    of the computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3\. Here we have cleaned up the desk. We test the computation function inside
+    out, leaving the pandas overlay behind. It’s easier to come up with edge cases
+    when you focus on one thing at a time. I figured out that I’d like to test for
+    `None` values that may appear in the `DataFrame` and I eventually had to improve
+    my function for that test to pass. A bug caught!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '4\. We’re only missing the test for `find_max_element`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: One additional benefit of unit testing that I never forget to mention is that
+    it is a way of **documenting your code**, as someone who doesn’t know it (like
+    **you** from the future) can easily figure out the inputs and expected outputs,
+    including edge cases, just by looking at the tests. Double gain!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: These are some tricks I found useful while coding and reviewing other people’s
+    code. I’m far from telling you that one or another way of coding is the only correct
+    one — you take what you want from it, you decide whether you need a quick scratch
+    or a highly polished and tested codebase. I hope this thought piece helps you
+    structure your scripts so that you’re happier with them and more confident about
+    their infallibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you liked this article, I would love to know about it. Happy coding!
+  prefs: []
+  type: TYPE_NORMAL
+- en: TL;DR
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'There’s no one and only correct way of coding, but here are some inspirations
+    for scripting with pandas:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Dont’s:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- don’t mutate your `*DataFrame*` too much inside functions, because you may
+    lose control over what and where gets appended/removed from it,'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- don’t write methods that mutate a `*DataFrame*` and return nothing because
+    that''s confusing.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Do’s:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- create new objects instead of modifying the source `*DataFrame*` and remember
+    to make a deep copy when needed,'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- perform only similar-level operations inside a single function,'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- design functions for flexibility and reusability,'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '- test your functions because this helps you design cleaner code, secure against
+    bugs and edge cases and document it for free.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Robert C. Martin, Clean code A Handbook of Agile Software Craftsmanship
+    (2009), Pearson Education, Inc.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[2] pandas documentation - Package overview — Mutability and copying of data,
+    [https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data](https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html#mutability-and-copying-of-data)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[3] Python’s Mutable vs Immutable Types: What’s the Difference?, [https://realpython.com/python-mutable-vs-immutable-types/](https://realpython.com/python-mutable-vs-immutable-types/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[4] 5 Levels of Understanding the Mutability of Python Objects, [https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24](https://medium.com/techtofreedom/5-levels-of-understanding-the-mutability-of-python-objects-a5ed839d6c24)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[5] Pass by Reference in Python: Background and Best Practices, [https://realpython.com/python-pass-by-reference/](https://realpython.com/python-pass-by-reference/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[6] Shallow vs Deep Copying of Python Objects, [https://realpython.com/copying-python-objects/](https://realpython.com/copying-python-objects/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[7] Brian Okken, Python Testing with pytest, Second Edition (2022), The Pragmatic
+    Programmers, LLC.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The graphs were created by me using [Miro](https://miro.com/). The cover image
+    was also created by me using the [Titanic](https://www.openml.org/search?type=data&sort=runs&id=40945&status=active)
+    dataset and GIMP (smudge effect).
+  prefs: []
+  type: TYPE_NORMAL

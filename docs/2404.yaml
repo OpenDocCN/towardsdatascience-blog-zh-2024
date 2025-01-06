@@ -1,0 +1,555 @@
+- en: How to Choose the Architecture for Your GenAI Application
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-choose-the-architecture-for-your-genai-application-6053e862c457?source=collection_archive---------1-----------------------#2024-10-03](https://towardsdatascience.com/how-to-choose-the-architecture-for-your-genai-application-6053e862c457?source=collection_archive---------1-----------------------#2024-10-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A framework to select the simplest, fastest, cheapest architecture that will
+    balance LLMs’ creativity and risk
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://lakshmanok.medium.com/?source=post_page---byline--6053e862c457--------------------------------)[![Lak
+    Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--6053e862c457--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6053e862c457--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6053e862c457--------------------------------)
+    [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--6053e862c457--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6053e862c457--------------------------------)
+    ·16 min read·Oct 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Look at any LLM tutorial and the suggested usage involves invoking the API,
+    sending it a prompt, and using the response. Suppose you want the LLM to generate
+    a thank-you note, you could do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: While this is fine for PoCs, rolling to production with an architecture that
+    treats an LLM as just another text-to-text (or text-to-image/audio/video) API
+    results in an application that is under-engineered in terms of risk, cost, and
+    latency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution is not to go to the other extreme and over-engineer your application
+    by fine-tuning the LLM and adding guardrails, etc. every time. The goal, as with
+    any engineering project, is to find the right balance of complexity, fit-for-purpose,
+    risk, cost, and latency for the specifics of each use case. In this article, I’ll
+    describe a framework that will help you strike this balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The framework of LLM application architectures
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here’s a framework that I suggest you use to decide on the architecture for
+    your GenAI application or agent. I’ll cover each of the eight alternatives shown
+    in the Figure below in the sections that follow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1425ffc872beb43bfaeddb529c895e9a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Choosing the right application architecture for your GenAI application. Diagram
+    by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The axes here (i.e., the decision criteria) are risk and creativity. For each
+    use case where you are going to employ an LLM, start by identifying the creativity
+    you need from the LLM and the amount of risk that the use case carries. This helps
+    you narrow down the choice that strikes the right balance for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that whether or not to use Agentic Systems is a completely orthogonal decision
+    to this — employ agentic systems when the task is too complex to be done by a
+    single LLM call or if the task requires non-LLM capabilities. In such a situation,
+    you’d break down the complex task into simpler tasks and orchestrate them in an
+    agent framework. This article shows you how to build a GenAI application (or an
+    agent) to perform one of those simple tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why the 1st decision criterion is creativity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Why are creativity and risk the axes? LLMs are a non-deterministic technology
+    and are more trouble than they are worth if you don’t really need all that much
+    uniqueness in the content being created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if you are generating a bunch of product catalog pages, how different
+    do they really have to be? Your customers want accurate information on the products
+    and may not really care that all SLR camera pages explain the benefits of SLR
+    technology in the same way — in fact, some amount of standardization may be quite
+    preferable for easy comparisons. This is a case where your creativity requirement
+    on the LLM is quite low.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It turns out that architectures that reduce the non-determinism also reduce
+    the total number of calls to the LLM, and so also have the side-effect of reducing
+    the overall cost of using the LLM. Since LLM calls are slower than the typical
+    web service, this also has the nice side-effect of reducing the latency. That’s
+    why the y-axis is creativity, and why we have cost and latency also on that axis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6cc4282e8145257ebf5242641daed464.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustrative: use cases ordered by creativity. Diagram by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You could look at the illustrative use cases listed in the diagram above and
+    argue whether they require low creativity or high. It really depends on your business
+    problem. If you are a magazine or ad agency, even your informative content web
+    pages (unlike the product catalog pages) may need to be creative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why the 2nd decision criterion is risk
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLMs have a tendency to hallucinate details and to reflect biases and toxicity
+    in their training data. Given this, there are risks associated with directly sending
+    LLM-generated content to end-users. Solving for this problem adds a lot of engineering
+    complexity — you might have to introduce a human-in-the-loop to review content,
+    or add guardrails to your application to validate that the generated content doesn’t
+    violate policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your use case allows end-users to send prompts to the model and the application
+    takes actions on the backend (a common situation in many SaaS products) to generate
+    a user-facing response, the risk associated with errors, hallucination, and toxicity
+    is quite high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The same use case (art generation) could carry different levels and kinds of
+    risk depending on the context as shown in the figure below. For example, if you
+    are generating background instrumental music to a movie, the risk associated might
+    involve mistakenly reproducing copyrighted notes, whereas if you are generating
+    ad images or videos broadcast to millions of users, you may be worried about toxicity.
+    These different types of risk are associated with different levels of risk. As
+    another example, if you are building an enterprise search application that returns
+    document snippets from your corporate document store or technology documentation,
+    the LLM-associated risks might be quite low. If your document store consists of
+    medical textbooks, the risk associated with out-of-context content returned by
+    a search application might be high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44c9c98ea17f42c4ebd891ad054e9d4d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustrative: use cases ordered by risk. Diagram by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As with the list of use cases ordered by creativity, you can quibble with the
+    ordering of use cases by risk. But once you identify the risk associated with
+    the use case and the creativity it requires, the suggested architecture is worth
+    considering as a starting point. Then, if you understand the “why” behind each
+    of these architectural patterns, you can select an architecture that balances
+    your needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the rest of this article, I’ll describe the architectures, starting from
+    #1 in the diagram.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Generate each time (for High Creativity, Low Risk tasks)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the architectural pattern that serves as the default — invoke the API
+    of the deployed LLM each time you want generated content. It’s the simplest, but
+    it also involves making an LLM call each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typically, you’ll use a PromptTemplate and templatize the prompt that you send
+    to the LLM based on run-time parameters. It’s a good idea to use a framework that
+    allows you to swap out the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For our example of sending an email based on the prompt, we could use langchain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because you are calling the LLM each time, it’s appropriate only for tasks that
+    require extremely high creativity (e.g., you want a different thank you note each
+    time) and where you are not worried about the risk (e.g, if the end-user gets
+    to read and edit the note before hitting “send”).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A common situation where this pattern is employed is for interactive applications
+    (so it needs to respond to all kinds of prompts) meant for internal users (so
+    low risk).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Response/Prompt caching (for Medium Creativity, Low Risk tasks)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You probably don’t want to send the same thank you note again to the same person.
+    You want it to be different each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what if you are building a search engine on your past tickets, such as to
+    assist internal customer support teams? In such cases, you do want repeat questions
+    to generate the same answer each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A way to drastically reduce cost and latency is to cache past prompts and responses.
+    You can do such caching on the client side using langchain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: When I tried it, the cached response took 1/1000th of the time and avoided the
+    LLM call completely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caching is useful beyond client-side caching of exact text inputs and the corresponding
+    responses (see Figure below). Anthropic supports “[prompt caching](https://www.anthropic.com/news/prompt-caching)”
+    whereby you can ask the model to cache part of a prompt (typically the system
+    prompt and repetitive context) server-side, while continuing to send it new instructions
+    in each subsequent query. Using prompt caching reduces cost and latency per query
+    while not affecting the creativity. It is particularly helpful in RAG, document
+    extraction, and few-shot prompting when the examples get large.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/daf299024bebc58df4684ce2e14e59cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Response caching reduces the number of LLM calls; context caching reduces the
+    number of tokens processed in each individual call. Together, they reduce the
+    overall number of tokens and therefore the cost and latency. Diagram by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gemini separates out this functionality into [context caching](https://ai.google.dev/gemini-api/docs/caching?lang=python)
+    (which reduces the cost and latency) and [system instructions](https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/system-instructions)
+    (which don’t reduce the token count, but do reduce latency). OpenAI recently announced
+    support for prompt caching, with its implementation automatically caching the
+    [longest prefix of a prompt](https://openai.com/index/api-prompt-caching/) that
+    was previously sent to the API, as long as the prompt is longer than 1024 tokens.
+    Server-side caches like these do not reduce the capability of the model, only
+    the latency and/or cost, as you will continue to potentially get different results
+    to the same text prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The built-in caching methods require exact text match. However, it is possible
+    to implement caching in a way that takes advantage of the nuances of your case.
+    For example, you could rewrite prompts to canonical forms to increase the chances
+    of a cache hit. Another common trick is to store the hundred most frequent questions,
+    for any question that is close enough, you could rewrite the prompt to ask the
+    stored question instead. In a multi-turn chatbot, you could get user confirmation
+    on such semantic similarity. Semantic caching techniques like this will reduce
+    the capability of the model somewhat, since you will get the same responses to
+    even similar prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Pregenerated templates (for Medium Creativity, Low-Medium Risk tasks)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes, you don’t really mind the same thank you note being generated to
+    everyone in the same situation. Perhaps you are writing the thank you note to
+    a customer who bought a product, and you don’t mind the same thank you note being
+    generated to any customer who bought that product.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the same time, there is a higher risk associated with this use case because
+    these communications are going out to end-users and there is no internal staff
+    person able to edit each generated letter before sending it out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such cases, it can be helpful to pregenerate templated responses. For example,
+    suppose you are a tour company and you offer 5 different packages. All you need
+    is one thank you message for each of these packages. Maybe you want different
+    messages for solo travelers vs. families vs. groups. You still need only 3x as
+    many messages as you have packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is messages like this for a given group-type and tour-destination:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can generate these messages, have a human vet them, and store them in your
+    database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, we asked the LLM to insert placeholders in the message that
+    we can replace dynamically. Whenever you need to send out a response, retrieve
+    the message from the database and replace the placeholders with actual data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using pregenerated templates turns a problem that would have required vetting
+    hundreds of messages per day into one that requires vetting a few messages only
+    when a new tour is added.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Small Language Models (Low Risk, Low Creativity)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Recent research shows that it is [impossible to eliminate hallucination](https://arxiv.org/abs/2401.11817)
+    in LLMs because it arises from a tension between learning all the computable functions
+    we desire. A smaller LLM for a more targeted task has less risk of hallucinating than one
+    that’s too large for the desired task. You might be using a frontier LLM for tasks
+    that don’t require the power and world-knowledge that it brings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In use cases where you have a very simple task that doesn’t require much creativity
+    and very low risk tolerance, you have the option of using a small language model
+    (SLM). This does trade off accuracy — in a [June 2024 study, a Microsoft researcher](https://techcommunity.microsoft.com/t5/azure-for-isv-and-startups/evaluating-the-quality-of-ai-document-data-extraction-with-small/ba-p/4157719)
+    found that for extracting structured data from unstructured text corresponding
+    to an invoice, their smaller text-based model (Phi-3 Mini 128K) could get 93%
+    accuracy as compared to the 99% accuracy achievable by GPT-4o.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The team at LLMWare [evaluates a wide range of SLMs](https://medium.com/@darrenoberst/best-small-language-models-for-accuracy-and-enterprise-use-cases-benchmark-results-cf71964759c8).
+    At the time of writing (2024), they found that Phi-3 was the best, but that over
+    time, smaller and smaller models were achieving this performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Representing these two studies pictorially, SLMs are increasingly achieving
+    their accuracy with smaller and smaller sizes (so less and less hallucination)
+    while LLMs have been focused on increasing task ability (so more and more hallucination).
+    The difference in accuracy between these approaches for tasks like document extraction
+    has stabilized (see Figure).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3405095403aa19ecb80e6296e2b1022a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The trend is for SLMs to get the same accuracy with smaller and smaller models,
+    and for LLMs to focus on more capabilities with larger and larger models. The
+    accuracy differential on simple tasks has stabilized. Diagram by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If this trend holds up, expect to be using SLMs and non-frontier LLMs for more
+    and more enterprise tasks that require only low creativity and have a low tolerance
+    for risk. Creating embeddings from documents, such as for knowledge retrieval
+    and topic modeling, are use cases that tend to fit this profile. Use small language
+    models for these tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Assembled Reformat (Medium Risk, Low Creativity)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The underlying idea behind Assembled Reformat is to use pre-generation to reduce
+    the risk on dynamic content, and use LLMs only for extraction and summarization,
+    tasks that introduce only a low-level of risk even though they are done “live”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose you are a manufacturer of machine parts and need to create a web page
+    for each item in your product catalog. You are obviously concerned about accuracy.
+    You don’t want to claim some item is heat-resistant when it’s not. You don’t want
+    the LLM to hallucinate the tools required to install the part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You probably have a database that describes the attributes of each part. A
+    simple approach is to employ an LLM to generate content for each of the attributes.
+    As with pre-generated templates (Pattern #3 above), make sure to have a human
+    review them before storing the content in your content management system.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However, simply appending all the text generated will result in something that’s
+    not very pleasing to read. You could, instead, assemble all of this content into
+    the context of the prompt, and ask the LLM to reformat the content into the desired
+    website layout:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you need to summarize reviews, or trade articles about the item, you can
+    have this be done in a batch processing pipeline, and feed the summary into the
+    context as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. ML Selection of Template (Medium Creativity, Medium Risk)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The assembled reformat approach works for web pages where the content is quite
+    static (as in product catalog pages). However, if you are an e-commerce retailer,
+    and you want to create personalized recommendations, the content is much more
+    dynamic. You need higher creativity out of the LLM. Your risk tolerance in terms
+    of accuracy is still about the same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What you can do in such cases is to continue to use pre-generated templates
+    for each of your products, and then use machine learning to select which templates
+    you will employ.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For personalized recommendations, for example, you’d use a traditional recommendations
+    engine to select which products will be shown to the user, and pull in the appropriate
+    pre-generated content (images + text) for that product.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach of combining pregeneration + ML can also be used if you are customizing
+    your website for different customer journeys. You’ll pregenerate the landing pages
+    and use a propensity model to choose what the next best action is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**7.Fine-tune (High Creativity, Medium Risk)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your creativity needs are high, there is no way to avoid using LLMs to generate
+    the content you need. But, generating the content every time means that you can
+    not scale human review.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two ways to address this conundrum. The simpler one, from an engineering
+    complexity standpoint, is to teach the LLM to produce the kind of content that
+    you want and not generate the kinds of content you don’t. This can be done through
+    fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are three methods to fine-tune a foundational model: adapter tuning,
+    distillation, and human feedback. Each of these fine-tuning methods address different
+    risks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adapter tuning retains the full capability of the foundational model, but allows
+    you to select for specific style (such as content that fits your company voice).
+    The risk addressed here is brand risk.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Distillation approximates the capability of the foundational model, but on a
+    limited set of tasks, and using a smaller model that can be deployed on premises
+    or behind a firewall. The risk addressed here is of confidentiality.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Human feedback either through RLHF or through DPO allows the model to start
+    off with reasonable accuracy, but get better with human feedback. The risk addressed
+    here is of fit-for-purpose.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Common use cases for fine-tuning include being able to create branded content,
+    summaries of confidential information, and personalized content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. Guardrails (High Creativity, High Risk)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: What if you want the full spectrum of capabilities, and you have more than one
+    type of risk to mitigate — perhaps you are worried about brand risk, leakage of
+    confidential information, and/or interested in ongoing improvement through feedback?
+  prefs: []
+  type: TYPE_NORMAL
+- en: At that point, there is no alternative but to go whole hog and build guardrails.
+    Guardrails may involve preprocessing the information going into the model, post-processing
+    the output of the model, or iterating on the prompt based on error conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-built guardrails (eg. Nvidia’s NeMo) exist for commonly needed functionality
+    such as checking for jailbreak, masking sensitive data in the input, and self-check
+    of facts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/07ef1f452e1c29a798262cd1c41af684.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Guardrails you may have to build. Diagram by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it’s likely that you’ll have to implement some of the guardrails yourself
+    (see Figure above). An application that needs to be deployed alongside programmable
+    guardrails is the most complex way that you could choose to implement a GenAI
+    application. Make sure that this complexity is warranted before going down this
+    route.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I suggest you use a framework that balances creativity and risk to decide on
+    the architecture for your GenAI application or agent. Creativity refers to the
+    level of uniqueness required in the generated content. Risk relates to the impact
+    if the LLM generates inaccurate, biased, or toxic content. Addressing high-risk
+    scenarios necessitates engineering complexity, such as human review or guardrails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The framework consists of eight architectural patterns that address different
+    combination of creativity and risk:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. **Generate Each Time:** Invokes the LLM API for every content generation
+    request, offering maximum creativity but with higher cost and latency. Suitable
+    for interactive applications that don’t have much risk, such as internal tools..
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. **Response/Prompt Caching**: For medium creativity, low-risk tasks. Caches
+    past prompts and responses to reduce cost and latency. Useful when consistent
+    answers are desirable, such as internal customer support search engines. Techniques
+    like prompt caching, semantic caching, and context caching enhance efficiency
+    without sacrificing creativity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3\. **Pregenerated Templates**: Employs pre-generated, vetted templates for
+    repetitive tasks, reducing the need for constant human review. Suitable for medium
+    creativity, low-medium risk situations where standardized yet personalized content
+    is required, such as customer communication in a tour company.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. **Small Language Models (SLMs**): Uses smaller models to reduce hallucination
+    and cost as compared to larger LLMs. Ideal for low creativity, low-risk tasks
+    like embedding creation for knowledge retrieval or topic modeling.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. **Assembled Reformat:** Uses LLMs for reformatting and summarization, with
+    pre-generated content to ensure accuracy. Suitable for content like product catalogs
+    where accuracy is paramount on some parts of the content, while creative writing
+    is required on others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. **ML Selection of Template:** Leverages machine learning to select appropriate
+    pre-generated templates based on user context, balancing personalization with
+    risk management. Suitable for personalized recommendations or dynamic website
+    content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '7\. **Fine-tune**: Involves fine-tuning the LLM to generate desired content
+    while minimizing undesired outputs, addressing risks related to one of brand voice,
+    confidentiality, or accuracy. Adapter Tuning focuses on stylistic adjustments,
+    distillation on specific tasks, and human feedback for ongoing improvement.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8\. **Guardrails**: High creativity, high-risk tasks require guardrails to
+    mitigate multiple risks, including brand risk and confidentiality, through preprocessing,
+    post-processing, and iterative prompting. Off-the-shelf guardrails address common
+    concerns like jailbreaking and sensitive data masking while custom-built guardrails
+    may be necessary for industry/application-specific requirements.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using the above framework to architect GenAI applications, you will be able
+    to balance complexity, fit-for-purpose, risk, cost, and latency for each use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(Periodic reminder: these posts are my personal views, not those of my employers,
+    past or present.)*'
+  prefs: []
+  type: TYPE_NORMAL

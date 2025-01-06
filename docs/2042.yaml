@@ -1,0 +1,365 @@
+- en: 'AWS DeepRacer : A Practical Guide to Reducing the Sim2Real Gap — Part 1 ||
+    Preparing the Track'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/aws-deepracer-a-practical-guide-to-reducing-the-sim2real-gap-part-1-580fb1244229?source=collection_archive---------9-----------------------#2024-08-21](https://towardsdatascience.com/aws-deepracer-a-practical-guide-to-reducing-the-sim2real-gap-part-1-580fb1244229?source=collection_archive---------9-----------------------#2024-08-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Minimize visual distractions to maximize successful laps
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://shrey-pareek.medium.com/?source=post_page---byline--580fb1244229--------------------------------)[![Shrey
+    Pareek, PhD](../Images/e1169ff2f538e8bc9f64c6f591bf1f80.png)](https://shrey-pareek.medium.com/?source=post_page---byline--580fb1244229--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--580fb1244229--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--580fb1244229--------------------------------)
+    [Shrey Pareek, PhD](https://shrey-pareek.medium.com/?source=post_page---byline--580fb1244229--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--580fb1244229--------------------------------)
+    ·8 min read·Aug 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ever wondered why your DeepRacer performs perfectly in the sim but can’t even
+    navigate a single turn in the real world? Read on to understand why and how to
+    resolve common issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Video demo of AWS DeepRacer on real track. Video by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**Part 1 (08/20/2024)**](/aws-deepracer-a-practical-guide-to-reducing-the-sim2real-gap-part-1-580fb1244229)
+    : Track and surrounding environment setup.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[**Part 2 (08/26/2024)**](https://medium.com/towards-data-science/aws-deepracer-a-practical-guide-to-reducing-the-sim2real-gap-part-2-training-guide-e96805cd7141):
+    Action space and reward function design along with training paradigm.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this guide, I will share practical tips & tricks to autonomously run the
+    [AWS DeepRacer](https://aws.amazon.com/deepracer/) around a race track. I will
+    include information on training the reinforcement learning agent in simulation
+    and *more* crucially, practical advice on how to successfully run your car on
+    a physical track — the so called simulated-to-real (**sim2real)** challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In **Part 1**, I will describe physical factors to keep in mind for running
+    your car on a real track. I will go over the camera sensor (and its limitations)
+    of the car and how to prepare your physical space and track. In later parts, we
+    will go over the training process and reward function best practices. I decided
+    to first focus on physical factors rather than training as understanding the physical
+    limitations before training in simulation is more crucial in my opinion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you will see through this multi-part series, the key goal is to reduce camera
+    distractions arising from lighting changes and background movement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Car and Sensors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/f21e194429877554df724df9c32b9d84.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AWS DeepRacer. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The car is a 1/18th scale race car with a RGB (Red Green Blue) Camera sensor.
+    From [AWS](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-choose-race-type.html#deepracer-how-it-works-autonomous-driving-sensors):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The camera has 120-degree wide angle lens and captures RGB images that are then
+    converted to grey-scale images of 160 x 120 pixels at 15 frames per second (fps).
+    These sensor properties are preserved in the simulator to maximize the chance
+    that the trained model transfers well from simulation to the real world.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The key thing to note here is that the camera uses *grey-scale images of 160
+    x 120 pixels.* This roughly means that the camera will be good at separating light
+    or *white* colored pixels from dark or *black* colored pixels. Pixels that lie
+    between these i.e. *greys —* can be used to represent additional information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DeepRacer view in RGB (Left) and Greyscale (Right). Even though the camera captures
+    images in RGB, they are converted to Greyscale for inference. Notice the creases
+    on the track and light reflection which increases the sim2real gap. Video by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The **most importan**t thing to remember from this article is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The car only uses **a black and white image** for understanding the environment
+    around it. It does not *recognize* objects — rather it learns to avoid or stick
+    to different grey pixel values (from black to white).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**So all steps that we take, ranging from *track preparation* to *training
+    the model* will be executed keeping the above fact in mind.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the DeepRacer’s case **three color-based basic goals** can be identified
+    for the car:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Stay Within White Colored Track Boundary:** Lighter or higher pixel values
+    close to the color *white* (255) will be interpreted as the track boundary by
+    the car and it will try to stay within this pixel boundary.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Drive On Black Colored Track:** Darker or lower *black* (0) pixel values
+    close will be interpreted as driving surface itself, and the car should try to
+    drive on it as much as possible.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Green/Yellow:** Although green and yellow colors will be seen as shades of
+    grey by the car — it can still learn to (a) stay close to *dotted yellow* center
+    line; and (b) avoid *solid green* out of bounds area.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/5db9aa456a6f381afcf84014dc1e7beb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Actual camera view (Left) and simulation View (Right) in RGB space. These images
+    are converted to grey scale before inference. Source².
+  prefs: []
+  type: TYPE_NORMAL
+- en: DeepRacer’s sim2real Performance Gap
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: AWS DeepRacer uses Reinforcement Learning (RL)¹ in a *simulated* environment
+    to train a scaled racecar to autonomously race around a track. This enables the
+    racer to first *learn* an optimal and safe policy or behavior in a virtual environment.
+    Then, we can deploy our model on the real car and race it around a real track.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, it is rare to get the exact performance in the real world as
+    that observed in a simulator. This is because the simulation cannot capture all
+    aspects of the real world accurately. To their credit, AWS provides a guide on
+    [optimizing training to minimize sim2real gap](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-console-train-evaluate-models.html#deepracer-evaluate-model-test-approaches).
+    Although advice provided here is useful, it did not quite work for me. The car
+    comes with an inbuilt model from AWS that is supposed to be suited for multiple
+    tracks should work out of the box. Unfortunately, at least in my experiments,
+    that model couldn’t even complete a single lap (despite making multiple physical
+    changes). There is missing information in the guides from AWS which I was eventually
+    able to piece together via online blogs and discussion forums.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Through my experiments, identified the following key factors increasing *sim2real*
+    gaps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Camera Light/Noise Sensitivity:** The biggest challenge is the camera’s sensitivity
+    to light and/or background noise. Any light hotspot washes out the camera sensors
+    and the car may exhibit unexpected behavior. Try reducing ambient lighting and
+    any background distractions as much as possible. (More on this later.)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Friction:** Friction between the car wheels and track adds challenges with
+    calibrating throttle. We purchased the track recommended by AWS [through their
+    storefront](https://www.amazon.com/Speedway-Printed-Track-DeepRacer-Matte/dp/B0BT8CGKTP/ref=s9_acsd_al_ot_c2_x_0_t?_encoding=UTF8&pf_rd_m=ATVPDKIKX0DER&pf_rd_s=merchandised-search-2&pf_rd_r=58S30ZXVWXMZH7T5DBP2&pf_rd_p=904aa3c6-ee70-4b7c-9984-72e3ba23e425&pf_rd_t=&pf_rd_i=32957528011)
+    (read on for why I **wouldn’t** recommend it). The track is Matte Vinyl, and in
+    my setup I placed it on carpet in my office’s lunch area. It appears that vinyl
+    on carpet creates high static friction causes the car to continuously get stuck
+    especially around slow turns or when attempting to move from a standing start.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Different Sensing Capability of Virtual v/s Real Car:** There is a gap in
+    input parameters/state space available to the real v/s simulation car. AWS provides
+    [a list of input parameters](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-reward-function-input.html),
+    but parameters such as track length, progress, steps etc. are only available in
+    simulation and cannot be used by the real car. To the best of my knowledge and
+    through some internet sleuthing — it appears that the ***car can only access information
+    from the camera sensor****.* There is a slim chance that parameters such as *x,y
+    location and heading* of car are known. My research points to this information
+    being ***unavailable*** as the car most likely does not have an IMU, and even
+    if it does — IMU based localization is a very difficult problem to solve. This
+    information is helpful in designing the correct reward function (more on that
+    in future parts).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Track — Build v/s Buy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As mentioned earlier, I purchased the [A To Z Speedway Track](https://www.amazon.com/Speedway-Printed-Track-DeepRacer-Matte/dp/B0BT8CGKTP)
+    recommended by AWS. The track is a simplified version of the [Autodroma Nazionale
+    Monza F1 Track in Monza, Italy.](https://www.formula1.com/en/information/italy-autodromo-nazionale-monza.FiJN1jnQlRLeHqOxIt13m)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Track Review — Do Not Buy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/348dde094c2e4150f6a2ecb9134ebb7c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The track is of terribly low quality and I would not recommend buying it. The
+    surface is very creased, flimsy, and highlly reflective. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Personally, I would **not** recommend buying [this track.](https://www.amazon.com/Speedway-Printed-Track-DeepRacer-Matte/dp/B0BT8CGKTP)
+    It costs $760 plus taxes (the car [costs](https://www.amazon.com/AWS-DeepRacer-Fully-autonomous-developers/dp/B07JMHRKQG/ref=sr_1_1?crid=30BVZW4UKAM5S&dib=eyJ2IjoiMSJ9.qyF0JnH5YYnFSRDVg9ViSV45_uIjGjxt_KK8SfhNITtHJx6iNeg9BmxLpl7RZDh_YlRRiO1WbcFsOUge4YuMZEfD9MCdRIngz8Fmo-y128P3RdHAB0lwDsvtnI7kvO4NzSeu_wM9G0qMdD-cQnvItTchdk-JthTNJKaT9d82PcJGU9AvZKtPLFcI6qaPcklH7HaTOp-1kImXR963CHm5gxGJaZP8bfKLSpZmVo665HS8hcmbkCzTdDUJSoQc16gmE8Bpd8SQyQR3c1Zwdf3oQgA82jI8lfXiNajo-mE7mIg.Fvk9UaaxYngFN1wsp6d2RIHNYm9dRrlGIH7JG_AzdV0&dib_tag=se&keywords=aws+deepracer&qid=1724204524&sprefix=aws+deep%2Caps%2C140&sr=8-1)
+    almost half that) and is a little underwhelming to say the least.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reflective Surface:** The matte vinyl print is of low quality and highly
+    reflective. Any ambient light washes out the camera and leads to crashes and other
+    unexpected behavior.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Creases:** Track is very creased and this causes the car to get stuck. You
+    can fix this to some extent by leaving your track spread out in the sun for a
+    couple of days. I had limited success with this. You can also use a steam iron
+    [(see this guide)](https://www.signs.com/blog/how-to-remove-wrinkles-from-vinyl-banners-signage-101/#:~:text=Use%20a%20heat%20gun%2C%20handheld%20steamer%2C%20or%20hairdryer%20on%20low,the%20creases%20on%20the%20banner.).
+    I did not try this, so please do this at your own risk.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Size:** Not really the tracks fault, but the track dimensions are18'' x 27''
+    which was too large for my house. It couldn’t even fit in my two-car garage. Luckily
+    my office folks were kind enough to let me use the lunch room. It is also difficult
+    very cumbersome to fold and carry.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Overall, I was not impressed by the quality and would only recommend buying
+    this track if you are short on time or do not want to go through the hassle of
+    building your own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build Your Own Track (If Possible)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you can, try to build one on your own. Here is an [official guide](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-build-your-track.html)
+    from AWS and [another one from Medium](https://medium.com/@autonomousracecarclub/guide-to-creating-a-full-re-invent-2018-deepracer-track-in-7-steps-979aff28a6f5)
+    User [@autonomousracecarclu](http://twitter.com/autonomousracecarclu)b which looks
+    more promising.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using interlocking foam mats to build track is perhaps the best approach here.
+    This addresses reflectiveness and friction problems of vinyl tracks. Also, these
+    mats are lightweight and stack up easily; so moving and storing them is easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also get the track printed at FedEx and stick it on a rubber or concrete
+    surface. Whether you build your own or get it printed, those approaches *are better
+    than buying the one recommended by AWS* (both financially and performance-wise).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preparing Your Space — Lighting and Distractions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Remember that the car only uses **a black and white image** to *understand and
+    navigate* the environment around it. It cannot *recognize* objects — rather it
+    learns to avoid or stick to one different shades of grey (from black to white).
+    Stay on black track, avoid white boundaries and green out of bound area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following section outlines the physical setup recommended to make your car
+    drive around the track successfully with minimum crashes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/be6cd908be0851c97f4b88d2391a6ccf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Track preparation steps - (a) I reduced ambient lighting by pulling down all
+    blinds and switching off ceiling lights. A couple of lights could not be switched
+    off as they were always on for emergencies. (b) Barriers help reduce background
+    distractions and reflections. Colored barriers work better than black ones. Green
+    barriers are the most effective. I did not have enough green ones so I used them
+    around more difficult turns. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Minimize Ambient Lights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Try to reduce ambient lighting as much as possible. This includes any natural
+    light from windows and ceiling lights. Of course, you need some light for the
+    camera to be able to see, but lower is better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you cannot reduce lighting, try to make it as uniform as possible. Hotspots
+    of light create more problems than the light itself. If your track is creased
+    up like mine was, hotspots are more frequent and will cause more failures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Colorful Interlocking Barriers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Both the color of the barriers and their placement are crucial. Perhaps a lot
+    more crucial than I had initially anticipated. One might think they are used to
+    protect the car if it crashes. Although that is part of it, barriers are more
+    useful for reducing background distractions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used these [2x2 ft Interlocking Mats from Costco](https://www.samsclub.com/p/reversible-foam-mats-8-pack/prod3310384).
+    AWS recommends using atleast [2.5x2.5ft and *any color but white*](https://docs.aws.amazon.com/deepracer/latest/developerguide/deepracer-build-your-track-construction.html#deepracer-build-your-track-construction-dimensions)*.*
+    I realized that even *black* color throws off the car. So I would recommend colorful
+    ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best are **green colored ones** since the car learns to avoid green in the
+    simulation. Even though training and inference images are in grey scale, using
+    green colored barriers work better. I had a mix of different colors so I used
+    the green ones around turns where the car would go off track more than others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember from the earlier section — the car only uses **a black and white image**
+    for understanding the environment around it. It does not *recognize* objects around
+    it — rather it learns to avoid or stick to one different shades of grey (from
+    black to white).
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s Next?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In future posts, I will focus on model training tips and vehicle calibration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Acknowledgements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Shout out to [Wes Strait](https://www.linkedin.com/in/wesstrait/) for sharing
+    his best practices and detailed notes on reducing the Sim2Real gap. [Abhishek
+    Roy](https://www.linkedin.com/in/abhishekkroy/) and [Kyle Stahl](https://medium.com/u/7d0b0a351a27?source=post_page---user_mention--580fb1244229--------------------------------)
+    for helping with the experiments and documenting & debugging different vehicle
+    behaviors. Finally, thanks to the [Cargill](https://www.cargill.com) R&D Team
+    for letting me use their lunch space for multiple days to experiment with the
+    car and track.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Sutton, Richard S. “Reinforcement learning: an introduction.” *A Bradford
+    Book* (2018).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Balaji, Bharathan, et al. “Deepracer: Educational autonomous racing platform
+    for experimentation with sim2real reinforcement learning.” *arXiv preprint arXiv:1911.01562*(2019).'
+  prefs: []
+  type: TYPE_NORMAL

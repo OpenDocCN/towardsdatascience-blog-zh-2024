@@ -1,0 +1,381 @@
+- en: Design an Easy-to-Use Deep Learning Framework
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/design-an-easy-to-use-deep-learning-framework-52d7c37e415f?source=collection_archive---------6-----------------------#2024-04-10](https://towardsdatascience.com/design-an-easy-to-use-deep-learning-framework-52d7c37e415f?source=collection_archive---------6-----------------------#2024-04-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The three software design principles I learned as an open-source contributor
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)[![Haifeng
+    Jin](../Images/705d6ecaed975b6376fac19087f2c02c.png)](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------)
+    [Haifeng Jin](https://haifeng-jin.medium.com/?source=post_page---byline--52d7c37e415f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52d7c37e415f--------------------------------)
+    ·9 min read·Apr 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f0f2539047f9ad89bd753971d4f517d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Sheldon](https://unsplash.com/@hfestudio?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deep learning frameworks are extremely transitory. If you compare the deep learning
+    frameworks people use today with what it was eight years ago, you will find the
+    landscape is completely different. There were Theano, Caffe2, and MXNet, which
+    all went obsolete. Today's most popular frameworks, like TensorFlow and PyTorch,
+    were just released to the public.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Through all these years, Keras has survived as a high-level user-facing library
+    supporting different backends, including TensorFlow, PyTorch, and JAX. As a contributor
+    to Keras, I learned how much the team cares about user experience for the software
+    and how they ensured a good user experience by following a few simple yet powerful
+    principles in their design process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will share the 3 most important software design principles
+    I learned by contributing to the Keras through the past few years, which may be
+    generalizable to all types of software and help you make an impact in the open-source
+    community with yours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why user experience is important for open-source software
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we dive into the main content, let’s quickly discuss why user experience
+    is so important. We can learn this through the PyTorch vs. TensorFlow case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They were developed by two tech giants, Meta and Google, and have quite different
+    cultural strengths. Meta is good at product, while Google is good at engineering.
+    As a result, Google’s frameworks like TensorFlow and JAX are the fastest to run
+    and technically superior to PyTorch, as they support sparse tensors and distributed
+    training well. However, PyTorch still took away half of the market share from
+    TensorFlow because it prioritizes user experience over other aspects of the software.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Better user experience wins for the research scientists who build the models
+    and propagate them to the engineers, who take models from them since they don’t
+    always want to convert the models they receive from the research scientists to
+    another framework. They will build new software around PyTorch to smooth their
+    workflow, which will establish a software ecosystem around PyTorch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TensorFlow also made a few blunders that caused its users to lose. TensorFlow’s
+    general user experience is good. However, its installation guide for GPU support
+    was broken for years before it was fixed in 2022\. TensorFlow 2 broke the backward
+    compatibility, which cost its users millions of dollars to migrate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the lesson we learned here is that despite technical superiority, user experience
+    decides which software the open-source users would choose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All deep learning frameworks invest heavily in user experience
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All the deep learning frameworks—TensorFlow, PyTorch, and JAX—invest heavily
+    in user experience. Good evidence is that they all have a relatively high Python
+    percentage in their codebases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the core logic of deep learning frameworks, including tensor operations,
+    automatic differentiation, compilation, and distribution are implemented in C++.
+    Why would they want to expose a set of Python APIs to the users? It is just because
+    the users love Python and they want to polish their user experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Investing in user experience is of high ROI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Imagine how much engineering effort it requires to make your deep learning framework
+    a little bit faster than others. A lot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, for a better user experience, as long as you follow a certain design
+    process and some principles, you can achieve it. For attracting more users, your
+    user experience is as important as the computing efficiency of your framework.
+    So, investing in user experience is of high return on investment (ROI).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The three principles
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I will share the three important software design principles I learned by contributing
+    to Keras, each with good and bad code examples from different frameworks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Principle 1: Design end-to-end workflows'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When we think of designing the APIs of a piece of software, you may look like
+    this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Define the class and add the documentation. Now, we know all the class names,
+    method names, and arguments. However, this would not help us understand much about
+    the user experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What we should do is something like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We want to write out the entire user workflow of using the software. Ideally,
+    it should be a tutorial on how to use the software. It provides much more information
+    about the user experience. It may help us spot many more UX problems during the
+    design phase compared with just writing out the class and methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at another example. This is how I discovered a user experience problem
+    by following this principle when implementing KerasTuner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using KerasTuner, users can use this RandomSearch class to select the best
+    model. We have the metrics, and objectives in the arguments. By default, objective
+    equals validation loss. So, it helps us find the model with the smallest validation
+    loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, it doesn’t provide much information about the user experience. So, everything
+    looks OK for now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if we write an end-to-end workflow like the following. It exposes many
+    more problems. The user is trying to define a custom metric function named custom_metric.
+    The objective is not so straightforward to use anymore. What should we pass to
+    the objective argument now?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: It should be just `"val_custom_metric”`. Just use the prefix of `"val_"` and
+    the name of the metric function. It is not intuitive enough. We want to make it
+    better instead of forcing the user to learn this. We easily spotted a user experience
+    problem by writing this workflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you wrote the design more comprehensively by including the implementation
+    of the `custom_metric` function, you will find you even need to learn how to write
+    a Keras custom metric. You have to follow the function signature to make it work,
+    as shown in the following code snippet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: After discovering this problem. We specially designed a better workflow for
+    custom metrics. You only need to override `HyperModel.fit()` to compute your custom
+    metric and return it. No strings to name the objective. No function signature
+    to follow. Just a return value. The user experience is much better right now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: One more thing to remember is we should always start from the user experience.
+    The designed workflows backpropagate to the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Principle 2: Minimize cognitive load'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Do not force the user to learn anything unless it is really necessary. Let’s
+    see some good examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Keras modeling API is a good example shown in the following code snippet.
+    The model builders already have these concepts in mind, for example, a model is
+    a stack of layers. It needs a loss function. We can fit it with data or make it
+    predict on data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: So basically, no new concepts were learned to use Keras.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another good example is the PyTorch modeling. The code is executed just like
+    Python code. All tensors are just real tensors with real values. You can depend
+    on the value of a tensor to decide your path with plain Python code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can also do this with Keras with TensorFlow or JAX backend but needs to
+    be written differently. All the `if` conditions need to be written with this `ops.cond`
+    function as shown in the following code snippet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is teaching the user to learn a new op instead of using the if-else clause
+    they are familiar with, which is bad. In compensation, it brings significant improvement
+    in training speed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is the catch of the flexibility of PyTorch. If you ever needed to optimize
+    the memory and speed of your model, you would have to do it by yourself using
+    the following APIs and new concepts to do so, including the inplace arguments
+    for the ops, the parallel op APIs, and explicit device placement. It introduces
+    a rather high learning curve for the users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Some other good examples are `keras.ops`, `tensorflow.numpy`, `jax.numpy`. They
+    are just a reimplementation of the numpy API. When introducing some cognitive
+    load, just reuse what people already know. Every framework has to provide some
+    low-level ops in these frameworks. Instead of letting people learn a new set of
+    APIs, which may have a hundred functions, they just use the most popular existing
+    API for it. The numpy APIs are well-documented and have tons of Stack Overflow
+    questions and answers related to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The worst thing you can do with user experience is to trick the users. Trick
+    the user to believe your API is something they are familiar with but it is not.
+    I will give two examples. One is on PyTorch. The other one is on TensorFlow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What should we pass as the pad argument in `F.pad()` function if you want to
+    pad the input tensor of the shape `(100, 3, 32, 32)` to `(100, 3, 1+32+1, 2+32+2)`
+    or `(100, 3, 34, 36)`?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: My first intuition is that it should be `((0, 0), (0, 0), (1, 1), (2, 2))`,
+    where each sub-tuple corresponds to one of the 4 dimensions, and the two numbers
+    are the padding size before and after the existing values. My guess is originated
+    from the numpy API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the correct answer is (2, 2, 1, 1). There is no sub-tuple, but one
+    plain tuple. Moreover, the dimensions are reversed. The last dimension goes the
+    first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following is a bad example from TensorFlow. Can you guess what is the output
+    of the following code snippet?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Without the `tf.function` decorator, the output should be False, which is pretty
+    simple. However, with the decorator, the output is True. This is because TensorFlow
+    compiles the function and any Python variable is compiled into a new constant.
+    Changing the old variable’s value would not affect the created constant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It tricks the user into believing it is the Python code they are familiar with,
+    but actually, it is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Principle 3: Interaction over documentation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: No one likes to read long documentation if they can figure it out just by running
+    some example code and tweaking it by themselves. So, we try to make the user workflow
+    of the software follow the same logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a good example shown in the following code snippet. In PyTorch, all
+    methods with the underscore are inplace ops, while the ones without are not. From
+    an interactive perspective, these are good, because they are easy to follow, and
+    the users do not need to check the docs whenever they want the inplace version
+    of a method. However, of course, they introduced some cognitive load. The users
+    need to know what does inplace means and when to use them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another good example is the Keras layers. They strictly follow the same naming
+    convention as shown in the following code snippet. With a clear naming convention,
+    the users can easily remember the layer names without checking the documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another important part of the interaction between the user and the software
+    is the error message. You cannot expect the user to write everything correctly
+    the very first time. We should always do the necessary checks in the code and
+    try to print helpful error messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s see the following two examples shown in the code snippet. The first one
+    has not much information. It just says tensor shape mismatch. The
+  prefs: []
+  type: TYPE_NORMAL
+- en: second one contains much more useful information for the user to find the bug.
+    It not only tells you the error is because of tensor shape mismatch, but it also
+    shows what is the expected shape and what is the wrong shape it received. If you
+    did not mean to pass that shape, you have a better idea
+  prefs: []
+  type: TYPE_NORMAL
+- en: of the bug now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The best error message would be directly pointing the user to the fix. The following
+    code snippet shows a general Python error message. It guessed what was wrong with
+    the code and directly pointed the user to the fix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Final words
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far we have introduced the three most valuable software design principles
+    I have learned when contributing to the deep learning frameworks. First, write
+    end-to-end workflows to discover more user experience problems. Second, reduce
+    cognitive load and do not teach the user anything unless necessary. Third, follow
+    the same logic in your API design and throw meaningful error messages so that
+    the users can learn your software by interacting with it instead of constantly
+    checking the documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there are many more principles to follow if you want to make your software
+    even better. You can refer to the [Keras API design guidelines](https://github.com/keras-team/governance/blob/24401c1addf521e522fd363f6eb40e7c4c4881d5/keras_api_design_guidelines.md)
+    as a complete API design guide.
+  prefs: []
+  type: TYPE_NORMAL

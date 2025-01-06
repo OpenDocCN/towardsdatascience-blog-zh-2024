@@ -1,0 +1,483 @@
+- en: 'Exploring RAG Applications Across Languages: Conversing with the Mishnah'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-rag-applications-across-languages-conversing-with-the-mishnah-16615c30f780?source=collection_archive---------6-----------------------#2024-05-23](https://towardsdatascience.com/exploring-rag-applications-across-languages-conversing-with-the-mishnah-16615c30f780?source=collection_archive---------6-----------------------#2024-05-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Building a cross-lingual RAG system for Rabbinic texts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@stannor?source=post_page---byline--16615c30f780--------------------------------)[![Shlomo
+    Tannor](../Images/4b37fdf045fd3ecc667b18f11f59d13f.png)](https://medium.com/@stannor?source=post_page---byline--16615c30f780--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16615c30f780--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16615c30f780--------------------------------)
+    [Shlomo Tannor](https://medium.com/@stannor?source=post_page---byline--16615c30f780--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16615c30f780--------------------------------)
+    ·15 min read·May 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/64ab319bb28700369c727a6aed9632a5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Robot studying The Mishnah. Credit: DALL-E-3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Introduction:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I’m excited to share my journey of building a unique Retrieval-Augmented Generation
+    (RAG) application for interacting with rabbinic texts in this post. MishnahBot
+    aims to provide scholars and everyday users with an intuitive way to query and
+    explore the Mishnah¹ interactively. It can help solve problems such as quickly
+    locating relevant source texts or summarizing a complex debate about religious
+    law, extracting the bottom line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I had the idea for such a project a few years back, but I felt like the technology
+    wasn’t ripe yet. Now, with advancements of large language models, and RAG capabilities,
+    it is pretty straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is what our final product will look like, which you could try out [here](http://mishnahbot.us):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5607109009d8f68fd72674d289d28098.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[MishnahBot](http://mishnahbot.us) website. Image by author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what’s all the hype around RAG systems?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: RAG applications are gaining significant attention, for improving accuracy and
+    harnessing the reasoning power available in large language models (LLMs). Imagine
+    being able to chat with your library, a collection of car manuals from the same
+    manufacturer, or your tax documents. You can ask questions, and receive answers
+    informed by the wealth of specialized knowledge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/296c1fc2c4f56172f91b2d15afd0bf44.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Diagram of a typical RAG system’s architecture. Credit: [Amazon AWS Documentation](https://aws.amazon.com/what-is/retrieval-augmented-generation/#:~:text=Retrieval%2DAugmented%20Generation%20(RAG),sources%20before%20generating%20a%20response.).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pros and Cons of RAG vs. Increased Context Length**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are two emerging trends in improving language model interactions: Retrieval-Augmented
+    Generation (RAG) and increasing context length, potentially by allowing very long
+    documents as attachments.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One key advantage of RAG systems is cost-efficiency. With RAG, you can handle
+    large contexts without drastically increasing the query cost, which can become
+    expensive. Additionally, RAG is more modular, allowing you to plug and play with
+    different knowledge bases and LLM providers. On the other hand, increasing the
+    context length directly in language models is an exciting development that can
+    enable handling much longer texts in a single interaction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this project, I used AWS SageMaker for my development environment, AWS Bedrock
+    to access various LLMs, and the LangChain framework to manage the pipeline. Both
+    AWS services are user-friendly and charge only for the resources used, so I really encourage you to try it out yourselves.
+    For Bedrock, you’ll need to request access to Llama 3 70b Instruct and Claude
+    Sonnet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s open a new Jupyter notebook, and install the packages we will be using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The dataset for this project is the Mishnah, an ancient Rabbinic text central
+    to Jewish tradition. I chose this text because it is close to my heart and also
+    presents a challenge for language models since it is a niche topic. The dataset
+    was obtained from the [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export)
+    repository², a treasure trove of rabbinic texts with English translations aligned
+    with the original Hebrew. This alignment facilitates switching between languages
+    in different steps of our RAG application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: The same process applied here can be applied to any other collection
+    of texts of your choosing. This example also demonstrates how RAG technology can
+    be utilized across different languages, as shown with Hebrew in this case.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s Dive In
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 1\. Loading the Dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First we will need to download the relevant data. We will use git sparse-checkout
+    since the full repository is quite large. Open the terminal window and run the
+    following.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And… voila! we now have the data files that we need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s load the documents in our Jupyter notebook environment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And take a look at the Data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Looks good, we can move on to the vector database stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Vectorizing and Storing in ChromaDB
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next, we vectorize the text and store it in a local ChromaDB. In one sentence,
+    the idea is to represent text as dense vectors — arrays of numbers — such that
+    texts that are similar semantically will be “close” to each other in vector space.
+    This is the technology that will enable us to retrieve the relevant passages given
+    a query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We opted for a lightweight vectorization model, the `all-MiniLM-L6-v2`, which
+    can run efficiently on a CPU. This model provides a good balance between performance
+    and resource efficiency, making it suitable for our application. While state-of-the-art
+    models like OpenAI’s `text-embedding-3-large` may offer superior performance,
+    they require substantial computational resources, typically running on GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more information about embedding models and their performance, you can refer
+    to the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) which
+    compares various text embedding models on multiple tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the code we will use for vectorizing (should only take a few minutes
+    to run on this dataset on a CPU machine):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3\. Creating Our RAG in English
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With our dataset ready, we can now create our Retrieval-Augmented Generation
+    (RAG) application in English. For this, we’ll use LangChain, a powerful framework
+    that provides a unified interface for various language model operations and integrations,
+    making it easy to build sophisticated applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LangChain simplifies the process of integrating different components like language
+    models (LLMs), retrievers, and vector stores. By using LangChain, we can focus
+    on the high-level logic of our application without worrying about the underlying
+    complexities of each component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the code to set up our RAG system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Explanation:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**AWS Bedrock Initialization:** We initialize AWS Bedrock with Llama 3 70B
+    Instruct. This model will be used for generating responses based on the retrieved
+    context.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Prompt Template:** The prompt template is defined to format the context and
+    question into a structure that the LLM can understand. This helps in generating
+    concise and relevant answers. Feel free to play around and adjust the template
+    as needed.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Embedding Model:** We use the ‘all-MiniLM-L6-v2’ model for generating embeddings
+    for the queries as well. We hope the query will have similar representation to
+    relevant answer paragraphs. Note: In order to boost retrieval performance, we
+    could use an LLM to modify and optimize the user query so that it is more similar
+    to the style of the RAG database.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**LLM Chain:** The `LLMChain` class from LangChain is used to manage the interaction
+    between the LLM and the retrieved context.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**SimpleQAChain:** This custom class integrates the retriever and the LLM chain.
+    It retrieves relevant paragraphs, formats them into a context, and generates an
+    answer.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Alright! Let’s try it out! We will use a query related to the very first paragraphs
+    in the Mishnah.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: That seems pretty accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s try a more sophisticated question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Very nice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Could We Have Achieved the Same Thing by Querying Claude Directly?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I tried that out, here’s what I got:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2b7b973a645d3c9def1bd93406568e67.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Claude Sonnet fails to give an exact answer to the question. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The response is long and not to the point, and the answer that is given is incorrect
+    (*reaping* is the third type of work in the list, while *selecting* is the seventh).
+    This is what we call a *hallucination*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While Claude is a powerful language model, relying solely on an LLM for generating
+    responses from memorized training data or even using internet searches lacks the
+    precision and control offered by a custom database in a Retrieval-Augmented Generation
+    (RAG) application. Here’s why:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Precision and Context:** Our RAG application retrieves exact paragraphs from
+    a custom database, ensuring high relevance and accuracy. Claude, without specific
+    retrieval mechanisms, might not provide the same level of detailed and context-specific
+    responses.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Efficiency:** The RAG approach efficiently handles large datasets, combining
+    retrieval and generation to maintain precise and contextually relevant answers.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Cost-Effectiveness:** By utilizing a relatively small LLM such as Llama 3
+    70B Instruct, we achieve accurate results without needing to send a large amount
+    of data with each query. This reduces costs associated with using larger, more
+    resource-intensive models.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This structured retrieval process ensures users receive the most accurate and
+    relevant answers, leveraging both the language generation capabilities of LLMs
+    and the precision of custom data retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Cross-Lingual RAG Approach
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, we will address the challenge of interacting in Hebrew with the original
+    Hebrew text. The same approach can be applied to any other language, as long as
+    you are able to translate the texts to English for the retrieval stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Supporting Hebrew interactions adds an extra layer of complexity since embedding
+    models and large language models (LLMs) tend to be stronger in English. While
+    some embedding models and LLMs do support Hebrew, they are often less robust than
+    their English counterparts, especially the smaller embedding models that likely
+    focused more on English during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To tackle this, we could train our own Hebrew embedding model. However, another
+    practical approach is to leverage a one-time translation of the text to English
+    and use English embeddings for the retrieval process. This way, we benefit from
+    the strong performance of English models while still supporting Hebrew interactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processing Steps
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/05b43dfff3bca18dd0a9bc6649d0fb61.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Diagram of cross-lingual RAG Architecture. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, we already have professional human translations of the Mishnah
+    text into English. We will use this to ensure accurate retrievals while maintaining
+    the integrity of the Hebrew responses. Here’s how we can set up this cross-lingual
+    RAG system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Input Query in Hebrew:** Users can input their queries in Hebrew.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Translate the Query to English:** We use an LLM to translate the Hebrew query
+    into English.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Embed the Query:** The translated English query is then embedded.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Find Relevant Documents Using English Embeddings:** We use the English embeddings
+    to find relevant documents.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Retrieve Corresponding Hebrew Texts:** The corresponding Hebrew texts are
+    retrieved as context. Essentially we are using the English texts as *keys* and
+    the Hebrew texts as the corresponding *values* in the retrieval operation.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Respond in Hebrew Using an LLM:** An LLM generates the response in Hebrew
+    using the Hebrew context.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For generation, we use Claude Sonnet since it performs significantly better
+    on Hebrew text compared to Llama 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the code implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s try it! We will use the same question as before, but in Hebrew this time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: We got an accurate, one word answer to our question. Pretty neat, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interesting Challenges and Solutions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The translation with Llama 3 Instruct posed several challenges. Initially, the
+    model produced nonsensical results no matter what I tried. (Apparently, Llama
+    3 instruct is very sensitive to prompts starting with a new line character!)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After resolving that issue, the model tended to output the correct response,
+    but then continue with additional irrelevant text, so stopping the output at a
+    newline character proved effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Controlling the output format can be tricky. Some strategies include requesting
+    a JSON format or providing examples with few-shot prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this project, we also remove vowels from the Hebrew texts since most Hebrew
+    text online does not include vowels, and we want the context for our LLM to be
+    similar to text seen during pretraining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Building this RAG application has been a fascinating journey, blending the nuances
+    of ancient texts with modern AI technologies. My passion for making the library
+    of ancient rabbinic texts more accessible to everyone (myself included) has driven
+    this project. This technology enables chatting with your library, searching for
+    sources based on ideas, and much more. The approach used here can be applied to
+    other treasured collections of texts, opening up new possibilities for accessing
+    and exploring historical and cultural knowledge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s amazing to see how all this can be accomplished in just a few hours, thanks
+    to the powerful tools and frameworks available today. Feel free to check out the
+    full code on [GitHub](https://github.com/shlomota/MishnahBot), and play with the
+    [MishnahBot](http://mishnahbot.us) website.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please share your comments and questions, especially if you’re trying out something
+    similar. If you want to see more content like this in the future, do let me know!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Footnotes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [Mishnah](https://en.wikipedia.org/wiki/Mishnah) is one of the core and
+    earliest rabbinic works which serves as the basis for the Talmud.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The licenses for the texts differ and are detailed in the corresponding JSON
+    files within the repository. The Hebrew texts used in this project are in the
+    public domain. The English translations are from the Mishnah Yomit translation
+    by Dr. Joshua Kulp and are licensed under a CC-BY license.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*Shlomo Tannor is an AI/ML engineer at Avanan (A Check Point Company), specializing
+    in leveraging NLP and ML to enhance cloud email security. He holds an MSc in Computer
+    Science with a thesis in NLP and a BSc in Mathematics and Computer Science.*'
+  prefs: []
+  type: TYPE_NORMAL

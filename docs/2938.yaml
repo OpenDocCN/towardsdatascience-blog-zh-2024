@@ -1,0 +1,469 @@
+- en: How to Build a General-Purpose LLM Agent
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/build-a-general-purpose-ai-agent-c40be49e7400?source=collection_archive---------0-----------------------#2024-12-05](https://towardsdatascience.com/build-a-general-purpose-ai-agent-c40be49e7400?source=collection_archive---------0-----------------------#2024-12-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A Step-by-Step Guide
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)[![Maya
+    Murad](../Images/ef2b6ee189faf7cf50a9ed738d837c4b.png)](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------)
+    [Maya Murad](https://medium.com/@mayamurad?source=post_page---byline--c40be49e7400--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c40be49e7400--------------------------------)
+    ·11 min read·Dec 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/42cfd9265f8bf7647a3faccc2fbe4a92.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**High-level Overview of an LLM Agent.** (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Why build a general-purpose agent?** Because it’s an excellent tool to prototype
+    your use cases and lays the groundwork for designing your own custom agentic architecture.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we dive in, let’s quickly introduce LLM agents. *Feel free to skip ahead.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is an LLM agent?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An LLM agent is a program whose execution logic is controlled by its underlying
+    model.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/96012c20a3e723166e01d95cc009bda4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**From Standalone LLMs to Agentic Systems.** (*Image by author)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What sets an LLM agent apart from approaches like few-shot prompting or fixed
+    workflows is its ability to define and adapt the steps required to execute a user’s
+    query. Given access to a set of tools (like code execution or web search), the
+    agent can decide which tool to use, how to use it, and iterate on results based
+    on the output. This adaptability enables the system to handle diverse use cases
+    with minimal configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8d08ae4583742848adec12ed3bc2a7a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**A Spectrum of Agentic Architectures.** (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Agentic architectures exist on a spectrum, ranging from the reliability of fixed
+    workflows to the flexibility of autonomous agents. For instance, a fixed flow
+    like Retrieval-Augmented Generation ([RAG](https://research.ibm.com/blog/retrieval-augmented-generation-RAG))
+    can be enhanced with a self-reflection loop, enabling the program to iterate when
+    the initial response falls short. Alternatively, a [ReAct](https://www.promptingguide.ai/techniques/react)
+    agent can be equipped with fixed flows as tools, offering a flexible yet structured
+    approach. The choice of architecture ultimately depends on the use case and the
+    desired trade-off between reliability and flexibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a deeper overview, check out [this video](https://www.youtube.com/watch?v=F8NKVhkZZWI&t=1s).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s build a general-purpose LLM agent from scratch!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Step 1\. Select the right LLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Choosing the right model is critical to achieving your desired performance.
+    There are several factors to consider, like licensing, cost, and language support.
+    The most important consideration for building an LLM agent is the model’s performance
+    on key tasks like coding, tool calling, and reasoning. Benchmarks to evaluate
+    include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Massive Multitask Language Understanding (MMLU)](https://paperswithcode.com/sota/multi-task-language-understanding-on-mmlu)
+    (reasoning)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Berkeley’s Function Calling Leaderboard](https://gorilla.cs.berkeley.edu/leaderboard.html)
+    (tool selection & tool calling)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[HumanEval](https://evalplus.github.io/leaderboard.html) and [BigCodeBench](https://huggingface.co/spaces/bigcode/bigcode-models-leaderboard)
+    (coding)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another crucial factor is the model’s context window. Agentic workflows can
+    eat up a lot of tokens — sometimes 100K or more — a larger context window is really
+    helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Models to Consider** (at the time of writing)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Frontier models: [GPT4-o](https://platform.openai.com/docs/models#gpt-4o),
+    [Claude 3.5](https://www.anthropic.com/news/claude-3-5-sonnet)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Open-source models: [Llama3.2](https://huggingface.co/collections/meta-llama/llama-32-66f448ffc8c32f949b04c8cf),
+    [Qwen2.5](https://huggingface.co/collections/Qwen/qwen25-66e81a666513e518adb90d9e).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In general, larger models tend to offer better performance, but smaller models
+    that can run locally are still a solid option. With smaller models, you’ll be
+    limited to simpler use cases and might only be able to connect your agent to one
+    or two basic tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 2\. Define the agent’s control logic (aka communication structure)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/fbcc79f1334b27e03e7a7701fb7780c0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Single Agent Architecture**. (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main difference between a simple LLM and an agent comes down to the **system
+    prompt**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [system prompt](https://promptengineering.org/system-prompts-in-large-language-models/),
+    in the context of an LLM, is a set of instructions and contextual information
+    provided to the model before it engages with user queries.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The agentic behavior expected of the LLM can be codified within the system prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are some common agentic patterns, which can be customized to fit your
+    needs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tool Use:** The agent determines when to route queries to the appropriate
+    tool or rely on its own knowledge.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Reflection:** The agent reviews and corrects its answers before responding
+    to the user. A reflection step can also be added to most LLM systems.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Reason-then-Act (**[**ReAct**](https://www.promptingguide.ai/techniques/react)**):**
+    The agent iteratively reasons through how to solve the query, performs an action,
+    observes the outcome, and determines whether to take another action or provide
+    a response.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Plan-then-Execute:** The agent plans upfront by breaking the task into sub-steps
+    (if needed) and then executes each step.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The last two patterns — **ReAct** and **Plan-then-Execute** — are often the
+    best starting point for building a general-purpose single agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fcc5f1655367edc786adf8f32957c5de.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Overview of Common Agentic Patterns.** (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To implement these behaviors effectively, you’ll need to do some prompt engineering.
+    You might also want to use a [**structured generation**](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)technique.
+    This basically means shaping the LLM’s output to match a specific format or schema,
+    so the agent’s responses stay consistent with the communication style you’re aiming
+    for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Example:** Below is a system prompt excerpt for a ReAct style agent from
+    the [Bee Agent Framework](https://github.com/i-am-bee/bee-agent-framework/blob/main/src/agents/bee/prompts.ts).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Step 3\. Define the agent’s core instructions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We tend to take for granted that LLMs come with a bunch of features right out
+    of the box. Some of these are great, but others might not be exactly what you
+    need. To get the performance you’re after, it’s important to spell out all the
+    features you want — and don’t want — in the system prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This could include instructions like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Agent Name and Role:** What the agent is called and what it’s meant to do.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Tone and Conciseness:** How formal or casual it should sound, and how brief
+    it should be.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**When to Use Tools:** Deciding when to rely on external tools versus the model’s
+    own knowledge.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Handling Errors:** What the agent should do when something goes wrong with
+    a tool or process.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Example:** Below is a snippet of the instructions section from the [Bee Agent
+    Framework](https://github.com/i-am-bee/bee-agent-framework/blob/main/src/agents/bee/prompts.ts).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Step 4\. Define and optimize your core tools
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Tools are what give your agents their superpowers. With a narrow set of well-defined
+    tools, you can achieve broad functionality. Key tools to include are code execution,
+    web search, file reading, and data analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For each tool, you’ll need to define the following and include it as part of
+    the system prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tool Name:** A unique, descriptive name for the capability.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Tool Description:** A clear explanation of what the tool does and when to
+    use it. This helps the agent determine when to pick the right tool.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Tool Input Schema:** A schema that outlines required and optional parameters,
+    their types, and any constraints. The agent uses this to fill in the inputs it
+    needs based on the user’s query..'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A pointer to where/how to run the tool.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Example:** Below is an excerpt of an Arxiv tool implementation from [Langchain
+    Community](https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/tools/arxiv/tool.py).
+    This implementation requires an [ArxivAPIWrapper](https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/utilities/arxiv.py)
+    implementation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In certain cases, you’ll need to optimize tools to get the performance you’re
+    looking for. This might involve tweaking the tool name or description with some
+    prompt engineering, setting up advanced configurations to handle common errors,
+    or filtering the tool’s output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 5\. Decide on a memory handling strategy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLMs are limited by their context window — the number of tokens they can “remember”
+    at a time. This memory can fill up fast with things like past interactions in
+    multi-turn conversations, lengthy tool outputs, or extra context the agent is
+    grounded on. That’s why having a solid memory handling strategy is crucial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Memory,** in the context of an agent, refers to the system’s capability to
+    store, recall, and utilize information from past interactions. This enables the
+    agent to maintain context over time, improve its responses based on previous exchanges,
+    and provide a more personalized experience.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Common Memory Handling Strategies:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sliding Memory:** Keep the last *k* conversation turns in memory and drop
+    the older ones.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Token Memory:** Keep the last *n* tokens and forget the rest.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Summarized Memory:** Use the LLM to summarize the conversation at each turn
+    and drop the individual messages.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additionally, you can also have an LLM detect key moments to store in long-term
+    memory. This allows the agent to “remember” important facts about the user, making
+    the experience even more personalized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The five steps we’ve covered so far lay the foundation for setting up an agent.
+    But what happens if we run a user query through our LLM at this stage?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c03aedb4ced401c01f08dee317cf332f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Answer: you get a raw text output.** (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example of what that might look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: At this point, the agent produces raw text output. So how do we get it to actually
+    execute the next step? That’s where parsing and orchestration come in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 6\. Parse the agent’s raw output**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A **parser** is a function that converts raw data into a format your application
+    can understand and work with (like an object with properties)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For the agent we’re building, the parser needs to recognize the communication
+    structure we defined in **Step 2** and return a structured output, like JSON.
+    This makes it easier for the application to process and execute the agent’s next
+    steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: some model providers like* [*OpenAI*](https://openai.com/index/introducing-structured-outputs-in-the-api/),
+    *can return parsable outputs by default. For other models, especially open-source
+    ones, this would need to be configured.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 7\. Orchestrate the agent’s next step
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The final step is setting up the orchestration logic. This determines what
+    happens after the LLM outputs a result. Depending on the output, you’ll either:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execute a tool call**, or'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Return an answer** — either the final response to the user’s query or a follow-up
+    request for more information.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/2cf3fbfd9faabab0ab8405345f963ce5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Extended single agent architecture.** (Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If a tool call is triggered, the tool’s output is sent back to the LLM (as
+    part of its working memory). The LLM would then determine what to do with this
+    new information: either perform another tool call or return an answer to the user.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example of how this orchestration logic might look in code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**And voilà!** You now have a system capable of handling a wide variety of
+    use cases — from competitive analysis and advanced research to automating complex
+    workflows.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where do multi-agent systems come in?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'While this generation of LLMs is incredibly powerful, they have a key limitation:
+    [they struggle with information overload](https://arxiv.org/html/2410.18745v1).
+    Too much context or too many tools can overwhelm the model, leading to performance
+    issues. A general-purpose single agent will eventually hit this ceiling, especially
+    since agents are notoriously token-hungry.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For certain use cases, a multi-agent setup might make more sense. By dividing
+    responsibilities across multiple agents, you can avoid overloading the context
+    of a single LLM agent and improve overall efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That said, **a general-purpose single-agent setup is a fantastic starting point
+    for prototyping**. It can help you quickly test your use case and identify where
+    things start to break down. Through this process, you can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understand which parts of the task truly benefit from an agentic approach.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identify components that can be spun off as standalone processes in a larger
+    workflow.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Starting with a single agent gives you valuable insights to refine your approach
+    as you scale to more complex systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is the best way to get started?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Ready to dive in and start building? Using a framework can be a great way to
+    quickly test and iterate on your agent configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Planning on using open-source models like Llama 3?** Try [this starter template](https://github.com/i-am-bee/bee-agent-framework-starter)
+    from the [Bee Agent Framework](https://github.com/i-am-bee/bee-agent-framework).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Planning on using frontier models like OpenAI?** Try [this tutorial](https://langchain-ai.github.io/langgraph/how-tos/react-agent-from-scratch/)
+    from [LangGraph](https://langchain-ai.github.io/langgraph/).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*What’s your experience building general-purpose agents?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Share your in the comments!*
+  prefs: []
+  type: TYPE_NORMAL

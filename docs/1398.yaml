@@ -1,0 +1,423 @@
+- en: Predicting Chicago Taxi Trips with R Time Series Model — BSTS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/predicting-chicago-taxi-trips-with-r-time-series-model-bsts-f857efe38bb4?source=collection_archive---------9-----------------------#2024-06-04](https://towardsdatascience.com/predicting-chicago-taxi-trips-with-r-time-series-model-bsts-f857efe38bb4?source=collection_archive---------9-----------------------#2024-06-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Step-by-step tutorial on how to forecast daily number of taxi trips using R
+    time series model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@leaw77172?source=post_page---byline--f857efe38bb4--------------------------------)[![Lea
+    Wu](../Images/448f50424d44ca88a8d7187d4ea1ad01.png)](https://medium.com/@leaw77172?source=post_page---byline--f857efe38bb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f857efe38bb4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f857efe38bb4--------------------------------)
+    [Lea Wu](https://medium.com/@leaw77172?source=post_page---byline--f857efe38bb4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f857efe38bb4--------------------------------)
+    ·9 min read·Jun 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7af5b5c1e6116b13565141cc568b14a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Waldemar](https://unsplash.com/@waldemarbrandt67w?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imaging you’re planning marketing strategies for your taxi company or even considering
+    market entry as a new competitor — predicting number of taxi trips in the big
+    cities can be an interesting business problem. Or, if you’re just a curious resident
+    like me, this article is perfect for you to learn how to use the R Bayesian Structural
+    Time Series (BSTS) model to forecast daily taxi trips and uncover fascinating
+    insights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will walk you through the pipeline including data preparation,
+    explorational data analysis, time series modeling, forecast result analysis, and
+    business insight. I aim to predict the daily number of trips for the second half
+    year of 2023.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Preparation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The data was acquired from the [Chicago Data Portal](https://data.cityofchicago.org/Transportation/Taxi-Trips-2013-2023-/wrvz-psew/about_data).
+    (You will find this platform with access to various government data!) On the website,
+    simply find the “Action” drop down list to query data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/afa5031b63d0cff4ce859c2b6ef94921.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chicago Data Portal provides query tool to acquire selected data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the query tool, you’ll find filter, group, and column manager tools.
+    You can simply download the raw dataset. However, to save computing complexity,
+    I grouped the data by pickup timestamp to aggregate the count of trips per 15
+    minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With exploration of the dataset, I also filtered out the record with 0 trip
+    miles and N/A pickup area code (which means the pickup location is not within
+    Chicago). You should explore the data to decide how you would like to query the
+    data. It should based on the use case of your analysis.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Then, export the processed data. Downloading could take some time !
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploratory Data Analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Understanding the data is the most crucial step to preprocessing and model choices
+    reasoning. In the following part, I dived into different characteristics of the
+    dataset including seasonality, trend, and statistical test for stationary and
+    autocorrelation in the lags.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Seasonality** refers to periodic fluctuations in data that occur at regular
+    intervals. These patterns repeat over a specific period, such as days, weeks,
+    months, or quarters.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand the seasonality, we first aggregate trip counts by date and month
+    to visualize the effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The taxi demand in Chicago peaked in 2014, showed a declining trend with annual
+    seasonality, and was drastically reduced by COVID in 2020.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bbc7b3cd3042eed461fcb8f99beb2b0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Monthly counts of taxi trips | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Daily count before COVID suggests weekly seasonality, with higher trip numbers
+    on Fridays and Saturdays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/38bbe9bb0d9800d3e3f26414307bcafa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Daily counts of taxi trips | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, the post-COVID weekly seasonality has shifted, the Thursdays
+    now have the highest demand. This provides hypothesis about COVID intervention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f4ed985246718ab170e3efce9774ce8d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Daily counts of taxi trips — post COVID | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Trend** in time series data refers to underlying pattern or tendency of the
+    data to increase, decrease, or remain stable over time. I transformed the dataframe
+    to a time series data for STL decomposition to monitor the trend.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result of STL composition shows that there’s a non-linear trend. The seasonal
+    part also shows a yearly seasonality. After a closer look to the yearly seasonality,
+    I found that Thanksgiving and Christmas have the lowest demand every year.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6946aa414c75e1c21ee29555317fbf4b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: STL decomposition | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b1277540604725acaa9380fc3216c2a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Daily counts of taxi trips for holidays | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: A time series is considered **stationary** if its statistical properties (e.g.
+    mean, variance, and autocorrelation) remain constant over time. From the above
+    graphs we already know this data is not stationary since it exhibits trends and
+    seasonality. If you would like to be more robust, ADF and KPSS test are usually
+    leveraged to validate the null hypothesis of non-stationary and stationary respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Lag autocorrelation** measures the correlation between a time series and
+    its lagged over successive time intervals. It explains how the current value is
+    related to its past values. By autocorrelation in the lags we can identify patterns
+    and help us select appropriate time series models (For example, understanding
+    the autocorrelation structure helps determine the order of AR and MA components
+    for ARIMA model). The graph shows significant autocorrelations at many lags.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9b6985ce1bdc7bb4b33f822a210540ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ACF result | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Transformation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The EDA provided crucial insights into how we should transform and preprocess
+    the data to achieve the best forecasting results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: COVID changed the time series significantly. It is unreasonable to include data
+    that had changed so much. Here I fit the model on data from 2020 June to 2023
+    June. This still remains a 6:1 train-test-ratio predicting numbers for the second
+    half of 2023.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The non-stationary data shows huge variance and non-linear trend. Here I applied
+    log and differencing transformation to mitigate the effect of these characteristics
+    on the predicting performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The following code operates on the log-transformed data, as it yielded better
+    forecasting performance during preliminary tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choosing and Designing the Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s quickly recap the findings from the EDA:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multiple Seasonality and Non-Linear Trend
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Impact of Holidays and Events: Significant events like holidays affect taxi
+    demand.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Long Prediction Horizon: We need to forecast for 180 days.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Given these characteristics, the Bayesian Structural Time Series (BSTS) model
+    is a suitable choice. The BSTS model decomposes a time series into multiple components
+    using Bayesian methods, capturing the underlying latent variables that evolve
+    over time. The key components typically include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trend Component
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Seasonal Component
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Regressor Component: Incorporates the influence of external variables that
+    might affect the time series.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This is the model I used to predict the taxi trips:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**AddSemilocalLinearTrend()** From the EDA, the trend in our data is not a
+    random walk. Therefore, we use a semi-local linear trend, which assumes the level
+    component moves according to a random walk, but the slope component follows an
+    AR1 process centered on a potentially non-zero value. This is useful for long-term
+    forecasting.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AddSeasonal()** The seasonal model can be thought of as a regression on `nseasons`
+    dummy variables. Here we include weekly and yearly seasonality by setting `nseasons`
+    to 7 and 365.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AddMonthlyAnnualCycle()** This represents the contribution of each month.
+    Alternatively, you can set `nseasons=12` in `AddSeasonal()` to address monthly
+    seasonality.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AddRegressionHoliday()** Previously in EDA we learned that Thanksgiving and
+    Christmas negatively impact taxi trips. This function estimate the effect of each
+    holiday or events using regression. For this, I asked a friend of mine who is
+    familiar with Chicago (well, ChatGPT of course) for the list of huge holidays
+    and events in Chicago. For example, the Chicago Marathon might boost the number
+    of taxi trips.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b393768f123c8a17fc4627611728e7a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Joseph Two](https://unsplash.com/@josephjtwo?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then I set up the date of these dates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**DateRangeHoliday()** allows us to define events that happen at different
+    date each year or last for multiple days. **NameHoliday()** helps with federal
+    holidays.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, define the list of these holidays for the AddRegressionHoliday() attribute:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: I found [this website](https://rdrr.io/cran/bsts/) very helpful in exploring
+    different component and parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fitted result shows that the model well captured the component of the time
+    series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b576d2357e61f3ddf4250f0411881c7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: BSTS fitted result | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the residual analysis, although the residuals have a mean of zero, there
+    is still some remaining seasonality. Additionally, the residuals exhibit autocorrelation
+    in the first few lags.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d64d6b173446bfd6ddc3ca48f4c698ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Residuals of the BSTS model | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7293dfe6dc3863a302bb60fcc5c3ee44.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ACF on the residuals | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, when comparing these results to the original time series, it is evident
+    that the model has successfully captured most of the seasonality, holiday effects,
+    and trend components. This indicates that the BSTS model effectively addresses
+    the key patterns in the data, leaving only minor residual structures to be examined
+    further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forecast Result and Insights
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now, let’s evaluate the forecast results of the model. Remember to transform
+    the predicted values, as the model provides logged values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/803a984dd3e43f5e5a266f683c0bfc31.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Forecast and actual values | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model achieves a Mean Absolute Percentage Error (MAPE) of 9.76%, successfully
+    capturing the seasonality and the effects of holidays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The analysis of holiday and event effects offers valuable insights for business
+    strategies. The following graphs illustrate the impact of holiday regressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: The day before federal holidays has a significantly negative impact on the number
+    of trips. For example, both Thanksgiving Day and the day before show a noticeable
+    drop in taxi trips. This reduction could be due to lower demand or limited supply.
+    Companies can investigate these reasons further and develop strategies to address
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ed25fee6cac1731c856652074a8653c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Effect of holidays | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contrary to the initial hypothesis, major events like the Chicago Marathon did
+    not show a significant increase in taxi demand. This suggests that demand during
+    such events may not be as high as expected. Conducting customer segmentation research
+    can help identify specific groups that might be influenced by events, revealing
+    potential opportunities for targeted marketing and services. Breaking down the
+    data by sub-areas in Chicago can also provide better insights. The impact of events
+    might vary across different neighborhoods, and understanding these variations
+    can help tailor localized strategies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e05d717e523498bd6efcec7599df58d0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Effect of events | Graph by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So this is how you can use BSTS model to predict Chicago taxi rides! You can
+    experiment different state component or parameters to see how the model fit the
+    data differently. Hope you enjoy the process and please give me claps if you find
+    this article helpful!
+  prefs: []
+  type: TYPE_NORMAL

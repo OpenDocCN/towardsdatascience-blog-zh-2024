@@ -1,0 +1,294 @@
+- en: End to End AI Use Case-Driven System Design
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/end-to-end-ai-use-case-driven-system-design-6eb1e9b14944?source=collection_archive---------10-----------------------#2024-03-07](https://towardsdatascience.com/end-to-end-ai-use-case-driven-system-design-6eb1e9b14944?source=collection_archive---------10-----------------------#2024-03-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A thorough list of Technologies for best Performance/Watt
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@LizLiAI?source=post_page---byline--6eb1e9b14944--------------------------------)[![Liz
+    Li](../Images/78846add1618c8c095dd97adeca87f81.png)](https://medium.com/@LizLiAI?source=post_page---byline--6eb1e9b14944--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6eb1e9b14944--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6eb1e9b14944--------------------------------)
+    [Liz Li](https://medium.com/@LizLiAI?source=post_page---byline--6eb1e9b14944--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6eb1e9b14944--------------------------------)
+    ·7 min read·Mar 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most commonly used metric to define AI performance is TOPs (Tera Operations
+    Per Second), which indicates compute capability but oversimplifies the complexity
+    of AI systems. When it comes to real AI use case system design, many other factors
+    should also be considered beyond TOPs, including memory/cache size and bandwidth,
+    data types, energy efficiency, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, each AI use case has its characteristics and requires a holistic examination
+    of the whole use case pipeline. This examination delves into its impact on system
+    components and explores optimization techniques to predict the best pipeline performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f359afd76118bc72c1cfc8249e68a20a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we pick one AI use case — an end-to-end real-time infinite zoom
+    feature with a stable diffusion-v2 inpainting model and study how to build a corresponding
+    AI system with the best performance/Watt. This can serve as a proposal, with both
+    well-established technologies and new research ideas that can lead to potential
+    architectural features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Background on end-to-end video zoom
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As shown in the below diagram, to zoom out video frames (fish image), we resize
+    and apply a border mask to the frames before feeding them into the stable diffusion
+    inpainting pipeline. Alongside an input text prompt, this pipeline generates frames
+    with new content to fill the border-masked region. This process is continuously
+    applied to each frame to achieve the continuous zoom-out effect. To conserve compute
+    power, we may **sparsely sample video frames to avoid inpainting every frame**(e.g.,
+    generating 1 frame every 5 frames) if it still delivers a satisfactory user experience.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/296e2f107c1b9547cdab192a96052340.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Frame generation. Source: [Infinite Zoom Stable Diffusion v2 and OpenVINO™](https://docs.openvino.ai/2023.2/notebooks/236-stable-diffusion-v2-infinite-zoom-with-output.html)
+    [1]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Stable diffusion-v2 inpainting](https://huggingface.co/stabilityai/stable-diffusion-2-inpainting)
+    pipeline is pre-trained on stable diffusion-2 model, which is a text-to-image
+    latent diffusion model created by stability AI and LAION. The blue box in below
+    diagram displays each function block in the inpainting pipeline'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/bc53101f16bb0e22374ffa92857fa6d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Inpainting pipeline (inputs include text prompt, masked image and input random
+    noise). Source: [Infinite Zoom Stable Diffusion v2 and OpenVINO™](https://docs.openvino.ai/2023.2/notebooks/236-stable-diffusion-v2-infinite-zoom-with-output.html)
+    [1]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stable diffusion-2 model generates 768*768 resolution images, it is trained
+    to denoise random noise iteratively (50 steps) to get a new image. The denoising
+    process is implemented by Unet and scheduler which is a very slow process and
+    requires lots of compute and memory.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/91d84efdae6306a1826afd8fe5782b48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Stable diffusion-2-base model. Source: [The Illustrated Stable Diffusion](https://jalammar.github.io/illustrated-stable-diffusion/)
+    [2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are 4 models used in the pipeline as below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**VAE (image encoder)**. Convert image into low dimensional latent representation
+    (64*64)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**CLIP (text encoder)**. Transformer architecture (77*768), 85MP'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**UNet (diffusion process)**. Iteratively denoising processing via a schedular
+    algorithm, 865M'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**VAE (image decoder).** Transforms the latent representation back into an
+    image (512*512)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Most stable Diffusion operations (98% of the autoencoder and text encoder models
+    and 84% of the U-Net) are **convolutions**. The bulk of the remaining U-Net operations
+    (16%) are dense matrix multiplications due to the self-attention blocks. These
+    models can be pretty big (varies with different hyperparameters) which requires
+    lots of memory, for mobile devices with limited memory, it is essential to explore
+    model compression techniques to reduce the model size, including quantization
+    (2–4x mode size reduction and 2-3x speedup from FP16 to INT4), pruning, sparsity,
+    etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Power efficiency optimization for AI features like end-to-end video zoom
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For AI features like video zoom, power efficiency is one of the top factors
+    for successful deployment on edge/mobile devices. These battery-operated edge
+    devices store their energy in the battery, with the capacity of mW-H (milliWatt
+    Hours, 1200WH means 1200 watts in one hour before it discharge, if an application
+    is consuming 2w in one hour, then the battery can power the device for 600h).
+    Power efficiency is computed as IPS/Watt where IPS is inferences per second (FPS/Watt
+    for image-based applications, TOPS/Watt )
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s critical to reduce power consumption to get long battery life for mobile
+    devices, there are lots of factors contributing to high power usage, including
+    large amounts of memory transactions due to big model size, heavy computation
+    of matrix multiplications, etc., let’s take a look at how to optimize the use
+    case for efficient power usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Model optimization.**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Beyond quantization, pruning, and sparsity, there is also weight sharing. There
+    are lots of redundant weights in the network while only a small number of weights
+    are useful, the number of weights can be reduced by letting multiple connections
+    share the same weight shown as below. the original 4*4 weight matrix is reduced
+    to 4 shared weights and a 2-bit matrix, total bits are reduced from 512 bits to
+    160 bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e68e1d591d59c9b468d5fc6e86a4ad8e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Weight sharing. Source: [A Survey on Optimization Techniques for Edge Artificial
+    Intelligence (AI)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9919555/#B79-sensors-23-01279)
+    [3]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. **Memory optimization.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory is a critical component that consumes more power compared to matrix multiplications.
+    For instance, the power consumption of a DRAM operation can be orders of magnitude
+    more than that of a multiplication operation. In mobile devices, accommodating
+    large models within local device memory is often challenging. This leads to numerous
+    memory transactions between local device memory and DRAM, resulting in higher
+    latency and increased energy consumption.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing off-chip memory access is crucial for enhancing energy efficiency.
+    The article ([Optimizing Off-Chip Memory Access for Deep Neural Network Accelerator](https://ieeexplore.ieee.org/document/9708433)
+    [4]) introduced an adaptive scheduling algorithm designed to minimize DRAM access.
+    This approach demonstrated a substantial energy consumption and latency reduction,
+    ranging between 34% and 93%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A new method ([ROMANet](https://arxiv.org/pdf/1902.10222.pdf) [5]) is proposed
+    to minimize memory access for power saving. The core idea is to optimize the right
+    block size of CNN layer partition to match DRAM/SRAM resources and maximize data
+    reuse, and also optimize the tile access scheduling to minimize the number of
+    DRAM access. The data mapping to DRAM focuses on mapping a data tile to different
+    columns in the same row to maximize row buffer hits. For larger data tiles, same
+    bank in different chips can be utilized for chip-level parallelism. Furthermore,
+    if the same row in all chips is filled, data are mapped in the different banks
+    in the same chip for bank-level parallelism. For SRAM, a similar concept of bank-level
+    parallelism can be applied. The proposed optimization flow can save energy by
+    12% for the AlexNet, by 36% for the VGG-16, and by 46% for the MobileNet. A high-level
+    flow chart of the proposed method and schematic illustration of DRAM data mapping
+    is shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8499fe7fd9fbadd851d0ddf635f5ff4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Operation flow of proposed method. Source: [ROMANet](https://arxiv.org/pdf/1902.10222.pdf)
+    [5]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5f26cf64625958c88fa93373ea35ffe1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'DRAM data mapping across banks and chips. Source: [ROMANet](https://arxiv.org/pdf/1902.10222.pdf)
+    [5]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. **Dynamic power scaling.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: The power of a system can be calculated by P=C*F*V², where F is the operating
+    frequency and V is the operating voltage. Techniques like DVFS (dynamic voltage
+    frequency scaling) was developed to optimize runtime power. It scales voltage
+    and frequency depending on workload capacity. In deep learning, layer-wise DVFS
+    is not appropriate as voltage scaling has long latency. On the other hand, frequency
+    scaling is fast enough to keep up with each layer. A [layer-wise dynamic frequency
+    scaling (DFS)](https://onlinelibrary.wiley.com/doi/full/10.4218/etrij.2022-0094)[6]
+    technique is proposed for NPU, with a power model to predict power consumption
+    to determine the highest allowable frequency. It’s demonstrated that DFS improves
+    latency by 33%, and saves energy by 14%
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cd452c14ae3934e8f58eb7d00d7fcfee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Frequency changes over layer across 8 different NN applications. Source: [A
+    layer-wise frequency scaling for a neural processing unit](https://onlinelibrary.wiley.com/doi/full/10.4218/etrij.2022-0094)
+    [6]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. **Dedicated low-power AI HW accelerator architecture.** To accelerate deep
+    learning inference, specialized AI accelerators have shown superior power efficiency,
+    achieving similar performance with reduced power consumption. For instance, Google’s
+    TPU is tailored for accelerating matrix multiplication by reusing input data multiple
+    times for computations, unlike CPUs that fetch data for each computation. This
+    approach conserves power and diminishes data transfer latency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the end
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: AI inferencing is only a part of the End-to-end use case flow, there are other
+    sub-domains to be considered while optimizing system power and performance, including
+    imaging, codec, memory, display, graphics, etc. Breakdown of the process and examine
+    the impact on each sub-domain is essential. for example, to look at power consumption
+    when we run infinite zoom, we need also to look into the power of camera capturing
+    and video processing system, display, memory, etc. make sure the power budget
+    for each component is optimized. There are numerous optimization methods and we
+    need to prioritize based on the use case and product
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] OpenVINO tutorial: [Infinite Zoom Stable Diffusion v2 and OpenVINO™](https://docs.openvino.ai/2023.2/notebooks/236-stable-diffusion-v2-infinite-zoom-with-output.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [J](https://jalammar.github.io/)ay Alammar, [The Illustrated Stable Diffusion](https://jalammar.github.io/illustrated-stable-diffusion/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Chellammal Surianarayanan et al., [A Survey on Optimization Techniques
+    for Edge Artificial Intelligence (AI)](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC9919555/#B79-sensors-23-01279),
+    Jan 2023'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Yong Zheng et al., [Optimizing Off-Chip Memory Access for Deep Neural Network
+    Accelerator](https://ieeexplore.ieee.org/document/9708433), IEEE Transactions
+    on Circuits and Systems II: Express Briefs, Volume: 69, Issue: 4, April 2022'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Rachmad Vidya Wicaksana Putra et al., [ROMANet: Fine grained reuse-driven
+    off-chip memory access management and data organization for deep neural network
+    accelerators](https://arxiv.org/pdf/1902.10222.pdf), arxiv, 2020'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Jaehoon Chung et al., [A layer-wise frequency scaling for a neural processing
+    unit](https://onlinelibrary.wiley.com/doi/full/10.4218/etrij.2022-0094), ETRI
+    Journal, Volume 44, Issue 5, Sept 2022'
+  prefs: []
+  type: TYPE_NORMAL

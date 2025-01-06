@@ -1,0 +1,231 @@
+- en: Advanced Retrieval Techniques in a World of 2M Token Context Windows, Part 1
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/advanced-retrieval-techniques-in-a-world-of-2m-token-context-windows-pt-1-2edc0266aabe?source=collection_archive---------10-----------------------#2024-07-15](https://towardsdatascience.com/advanced-retrieval-techniques-in-a-world-of-2m-token-context-windows-pt-1-2edc0266aabe?source=collection_archive---------10-----------------------#2024-07-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exploring RAG techniques to improve retrieval accuracy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@meghanheintz?source=post_page---byline--2edc0266aabe--------------------------------)[![Meghan
+    Heintz](../Images/9eaae6d3d8168086d83ff7100329c51f.png)](https://medium.com/@meghanheintz?source=post_page---byline--2edc0266aabe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--2edc0266aabe--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--2edc0266aabe--------------------------------)
+    [Meghan Heintz](https://medium.com/@meghanheintz?source=post_page---byline--2edc0266aabe--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--2edc0266aabe--------------------------------)
+    ·5 min read·Jul 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06308257f080607db3569ca0a65e320f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualising AI project launched by Google DeepMind. From [Unsplash](https://unsplash.com/photos/a-bunch-of-different-colored-sprinkles-on-a-pink-background-QhDs9x7o9Jc)
+    image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, do we still care about RAG (Retrieval Augmented Generation)?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Gemini Pro can handle an astonishing 2M token context compared to the paltry
+    15k we were amazed by when GPT-3.5 landed. Does that mean we no longer care about
+    retrieval or RAG systems? Based on [Needle-in-a-Haystack benchmarks](https://huggingface.co/papers/2407.01370),
+    the answer is that while the need is diminishing, especially for Gemini models,
+    advanced retrieval techniques still significantly improve performance for most
+    LLMs. Benchmarking results show that long context models perform well at surfacing
+    specific insights. However, they struggle when a citation is required. **That
+    makes retrieval techniques especially important for use cases where citation quality
+    is important (think law, journalism, and medical applications among others).**
+    These tend to be higher-value applications where lacking a citation makes the
+    initial insight much less useful. Additionally, while the cost of long context
+    models will likely decrease, augmenting shorter content window models with retrievers
+    can be a cost-effective and lower latency path to serve the same use cases. It’s
+    safe to say that RAG and retrieval will stick around a while longer but maybe
+    you won’t get much bang for your buck implementing a naive RAG system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6ae67db7cd66874b13651235affe7c51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'From [Summary of a Haystack: A Challenge to Long-Context LLMs and RAG Systems](https://huggingface.co/papers/2407.01370)
+    by Laban, Fabbri, Xiong, Wu in 2024\. “Summary of a Haystack results of human
+    performance, RAG systems, and Long-Context LLMs. Results are reported using three
+    metrics: Coverage (left), Citation (center), and Joint (right) scores. Full corresponds
+    to model performance when inputting the entire Haystack, whereas Rand, Vect, LongE,
+    KWs, RR3, Orac correspond to retrieval components RAG systems. Models ranked by
+    Oracle Joint Score. For each model, #Wb report the average number of words per
+    bullet point.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what are the retrieval techniques we should be implementing?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Advanced RAG covers a range of techniques but broadly they fall under the umbrella
+    of pre-retrieval query rewriting and post-retrieval re-ranking. Let’s dive in
+    and learn something about each of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-Retrieval — Query Rewriting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Q: “What is the meaning of life?”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A: “42”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Question and answer asymmetry is a huge issue in RAG systems. A typical approach
+    to simpler RAG systems is to compare the cosine similarity of the query and document
+    embedding. This works when the question is nearly restated in the answer, “What’s
+    Meghan’s favorite animal?”, “Meghan’s favorite animal is the giraffe.”, but we
+    are rarely that lucky.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are a few techniques that can overcome this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rewrite-Retrieve-Read
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The nomenclature “Rewrite-Retrieve-Read” originated from a [paper](https://arxiv.org/pdf/2305.14283)
+    from the Microsoft Azure team in 2023 (although given how intuitive the technique
+    is it had been used for a while). In this study, an LLM would rewrite a user query
+    into a search engine-optimized query before fetching relevant context to answer
+    the question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key example was how this query, *“What profession do Nicholas Ray and Elia
+    Kazan have in common?”* should be broken down into two queries, *“Nicholas Ray
+    profession”* and *“Elia Kazan profession”*. This allows for better results because
+    it’s unlikely that a single document would contain the answer to both questions.
+    By splitting the query into two the retriever can more effectively retrieve relevant
+    documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f37621b4a81d6edc33b6da094587402c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[From Query Rewriting for Retrieval-Augmented Large Language Models](https://arxiv.org/pdf/2305.14283)
+    by Ma, Gong, He, Zhao, & Duan in 2023 “(a) standard retrieve-then-read method,
+    (b) LLM as a query rewriter for rewrite-retrieve-read pipeline, and (c ) trainable
+    rewriter.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rewriting can also help overcome issues that arise from “distracted prompting”.
+    Or instances where the user query has mixed concepts in their prompt and taking
+    an embedding directly would result in nonsense. For example, “*Great, thanks for
+    telling me who the Prime Minister of the UK is. Now tell me who the President
+    of France is”* would be rewritten like *“current French president”.* This can
+    help make your application more robust to a wider range of users as some will
+    think a lot about how to optimally word their prompts, while others might have
+    different norms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Query Expansion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In query expansion with LLMs, the initial query can be rewritten into multiple
+    reworded questions or decomposed into subquestions. Ideally, by expanding the
+    query into several options, the chances of lexical overlap increase between the
+    initial query and the correct document in your storage component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Query expansion is a concept that predates the widespread usage of LLMs. Pseudo
+    Relevance Feedback (PRF) is a technique that inspired some LLM researchers. In
+    PRF, the top-ranked documents from an initial search to identify and weight new
+    query terms. With LLMs, we rely on the creative and generative capabilities of
+    the model to find new query terms. This is beneficial because LLMs are not restricted
+    to the initial set of documents and can generate expansion terms not covered by
+    traditional methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Corpus-Steered Query Expansion (CSQE)](https://arxiv.org/abs/2402.18031) is
+    a method that marries the traditional PRF approach with the LLMs’ generative capabilities.
+    The initially retrieved documents are fed back to the LLM to generate new query
+    terms for the search. This technique can be especially performant for queries
+    for which LLMs lacks subject knowledge.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f059b785162916053ff89d6ad95c4a65.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[From Corpus-Steered Query Expansion with Large Language Models](https://arxiv.org/abs/2402.18031)
+    by Lei , Cao, Zhou , Shen, Yates in 2024\. “Overview of CSQE. Given a query Biology
+    definition and the top-2 retrieved documents, CSQE utilizes an LLM to identify
+    relevant document 1 and extract the key sentences from document 1 that contribute
+    to the relevance. The query is then expanded by both these corpus-originated texts
+    and LLM-knowledge empowered expansions (i.e., hypothetical documents that answer
+    the query) to obtain the final results.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are limitations to both LLM-based query expansion and its predecessors
+    like PRF. The most glaring of which is the assumption that the LLM generated terms
+    are relevant or that the top ranked results are relevant. God forbid I am trying
+    to find information about the Australian journalist Harry Potter instead of the
+    famous boy wizard. Both techniques would further pull my query away from the less
+    popular query subject to the more popular one making edge case queries less effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hypothetical Query Indexes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Another way to reduce the asymmetry between questions and documents is to index
+    documents with a set of LLM-generated hypothetical questions. For a given document,
+    the LLM can generate questions that *could* be answered by the document. Then
+    during the retrieval step, the user’s query embedding is compared to the hypothetical
+    question embeddings versus the document embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that we don’t need to embed the original document chunk, instead,
+    we can assign the chunk a document ID and store that as metadata on the hypothetical
+    question document. Generating a document ID means there is much less overhead
+    when mapping many questions to one document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The clear downside to this approach is your system will be limited by the creativity
+    and volume of questions you store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hypothetical Document Embeddings — HyDE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[HyDE](https://arxiv.org/abs/2212.10496) is the opposite of Hypothetical Query
+    Indexes. Instead of generating hypothetical questions, the LLM is asked to generate
+    a hypothetical document that *could* answer the question, and the embedding of
+    that generated document is used to search against the real documents. The real
+    document is then used to generate the response. This method showed strong improvements
+    over other contemporary retriever methods when it was first introduced in 2022.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use this concept at Dune for our natural language to SQL product. By rewriting
+    user prompts as a possible caption or title for a chart that would answer the
+    question, we are better able to retrieve SQL queries that can serve as context
+    for the LLM to write a new query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/84cc7146e1c968806f8ef8f6a712c95f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[From Precise Zero-Shot Dense Retrieval without Relevance Labels](https://arxiv.org/abs/2212.10496)
+    by Gao, Ma, Lin, Callan in 2022\. “An illustration of the HyDE model. Documents
+    snippets are shown. HyDE serves all types of queries without changing the underlying
+    GPT-3 and Contriever/mContriever models.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stay tuned for part 2 on reranking methods.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL

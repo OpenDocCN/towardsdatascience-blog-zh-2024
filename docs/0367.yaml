@@ -1,0 +1,895 @@
+- en: Nine Rules for Accessing Cloud Files from Your Rust Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07](https://towardsdatascience.com/nine-rules-for-accessing-cloud-files-from-your-rust-code-d456c1e2ceb4?source=collection_archive---------7-----------------------#2024-02-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Practical Lessons from Upgrading Bed-Reader, a Bioinformatics Library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Carl
+    M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)
+    [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--d456c1e2ceb4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d456c1e2ceb4--------------------------------)
+    ·21 min read·Feb 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1e411080a4ed67bba652ec6626318f0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Rust and Python reading DNA data directly from the cloud — Source: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/).
+    All other figures from the author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Would you like your Rust program to seamlessly access data from files in the
+    cloud? When I refer to “files in the cloud,” I mean data housed on web servers
+    or within cloud storage solutions like AWS S3, Azure Blob Storage, or Google Cloud
+    Storage. The term “read”, here, encompasses both the sequential retrieval of file
+    contents — be they text or binary, from beginning to end —and the capability to
+    pinpoint and extract specific sections of the file as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Upgrading your program to access cloud files can reduce annoyance and complication:
+    the annoyance of downloading to local storage and the complication of periodically
+    checking that a local copy is up to date.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sadly, upgrading your program to access cloud files can also *increase* annoyance
+    and complication: the annoyance of URLs and credential information, and the complication
+    of asynchronous programming.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Bed-Reader](https://github.com/fastlmm/bed-reader) is a Python package and
+    Rust crate for reading PLINK Bed Files, a binary format used in bioinformatics
+    to store genotype (DNA) data. At a user’s request, I recently updated Bed-Reader
+    to optionally read data directly from cloud storage. Along the way, I learned
+    nine rules that can help you add cloud-file support to your programs. The rules
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use crate `[object_store](https://crates.io/crates/object_store)` (and, perhaps,
+    `[cloud-file](https://crates.io/crates/cloud-file)`) to sequentially read the
+    bytes of a cloud file.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sequentially read text lines from cloud files via two nested loops.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Randomly access cloud files, even giant ones, with “range” methods, while respecting
+    server-imposed limits.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use URL strings and option strings to access HTTP, Local Files, AWS S3, Azure,
+    and Google Cloud.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Test via `[tokio](https://crates.io/crates/tokio)::test` on http and local files.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*If other programs call your program — in other words, if your program offers
+    an API (application program interface) — four additional rules apply:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. For maximum performance, add cloud-file support to your Rust library via
+    an async API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 7\. Alternatively, for maximum convenience, add cloud-file support to your Rust
+    library via a traditional (“synchronous”) API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. Follow the rules of good API design in part by using hidden lines in your
+    doc tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 9\. Include a runtime, but optionally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: To avoid wishy-washiness, I call these “rules”, but they are, of course,
+    just suggestions.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Rule 1: Use crate `object_store` (and, perhaps, `cloud-file`) to sequentially
+    read the bytes of a cloud file.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The powerful `[object_store](https://crates.io/crates/object_store)` crate provides
+    full content access to files stored on http, AWS S3, Azure, Google Cloud, and
+    local files. It is part of the [Apache Arrow](https://arrow.apache.org/) project
+    and has over 2.4 million downloads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this article, I also created a new crate called `[cloud-file](https://crates.io/crates/cloud-file)`.
+    It simplifies the use of the `object_store` crate. It wraps and focuses on a useful
+    subset of `object_store`’s features. You can either use it directly, or pull-out
+    its code for your own use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at an example. We’ll count the lines of a cloud file by counting
+    the number of newline characters it contains.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When we run this code, it returns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some points of interest:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use `async` (and, here, `[tokio](https://docs.rs/tokio/latest/tokio/)`).
+    We’ll discuss this choice more in Rules 6 and 7.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We turn a URL string and string options into a `CloudFile` instance with `CloudFile::new_with_options(url,
+    options)?`. We use `?` to catch malformed URLs).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We create a stream of binary chunks with `cloud_file.stream_chunks().await?`.
+    This is the first place that the code tries to access the cloud file. If the file
+    doesn’t exist or we can’t open it, the `?` will return an error.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We use `chunks.next().await` to retrieve the file’s next binary chunk. (Note
+    the `use futures_util::StreamExt;`.) The `next` method returns `None` after all
+    chunks have been retrieved.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What if there *is* a next chunk but also a problem retrieving it? We’ll catch
+    any problem with `let chunk = chunk?;`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we use the fast `[bytecount](https://docs.rs/bytecount/latest/bytecount/)`
+    crate to count newline characters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In contrast with this cloud solution, think about how you would write a simple
+    line counter for a local file. You might write this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Between the cloud-file version and the local-file version, three differences
+    stand out. First, we can easily read local files as text. By default, we read
+    cloud files as binary (but see Rule 2). Second, by default, we read local files
+    synchronously, blocking program execution until completion. On the other hand,
+    we usually access cloud files asynchronously, allowing other parts of the program
+    to continue running while waiting for the relatively slow network access to complete.
+    Third, iterators such as `lines()` support `for`. However, streams such as `stream_chunks()`
+    do not, so we use `while let`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I mentioned earlier that you didn’t need to use the `cloud-file` wrapper and
+    that you could use the `object_store` crate directly. Let’s see what it looks
+    like when we count the newlines in a cloud file using only `object_store` methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You’ll see the code is very similar to the `cloud-file` code. The differences
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of one `CloudFile` input, most methods take two inputs: an `ObjectStore`
+    and a `StorePath`. Because `ObjectStore` is a non-cloneable trait, here the `count_lines`
+    function specifically uses `&Arc<Box<dyn ObjectStore>>`. Alternatively, we could
+    make the function generic and use `&Arc<impl ObjectStore>`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the `ObjectStore` instance, the `StorePath` instance, and the stream
+    requires a few extra steps compared to creating a `CloudFile` instance and a stream.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Instead of dealing with one error type (namely, `CloudFileError`), multiple
+    error types are possible, so we fall back to using the `[anyhow](https://crates.io/crates/anyhow)`
+    crate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Whether you use `object_store` (with 2.4 million downloads) directly or indirectly
+    via `cloud-file` (currently, with 124 downloads 😀), is up to you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the rest of this article, I’ll focus on `cloud-file`. If you want to translate
+    a `cloud-file` method into pure `object_store` code, look up the cloud-file [method’s
+    documentation](https://docs.rs/cloud-file) and follow the "source" link. The source
+    is usually only a line or two.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve seen how to sequentially read the bytes of a cloud file. Let’s look next
+    at sequentially reading its lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 2: Sequentially read text lines from cloud files via two nested loops.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We often want to sequentially read the lines of a cloud file. To do that with
+    `cloud-file` (or `object_store`) requires two nested loops.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The outer loop yields binary chunks, as before, but with a key modification:
+    we now ensure that each chunk only contains complete lines, starting from the
+    first character of a line and ending with a newline character. In other words,
+    chunks may consist of one or more complete lines but no partial lines. The inner
+    loop turns the chunk into text and iterates over the resultant one or more lines.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, given a cloud file and a number *n*, we find the line at index
+    position *n*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code prints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some points of interest:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key method is `.stream_line_chunks()`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We must also call `std::str::from_utf8` to create text. (Possibly returning
+    a `[Utf8Error](https://doc.rust-lang.org/std/str/struct.Utf8Error.html)`.) Also,
+    we call the `.lines()` method to create an iterator of lines.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If we want a line index, we must make it ourselves. Here we use:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: Why two loops? Why doesn’t `cloud-file` define a new stream that returns
+    one line at a time? Because I don’t know how. If anyone can figure it out, please
+    send me a pull request with the solution!'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I wish this was simpler. I’m happy it is efficient. Let’s return to simplicity
+    by next look at randomly accessing cloud files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 3: Randomly access cloud files, even giant ones, with range methods, while
+    respecting server-imposed limits.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I work with a genomics file format called PLINK Bed 1.9\. Files can be as large
+    as 1 TB. Too big for web access? Not necessarily. We sometimes only need a fraction
+    of the file. Moreover, modern cloud services (including most web servers) can
+    efficiently retrieve regions of interest from a cloud file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at an example. This test code uses a `CloudFile` method called `read_range_and_file_size`
+    It reads a *.bed file’s first 3 bytes, checks that the file starts with the expected
+    bytes, and then checks for the expected length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that in one web call, this method returns not just the bytes requested,
+    but also the size of the whole file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a list of high-level `CloudFile` methods and what they can retrieve
+    in one web call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[read_all](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_all)`
+    — Whole file contents as an in-memory `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[read_range](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_range)`
+    — `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)` from a specified
+    range'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[read_ranges](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_ranges)`
+    — `Vec` of `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)` from
+    specified ranges'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[read_range_and_file_size](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_range_and_file_size)`
+    — `[Bytes](https://docs.rs/bytes/latest/bytes/struct.Bytes.html)` from a specified
+    range & the file’s size'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[read_file_size](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_file_size)`
+    — Size of the file'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These methods can run into two problems if we ask for too much data at a time.
+    First, our cloud service may limit the number of bytes we can retrieve in one
+    call. Second, we may get faster results by making multiple simultaneous requests
+    rather than just one at a time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider this example: We want to gather statistics on the frequency of adjacent
+    ASCII characters in a file of any size. For example, in a random sample of 10,000
+    adjacent characters, perhaps “th” appears 171 times.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose our web server is happy with 10 concurrent requests but only wants us
+    to retrieve 750 bytes per call. (8 MB would be a more normal limit).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks to Ben Lichtman (B3NNY) at the Seattle Rust Meetup for pointing me in
+    the right direction on adding limits to async streams.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Our main function could look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `count_bigrams` function can start by creating a random number generator
+    and making a call to find the size of the cloud file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, based on the file size, the function can create a vector of 10,000 random
+    two-byte ranges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For example, it might produce the vector `[4122418..4122420, 4361192..4361194,
+    145726..145728,` … `]`. But retrieving 20,000 bytes at once (we are pretending)
+    is too much. So, we divide the vector into 27 chunks of no more than 750 bytes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using a little async magic, we create an iterator of future work for each of
+    the 27 chunks and then we turn that iterator into a stream. We tell the stream
+    to do up to 10 simultaneous calls. Also, we say that out-of-order results are
+    fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the last section of code, we first do the work in the stream and — as we
+    get results — tabulate. Finally, we sort and print the top results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code for the Bed-Reader genomics crate uses the same technique to retrieve
+    information from scattered DNA regions of interest. As the DNA information comes
+    in, perhaps out of order, the code fills in the correct columns of an output array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: This method uses an iterator, a stream, and a loop. I wish it were simpler.
+    If you can figure out a simpler way to retrieve a vector of regions while limiting
+    the maximum chunk size and the maximum number of concurrent requests, please send
+    me a pull request.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: That covers access to files stored on an HTTP server, but what about AWS S3
+    and other cloud services? What about local files?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 4: Use URL strings and option strings to access HTTP, Local Files, AWS
+    S3, Azure, and Google Cloud.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `object_store` crate (and the `cloud-file` wrapper crate) supports specifying
+    files either via a URL string or via structs. I recommend sticking with URL strings,
+    but the choice is yours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s consider an AWS S3 example. As you can see, AWS access requires credential
+    information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The key part is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If we wish to use structs instead of URL strings, this becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: I prefer the URL approach over structs. I find URLs slightly simpler, much more
+    uniform across cloud services, and vastly easier for interop (with, for example,
+    Python).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are example URLs for the three web services I have used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP — `[https://www.gutenberg.org/cache/epub/100/pg100.txt](https://www.gutenberg.org/cache/epub/100/pg100.txt)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: local file — `file:///M:/data%20files/small.bed` — use the `[cloud_file::abs_path_to_url_string](/fn.abs_path_to_url_string.html)`
+    function to properly encode a full file path into a URL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AWS S3 — `s3://bedreader/v1/toydata.5chrom.bed`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Local files don’t need options. For the other services, here are links to their
+    supported options and selected examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: HTTP — `[ClientConfigKey](https://docs.rs/object_store/latest/object_store/enum.ClientConfigKey.html#variant.Timeout)`
+    — `[("timeout", "30s")]`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AWS S3 — `[AmazonS3ConfigKey](https://docs.rs/object_store/latest/object_store/aws/enum.AmazonS3ConfigKey.html)`
+    — `[("aws_region", "us-west-2"), ("aws_access_key_id",` …`), ("aws_secret_access_key",`
+    …`)]`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Azure — `[AzureConfigKey](https://docs.rs/object_store/latest/object_store/azure/enum.AzureConfigKey.html)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Google — `[GoogleConfigKey](https://docs.rs/object_store/latest/object_store/gcp/enum.GoogleConfigKey.html)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now that we can specify and read cloud files, we should create tests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 5: Test via `tokio::test` on http and local files.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The `object_store` crate (and `cloud-file`) supports any async runtime. For
+    testing, the [Tokio runtime](https://docs.rs/tokio/latest/tokio/index.html) makes
+    it easy to test your code on cloud files. Here is a test on an http file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Run this test with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you don’t want to hit an outside web server with your tests, you can instead
+    test against local files as though they were in the cloud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: This uses the standard Rust environment variable `[CARGO_MANIFEST_DIR](https://doc.rust-lang.org/cargo/reference/environment-variables.html)`
+    to find the full path to a text file. It then uses `cloud_file::abs_path_to_url_string`
+    to correctly encode that full path into a URL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whether you test on http files or local files, the power of `object_store` means
+    that your code should work on any cloud service, including AWS S3, Azure, and
+    Google Cloud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you only need to access cloud files for your own use, you can stop reading
+    the rules here and skip to the conclusion. If you are adding cloud access to a
+    library (Rust crate) for others, keep reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 6: For maximum performance, add cloud-file support to your Rust library
+    via an async API.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you offer a Rust crate to others, supporting cloud files offers great convenience
+    to your users, but not without a cost. Let’s look at [Bed-Reader](https://pypi.org/project/bed-reader/),
+    the genomics crate to which I added cloud support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As previously mentioned, Bed-Reader is a library for reading and writing PLINK
+    Bed Files, a binary format used in bioinformatics to store genotype (DNA) data.
+    Files in Bed format can be as large as a terabyte. Bed-Reader gives users fast,
+    random access to large subsets of the data. It returns a 2-D array in the user’s
+    choice of int8, float32, or float64\. Bed-Reader also gives users access to 12
+    pieces of metadata, six associated with individuals and six associated with SNPs
+    (roughly speaking, DNA locations). The genotype data is often 100,000 times larger
+    than the metadata.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/210196974c88a9518883ab78d09b7c00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: PLINK stores genotype data and metadata. (Figure by author.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: In this context, an “[API](https://en.wikipedia.org/wiki/API)” refers
+    to an Application Programming Interface. It is the public structs, methods, etc.,
+    provided by library code such as Bed-Reader for another program to call.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Here is some sample code using Bed-Reader’s original “local file” API. This
+    code lists the first five individual ids, the first five SNP ids, and every unique
+    chromosome number. It then reads every genomic value in chromosome 5:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the same code using the new cloud file API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When switching to cloud data, a Bed-Reader user must make these changes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: They must run in an async environment, here `#[tokio::test]`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They must use a new struct, `BedCloud` instead of `Bed`. (Also, not shown, `BedCloudBuilder`
+    rather than `BedBuilder`.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They give a URL string and optional string options rather than a local file
+    path.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They must use `.await` in many, rather unpredictable, places. (Happily, the
+    compiler gives a good error message if they miss a place.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ReadOptionsBuilder` gets a new method, `read_cloud`, to go along with its
+    previous `read` method.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: From the library developer’s point of view, adding the new `BedCloud` and `BedCloudBuilder`
+    structs costs many lines of main and test code. In my case, 2,200 lines of new
+    main code and 2,400 lines of new test code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: Also, see Mario Ortiz Manero’s article “[The bane of my existence: Supporting
+    both async and sync code in Rust](https://nullderef.com/blog/rust-async-sync/)”.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The benefit users get from these changes is the ability to read data from cloud
+    files with async’s high efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is this benefit worth it? If not, there is an alternative that we’ll look at
+    next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 7: Alternatively, for maximum convenience, add cloud-file support to your
+    Rust library via a traditional (“synchronous”) API.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If adding an efficient async API seems like too much work for you or seems too
+    confusing for your users, there is an alternative. Namely, you can offer a traditional
+    (“synchronous”) API. I do this for the Python version of Bed-Reader and for the
+    Rust code that supports the Python version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: See: [Nine Rules for Writing Python Extensions in Rust: Practical Lessons
+    from Upgrading Bed-Reader, a Python Bioinformatics Package](https://medium.com/towards-data-science/nine-rules-for-writing-python-extensions-in-rust-d35ea3a4ec29)
+    in *Towards Data Science*.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Here is the Rust function that Python calls to check if a *.bed file starts
+    with the correct file signature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notice that this is *not* an async function. It is a normal “synchronous” function.
+    Inside this synchronous function, Rust makes an async call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We make the async call synchronous by wrapping it in a Tokio runtime:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Bed-Reader’s Python users could previously open a local file for reading with
+    the command `open_bed(file_name_string)`. Now, they can also open a cloud file
+    for reading with the same command `open_bed(url_string)`. The only difference
+    is the format of the string they pass in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the example from Rule 6, in Python, using the updated Python API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice the Python API also offers a new optional parameter called `cloud_options`.
+    Also, behind the scenes, a tiny bit of new code distinguishes between strings
+    representing local files and strings representing URLs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Rust, you can use the same trick to make calls to `object_cloud` synchronous.
+    Specifically, you can wrap async calls in a runtime. The benefit is a simpler
+    interface and less library code. The cost is less efficiency compared to offering
+    an async API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you decide against the “synchronous” alternative and choose to offer an
+    async API, you’ll discover a new problem: providing async examples in your documentation.
+    We will look at that issue next.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 8: Follow the rules of good API design in part by using hidden lines in
+    your doc tests.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'All the rules from the article [Nine Rules for Elegant Rust Library APIs: Practical
+    Lessons from Porting Bed-Reader, a Bioinformatics Library, from Python to Rust](https://medium.com/towards-data-science/nine-rules-for-elegant-rust-library-apis-9b986a465247)
+    in *Towards Data Science* apply. Of particular importance are these two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Write good documentation to keep your design honest.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create examples that don’t embarrass you.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These suggest that we should give examples in our documentation, but how can
+    we do that with async methods and awaits? The trick is “hidden lines” in our [doc
+    tests](https://doc.rust-lang.org/rustdoc/write-documentation/documentation-tests.html).
+    For example, here is the documentation for `[CloudFile::read_ranges](https://docs.rs/cloud-file/0.1.0-beta.2/cloud_file/struct.CloudFile.html#method.read_ranges)`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: /// use cloud_file::CloudFile;
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ///
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '/// # Runtime::new().unwrap().block_on(async {'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// let url = "https://raw.githubusercontent.com/fastlmm/bed-sample-files/main/plink_sim_10s_100v_10pmiss.bim";
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// let cloud_file = CloudFile::new(url)?;
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// let bytes_vec = cloud_file.read_ranges(&[0..10, 1000..1010]).await?;
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// assert_eq!(bytes_vec.len(), 2);
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// assert_eq!(bytes_vec[0].as_ref(), b"1\t1:1:A:C\t");
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// assert_eq!(bytes_vec[1].as_ref(), b":A:C\t0.0\t4");
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '/// # Ok::<(), CloudFileError>(())}).unwrap();'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '/// # use {tokio::runtime::Runtime, cloud_file::CloudFileError};'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: /// [PRE28]
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The doc test starts with [PRE29] [PRE30]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[features]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: extension-module = ["pyo3/extension-module", "tokio/full"]
+  prefs: []
+  type: TYPE_NORMAL
+- en: default = []
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[dependencies]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '#...'
+  prefs: []
+  type: TYPE_NORMAL
+- en: pyo3 = { version = "0.20.0", features = ["extension-module"], optional = true
+    }
+  prefs: []
+  type: TYPE_NORMAL
+- en: tokio = { version = "1.35.0", features = ["full"], optional = true }
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[tool.maturin]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: features = ["extension-module"]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: '#![cfg(feature = "extension-module")] // ignore file if feature not ''on'''
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: '#![cfg(feature = "tokio")]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: /// Chromosome of each SNP (variant)
+  prefs: []
+  type: TYPE_NORMAL
+- en: /// [...]
+  prefs: []
+  type: TYPE_NORMAL
+- en: ///
+  prefs: []
+  type: TYPE_NORMAL
+- en: '/// # Example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: /// [PRE35]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '```'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this doc test, when the `tokio` feature is ‘on’, the example, uses `tokio`
+    and runs four lines of code inside a Tokio runtime. When the `tokio` feature is
+    ‘off’, the code within the `#[cfg(feature = "tokio")]` block disappears, effectively
+    skipping the asynchronous operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When formatting the documentation, Rust includes documentation for all features
+    by default, so we see the four lines of code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4544233478a0a6911c16e85bb4a9ab4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'To summarize Rule 9: By using Cargo features and conditional compilation we
+    can ensure that users only pay for the features that they use.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So, there you have it: nine rules for reading cloud files in your Rust program.
+    Thanks to the power of the `[object_store](https://docs.rs/object_store/latest/object_store/)`
+    crate, your programs can move beyond your local drive and load data from the web,
+    AWS S3, Azure, and Google Cloud. To make this a little simpler, you can also use
+    the new `[cloud-file](https://crates.io/crates/cloud-file)` wrapping crate that
+    I wrote for this article.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I should also mention that this article explored only a subset of `object_store`’s
+    features. In addition to what we’ve seen, the `object_store` crate also handles
+    writing files and working with folders and subfolders. The `[cloud-file](https://crates.io/crates/cloud-file)`
+    crate, on the other hand, only handles reading files. (But, hey, I’m open to pull
+    requests).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Should you add cloud file support to your program? It, of course, depends. Supporting
+    cloud files offers a huge convenience to your program’s users. The cost is the
+    extra complexity of using/providing an async interface. The cost also includes
+    the increased file size of runtimes like Tokio. On the other hand, I think the
+    tools for adding such support are good and trying them is easy, so give it a try!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for joining me on this journey into the cloud. I hope that if you
+    choose to support cloud files, these steps will help you do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Please* [*follow Carl on Medium*](https://medium.com/@carlmkadie)*. I write
+    on scientific programming in Rust and Python, machine learning, and statistics.
+    I tend to write about one article per month.*'
+  prefs: []
+  type: TYPE_NORMAL

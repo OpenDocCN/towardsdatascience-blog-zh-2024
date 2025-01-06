@@ -1,0 +1,461 @@
+- en: Python + Google Earth Engine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/python-google-earth-engine-how-to-clean-mapbiomas-lulc-rasters-for-any-shapefile-in-brazil-05d13dcf2307?source=collection_archive---------6-----------------------#2024-07-10](https://towardsdatascience.com/python-google-earth-engine-how-to-clean-mapbiomas-lulc-rasters-for-any-shapefile-in-brazil-05d13dcf2307?source=collection_archive---------6-----------------------#2024-07-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to clean MapBiomas LULC rasters for any shapefile in Brazil
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)[![Vinícius
+    Hector](../Images/ac360b1e6a3748cf4b27be380e738d76.png)](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------)
+    [Vinícius Hector](https://medium.com/@HecVini?source=post_page---byline--05d13dcf2307--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--05d13dcf2307--------------------------------)
+    ·21 min read·Jul 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7822848d8ba780656641f63147518ca4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: Land Use and Land Cover in Porto Acre, AC (1985–2022). Self-made,
+    using MapBiomas LULC Collection 8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have ever worked with land use data in Brazil, you have certainly come
+    across **MapBiomas**². Their remote sensing team developed an [algorithm](https://brasil.mapbiomas.org/en/visao-geral-da-metodologia/)
+    to classify land use for each 30m x 30m piece of territory across Brazil (and
+    now for much of South America and Indonesia). Nine years later, they offer a variety
+    of products, including MapBiomas LCLU (which we will explore here), MapBiomas
+    Fire, MapBiomas Water, MapBiomas Irrigation, MapBiomas Infrastructure, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Their final products are provided as rasters. ***But what are they, exactly?***
+  prefs: []
+  type: TYPE_NORMAL
+- en: A raster is an image where each pixel contains information about a specific
+    location. Those images are typically saved as .tif files and are useful for gathering
+    georeferenced data. In MapBiomas LCLU, for example, each pixel has a code that
+    tells us how that piece of land is used for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many ways to acess and work with them. In this tutorial, we will learn
+    how to save, clean, and plot **MapBiomas Land Use Land Cover (LULC)** rasters
+    using **Google Earth Engine’s Python API**. First, we will demonstrate this process
+    for a single location for one year. Then, we will build functions that can perform
+    those tasks for multiple locations over multiple years in a standardized way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is just one method of accessing MapBiomas resources — others can be found
+    [here](https://brasil.mapbiomas.org/downloads/). This approach is particularly
+    useful if you need to work with limited areas for a few years, as it avoids using
+    Google Earth Engine’s JavaScript editor (although MapBiomas has a great [GEE toolkit](https://github.com/mapbiomas-brazil/user-toolkit)
+    there). Note that you will need a Google Earth Engine and a Google Drive account
+    for it. In a future post, we will learn how to download and clean MapBiomas data
+    using their .tif files for the whole country.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This tutorial is split into four sections:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**(1) Project Setup:** what you need to run the code properly.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(2) Single Example:** we are going to utilize GEE''s Python API to store
+    and process land use data for Acrelândia (AC) in 2022\. This city was chosen as
+    an example because it is in the middle of the so-called AMACRO region, the new
+    deforestation frontier in Brazil.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(3) Plot the Map:** after saving and cleaning raw data, we will beautifully
+    plot it on a choropleth map.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**(4) Standardized Functions:** we will build generic functions to do steps
+    2 and 3 for any location in any year. Then, we will use loops to run the algorithm
+    sequentially and see LULC evolution since 1985 in Porto Acre, AC — another city
+    with soaring deforestation in the middle of the Amazon’s AMACRO region.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Comments are welcome! If you find any mistakes or have suggestions, please reach
+    out via [e-mail](mailto:vinicius.hector@outlook.com) or [X](https://x.com/hec_vini).
+    I hope it helps!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**# 1\. Project Setup**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First of all, we need to load libraries. Make sure all of them are properly
+    installed. Also, I am using Python 3.12.3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, make sure you have a folder for this project. All resources and outputs
+    will be saved there. This folder can be located on your local drive, a cloud-based
+    storage solution, or in a specific folder on Google Drive where you will save
+    the rasters retrieved using the GEE API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When running your code, make sure to change the address below to your project
+    path. Windows users, always remember to use \\ instead of /.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, this function is useful for plotting geometries over OpenStreetMap (OSM).
+    It is particularly helpful when working with unknown shapefiles to ensure accuracy
+    and avoid mistakes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**# 2\. Single Example: Acrelândia (AC) in 2022**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As an example to create intuition of the process, we will save, clean, and plot
+    land use in [Acrelândia (AC)](https://en.wikipedia.org/wiki/Acrelândia) in 2022\.
+    It is a city in the middle of the **AMACRO** region (the three-state border of
+    **Am**azonas, **Ac**re, and **Ro**ndônia), where the often untouched forest is
+    being rapidly destroyed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, I will explain step by step of the script, and then standardize
+    the process to run it for multiple places over multiple years. Since saving large
+    rasters using the API can be a slow process, I recommend using it only if you
+    need to deal with a few or small areas for a few years. Large areas may take hours
+    to save on Google Drive, so I recommend downloading the heavy LULC files for the
+    whole country and then cleaning them, as we will do in a future post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To run the code, first download and save IBGE’s¹ [Brazilian cities shapefiles](https://www.ibge.gov.br/en/geosciences/territorial-organization/territorial-meshes/2786-np-municipal-mesh/18890-municipal-mesh.html?lang=en-GB)
+    (select Brazil > Municipalities). Remember, you can use any shapefile in Brazil
+    to perform this algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once we have the shapefile we want to study properly saved, we will create a
+    bounding box around it to crop the MapBiomas full raster. Then, we will save it
+    the GEE Python API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2ea9855047684a05c8a08518efb74cfb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Acrelândia, AC, and the bbox Around it Plotted Over OSM.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we will access the MapBiomas Google Earth Engine API. First, we need to
+    [create a cloud project on GEE](https://dev.to/geedevs-nairobi/creating-an-earth-engine-cloud-project-4gja)
+    using a Google Account. Make sure you have enough space on your Google Drive account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we need to authenticate the [GEE Python API](https://developers.google.com/earth-engine/guides/auth)
+    (only once). If you are a VSCode user, notice that the token insertion box appears
+    in the top right corner of the IDE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images from the MapBiomas LULC Collection are available in the same asset.
+    Notice that you can slightly modify this script to work with other assets in the
+    [GEE catalog](https://developers.google.com/earth-engine/datasets) and other MapBiomas
+    collections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, each band represents the LULC data for a given year. Make sure that the
+    code below is properly written. This selects the image for the desired year and
+    then crops the raw raster for a bounding box around the region of interest (ROI)
+    — Acrelândia, AC.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we save the cropped raster on Google Drive (in my case, into the ‘tutorial_mapbiomas_gee’
+    folder). Make sure you have created the destination folder in your drive before
+    running.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I tried to save it locally, but it looks like you need to save GEE rasters at
+    Google Drive (let me know if you know how to do it locally). This is the most
+    time-consuming part of the code. For large ROIs, this might take hours. Check
+    your GEE task manager to see if the rasters were properly loaded to the destination
+    folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**# 3\. Plot the Map**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we have a raster with LULC data for a bounding box around Acrelândia in
+    2022\. This is saved at the address below (at Google Drive). First, let’s see
+    how it looks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/06524a8466bf3e0a10ce156aa89dc35c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3: Cropped Raster of the bbox Around the ROI. Self-made, using MapBiomas
+    LULC Collection 8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In MapBiomas LULC Collection 8, each pixel represents a specific land use type
+    according to [this list](https://brasil.mapbiomas.org/wp-content/uploads/sites/4/2023/08/Legenda-Colecao-8-LEGEND-CODE.pdf).
+    For instance, ‘3’ means ‘Natural Forest’, ‘15’ means ‘Pasture’, and ‘0’ means
+    ‘No data’ (pixels in the raster not within the Brazilian borders).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will explore the data we have before plotting it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1a4ff0903bb69502b4321c0381323bb0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4: Pixels Share in the bbox Around the ROI (excl. 0 = no data).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the end of the day, we are working with a large matrix in which each element
+    represents how each tiny 30m x 30m piece of land is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we need to organize our raster data. Instead of categorizing each pixel
+    by exact land use, we will categorize them more broadly. We will divide pixels
+    into **natural forest, natural non-forest vegetation, water, pasture, agriculture**,
+    and **other** uses. Specifically, we are interested in tracking the conversion
+    of natural forest to pasture. To achieve this, we will reassign pixel values based
+    on the `mapbiomas_categories` dict below, which follows with MapBiomas' land use
+    and land cover (LULC) categorization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code below crops the raster to Acrelândia’s limits and reassigns pixels
+    according to the `mapbiomas_categories` dict. Then, it saves it as a new raster
+    at ‘reassigned_raster_path’. Note that the old raster was saved on Google Drive
+    (after being downloaded using GEE’s API), while the new one will be saved in the
+    project folder (in my case, a OneDrive folder on my PC, as set in section 1.2).
+    From here onwards, we will use only the reassigned raster to plot the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**This is the main part of the script**. If you have doubts about what is happening
+    here (cropping for Acrelândia and then reassigning pixels to broader categories),
+    I recommend running it and printing results for every step.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5ed3ab6e51acc626ccb0055fa89bfb54.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5: Pixels Share in the ROI (excl. 255 = no data).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we plot the data with generic colors. We will enhance the map later, but
+    this is just a first (or second?) look. Notice that I specifically set 255 (=
+    no data, pixels outside Acrelândia) to be white for better visualization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/6f14dd03ef5f7bb566bdff487ded6666.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 6: LULC in the ROI. Self-made, using MapBiomas LULC Collection 8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it’s time to create a beautiful map. I have chosen Matplotlib because I
+    want static maps. If you prefer interactive choropleths, you can use [Plotly](https://plotly.com/python/choropleth-maps/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For further details on choropleths with Matplotlib, check [its documentation](https://matplotlib.org/stable/users/index.html),
+    [GeoPandas guide](https://geopandas.org/en/stable/docs/user_guide/mapping.html),
+    and the great Yan Holtz’s [Python Graph Gallery](https://python-graph-gallery.com)
+    — where I get much of the inspiration and tools for DataViz in Python. Also, for
+    beautiful color palettes, [coolors.co](https://coolors.co/) is an excellent resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure you have all data visualization libraries properly loaded to run the
+    code below. I also tried to change the order of patches, but I didn’t know how
+    to. *Let me know if you find out how to do it.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8c0bb758d78565f910f15ea165941f47.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 7: Final map of LULC in the ROI. Self-made, using MapBiomas LULC Collection
+    8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4\. Standardized Functions**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have built intuition on how to download, save, clean, and plot MapBiomas
+    LULC rasters. It is time to **generalize the process.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we will define functions to automate these steps for any shape
+    and any year. Then, we will execute these functions in a loop to analyze a specific
+    city — Porto Acre, AC — from 1985 to 2022\. Finally, we will make a video illustrating
+    the LULC evolution in that area over the specified period.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, save a bounding box (bbox) around the Region of Interest (ROI). You only
+    need to input the desired geometry and specify the year. This function will save
+    the bbox raster around the ROI to your Google Drive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Second, crop the raster to include only the pixels within the geometry and save
+    it as a new raster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I chose to save it on Google Drive, but you can change `reassigned_raster_path`
+    to save it anywhere else. If you change it, make sure to update the rest of the
+    code accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, you can reassign pixels as needed by modifying the `mapbiomas_categories`
+    dict. The left digit represents the original pixel values, and the right one represents
+    the reassigned (new) values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we see the frequency of each pixel in the cropped reassigned raster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, we plot it on a map. You can change the arguments below to adjust traits
+    like colors, labels, legend position, font sizes, etc. Also, there is an option
+    to choose the format in which you want to save the data (usually PDF or PNG).
+    PDFs are heavier and preserve resolution, while PNGs are lighter but have lower
+    resolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, here’s an example of how to use the functions and create a loop to
+    get the LULC evolution for Porto Acre (AC) since 1985\. That’s another city in
+    the AMACRO region with soaring deforestation rates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will finish the tutorial by creating a short video showing the evolution
+    of deforestation in the municipality over the last four decades. Note that you
+    can extend the analysis to multiple cities and select specific years for the analysis.
+    Feel free to customize the algorithm as needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7822848d8ba780656641f63147518ca4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 8: LULC in Porto Acre (AC) between 1985 and 2022\. Self-made, using
+    MapBiomas LULC Collection 8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope this tutorial saves you a lot of time when using MapBiomas LULC data.
+    Remember, you can extend this analysis to cover multiple areas and select specific
+    years according to your needs. Feel free to customize the algorithm to suit your
+    specific requirements!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] MapBiomas Project — Collection 8 of the Annual Land Use and Land Cover
+    Maps of Brazil, accessed on July 10, 2024 through the link: [https://brasil.mapbiomas.org/en/#](https://brasil.mapbiomas.org/en/#)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Instituto Brasileiro de Geografia e Estatística (IBGE). (2024). Malha Territorial
+    [Data set]. Retrieved from [https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html?=&t=acesso-ao-produto](https://www.ibge.gov.br/geociencias/organizacao-do-territorio/malhas-territoriais/15774-malhas.html?=&t=acesso-ao-produto)
+    on July 10, 2024.'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,442 @@
+- en: VAE for Time Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/vae-for-time-series-1dc0fef4bffa?source=collection_archive---------0-----------------------#2024-08-14](https://towardsdatascience.com/vae-for-time-series-1dc0fef4bffa?source=collection_archive---------0-----------------------#2024-08-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Generate realistic sequential data with this easy-to-train model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)[![David
+    Kyle](../Images/536175491ed7f89d03a4e528a986bf8a.png)](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)
+    [David Kyle](https://medium.com/@david.kyle_13073?source=post_page---byline--1dc0fef4bffa--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1dc0fef4bffa--------------------------------)
+    ·10 min read·Aug 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/654bce73be38748a0dc9b8a9e5f22919.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Joe Cook](https://unsplash.com/@joecook?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Variational autoencoders (VAEs) are a form of generative AI that came into the
+    spotlight for their ability to create realistic images, but they can also create
+    compelling time series. The standard VAE can be adapted to capture periodic and
+    sequential patterns of time series data, and then be used to generate plausible
+    simulations. The model I built simulates temperature data using **1-D convolution
+    layers**, a **strategic choice of strides**,a **flexible time dimension**, anda
+    **seasonally dependent prior**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Objective
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I trained a model on 50 years of [hourly ERA5 temperature data](https://cds.climate.copernicus.eu/cdsapp#!/dataset/reanalysis-era5-single-levels?tab=overview)
+    from Phoenix, Arizona [1]. To have useful generated data, it must capture a few
+    characteristics of the original data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**seasonal profile** — summers should be warmer than winters'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**diurnal profile** — days should be warmer than nights'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**autocorrelation**—the data should be smooth, and consecutive days should
+    have similar temperatures'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/4f4d9547ddb427d0c48942bc2882c522.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Contains modified Copernicus Climate Change Service information [2024]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Impact of Climate Change
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The model performs best if the training data is stationary, without a long-term
+    trend. However, due to climate change, the temperature trends upward by about
+    0.7 °F per decade — a value derived from the observed data which is consistent
+    with [published maps](https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature)
+    showing recent warming trends by region [2]. To account for the increasing temperature,
+    I applied a -0.7 °F per decade linear transformation to the raw observations to
+    erase the upward trend. This adjusted dataset represents what historical temperatures
+    may have looked like if we assume 2024’s climate conditions. Interpretations of
+    the the generated data should keep this in mind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9cba606b7e33d9ea45d3afbfafeb93a2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Contains modified Copernicus Climate Change Service information [2024]
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is a VAE?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Variational autoencoders reduce the dimensions of the input data into a smaller
+    subspace. VAEs define an encoder to transform observed inputs into a compressed
+    form called the latent variable. Then, a distinct, mirroring decoder attempts
+    to recreate the original data. The encoder and decoder are co-optimized to make
+    an encoding that loses as little information as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e819814451e6e1156d1f0f13591f3e8c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The full loss function used in training includes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a **reconstruction loss**: measuring how closely the round-trip, transformed
+    data matches the original inputs'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'a **regularization term**: measuring how closely the encoded distribution for
+    the latent variable matches the prior distribution.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These two loss terms are derived using variational inference by trying to maximize
+    the evidence lower bound (ELBO) of the observed data. Check out [this video](https://www.youtube.com/watch?v=IXsA5Rpp25w)
+    for the mathematical derivation [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2b621fccf954d7fbab21c415f6b3003c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Intuitively, VAEs perform feature extraction on the training data in such a
+    way that the most important features, represented by the latent variable, follow
+    the defined prior distribution. New data is generated by sampling the latent distribution
+    and then decoding it to the form of the original inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check out Joseph Rocca’s article, [Understanding Variational Autoencoders](/understanding-variational-autoencoders-vaes-f70510919f73),
+    for a more thorough explanation of how VAEs work [4].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1-D convolutional layers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For modeling Phoenix temperature data, I made my encoder a neural network with
+    one-dimensional convolutional layers. Each convolution layer applies a kernel
+    — a matrix of weights — to shifted intervals of the inputs. Since the same kernel
+    is used across the entire input, convolutional layers are considered shift invariant
+    and are well suited for time series which have repeating patterns of sequences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/97561b8dc42f31c4936adde6831b5c84.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'left: convolution layer as a matrix operation | right: graphical representation
+    | Usually, the input and output have several feature variables. For simplicity,
+    the matrix operation shows convolution between an input and output with only one
+    feature.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The decoder performs the opposite task of the encoder with transposed 1-D convolutional
+    layers, also called deconvolution layers. Latent features are projected into overlapping
+    sequences to create an output time series that closely matches the inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2581d06146923b5daa7279ab2a98a37a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The weight matrix for a deconvolution layer is the transpose of a convolution
+    matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The full model stacks several convolution and deconvolution layers together.
+    Each intermediate, hidden layer extends the range of the latent variables allowing
+    the model to capture long-range effects in the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/36508f0ad297abbc4a4f35c2abe84280.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Strategic Strides
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The stride — the jump between shifts — determines the size of the next layer.
+    Convolution layers use strides to shrink the inputs down, and deconvolution layers
+    use strides to expand the latent variables back to the input size. However, they
+    also serve a secondary purpose — to capture periodic trends in the time series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can strategically select the strides of the convolution layers to replicate
+    the periodic patterns in the data.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Convolutions apply the kernel cyclically, repeating the same weights with a
+    period equal to its stride. This gives the training process the freedom to customize
+    the weights based on the input’s position in the cycle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stacking multiple layers together results in a larger effective period made
+    of nested sub-convolutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider a convolutional network that distills hourly time series data into
+    a features space with four variables per day representing morning, afternoon,
+    evening, and night. A layer with a stride of 4 will have weights uniquely assigned
+    to each time of day that captures the diurnal profile in the hidden layer. During
+    training, the encoder and decoder learn weights that replicate the daily cycles
+    found in the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b8ea8c33a7e8ffd17471b647509357f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Convolutions exploit the cyclical nature of the inputs to build better latent
+    features. Deconvolutions convert latent features into overlapping, repeating sequences
+    to generate data with periodic patterns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flexible Time Dimension
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Image-generating VAEs usually have thousands of images pre-processed to have
+    a fixed width and height. The generated images will match the width and height
+    of the training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the Phoenix dataset, I only have one 50 year time series. To improve the
+    training, I broke the data up into sequences, ultimately settling on assigning
+    a latent variable to each 96 hour period. However, I may want to generate time
+    series that are longer than 4 days, and, ideally, the output is smooth rather
+    than having discrete 96 hour chunks in the simulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fortunately, Tensorflow allows you to specify unconstrained dimensions in your
+    neural network. In the same way that neural networks can handle any batch size,
+    you can build your model to handle an arbitrary number of time steps. As a result,
+    my latent variable also includes a time dimension which can vary. In my model,
+    there is one time step in the latent space for every 96 hours in the inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e3f8ac50ebaba9a177179fe1067a780.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generating new data is as simple as sampling latent variables from the prior
+    where you select the number of steps you want to include in the time dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: VAEs with an unconstrained time dimension can generate data to any length.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The simulated output will have 4 days for each time step you sampled, and the
+    results will appear smooth since convolution layers allow input layers to spill
+    into neighboring time periods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Seasonally dependent prior
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In most VAEs, each component of the latent variable is assumed to follow a standard
+    normal distribution. This distribution, sometimes called the prior, is sampled,
+    then decoded, to generate new data. In this case, I chose a slightly more complex
+    prior that depends on the time of year.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Latent variables sampled from a seasonal prior will generate data with characteristics
+    that vary by the time of year.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Under this prior, generated January data will look very different than July
+    data, and generated data from the same month will share many of the same features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I represented the time of year as an angle, *θ,* where 0° is January 1st, 180°
+    is the beginning of July, and 360° is back to January again. The prior is a normal
+    distribution whose mean and log-variance is a third degree trigonometric polynomial
+    of *θ* where the coefficients of the polynomial are parameters learned during
+    training in conjunction with the encoder and decoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prior distribution parameters are a periodic function of *θ*, and well-behaved
+    periodic functions can be approximated to any level of accuracy given a trigonometric
+    polynomial of sufficiently high degree. [5]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/54ffaaeed1f9291348f6854a5c563292.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'left: visualization of *θ | right: prior distribution of Z in terms of parameters
+    m and s*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The seasonal data is only used in the prior and doesn’t influence the encoder
+    or decoder. The full set of probabilistic dependencies is shown here graphically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/43d413f652ced272f112d7dd076e9f99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Probabilistic graphical model including the prior
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I trained the model using Tensorflow in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Encoder
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The input is defined with a flexible time dimension. In Keras, you specify an
+    unconstrained dimension using `None` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the `'same'` padding will append zeros to the input layer such that the
+    output size matches the input size divided by the stride.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`Sampling()` is a custom layer that samples data from a normal distribution
+    with the given mean and log variance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decoder
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Deconvolution is performed with `Conv1DTranspose` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Prior
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The prior expects inputs already in the form [sin(*θ*), cos(*θ*), sin(2*θ*),
+    cos(2*θ*), sin(3*θ*), cos(3*θ*)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `Dense` layer has no bias term as a way of preventing the prior distribution
+    from drifting too far from zero or having an overall variance that was too high
+    or too small.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Full Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The loss function contains a reconstruction term and a latent regularization
+    term.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Function `log_lik_normal_sum` is a custom function for calculating the normal
+    log likelihood of the observed data given the reconstructed output. Calculating
+    the log-likelihood requires noise distribution around the decoded output which
+    is assumed to be normal with log variance given by `self.noise_log_var`, learned
+    during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the regularization term, `kl_divergence_sum` calculates the Kullback–Leibler
+    divergence between two gaussians — in this case, the latent encoded and prior
+    distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the full implementation, visit my [Github repository](https://github.com/davidthemathman/vae_for_time_series).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After training the model, the generated data matches the seasonal/diurnal profiles
+    and autocorrelation of the original temperature data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ec4ea8c396e9259e84135058e06d4d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Contains modified Copernicus Climate Change Service information [2024]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Building techniques for generative time series modeling is a crucial field with
+    applications beyond just simulating data. The methods I shared could be adapted
+    for applications in data imputation, anomaly detection, and forecasting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By using 1-D convolutional layers, strategic strides, flexible time inputs,
+    and seasonal priors, you can build a VAE that replicates complex patterns in your
+    time series. Let’s collaborate to refine best practices for time series modeling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Share in the comments any experience, questions, or insights you have with VAEs
+    and/or generative AI for time series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images have been created by the author unless otherwise stated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Hersbach, H., Bell, B., Berrisford, P., Biavati, G., Horányi, A., Muñoz
+    Sabater, J., Nicolas, J., Peubey, C., Radu, R., Rozum, I., Schepers, D., Simmons,
+    A., Soci, C., Dee, D., Thépaut, J-N. (2023): ERA5 hourly data on single levels
+    from 1940 to present. Copernicus Climate Change Service (C3S) Climate Data Store
+    (CDS), DOI: [10.24381/cds.adbb2d47](https://cds.climate.copernicus.eu/cdsapp#!/dataset/10.24381/cds.adbb2d47?tab=overview)
+    (Accessed on 01-Aug-2024)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Lindsey, R., & Dahlman, L. (2024, January 18). *Climate change: Global
+    temperature*. Climate.gov. [https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature](https://www.climate.gov/news-features/understanding-climate/climate-change-global-temperature)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Sachdeva, K. (2021, January 26). *Evidence lower bound (ELBO) — Clearly
+    explained!* [Video]. YouTube. [https://www.youtube.com/watch?v=IXsA5Rpp25w](https://www.youtube.com/watch?v=IXsA5Rpp25w)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Rocca, J. (2019, September 23). *Understanding variational autoencoders
+    (VAEs)*. Towards Data Science. [https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73](/understanding-variational-autoencoders-vaes-f70510919f73)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Baidoo, F. A. (2015, August 28). *Uniform convergence of Fourier series*
+    (REU Report). University of Chicago. [https://math.uchicago.edu/~may/REU2015/REUPapers/Baidoo.pdf](https://math.uchicago.edu/~may/REU2015/REUPapers/Baidoo.pdf)'
+  prefs: []
+  type: TYPE_NORMAL

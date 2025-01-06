@@ -1,0 +1,469 @@
+- en: 'Case-Study: Multilingual LLM for Questionnaire Summarization'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/case-study-multilingual-llm-for-questionnaire-summarization-edf7acdcb37c?source=collection_archive---------5-----------------------#2024-07-30](https://towardsdatascience.com/case-study-multilingual-llm-for-questionnaire-summarization-edf7acdcb37c?source=collection_archive---------5-----------------------#2024-07-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An LLM Approach to Summarizing Students’ Responses for Open-ended Questionnaires
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)[![Sria
+    Louis](../Images/d65b17e9d4ace7e0222118abc70f3954.png)](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------)
+    [Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--edf7acdcb37c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--edf7acdcb37c--------------------------------)
+    ·10 min read·Jul 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cbbea877f5f00d69ee043faac8a55599.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustration: Or Livneh'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Madrasa (מדרסה in Hebrew)](https://madrasafree.com/) is an Israeli NGO dedicated
+    to teaching Arabic to Hebrew speakers. Recently, while learning Arabic, I discovered
+    that the NGO has unique data and that the organization might benefit from a thorough
+    analysis. A friend and I joined the NGO as volunteers, and we were asked to work
+    on the summarization task described below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What makes this summarization task so interesting is the unique mix of documents
+    in three languages — Hebrew, Arabic, and English — while also dealing with the
+    imprecise [transcriptions](https://en.wikipedia.org/wiki/Transcription_(linguistics))
+    among them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A word on privacy: The data may include PII and therefore cannot be published
+    at this time. If you believe you can contribute, please contact us.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Context of the Problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As part of its language courses, Madrasa distributes questionnaires to students,
+    which include both quantitative questions requiring numeric responses and open-ended
+    questions where students provide answers in natural language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, we will concentrate on the open-ended natural language responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The primary challenge is managing and extracting insights from a substantial
+    volume of responses to open-ended questions. Specifically, the difficulties include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multilingual Responses**: Student responses are primarily in Hebrew but also
+    include Arabic and English, creating a complex multilingual dataset. Additionally,
+    since transliteration is commonly used in Spoken Arabic courses, we found that
+    students sometimes answered questions using both transliteration and Arabic script.
+    We were surprised to see that some students even transliterated Hebrew and Arabic
+    into Latin letters.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Nuanced Sentiments**: The responses vary widely in sentiment and tone, including
+    humor, suggestions, gratitude, and personal reflections.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Diverse Topics**: Students touch on a wide range of subjects, from praising
+    teachers to reporting technical issues with the website and app, to personal aspirations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Data**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are couple of courses. Each course includes three questionnaires administered
+    at the beginning, middle, and end of the course. Each questionnaire contains a
+    few open-ended questions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tables below provides examples of two questions along with a curated selection
+    of student responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f88ecea943d4381a5ff4241b367c0428.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example of a Question and Student Responses. LEFT: Original question and student
+    responses. RIGHT: Translation into English for the blog post reader. Note the
+    mix of languages, including Arabic-to-Hebrew transliteration, the variety of topics
+    even within and the same sentences, and the different language registers. . Credit:
+    Sria Louis / Madarsa'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7feb7527f2a36be8c1ca11edf55634f3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example of a question and student responses. LEFT: Original question and student
+    responses. RIGHT: Translation into English for the blog post reader. Note the
+    mix of languages and transliterations, including both English-to-Hebrew and Hebrew-to-English.
+    Credit: Sria Louis / Madarsa'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are tens of thousands of student responses for each question, and after
+    splitting into sentences (as described below), there can be up to around 100,000
+    sentences per column. This volume is manageable, allowing us to work locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our goal is to summarize student opinions on various topics for each course,
+    questionnaire, and open-ended question. We aim to capture the “main opinions”
+    of the students while ensuring that “niche opinions” or “valuable insights” provided
+    by individual students are not overlooked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To tackle challenges mention above, we implemented a multi-step natural language
+    processing (NLP) solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The process pipeline involves:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sentence Tokenization (using NLTK Sentence Tokenizer)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Topic Modeling (using BERTopic)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Topic representation (using BERTopic + LLM)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Batch summarizing (LLM with mini-batch fitting into the context-size)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Re-summarizing the batches to create a final comprehensive summary.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Sentence Tokenization:** We use NLTK to divide student responses into individual
+    sentences. This process is crucial because student inputs often cover multiple
+    topics within a single response. For example, a student might write, “The teacher
+    used day-to-day examples. The games on the app were very good.” Here, each sentence
+    addresses a different aspect of their experience. While sentence tokenization
+    sometimes results in the loss of context due to cross-references between sentences,
+    it generally enhances the overall analysis by breaking down responses into more
+    manageable and topic-specific units. This approach has proven to significantly
+    improve the end results.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NLTK’s Sentence Tokenizer (`[nltk.tokenize.sent_tokenize](https://www.nltk.org/api/nltk.tokenize.sent_tokenize.html)`)
+    splits documents into sentences using linguistics rules and models to identify
+    sentence boundaries. The default English model worked well for our use case.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Topic Modeling with BERTopic:** We utilized BERTopic to model the topics
+    of the tokenized sentences, identify underlying themes, and assign a topic to
+    each sentence. This step is crucial before summarization for several reasons.
+    First, the variety of topics within the student responses is too vast to be handled
+    effectively without topic modeling. By splitting the students’ answers into topics,
+    we can manage and batch the data more efficiently, leading to improved performance
+    during analysis. Additionally, topic modeling ensures that niche topics, mentioned
+    by only a few students, do not get overshadowed by mainstream topics during the
+    summarization process.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[BERTopic](https://maartengr.github.io/BERTopic/index.html) is an elegant topic-modeling
+    tool that embeds documents into vectors, clusters them, and models each cluster’s
+    representation. Its key advantage is modularity, which we utilize for Hebrew embeddings
+    and hyperparameter tuning.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The BERTopic configuration was meticulously designed to address the multilingual
+    nature of the data and the specific nuances of the responses, thereby enhancing
+    the accuracy and relevance of the topic assignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifically, note that we used a [Hebrew Sentence-embedding model](https://huggingface.co/imvladikon/sentence-transformers-alephbert).
+    We did consider using an embedding on word-level, but the sentence-embedding proved
+    to be capturing the needed information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For dimension-reduction and clustering we used BERTopic standard models [UMAP](https://umap-learn.readthedocs.io/en/latest/)
+    and HDBSCAN, respectively, and with some hyper-parameter fine tuning the results
+    satisfied us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Here’s a fantastic talk on HDBSCAN](https://youtu.be/dGsxd67IFiU?si=CrAHWrXgLnq6-3ul)
+    by John Healy, one of the authors. It’s not just very educational; the speaker
+    is really funny and witty! Definitely worth a watch :)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: BERTopic has excellent documentation and a supportive community, so I’ll share
+    a code snippet to show how easy it is to use with advanced models. More importantly,
+    we want to emphasize some hyperparameter choices designed to achieve high cluster
+    granularity and allow smaller topics. Remember that our goal is not only to summarize
+    the “mainstream” ideas that most students agree upon but also to highlight nuanced
+    perspectives and rarer students’ suggestions. This approach comes with the trade-off
+    of slower processing and the risk of having too many topics, but managing ~40
+    topics is still feasible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**UMAP dimension reduction**: higher-than-standard number of components and
+    small number of UMAP-neighbors.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**HDBSCAN clustering**: min_sample = 2 for high sensitivity, while min_cluster_size
+    = 7 allows very small clusters.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**BERTopic**: nr_topics = 40.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Topic Representation & Summarization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For the next two parts — topic representation and topic summarization — we used
+    chat-based LLMs, carefully crafting system and user prompts. The straightforward
+    approach involved setting the system prompt to define the tasks of keyword extraction
+    and summarization, and using the user prompt to input a lengthy list of documents,
+    constrained only by context limits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before diving deeper, let’s discuss the choice of chat-based LLMs and the infrastructure
+    used. For a rapid proof of concept and development cycle, we opted for Ollama,
+    known for its easy setup and minimal friction. we encountered some challenges
+    switching models on Google Colab, so we decided to work locally on my M3 laptop.
+    Ollama utilizes the Mac iGPU efficiently and proved adequate for my needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initially, we tested various multilingual models, including LLaMA2, [LLaMA3](https://ai.meta.com/blog/meta-llama-3/)
+    and LLaMA3.1\. However, a new version of the Dicta 2.0 model was released recently,
+    which outperformed the others right away. Dicta 2.0 not only delivered better
+    semantic results but also featured improved Hebrew tokenization (~one token per
+    Hebrew character), allowing for longer context lengths and therefore larger batch
+    processing without quality loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Dicta](https://dicta.org.il/dicta-lm) is an LLM, bilingual (Hebrew/English),
+    fine-tuned on Mistral-7B-v0.1\. and is available on [Hugging Face](https://huggingface.co/collections/dicta-il/dicta-lm-20-collection-661bbda397df671e4a430c27).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Topic Representation:** This crucial step in topic modeling involves defining
+    and describing topics through representative keywords or phrases, capturing the
+    essence of each topic. The aim is to create clear, concise descriptions to understand
+    the content associated with each topic. While BERTopic offers effective tools
+    for topic representation, we found it easier to use external LLMs for this purpose.
+    This approach allowed for more flexible experimentation, such as keyword prompt
+    engineering, providing greater control over topic description and refinement.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'System Prompt:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: “תפקידך למצוא עד חמש מילות מפתח של הטקסט ולהחזירן מופרדות בסימון נקודה. הקפד
+    שכל מילה נבחרת תהיה מהטקסט הנתון ושהמילים תהיינה שונות אחת מן השניה. החזר לכל
+    היותר חמש מילים שונות, בעברית, בשורה אחת קצרה, ללא אף מילה נוספת לפני או אחרי,
+    ללא מספור וללא מעבר שורה וללא הסבר נוסף.”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: User prompt was simply keywords and representative sentences returned by BERTopic
+    default representation model (c-tf-idf).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Batch Summarization with LLM Models:** For each topic, we employed an LLM
+    to summarize student responses. Due to the large volume of data, responses were
+    processed in batches, with each batch summarized individually before aggregating
+    these summaries into a final comprehensive overview.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'System Prompt:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: “המטרה שלך היא לתרגם לעברית ואז לסכם בעברית. הקלט הוא תשובות התלמידים לגבי השאלה
+    הבאה [<X>]. סכם בפסקה אחת בדיוק עם לכל היותר 10 משפטים. הקפד לוודא שהתשובה מבוססת
+    רק על הדעות שניתנו. מבחינה דקדוקית, נסח את הסיכום בגוף ראשון יחיד, כאילו אתה אחד
+    הסטודנטים. כתוב את הסיכום בעברית בלבד, ללא תוספות לפני או אחרי הסיכום”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[<X>] above is the string of the question, that we are trying to summarize.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: User prompt was was a batch of students’ response (as in the example above)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that we required translation to Hebrew before summarization. Without this
+    specification, the model occasionally responded in English or Arabic if the input
+    contained a mix of languages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Interestingly, Dicta 2.0 was able to converse in Arabic as well. This is surprising
+    because Dicta 2.0 was not trained on Arabic (according to its release post, it
+    was trained on 50% English and 50% Hebrew), and its base model, Mistral, was not
+    specifically trained on Arabic either.]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Re-group the Batches:** The non-trivial final step involved re-summarizing
+    the aggregated batches to produce a single cohesive summary per topic per question.
+    This required meticulous prompt engineering to ensure relevant insights from each
+    batch were accurately captured and effectively presented. By refining prompts,
+    we guided the LLM to focus on key points, resulting in a comprehensive and insightful
+    summary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This multi-step approach allowed us to effectively manage the multilingual and
+    nuanced dataset, extract significant insights, and provide actionable recommendations
+    to enhance the educational experience at מדרסה (Madrasa).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Evaluating the summarization task typically involves manual scoring of the summary’s
+    quality by humans. In our case, the task includes not only summarization but also
+    business insights. Therefore, we require a summary that captures not only the
+    average student’s response but also the edge cases and rare or radical insights
+    from a small number of students.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address these needs, we split the evaluation into the six steps mentioned
+    and assess them manually with a business-oriented approach. If you have a more
+    rigorous method for holistic evaluation of such a project, we would love to hear
+    your ideas :)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results — example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For instance, let’s look at one question from a questionnaire in the middle
+    of a beginners’ course. The students were asked: “אנא שתף אותנו בהצעות לשיפור
+    הקורס” (in English: “Please share with us suggestions for improving the course”).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most students responded with positive feedback, but some provided specific suggestions.
+    The variety of suggestions is vast, and using clustering (topic modeling) and
+    summarization, we can derive impactful insights for the NGO’s management team.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a plot of the topic clusters, presented using BERTopic visualization
+    tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ff235d05a9f39828963f9ef2c5bf5f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Hierarchical Clustering: For visualization purposes, we present a set of 10
+    topics. However, in some cases our analysis included experimentation with tens
+    of topics. Credit: Sria Louis / Madrasa.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: And finally, below are seven topics (out of 40) summarizing the students’ responses
+    to the above question. Each topic includes its keywords (generated by the keyword
+    prompt), three representative responses from the cluster (selected using Representation
+    Model), and the final summarization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bottom line, note the variety of topics and the insightful summaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa14eb3d8ebaca7422d86685dc12eeba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Some of the topics: keywords, representing sentences and summaries. Credit:
+    Sria Louis / Madrasa'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What next?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We have six steps in mind:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Optimization**: Experimenting with different architectures and hyperparameters.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Robustness**: Understanding and addressing unexpected sensitivity to certain
+    hyperparameters.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Hallucinations**: Tackling hallucinations, particularly in small clusters/topics
+    where the number of input sentences is limited, causing the model to generate
+    ‘imaginary’ information.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Enriching Summarizations**: Using chain-of-thought techniques.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Enriching Topic Modeling**: Adding sentiment analysis before clustering.
+    For example, if in a specific topic 95% of the responses were positive but 5%
+    were very negative, it might be helpful to cluster based on both the topic and
+    the sentiment in the sentence. This might help the summarizer avoid converging
+    to the mean.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Enhancing User Experience**: Implementing RAG or LLM-explainability techniques.
+    For instance, given a specific non-trivial insight, we want the user to click
+    on the insight and trace back to the exact student’s response that led to the
+    insight.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If you’re an LLM expert and would like to share your insights, we’d love to
+    learn from you. Do you have suggestions for better models or approaches we should
+    use? Ping us!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[sria.louis@gmail.com](mailto:sria.louis@gmail.com)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Want to learn more about Madarsa? [https://madrasafree.com/](https://madrasafree.com/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code can be found on the [Project GitHub reop](https://github.com/gitLouis/madarse-summarization).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62500ce8f7182ccfc9e9822e71ec64bd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustration: Or Livneh'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Keywords: NLP, Topic Modeling, LLM, Hebrew, Sentence Embedding , BERTopic,
+    llama, NLTK, Dicta 2.0, Summarization, madrasa'
+  prefs: []
+  type: TYPE_NORMAL

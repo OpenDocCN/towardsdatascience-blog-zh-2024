@@ -1,0 +1,389 @@
+- en: Experimenting with MLFlow and Microsoft Fabric
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/experimenting-with-mlflow-and-microsoft-fabric-68f43043ff34?source=collection_archive---------7-----------------------#2024-04-22](https://towardsdatascience.com/experimenting-with-mlflow-and-microsoft-fabric-68f43043ff34?source=collection_archive---------7-----------------------#2024-04-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Fabric Madness part 4
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)[![Roger
+    Noble](../Images/869b5b0f237f24b119ca6c41c2e31162.png)](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------)
+    [Roger Noble](https://medium.com/@roger_noble?source=post_page---byline--68f43043ff34--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--68f43043ff34--------------------------------)
+    ·10 min read·Apr 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7c1d4c5510a3052bfb3ab90be98619c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author and ChatGPT. “Design an illustration, with imagery representing
+    data experiments, focusing on basketball data” prompt. ChatGPT, 4, OpenAI, 15April.
+    2024\. [https://chat.openai.com.](https://chat.openai.com./)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*A Huge thanks to* [*Martim Chaves*](https://medium.com/@mgrc99) *who co-authored
+    this post and developed the example scripts.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s no secret that Machine Learning (ML) systems require careful tuning to
+    become truly useful, and it would be an extremely rare occurrence for a model
+    to work perfectly the first time it’s run!
+  prefs: []
+  type: TYPE_NORMAL
+- en: When first starting out on your ML journey, an easy trap to fall into is to
+    try lots of different things to improve performance, but not recording these configurations
+    along the way. This then makes it difficult to know which configuration (or combination
+    of configurations) had the best performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When developing models, there are lots of “knobs” and “levers” that can be adjusted,
+    and often the best way to improve is to try different configurations and see which
+    one works best. These things include [improving the features being used](https://medium.com/@roger_noble/feature-engineering-with-microsoft-fabric-and-pyspark-16d458018744),
+    trying different model architectures, adjusting the model’s hyperparameters, and
+    others. Experimentation needs to be systematic, and the results need to be logged.
+    That’s why having a good setup to carry out these experiments is fundamental in
+    the development of any practical ML System, in the same way that source control
+    is fundamental for code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where *experiments* come in to play. Experiments are a way to keep track
+    of these different configurations, and the results that come from them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s great about experiments in Fabric is that they are actually a wrapper
+    for [MLFlow](https://mlflow.org/), a hugely popular, open-source platform for
+    managing the end-to-end machine learning lifecycle. This means that we can use
+    all of the great features that MLFlow has to offer, but with the added benefit
+    of not having to worry about setting up the infrastructure that a collaborative
+    MLFlow environment would require. This allows us to focus on the fun stuff 😎!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this post, we’ll be going over how to use experiments in Fabric, and how
+    to log and analyse the results of these experiments. Specifically, we’ll cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How does MLFlow work?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating and Setting experiments
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running experiments and Logging Results
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Analysing Results
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At a high level, MLFlow is a platform that helps manage the end-to-end machine
+    learning lifecycle. It’s a tool that helps with tracking experiments, packaging
+    code into reproducible runs, and sharing and deploying models. It’s essentially
+    a database that’s dedicated to keeping track of all the different configurations
+    and results of the experiments that you run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two main organisational structures in MLFlow — **experiments** and
+    **runs**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An experiment is a group of runs, where a run is the execution of a block of
+    code, a function or a script. This could be training a model, but it could also
+    be used to track anything where things might change between runs. An experiment
+    is then a way to group related runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each run, information can be logged and attached to it — these could be
+    metrics, hyperparameters, tags, artifacts (like plots, files or other useful outputs),
+    and even models! By attaching models to runs, we can keep track of which model
+    was used in which run, and how it performed. Think of it like source control for
+    models, which is something we’ll go into in the next post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Runs can be filtered and compared. This allows us to understand which runs were
+    more successful, and select the best performing run and use its setup (for example,
+    in deployment).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we’ve covered the basics of how MLFlow works, let’s get into how we
+    can use it in Fabric!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating and setting experiments
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like everything in Fabric, creating items can be done in a few ways, either
+    from the workspace **+ New** menu, using the Data Science experience or in code.
+    In this case, we’ll be using the Data Science experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/be643f7ab148a28cc673d70288df619f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 1 — Creating an Experiment using the UI. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once that is done, to use that experiment in a Notebook, we need to `import
+    mlflow` and set up the experiment name:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Alternatively, an experiment can be created from code, which requires one extra
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that, if an experiment with that name already exists, `create_experiment`
+    will throw an error. We can avoid this by first checking for the existence of
+    an experiment, and only creating it if it doesn''t exist:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have the experiment set in the current context, we can start running
+    code that will be saved to that experiment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running experiments and logging results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To start logging our results to an experiment, we need to start a run. This
+    is done using the `start_run()` function and returns a `run` context manager.
+    Here''s an example of how to start a run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once the run is started, we can then begin logging metrics, parameters, and
+    artifacts. Here’s an example of code that would do that using a simple model and
+    dataset, where we log the model’s score and the hyperparameters used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In our example above, a simple model is trained, and its score is calculated.
+    Note how metrics can be logged by using `mlflow.log_metric("metric_name", metric)`
+    and hyperparameters can be logged using `mlflow.log_param("param_name", param)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s now look at the code used for training our models, which are based on
+    the outcome of basketball games. The data we are looking at is from the 2024 US
+    college basketball tournaments, which was obtained from the March Machine Learning
+    Mania 2024 Kaggle competition, the details of which can be found [here](https://www.kaggle.com/competitions/march-machine-learning-mania-2024/overview),
+    and is licensed under CC BY 4.0
+  prefs: []
+  type: TYPE_NORMAL
+- en: In out setup, we wanted to try three different models, that used an increasing
+    number of parameters. For each model, we also wanted to try three different learning
+    rates (a hyperparameter that controls how much we are adjusting the weights of
+    our network for each iteration). The goal was to find the best model and learning
+    rate combination that would give us the best [Brier score](https://en.wikipedia.org/wiki/Brier_score)
+    on the test set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To define the model architecture, we used TensorFlow, creating three simple
+    neural networks. Here are the functions that helped define the models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating our models in this way allows us to easily experiment with different
+    architectures, and see how they perform. We can then use a dictionary to create
+    a little *model factory*, that will allow us to easily create the models we want
+    to experiment with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also defined the input shape, which was the number of features that were
+    available. We decided to train the models for 100 epochs, which should be enough
+    for convergence 🤞.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this initial setup, it was time to iterate over the models’ dictionary.
+    For each model, an experiment was created. Note how we’re using the code snippet
+    from before, where we first check if the experiment exists, and only if it doesn’t
+    do we create it. Otherwise, we just set it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Having set the experiment, we then performed three runs for each model, trying
+    out different learning rates `[0.001, 0.01, 0.1]`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, in each run, we initialised a model, compiled it, and trained it. The
+    compilation and training were done in a separate function, which we’ll go into
+    next. As we wanted to set the learning rate, we had to manually initialise the
+    Adam optimiser. As our metric we used the Mean Squared Error (MSE) loss function,
+    saving the model with the best validation loss, and logged the training and validation
+    loss to ensure that the model was converging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Having initialised a model, compiled and trained it, the next step was logging
+    the training and validation losses, calculating the brier score for the test set,
+    then logging the score and the learning rate used. Typically we would also log
+    the training and validation loss using the `step` argument in `log_metric`, like
+    so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, we opted to create the training and validation loss plot ourselves
+    using `matplotlib` and log that as an artifact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the plot function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Putting everything together, here’s what the code for that looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each run we also logged the model, which will be useful later on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The experiments were run, creating an experiment for each model, and three different
+    runs for each experiment with each of the learning rates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Analysing results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve run some experiments, it’s time to analyse the results! To do
+    this, we can go back to the workspace, where we’ll find our newly created experiments
+    with several runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/716c608c377213fdf76833c2e0823194.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 2 — List of experiments. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Clicking on one experiment, here’s what we’ll see:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b9c60a7efb769462fc52aca550c959b2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 3 — The Experiment UI. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the left we’ll find all of the runs related to that experiment. In this case,
+    we’re looking at the small model experiment. For each run, there’s two artifacts,
+    the validation loss plot and the trained model. There’s also information about
+    the run’s properties — its status and duration, as well as the metrics and hyper-parameters
+    logged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By clicking on the **View run list**, under the **Compare runs** section, we
+    can compare the different runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1eece2a8179dad8814505c5fdb9f7e7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 4 — Comparing runs. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inside the run list view, we can select the runs that we wish to compare. In
+    the **metric comparison** tab, we can find plots that show the Brier score against
+    the learning rate. In our case, it looks like the lower the learning rate, the
+    better the score. We could even go further and create more plots for the different
+    metrics against other hyperparameters (if different metrics and hyperparameters
+    had been logged).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44a7a6f448f6cbd157dbfee2415b5bb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 5 — Plot that shows Brier score against learning rate. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Perhaps we would like to filter the runs — that can be done using **Filters**.
+    For example we can select the runs that have a Brier score lower than 0.25\. You
+    can create filters based on logged metrics and parameters and the runs’ properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/66491b7a477f7c74f04dd736a281a55b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 6 — Filtering runs based on their Brier score. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By doing this, we can visually compare the different runs and assess which configuration
+    led to the best performance. This can also be done using code — this is something
+    that will be further explored in the next post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the experiment UI, we are then able to visually explore the different
+    experiments and runs, comparing and filtering them as needed, to understand which
+    configuration works best.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: And that wraps up our exploration of experiments in Fabric!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not only did we cover how to create and set up experiments, but we also went
+    through how to run experiments and log the results. We also showed how to analyse
+    the results, using the experiment UI to compare and filter runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next post, we’ll be looking at how to select the best model, and how
+    to deploy it. Stay tuned!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Originally published at* [*https://nobledynamic.com*](https://nobledynamic.com/posts/fabric-madness-4/)
+    *on April 22, 2024.*'
+  prefs: []
+  type: TYPE_NORMAL

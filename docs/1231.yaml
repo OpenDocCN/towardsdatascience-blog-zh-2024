@@ -1,0 +1,293 @@
+- en: Understanding Dataform Terminologies And Authentication Flow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understanding-dataform-terminologies-and-authentication-flow-aa98c2fbcdfb?source=collection_archive---------11-----------------------#2024-05-15](https://towardsdatascience.com/understanding-dataform-terminologies-and-authentication-flow-aa98c2fbcdfb?source=collection_archive---------11-----------------------#2024-05-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'MLOps: Data Pipeline Orchestration'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Part 1 of Dataform 101: Fundamentals of a single repo, multi-environment Dataform
+    with least-privilege access control and infrastructure as code setup'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://koakande.medium.com/?source=post_page---byline--aa98c2fbcdfb--------------------------------)[![Kabeer
+    Akande](../Images/5e1f083e75741690ae27b00d1e5f1dd3.png)](https://koakande.medium.com/?source=post_page---byline--aa98c2fbcdfb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aa98c2fbcdfb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aa98c2fbcdfb--------------------------------)
+    [Kabeer Akande](https://koakande.medium.com/?source=post_page---byline--aa98c2fbcdfb--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aa98c2fbcdfb--------------------------------)
+    ·8 min read·May 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/086397a760f9b97d80411a839a05f989.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A typical positioning of Dataform in a data pipeline *[Image by author]*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Dataform](https://cloud.google.com/dataform?hl=en) is a new service integrated
+    into the GCP suite of services which enables teams to develop and operationalise
+    complex, SQL-based data pipelines. Dataform enables the application of software
+    engineering best practices such as testing, environments, version control, dependencies
+    management, orchestration and automated documentation to data pipelines. It is
+    a serverless, SQL workflow orchestration workhorse within GCP. Typically, as shown
+    in the image above, Dataform takes raw data, transform it with all the engineering
+    best practices and output a properly structured data ready for consumption.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The inspiration for this post came while I was [migrating](https://cloud.google.com/dataform/docs/migration)
+    one of our projects’ legacy Dataform from the web UI to GCP BigQuery. During the
+    migration, I found terms such as release configuration, workflow configuration,
+    and development workspace really confusing and hard to wrap my head around. That
+    serves as the motivation to write a post explaining some of the new terminologies
+    used in the GCP Dataform. In addition, I would touch upon some basic flow underlining
+    single repo multi-environment Dataform operations in GCP. There are multiple ways
+    to set up Dataform so be sure to check out [best practices](https://cloud.google.com/dataform/docs/best-practices)
+    from Google.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is Part 1 of a two-part series dealing with Dataform fundamentals and setup.
+    In Part 2, I would provide a walkthrough of the Terraform setup showing how to
+    implement the least access control when provisioning Dataform. If you want to
+    have a sneak peek into that, be sure to check out the [repo](https://github.com/kbakande/terraforming-dataform).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Terminologies
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Implementation in Dataform is akin to GitHub workflow. I will contrast similarity
+    between the two and create analogies to make it understandable. It is easy to
+    imagine Dataform as a local GitHub repository. When Dataform is being set up,
+    it will request that a remote repository is configured similar to how local GitHub
+    is paired with remote origin. With this scenario setup in mind, lets quickly go
+    through some Dataform terminologies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Development Workspaces
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is analogous to local GitHub branch. Similar to how a branch is created
+    from GitHub main, a new Dataform development workspace would checkout an editable
+    copy of main Dataform repo code. Development workspaces are independent of each
+    other similar to GitHub branches. Code development and experimentations would
+    take place within the development workspace and when the code are committed and
+    pushed, a remote branch with similar name to the development workspace is created.
+    It is worth mentioning that the GitHub repo from which an editable code is checked
+    into a development workspace is configurable. It may be from the main branch or
+    any other branches in the remote repo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Release Configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Dataform uses a mix of `.sqlx` scripts with Javascript `.js` for data transformations
+    and logic. As a result, it first generates a compilation of the codebase to get
+    a standard and reproducible pipeline representation of the codebase and ensure
+    that the scripts can be materialised into data. Release configuration is the automated
+    process by which this compilation takes place. At the configured time, Dataform
+    would check out the code in a remote main repo (this is configurable and can be
+    modified to target any of the remote branches) and compile it into a JSON config
+    file. The process of checking out the code and generating the compilation is what
+    the release configuration covers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Workflow Configuration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So the output of the release configuration is a `.json` config file. Workflow
+    configuration determines when to run the config file, what identity should run
+    it and which environment would the config file output be manifested or written
+    to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since workflow configuration would need the output of release configuration,
+    it is reasonable to ensure that it runs latter than the release configuration.
+    The reason being that release configuration will need to first authenticate to
+    the remote repo (which sometimes fail), checkout the code and compile it. These
+    steps happen in seconds but may take more time in case of network connection failure.
+    Since the workflow configuration needs the `.json`compiled file generated by release
+    configuration, it makes sense to schedule it later than the release configuration.
+    If scheduled at the same time, the workflow configuration might use the previous
+    compilation, meaning that the latest changes are not immediately reflected in
+    the BQ tables until the next workflow configuration runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Environments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/0c7a26009baa8f1952328168bac79c50.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An architecture flow for a single repo, multi-environment Dataform
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the features of Dataform is the functionality that enables manifesting
+    code into different environments such as development, staging and production.
+    Working with multiple environments brings the challenge of how Dataform should
+    be set up. Should repositories be created in multiple environments or in just
+    one environment? Google discussed some of these tradeoffs in the Dataform best
+    [practices](https://cloud.google.com/dataform/docs/best-practices) section. This
+    post demonstrates setting up Dataform for staging and production environments
+    with both data materialised into both environments from a single repo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The environments are set up as GCP projects with a custom service account for
+    each. Dataform is only created in the staging environment/project because we will
+    be making lots of changes and it is better to experiment within the staging (or
+    non production) environment. Also, staging environment is selected as the environment
+    in which the development code is manifested. This means dataset and tables generated
+    from development workspace are manifested within the staging environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the development is done, the code is committed and pushed to the remote
+    repository. From there, a PR can be raised and merged to the main repo after review.
+    During scheduled workflow, both release and workflow configurations are executed.
+    Dataform is configured to compile code from the main branch and execute it within
+    production environment. As such, only reviewed code goes to production and any
+    development code stays in the staging environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, from the Dataform architecture flow above, code developed in the
+    development workspaces are manifested in the staging environment or pushed to
+    remote GitHub where it is peer reviewed and merged to the main branch. Release
+    configuration compiles code from the main branch while workflow configuration
+    takes the compiled code and manifest its data in the production environment. As
+    such, only reviewed code in the GitHub main branch are manifested in the production
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Authentication
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Authentication for Dataform could be complex and tricky especially when setting
+    up for multiple environments. I will be using example of staging and production
+    environments to explain how this is done. Let’s break down where authentication
+    is needed and how that is done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e69235544bfe4ac5096098a5cd028f03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Dataform flow for tracking authentication
+  prefs: []
+  type: TYPE_NORMAL
+- en: The figure above shows a simple Dataform workflow that we can use to track where
+    authentication is needed and for what resources. The flow chronicles what happens
+    when Dataform runs in the development workspace and on schedule (release and workflow
+    configurations).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Machine User**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lets talk about machine users. Dataform requires credentials to access GitHub
+    when checking out the code stored on a remote repository. It is possible to use
+    individual credentials but the best practice is to use a machine user in an organisation.
+    This practice ensures that the Dataform pipeline orchestration is independent
+    of individual identities and will not be impacted by their departure. Setting
+    up machine user means using an identity not tied to an individual to set up GitHub
+    account as detailed [here](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/managing-deploy-keys#machine-users).
+    In the case of Dataform, a personal access token (PAT) is generated for the machine
+    user account and store as secret on GCP secret manager. The machine user should
+    also be added as outside collaborator to the Dataform remote repository with a
+    read and write access. We will see how Dataform is configured to access the secret
+    later in the Terraform code. If the user decides to use their identity instead
+    of a machine user, a token should be generated as detailed [here](https://cloud.google.com/dataform/docs/connect-repository#:~:text=You%20can%20authenticate%20GitHub%20and,on%20behalf%20of%20the%20developers.).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GitHub Authentication Flow**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60723122dd91404c3301ccf121abfaf4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GitHub authentication flow with a Machine user
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataform uses its default service account for implementation so when a Dataform
+    action is to be performed, it starts with the default service account. I assume
+    you have set up a machine user, add the user as a collaborator to the remote repository,
+    and add the user PAT as a secret to GCP secret manager. To authenticate to GitHub,
+    default service account needs to extract secret from the secret manager. Default
+    service account requires *secretAccessor* role to access the secret. Once the
+    secret is accessed, default service account can now impersonate the machine user
+    and since the machine user is added as a collaborator on the remote Git repo,
+    default service account now has access to the remote GitHub repository as a collaborator.
+    The flow is shown in the GitHub authentication workflow figure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Development Workspace Authentication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When execution is triggered from the development workspace, the default service
+    account assumes the staging environment custom service account to manifest the
+    output within the staging environment. To be able to impersonate the staging environment
+    custom service account, the default service account requires the *iam.serviceAccountTokenCreator*
+    role on the staging service account. This allows the default service account to
+    create a short lived token, similar to the PAT used to impersonate the machine
+    user, for the staging custom service account and and as such impersonate it. Hence,
+    the staging custom service account is granted all the required permissions to
+    write to BQ tables and the default service account will inherit these permissions
+    when impersonating it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Workflow Configuration Authentication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After checking out the repo, release configuration will generate a compiled
+    config `.json`file from which workflow configurations will generate data. In order
+    to write the data to production BQ tables, the default service account requires
+    the *iam.serviceAccountTokenCreator* role on the production custom service account.
+    Similar to what is done for the staging custom service account, the production
+    service account is granted all required permissions to write to production environment
+    BQ tables and the default service account will inherit all the permissions when
+    it impersonate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Summary**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, the default service account is the main protagonist. It impersonates
+    machine user to authenticate to GitHub as a collaborator using the machine user
+    PAT. It also authenticate to the staging and production environments by impersonating
+    their respective custom service accounts using a short lived token generated with
+    the role *serviceAccountTokenCreator*. With this understanding, it is time to
+    provision Dataform within GCP using Terraform. Look out for Part 2 of this post
+    for that and or check out the [repo](https://github.com/kbakande/terraforming-dataform)
+    for the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Image credit*: All images in this post have been created by the Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[https://cloud.google.com/dataform?hl=en](https://cloud.google.com/dataform?hl=en)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[https://cloud.google.com/dataform/docs/migration](https://cloud.google.com/dataform/docs/migration)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[https://cloud.google.com/dataform/docs/best-practices](https://cloud.google.com/dataform/docs/best-practices)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

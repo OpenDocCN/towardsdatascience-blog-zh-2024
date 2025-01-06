@@ -1,0 +1,501 @@
+- en: Build Autonomous AI Agents with Function Calling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/build-autonomous-ai-agents-with-function-calling-0bb483753975?source=collection_archive---------0-----------------------#2024-04-02](https://towardsdatascience.com/build-autonomous-ai-agents-with-function-calling-0bb483753975?source=collection_archive---------0-----------------------#2024-04-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Transform your chatbot into an agent that can interact with external APIs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jyipkl?source=post_page---byline--0bb483753975--------------------------------)[![Julian
+    Yip](../Images/2afc0ac6c4dcccaa57ffe70b2f5a14d0.png)](https://medium.com/@jyipkl?source=post_page---byline--0bb483753975--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0bb483753975--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0bb483753975--------------------------------)
+    [Julian Yip](https://medium.com/@jyipkl?source=post_page---byline--0bb483753975--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0bb483753975--------------------------------)
+    ·11 min read·Apr 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Function Calling is not something new. In July 2023, OpenAI introduced Function
+    Calling for their GPT models, a feature now being adopted by competitors. Google’s
+    Gemini API recently supported it, and Anthropic is integrating it into Claude.
+    Function Calling is becoming essential for large language models (LLMs), enhancing
+    their capabilities. All the more useful to learn this technique!
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this in mind, I aim to write a comprehensive tutorial covering Function
+    Calling beyond basic introductions (there are already plenty of tutorials for
+    it). The focus will be on practical implementation, building a fully autonomous
+    AI agent and integrating it with Streamlit for a ChatGPT-like interface. Although
+    OpenAI is used for demonstration, this tutorial can be easily adapted for other
+    LLMs supporting Function Calling, such as Gemini.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is Function Calling for?**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Function Calling enables developers to describe functions (aka tools, you can
+    consider this as actions for the model to take, like performing calculation, or
+    making an order), and have the model intelligently choose to output a JSON object
+    containing arguments to call those functions. In simpler terms, it allows for:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Autonomous decision making**: Models can intelligently choose tools to respond
+    to questions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Reliable parsing**: Responses are in JSON format, instead of the more typical
+    dialogue-like response. It might not seem much from the first look, but this is
+    what allows LLM to connect to external systems, say via APIs with structured inputs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'It opens up numerous possibilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Autonomous AI assistants**: Bots can interact with internal systems for tasks
+    like customer orders and returns, beyond providing answers to enquiries'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Personal research assistants**: Say if you are planning for your travel,
+    assistants can search the web, crawl content, compare options, and summarize results
+    in Excel.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**IoT voice commands**: Models can control devices or suggest actions based
+    on detected intents, such as adjusting the AC temperature.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*(Sidetracking a bit: To realize such potentials, we must have a systematic
+    way to design our prompts and to test them. I have written an article about this
+    too!)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7?source=post_page-----0bb483753975--------------------------------)
+    [## Prompt Like a Data Scientist: Auto Prompt Optimization and Testing with DSPy'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applying machine learning methodology to prompt building
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/prompt-like-a-data-scientist-auto-prompt-optimization-and-testing-with-dspy-ff699f030cb7?source=post_page-----0bb483753975--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without further ado, let’s explore what Function Calling is about!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Structure of Function Calling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Borrowing from [Gemini’s Function Calling documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/function-calling),
+    Function Calling has the below structure, which works the same in OpenAI
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9793c45c8d104b8ac96e104541df9644.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from [Gemini’s Function Calling documentation](https://cloud.google.com/vertex-ai/generative-ai/docs/multimodal/function-calling)
+  prefs: []
+  type: TYPE_NORMAL
+- en: User issues prompt to the application
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Application passes the user-provided prompt, and the Function Declaration(s),
+    which is a description of the tool(s) that the model could use
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Based on the Function Declaration, the model suggests the tool to use, and the
+    relevant request parameters. **Notice the model outputs the suggested tool and
+    parameters only, WITHOUT actually calling the functions**
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '& 5\. Based on the response, the application invokes the relevant API'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 6\. & 7\. The response from API is fed into the model again to output a human-readable
+    response
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. Application returns the final response to the user, then repeat from 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This might seem convuluted, but the concept will be illustrated in detail with
+    example
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before diving into the code, a few words about the demo application’s architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Solution**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here we build an assistant for tourists visiting a hotel. The assistant has
+    access to the following tools, which allows the assistant to access external applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`get_items`, `purchase_item`: Connect to product catalog stored in database
+    via API, for retrieving item list and making a purchase respectively'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`rag_pipeline_func`: Connect to document store with Retrieval Augmented Generation
+    (RAG) to obtain information from unstructured texts e.g. hotel’s brochures'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/aa901baf05ab30875134a9a0b958aa14.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Tech stack**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Embedding model**: [all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Vector Database**: [Haystack’s InMemoryDocumentStore](https://docs.haystack.deepset.ai/docs/inmemorydocumentstore)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**LLM**: [GPT-4 Turbo accessed via OpenRouter](https://openrouter.ai/models/openai/gpt-4-1106-preview).
+    With OpenRouter you can access different LLM APIs from Hong Kong without VPN.
+    The flow can be adapted into using other LLMs with slight code change, provided
+    they support Function Calling, say Gemini'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**LLM Framework**: [Haystack](https://haystack.deepset.ai/) for their ease
+    of use, great documentation and transparency in pipeline construction. This tutorial
+    is actually an extension to their [fantastic tutorial](https://haystack.deepset.ai/tutorials/40_building_chat_application_with_function_calling)
+    for the same topic'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now let’s begin!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sample Application
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Preparation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Head over to [Github](https://github.com/yip-kl/llm_function_calling_demo) to
+    clone my code. The contents below can be found in the `function_calling_demo`
+    Notebook.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please also create and activate a virtual environment, then `pip install -r
+    requirements.txt` to install the required packages
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Initialization**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We first connect to OpenRouter. Alternatively using the original `OpenAIChatGenerator`
+    without overwritting the `api_base_url`would also work, provided you have an OpenAI
+    API key
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we test can the `chat_generator` be successfully invoked
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 1: Establish data store'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here we establish connection between our application and the two data sources:
+    **Document store** for unstructured texts, and **application database** via API'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Index Documents with a Pipeline**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We provide sample texts in `documents` for the model to perform Retrival Augmented
+    Generation (RAG). The texts are turned into embeddings and stored in an in-memory
+    document store
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: It should output this, corresponding to the `documents` we created as sample
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Spin up API server**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An API server made with Flask is created under `db_api.py` to connect to SQLite.
+    Please spin it up by running `python db_api.py` in your terminal
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7036bc280c989f445aeae16d0544b7ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This would be shown in the terminal, if successfully executed
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also notice that some initial data has been added in `db_api.py`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9adc825085a9c02489dc32ff3bf6fad1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sample data in the database
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Define the functions'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here we prepare the actual functions for the model to invoke **AFTER** Function
+    Calling (Step 4–5 as described in **The Structure of Function Calling**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**RAG function**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Namely the `rag_pipeline_func`. This is for the model to provide an answer by
+    searching through the texts stored in the Document Store. We first define the
+    RAG retrieval as a Haystack pipeline
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Test if the function works
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This should yield the following output. Notice the `replies` that the model
+    gave is from the sample documents we provided before
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can then turn the `rag_pipe` into a function, which provides the `replies`
+    only without adding in the other details
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**API calls**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We define the `get_items` and `purchase_item`functions for interacting with
+    the database
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Define the tool list**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have defined the fuctions, we need to let the model recognize those
+    functions, and to instruct them how they are used, by providing descriptions for
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we are using OpenAI here, the `tools` is formatted as below following
+    the [format required by Open AI](https://cookbook.openai.com/examples/function_calling_with_an_openapi_spec)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Step 3: Putting it all together**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We now have the necessary inputs to test Function Calling! Here we do a few
+    things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Provide the initial prompt to the model, to give it some context
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Provide a sample user-generated message
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Most importantly, we pass the tool list to the chat generator in `tools`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now let’s inspect the response. Notice how the Function Calling returns both
+    the function chosen by the model, and the arguments for invoking the chosen function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: When presented with another question, the model will use another tool that is
+    more relevant
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, notice that no actual function is invoked here, this is what we will
+    do next!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Calling the function**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can then feed the arguments into the chosen function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The response from `rag_pipeline_func` can then passed as a context to the chat
+    by appending it under the `messages`, for the model to provide the final answer
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now have completed the chat cycle!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Turn into an interactive chat'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The code above shows how Function Calling can be done, but we want to go a step
+    further by turning it into an interactive chat
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here I showcase two methods to do it, from the more primitive `input()` that
+    prints the dialogue into the notebook itself, to rendering it through **Streamlit**
+    to provide it with an ChatGPT-like UI
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`**input()**` **loop**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code is copied from [Haystack’s tutorial](https://haystack.deepset.ai/tutorials/40_building_chat_application_with_function_calling),
+    which allows us to quickly test the model. *Note: This application is created
+    to demonstrate the idea of Function Calling, and is NOT meant to be perfectly
+    robust e.g. supporting the order of multiple items at the same time, no hallucination,
+    etc.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/a3322060f0f01905204135a0cec63711.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Running interactive chats in the IDE
+  prefs: []
+  type: TYPE_NORMAL
+- en: While it works, we might want to have something that looks nicer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Streamlit interface**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streamlit turns data scripts into shareable web apps, which provides a neat
+    UI for our application. The code shown above are adapted into a Streamlit application
+    under the `streamlit` folder of my repo
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can run it by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you have not done so already, spin up the API server with `python db_api.py`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Set the OPENROUTER_API_KEY as environment variable e.g. `export OPENROUTER_API_KEY
+    = ‘@REPLACE WITH YOUR API KEY’` assuming you are on Linux / executing with git
+    bash
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to the `streamlit` folder in the terminal with `cd streamlit`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Run Streamlit with `streamlit run app.py`. A new tab should be automatically
+    created in your browser running the application
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: That’s basically it! I hope you enjoy this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d47ce72177773e21a95ff14e3e8e5b1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Streamlit UI
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Unless otherwise noted, all images are by the author*'
+  prefs: []
+  type: TYPE_NORMAL

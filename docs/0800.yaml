@@ -1,0 +1,1068 @@
+- en: Real-Time Twitch Chat Sentiment Analysis with Apache Flink
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/real-time-twitch-chat-sentiment-analysis-with-apache-flink-e165ac1a8dcf?source=collection_archive---------5-----------------------#2024-03-27](https://towardsdatascience.com/real-time-twitch-chat-sentiment-analysis-with-apache-flink-e165ac1a8dcf?source=collection_archive---------5-----------------------#2024-03-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Learn how to empower creators by real-time sentiment analysis with Apache Flink
+    to decipher audience emotions to steer content for viewer satisfaction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[![Volker
+    Janz](../Images/0825160d6d521f4152948f0187cf354b.png)](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)
+    [Volker Janz](https://vojay.medium.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e165ac1a8dcf--------------------------------)
+    ·22 min read·Mar 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e55f68a621ce60805ded66c172ab01cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Joey kwok](https://unsplash.com/@spideyjoey?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🚀 Let’s learn about Apache Flink and sentiment analysis by building a real-time
+    sentiment analysis streaming application for the Twitch chat.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: – [Introduction and demo](#cbac)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [Apache Flink](#590a)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [NLP and sentiment analysis](#0d10)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [Setting up a Flink project](#138d)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [Prepare the project](#acf0)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Project settings in IntelliJ](#d36b)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Rename and reduce main class](#5b50)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [pom.xml project settings](#9c6a)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Run configuration](#88d6)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Local Flink Web UI](#d646)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [Read the Twitch chat](#cc63)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Add Twitch4J dependency](#db06)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Create POJO for Twitch chat messages](#9ce2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Create custom Twitch source function for Flink](#b69b)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Use source function](#78d2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [Twitch chat sentiment analysis](#b566)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Add Stanford CoreNLP dependencies](#600f)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Create sentiment analysis map function](#eea7)
+  prefs: []
+  type: TYPE_NORMAL
+- en: −− [Use map function](#75ee)
+  prefs: []
+  type: TYPE_NORMAL
+- en: – [Conclusion](#35a9)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Disclaimer****: Within this article and demo, I am only analyzing my own
+    chat messages, without storing data or processing other users messages. Please
+    be advised to consult the Twitch* [*Terms of Service*](https://www.twitch.tv/p/en/legal/terms-of-service/)
+    *and* [*Developer Services Agreement*](https://www.twitch.tv/p/en/legal/developer-agreement/)*,
+    as well as the official* [*Twitch API documentation*](https://dev.twitch.tv/docs/api/)
+    *before using it for other purposes.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction and demo
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this blog post, I will guide you through building a real-time sentiment analysis
+    application for Twitch chat using [Apache Flink](https://flink.apache.org/). This
+    application will be able to process live messages from a Twitch channel and determine
+    the overall sentiment of the chat.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The project was built with the following environment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**OS**: macOS Sonoma'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Java**: 11'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Flink**: 1.17.2'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/e46b1477e09e4b3e113640ed6cebc535.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Real-time Twitch chat sentiment analysis with Apache Flink (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The underlying idea of this article is: to further educate ourselves in the
+    field of Data Engineering, we should follow our passion and grow through actual
+    projects.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Find a problem that interests and motivates you, and try to solve it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the end of this blog post, you will have a working application that can be
+    used to track the sentiment of a Twitch chat in real-time. It can be used with
+    one ore more Twitch channels. You will also learn the basics of [Apache Flink](https://flink.apache.org/)
+    and sentiment analysis in Java.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**You can find the final result also on Github** 🪄: [https://github.com/vojay-dev/flitch](https://github.com/vojay-dev/flitch)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apache Flink
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Streams of data are everywhere. Almost all data that is generated is generated
+    as a stream of data naturally, even if we mostly process data in batches. This
+    can be GPS data, interaction tracking for apps or websites, sensor data or messages
+    in a Twitch chat.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Stream processing means to process data in motion***'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A stream processing application usually consists of data sources, which generate
+    streams of data, operators to process the data and sinks. These days, there are
+    many frameworks and services that allow to implement stream processing applications
+    and often concepts are similar. One of them is [Apache Flink](https://flink.apache.org/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Apache Flink](https://flink.apache.org/) is not only a framework but also
+    a distributed process engine. It allows to create and run **stateful** computations
+    on **unbounded** and **bounded** data streams. **Ubounded** streams have a defined
+    start, but no defined end while **bounded** data streams have a defined start
+    and end. This might sound familiar, since that can also be seen as a batch of
+    data but represented as a stream.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c65239a997c588ae867dcc6bfa8a2beb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Flink concepts (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Flink offers APIs to define streaming applications. With those you can control
+    data sources, transformations and data sinks. With the SQL / Table API you can
+    define streaming applications using SQL, which is an amazing feature but please
+    keep in mind that streaming SQL behaves differently from batch SQL, which might
+    require a shift in how to approach problems. Then, there is the DataStream API
+    which can be used to compose your streaming pipeline with predefined functions.
+    This can be used in Python, Java and Scala. If you need full control over events,
+    state and time, the ProcessFunction layer is the way to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d485c1cf66873673c44c2b23823c9f90.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Flink APIs (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this use-case, we will use the DataStream API in Java to define a custom
+    source to read the Twitch chat as a stream of data. Futhermore, we will define
+    a custom map function, which takes each Twitch message as input, performs the
+    sentiment analysis on it and returns a tuple with the message and the analysis
+    result. Finally, we simply use a pre-defined sink to print the result. In this
+    particular case, we only look at one invdividual event at a time, this is called
+    **stateless stream processing**. Bare in mind that one of the key features of
+    Flink is to remember information across multiple events, e.g. in form of windowing
+    functions. This is called **stateful stream processing**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b08d47365c06f9e10a96bd63298dfe55.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Flink state (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you are interested in a more advanced Flink use-case including state and
+    other advanced techniques like the Broadcast State Pattern, have a look at my
+    talk at the Big Data Conference Europe 2023:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 📼 [Real-time Customer Engagement in Gaming Using Kafka and Flink](https://www.youtube.com/watch?v=djikIGOm90U)
+  prefs: []
+  type: TYPE_NORMAL
+- en: NLP and sentiment analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine Natural Language Processing (NLP) as your super-powered translator for
+    computer brains. It lets them understand the nuances of human language, just like
+    you can tell the difference between a sarcastic “good job” and a genuine one.
+    This goes beyond simple keyword matching and delves into the complexities of grammar,
+    syntax, and semantics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are some NLP applications you might encounter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Spam filtering**: NLP can identify suspicious patterns in emails, separating
+    legitimate messages from spam.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Machine translation**: NLP helps bridge the language gap by analyzing the
+    structure and meaning of sentences for accurate translation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Voice assistants**: Siri, Alexa, and Google Assistant all leverage NLP to
+    understand your voice commands and respond intelligently.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One other application of NLP is sentiment analysis. Think of it like an emotional
+    compass for text. It assigns a sentiment score (positive, negative, or neutral)
+    to a piece of text, helping us gauge the overall feeling behind it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two main approaches to sentiment analysis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Lexicon-based**: This approach relies on pre-built dictionaries containing
+    words with predefined sentiment scores. The sentiment score of a text is calculated
+    based on the scores of the identified words.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Machine Learning-based**: This method utilizes machine learning algorithms
+    trained on massive datasets of text labeled with sentiment. These algorithms can
+    learn complex relationships between words and their emotional connotations, leading
+    to more nuanced sentiment analysis.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/4e822594adf58749fb9ba3ba5ef4470e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sentiment analysis example (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is perfect for deciphering those Twitch chat vibes!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our Twitch chat example, we can use sentiment analysis to see if the chat
+    is overflowing with happiness or tilting over a missed play. This can be fascinating
+    for streamers to understand their audience’s real-time reaction and maybe even
+    adjust their content accordingly! It could be used for real-time monitoring of
+    the communities mood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up a Flink project
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A simple and fast way to setup a Flink project is Maven. Maven is a tool that
+    can be used for building and managing primarily Java-based projects. Maven can
+    support you as a developer by addressing the aspects of how your project is buil
+    and how its dependencies are managed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maven also includes a project templating toolkit called Archetype. With Archetype
+    you can quickly generate a new project based on an existing template.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are Archetypes for all kinds of projects, from a simple Java project (`maven-archetype-quickstart`)
+    to framework specific project skeletons, for example to create Flink based projects
+    (`flink-quickstart-java`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will use this to create the demo application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Most of the parameters are optional, if you don’t add them, the CLI tool will
+    ask you to enter the details while it is creating your project. With `-q` we reduce
+    the output. After executing the above command, we will get the following output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Press `enter` to confirm and you will get a folder named after your `artifactId`
+    with the generated project boilerplate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/145bdd5fb2440c1c8d0e5dae9add44da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Maven Archetype for Flink (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: From here, you can use the Java IDE of your choice. However, I recommend using
+    [IntelliJ](https://www.jetbrains.com/idea). There is a completely free to use
+    [IntelliJ IDEA Community Edition](https://www.jetbrains.com/idea/download).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prepare the project
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we get to the actual implementation, we will prepare the generated project
+    a bit for our use-case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Project settings in IntelliJ
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you are using IntelliJ, we now have to adjust the module and project settings,
+    to ensure we are using the right Java version and also have the correct language
+    level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the project opened in IntelliJ, click on *File* → *Project Structure*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the *Project Structure* window, navigate to *Project* and ensure to use
+    the **Java 11 SDK**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a5b31219b3207121e668789a569e111a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Project settings (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, navigate to *Modules* and change the language level to **11**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb22316ceadf7e852814bf460bb8b45b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Module settings (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rename and reduce main class
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Rename the generated class `DataStreamJob` simply to `App`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/276f020259185a0efb176433f7c80f0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Rename class (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then replace the code with the following content:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we create a execution environment, read data from a bounded stream
+    with two elements (“Hello” and “World”), print the elements to STDOUT and execute
+    the application with the name “Flitch”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**But for now, let’s not start the application since more adjustments are necessary.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pom.xml` project settings'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `pom.xml` file in Maven is a configuration file that serves as the project’s
+    blueprint. It stands for “Project Object Model” and contains information and configurations
+    for the project, such as project dependencies, project version, build plugins,
+    and goals, among others. Maven uses this file to understand the project structure,
+    manage dependencies, and perform various tasks during the build process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s change the following aspects, so that we use the desired Java version,
+    have a proper name and adjust the main class of the demo.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Set target Java version to 11 (LTS):**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Change name:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Change main class:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run configuration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Run configurations in IntelliJ are settings that specify how to launch and debug
+    your project. They allow you to customize aspects like the main class to run,
+    program arguments, and environment variables. You can create multiple configurations
+    to easily switch between different running or debugging scenarios, streamlining
+    your development process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But before we create one, let’s see what happens if we run our application.
+    So without further ado, let’s start our main class `App` by simply clicking the
+    play button.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The application will fail, this is on purpose.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fa265b3c95e57d588ad77d2be842ab5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Run the app (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reason it failed is a `java.lang.NoClassDefFoundError`. This is, because
+    we have dependencies defined in our `pom.xml`, which are not in the classpath
+    of Java when running the application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The relevant part is the **scope**. In Maven, the scope of a dependency specifies
+    the visibility and the lifecycle of the dependency in relation to the project.
+    It determines how and when a dependency is included in your project, affecting
+    classpath and module builds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scope `provided` means that the dependencies are expected to be provided by
+    the JDK or the runtime environment when executing or deploying your project, thus
+    not packaged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using Flink in a production environment, you will have a running Flink
+    cluster somewhere, either on-premises or in the cloud. This environment already
+    has the required dependencies in the classpath per default and we submit our application
+    JAR to this production cluster. Thus, we do not need to package these dependencies
+    with the JAR.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, that also means when we run the application locally, these are not
+    in the classpath. And since we have a plain Java setup, we get the `java.lang.NoClassDefFoundError`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are multiple solutions for this problem. We could define different profiles
+    with different scopes in Maven, so that the scope is different in our local environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But since we are using IntelliJ, there is also a way to solve it with the run
+    configuration. Click on *Run* → *Edit Configurations…* and then click on the **+**
+    or *Add new* to create a new run configuration. From the list, select “Application”
+    and name it “Flitch”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensure to select Java 11 and enter `de.vojay.flitch.App` as your main class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To solve the `java.lang.NoClassDefFoundError`, we now have to enable the option
+    *Add dependencies with “provided” scope to classpath*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/341fbe9ef1b6dd2e3f33420ce528f6bd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Run configuration (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Your run configuration is ready, lets click “Run” and enjoy our first streaming
+    application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It works 🎉. The streaming application will run until the bounded stream is processed.
+    You will also find the output of the two elements of your stream in the logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0718a522b627323d624d088c065c7b98.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: First successful run (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Local Flink Web UI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There’s still one thing before we turn our attention to the fun part. The Flink
+    Web UI is a user-friendly interface that allows developers and administrators
+    to monitor and manage their Apache Flink applications. It provides a real-time
+    overview of running or completed jobs, displays metrics such as throughput and
+    latency, and offers detailed insights into the job’s execution plan. Essentially,
+    it’s a convenient dashboard where you can visualize the performance and status
+    of your Flink applications, making the process of debugging, optimizing, and managing
+    your streaming or batch processing jobs much easier and more intuitive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you run a Flink application locally like in this example, you usually do
+    not have the Flink Web UI enabled. However, there is a way to also get the Flink
+    Web UI in a local execution environment. I find this useful, especially to get
+    an idea of the execution plan before running streaming applications in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start by adding a dependency to the `pom.xml`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And slightly change the code in our main class `App.java`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The streaming application will now process a sequence of numbers, so that it
+    will not finish immediately. Also with `createLocalEnvironmentWithWebUI` we will
+    have the Flink Web UI available locally on port `8081` while the application is
+    running.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start again and open [http://localhost:8081/](http://localhost:8081/) in your
+    browser. Apart from various metrics, you can also see the execution plan of your
+    Flink application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d241e32e3d4e642fcb33f54117488f69.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Flink Web UI (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we have a proper local setup and can get started connecting our application
+    to Twitch and run sentiment analysis on chat messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Read the Twitch chat
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Twitch](https://www.twitch.tv/), the leading live streaming platform for gamers,
+    offers a comprehensive API and a chat feature that’s deeply integrated with the
+    Internet Relay Chat (IRC) protocol.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31fb16b46f763b431e6eb957b698c3f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Caspar Camille Rubin](https://unsplash.com/@casparrubin?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: At its core, the Twitch API allows applications to interact with Twitch’s data.
+    This includes retrieving information about live streams, VODs (Video on Demand),
+    users, and game details. The API is RESTful, meaning it follows the architectural
+    style of the web, making it straightforward to use with common HTTP requests.
+    Developers can use this API to create custom experiences, such as displaying live
+    stream stats, searching for channels, or even automating stream setups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Twitch chat is a vital aspect of the Twitch experience, allowing viewers
+    to interact with streamers and other viewers in real-time. Underneath the modern
+    interface of Twitch Chat lies the Internet Relay Chat (IRC) protocol, a staple
+    of online communication since the late 80s. This reliance on IRC allows for a
+    wide range of possibilities when it comes to reading and interacting with chat
+    through custom applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For our purpose, we simply want to read the chat, without writing messages ourselves.
+    Fortunately, Twitch allows anonymous connections to the chat for read-only application
+    use-cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To reduce the implementation effort, we will use an existing library to interact
+    with Twitch: Twitch4J. Twitch4J is a modern Java library designed to simplify
+    the integration with Twitch’s features, including its API, Chat (via IRC), PubSub
+    (for real-time notifications), and Webhooks. Essentially, it’s a powerful toolkit
+    for Java developers looking to interact with Twitch services without having to
+    directly manage low-level details like HTTP requests or IRC protocol handling.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add Twitch4J dependency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The first step is to add Twitch4J as a dependency to the `pom.xml`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create POJO for Twitch chat messages
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We would like to have a lightweight, serializable Plain Old Java Object (POJO)
+    in order to represent Twitch chat messages within our application. We are interested
+    in the channel where the message was written, the user and the content itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Create a new class `TwitchMessage` with the following implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a side note: You do not have to write basic functions like `toString()`
+    on your own, you can use IntelliJ to generate it for you. Simply click on *Code*
+    → *Generate…* → `toString()` to get the result above.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b3202075c87edca8319d6db7ae8379d1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generate toString (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create custom Twitch source function for Flink
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will now use Twitch4J to implement a custom Twitch source function for Flink.
+    The source function will generate an unbounded stream of data, in this case Twitch
+    chat messages. That also means, the application will not terminate until we explicitly
+    stop it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Twitch client can be built like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this example we get a `client` that joins the Twitch channel called *vojay*.
+    **Yes, I once was an active streamer myself**. Fun fact: I teached people game
+    development and general software development in my streams. I also enjoyed playing
+    retro games live on stream 🎮. But that is a different topic, let’s focus on the
+    project 😉.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should also notice, that there is no authentication in the example above.
+    As said before, since we only want to read the chat, no authentication is needed.
+    In fact, we simply join an IRC chat anonymously and read the messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we want to establish the connection to the Twitch chat only once per source
+    instance, we have to extend the abstract `RichSourceFunction` class, in order
+    to be able to override the `open` function, which allows to add code for initialization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also use our `TwitchMessage` POJO for the generic parameter to tell Flink
+    that this source generates elements of type `TwitchMessage`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, want to be able to pass an array of Twitch channels we want to
+    listen on in the constructor of the source function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To control the state of our source function, we use a `boolean` variable called
+    `running`, which we set to `true` in the `open` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Based on this, the constructor and `open` function look like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: With that, we have all we need to consume messages and emit them for further
+    processing as a stream of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `run` function of a source function is where the magic happens. Here we
+    generate the data and with a given `SourceContext`, we can emit data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `SimpleEventHandler` provided by Twitch4J can be used to react on specific
+    messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever we get an event of type `IRCMessageEvent`, which is a message in the
+    Twitch chat, we generate an instance of our POJO and emit it to the stream via
+    the context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To ensure our source function does not terminate, we will add a loop with an
+    artificial delay, which will run until our `boolean` variable `running` is set
+    to `false`. This will be done in the `cancel` function, which is called by the
+    Flink environment on shutdown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Putting it all together, this is the full implementation of our custom Twitch
+    source function for Flink `TwitchSource.java`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Use source function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'With this custom source function, we can already extend our streaming pipeline
+    in `App.java` to simply print each chat message written to the chat:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: With `addSource` we can add our source function. The elements are then processed
+    by the next step in the stream, which is `print()`. With this sink, we will again
+    output each element to STDOUT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When running the application now and writing to the chat at [https://twitch.tv/vojay](https://www.twitch.tv/popout/vojay/chat),
+    the messages will be processed and printed by our streaming application 🎉.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a308cbba3475c4b7ba1ab2b77ef0178c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Twitch source for Flink (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Twitch chat sentiment analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we can read the Twitch chat as a stream of data, it is time to process
+    each message. The basic idea is: for each Twitch message, we detect the individual
+    sentences of the message and calculate the sentiment for each of the sentences.
+    The output will be a structure like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s break it down: the result contains the original POJO of the Twitch chat
+    message together with another tuple with 2 elements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A list of **sentiment scores** (`List<Integer>`) containing the score for each
+    sentence in the message, from 0 (very negative) to 4 (very positive) and
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'a list of **sentiment classes** (`List<String>`) containing the readable class
+    for each sentence in the message, for example: Neutral or Negative.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/370607a498f8c196cf9fb7a621cec6e0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sentiment map function (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Add Stanford CoreNLP dependencies
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To perform the sentiment analysis, we will use the [CoreNLP library](https://stanfordnlp.github.io/CoreNLP/)
+    by the [Stanford NLP Group](https://nlp.stanford.edu/). There are alternatives
+    like [Apache OpenNLP](https://opennlp.apache.org/) or the [Deep Java Library](https://djl.ai/).
+    In this project, we will focus on CoreNLP but feel free to create alternative
+    versions using one of the other libraries, which can be a great way to learn more
+    about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CoreNLP is a comprehensive tool for NLP in Java, supporting multiple languages
+    including Arabic, Chinese, English, French, German, Hungarian, Italian, and Spanish.
+    It processes text to provide linguistic annotations such as sentence boundaries,
+    parts of speech, named entities, and more through a **pipeline system** that generates
+    **CoreDocuments**. These documents hold all annotation information, which can
+    be accessed easily or exported.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the context of CoreNLP, a **pipeline** is essentially a sequence of processing
+    steps designed to analyze text. When you input raw text into CoreNLP, the pipeline
+    passes the text through various **annotators** (*processing units*), each responsible
+    for a different aspect of NLP. These annotators might identify sentence boundaries,
+    recognize parts of speech, detect named entities, parse sentence structures, and
+    more, depending on the specific tasks you want to perform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, we will use the **sentences annotation** to split the Twitch message
+    into sentences and then use the **sentiment core annotations** on each sentence
+    to get the sentiment of it. But first, we need to add the required dependencies
+    to the `pom.xml` of our project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first dependency represents the library itself while the second dependency
+    will fetch all the related pre-trained models into your local `.m2` folder. Don’t
+    be surprised, the first time Maven resolves the dependencies will take a while
+    due to the download of the models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create sentiment analysis map function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For the map function, we will use the abstract class `RichMapFunction` as a
+    basis, so that we can again override the `open` function in order to initialize
+    the pipeline for sentiment analysis only once per instance. When extending the
+    `RichMapFunction`, we need to specify to generics, one for the type of input and
+    another one for the type of output. The input will be one Twitch message POJO,
+    so `TwitchMessage` and the output will be the message again together with its
+    sentiment in form of a list of scores and another list of classes, as described
+    before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start by creating a new class called `AnalyzeSentiment` and extend the
+    `RichMapFunction`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When initializing the Stanford CoreNLP pipeline, we have to specify the types
+    of annotators we want to use in our pipeline, so that the library only loads the
+    required models. This can be achieved via a `Properties` object, passed to the
+    constructor of `StanfordCoreNLP`. This is how we initialize the pipeline for our
+    use-case:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To make our map operator more readable, we extract the core logic to get the
+    sentiment to a dedicated function. We start by processing the message with the
+    pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we process each individual sentence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Get the score of the sentence and add it to a list of scores:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And get the class of the sentence and add it to a list of classes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With that, the full function to get the sentiment tuple with the scores and
+    classes looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: The map function itself simply calls this function and puts everything together
+    into a tuple to emit it to the stream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Putting everything together, this is the full implementation of our custom
+    map function `AnalyzeSentiment.java`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Use map function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We now have all ingredients for our real-time sentiment analysis streaming application
+    🚀. That means, we can switch back to our `App` class, where we define how the
+    streaming application looks like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here, we will also introduce another useful Apache Flink feature, which is
+    the `ParameterTool`. A generic helper class allowing to parameterize your application
+    in different ways. We will use it to add a program argument `--twitchChannels`
+    that allows to pass a comma-separated list of Twitch channels we want to use in
+    our `TwitchSource`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Also we will include our new map function in the pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is how our `App` class looks in the end:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Before we run it again, we need to adjust our run configuration again by adding
+    the new `--twitchChannels` parameter. As we marked it as **required**, the application
+    would fail otherwise. Navigate to *Run* → *Edit Configurations…* and add:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`--twitchChannels vojay,valorant`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: as program arguments. **You can use any Twitch channel here, feel free to browse
+    Twitch for bigger channels and see what happens.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1af0e4eb58a9d5447c2310ac491f19a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Run configuration with twitchChannels parameter (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it is time to run your streaming application again and enjoy the show!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9fa3cbde399e5bc2d238f4b3919a2d84.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Stanley Li](https://unsplash.com/@djravine?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: And there you have it! We’ve built a real-time sentiment analysis application
+    for Twitch chat using Apache Flink. Now you can not only see the chat flow by,
+    but also understand the emotional pulse of the audience. This might be the boilerplate
+    for a more advanced version. Track the sentiment throughout a stream, see how
+    the viewers react to big plays or funny moments, and use that knowledge to create
+    even more engaging content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some inspiration to turn this prototype into a valuable, production-ready project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⚙️ **Adjust model**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use a model that is trained specifically on social media data (e.g., [RoBERTa](https://huggingface.co/cardiffnlp/twitter-roberta-base-sentiment))
+    or even better, train a model directly with historical Twitch chat data to incorporate
+    Twitch-specific communication aspects like specific emoji codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🧮 **Apply windowing**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extend the Flink pipeline with a window function, for example, a tumbling window
+    per minute, and aggregate the sentiment score as an average per minute.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 📦 **Persist results**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Persist the resulting stream with an aggregate per minute in Kafka or a Time
+    Series Database (TSDB).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 📊 **Create dashboard**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a dashboard on the aggregated data, visualizing the average sentiment
+    per minute in a graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With these suggestions, you can combine the result with other metadata, like
+    the actual category/game played of the stream or the time of the day, to create
+    sophisticated recommendations about what content results in a positive Twitch
+    chat experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the next time you tune into your favorite streamer, keep an eye out for
+    that sentiment analysis running in the background. It might just reveal some fascinating
+    insights about the passionate world of the Twitch chat!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But the most important thing about this article is: get inspired, learn and
+    inspire others. The cool thing about Data Engineering and related fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***data is everywhere***'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: so there is always the next interesting question around the corner that can
+    be used to learn and ideally share your inspiration with others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/258f31d4a003728a74203f1bdb1d1f6f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Alexander Sinn](https://unsplash.com/@swimstaralex?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enjoy and let me know about your experiences in the comments ✌️.
+  prefs: []
+  type: TYPE_NORMAL

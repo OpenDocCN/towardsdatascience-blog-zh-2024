@@ -1,0 +1,804 @@
+- en: Practical Computer Simulations for Product Analysts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/practical-computer-simulations-for-product-analysts-90b5deb6a54e?source=collection_archive---------5-----------------------#2024-04-19](https://towardsdatascience.com/practical-computer-simulations-for-product-analysts-90b5deb6a54e?source=collection_archive---------5-----------------------#2024-04-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Part 1: Task-specific approaches for scenario forecasting'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://miptgirl.medium.com/?source=post_page---byline--90b5deb6a54e--------------------------------)[![Mariya
+    Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--90b5deb6a54e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--90b5deb6a54e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--90b5deb6a54e--------------------------------)
+    [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--90b5deb6a54e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--90b5deb6a54e--------------------------------)
+    ·20 min read·Apr 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6987a0f2acb152826d29e342f49419d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by DALL-E
+  prefs: []
+  type: TYPE_NORMAL
+- en: In product analytics, we quite often get "what-if" questions. Our teams are
+    constantly inventing different ways to improve the product and want to understand
+    how it can affect our KPI or other metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s look at some examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine we're in the fintech industry and facing new regulations requiring us
+    to check more documents from customers making the first donation or sending more
+    than $100K to a particular country. We want to understand the effect of this change
+    on our Ops demand and whether we need to hire more agents.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let's switch to another industry. We might want to incentivise our taxi drivers
+    to work late or take long-distance rides by introducing a new reward scheme. Before
+    launching this change, it would be crucial for us to estimate the expected size
+    of rewards and conduct a cost vs. benefit analysis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As the last example, let's look at the main Customer Support KPIs. Usually,
+    companies track the average waiting time. There are many possible ways how to
+    improve this metric. We can add night shifts, hire more agents or leverage LLMs
+    to answer questions quickly. To prioritise these ideas, we will need to estimate
+    their impact on our KPI.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When you see such questions for the first time, they look pretty intimidating.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If someone asks you to calculate monthly active users or 7-day retention, it's
+    straightforward. You just need to go to your database, write SQL and use the data
+    you have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Things become way more challenging (and exciting) when you need to calculate
+    something that doesn't exist. Computer simulations will usually be the best solution
+    for such tasks. According to [Wikipedia](https://en.wikipedia.org/wiki/Simulation),
+    **simulation** is an imitative representation of a process or system that could
+    exist in the real world. So, we will try to imitate different situations and use
+    them in our decision-making.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Simulation is a powerful tool that can help you in various situations. So,
+    I would like to share with you the practical examples of computer simulations
+    in the series of articles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will discuss how to use simulations to estimate different
+    scenarios. You will learn the basic idea of simulations and see how they can solve
+    complex tasks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the second part, we will diverge from scenario analysis and will focus on
+    the classic of computer simulations — bootstrap. Bootstrap can help you get confidence
+    intervals for your metrics and analyse A/B tests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I would like to devote the third part to [agent-based models](https://en.wikipedia.org/wiki/Agent-based_model).
+    We will model the CS agent behaviour to understand how our process changes can
+    affect CS KPIs such as queue size or average waiting time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, it's time to start and discuss the task we will solve in this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our project: Launching tests for English courses'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Suppose we are working on an edtech product that helps people learn the English
+    language. We've been working on a test that could assess the student's knowledge
+    from different angles (reading, listening, writing and speaking). The test will
+    give us and our students a clear understanding of their current level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We agreed to launch it for all new students so that we can assess their initial
+    level. Also, we will suggest existing students pass this test when they return
+    to the service next time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our goal is to build a forecast on the number of submitted tests over time.
+    Since some parts of these tests (writing and speaking) will require manual review
+    from our teachers, we would like to ensure that we will have enough capacity to
+    check these tests on time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s try to structure our problem. We have two groups of students:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first group is **existing students.** It's a good practice to be precise
+    in analytics, so we will define them as students who started using our service
+    before this launch. We will need to check them once at their next transaction,
+    so we will have a substantial spike while processing them all. Later, the demand
+    from this segment will be negligible (only rare reactivations).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**New students** will hopefully continue joining our courses. So, we should
+    expect consistent demand from this group.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Now, it's time to think about how we can estimate the demand for these two groups
+    of customers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The situation is pretty straightforward for **new students** — we need to predict
+    the number of new customers weekly and use it to estimate demand. So, it's a classic
+    task of time series forecasting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The task of predicting demand from **existing customers** might be more challenging.
+    The direct approach would be to build a model to predict the week when students
+    will return to the service next time and use it for estimations. It's a possible
+    solution, but it sounds a bit overcomplicated to me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would prefer the other approach. I would simulate the situation when we launched
+    this test some time ago and use the previous data. In that case, we will have
+    all the data after "this simulated launch" and will be able to calculate all the
+    metrics. So, it's actually a basic idea of scenario simulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cool, we have a plan. Let's move on to execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modelling demand from new customers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before jumping to analysis, let's examine the data we have. We keep a record
+    of the lessons' completion events. We know each event's user identifier, date,
+    module, and lesson number. We will use weekly data to avoid seasonality and capture
+    meaningful trends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/43843a3d3569e67eaf6d34c85251d222.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let me share some context about the educational process. Students primarily
+    come to our service to learn English from scratch and pass six modules (from pre-A1
+    to C1). Each module consists of 100 lessons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data was generated explicitly for this use case, so we are working with
+    a synthetic data set.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: First, we need to calculate the metric we want to predict. We will offer students
+    the opportunity to pass the initial evaluation test after completing the first
+    demo lesson. So, we can easily calculate the number of customers who passed the
+    first lesson or aggregate users by their first date.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can look at the data and see an overall growing trend with some seasonal
+    effects (i.e. fewer customers joining during the summer or Christmas time).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f1587dc8cb87734b463b1df1d8ff7a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For forecasting, we will use [Prophet](https://facebook.github.io/prophet/)
+    — an open-source library from Meta. It works pretty well with business data since
+    it can predict non-linear trends and automatically take into account seasonal
+    effects. You can easily install it from PyPI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Prophet library expects a data frame with two columns: `ds` with timestamp
+    and `y` with a metric we want to predict. Also, `ds` must be a datetime column.
+    So, we need to transform our data to the expected format.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we are ready to make predictions. As usual in ML, we need to initialise
+    and fit a model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next step is prediction. First, we need to create a future data frame specifying
+    the number of periods and their frequency (in our case, weekly). Then, we need
+    to call the `predict` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a result, we get the forecast (`yhat`) and confidence interval (`yhat_lower`
+    and `yhat_upper`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/038a1e1d4a20c36f00e76a9ffacecb3e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It's difficult to understand the result without charts. Let's use Prophet functions
+    to visualise the output better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The forecast chart shows you the forecast with a confidence interval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/023fd7c58cfd4628e700d281faf1819d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The components view lets you understand the split between trend and seasonal
+    effects. For example, the second chart displays a seasonal drop-off during summer
+    and an increase at the beginning of September (when people might be more motivated
+    to start learning something new).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c4c514ca943e9bf65483ddfa2e0f0fd4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can put all this forecasting logic into one function. It will be helpful
+    for us later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: I prefer to share with my stakeholders a more styled version of visualisation
+    (especially for public presentations), so I've added it to the function as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06eaa510b37b23b26f271744de6aaaf1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this example, we've used the default Prophet model and got quite a plausible
+    forecast. However, in some cases, you might want to tweak parameters, so I advise
+    you to read [the Prophet docs](https://facebook.github.io/prophet/docs/quick_start.html#python-api)
+    to learn more about the possible levers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in our case, we believe that our audience will continue growing
+    at the same rate. However, this might not be the case, and you might expect it
+    to have a cap of around 100 users. Let's update our prediction for saturating
+    growth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see that the forecast has changed significantly, and the growth stops
+    at ~100 new clients per week.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c50618f0e4851c98c777991e5dad7c1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It's also interesting to look at the components' chart in this case. We can
+    see that the seasonal effects stayed the same, while the trend has changed to
+    logistic (as we specified).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cd9448cab3099823c8aafa704be0f14f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We've learned a bit about the ability to tweak forecasts. However, for future
+    calculations, we will use a basic model. Our business is still relatively small,
+    and most likely, we haven’t reached saturation yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've got all the needed estimations for new customers and are ready to move
+    on to the existing ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modelling demand from existing customers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first version
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The key point in our approach is to simulate the situation when we launched
+    this test some time ago and calculate the demand using this data. Our solution
+    is based on the idea that we can use the past data instead of predicting the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since there's significant yearly seasonality, I will use data for -1 year to
+    take into account these effects automatically. We want to launch this project
+    at the beginning of April. So, I will use past data from the week of 2nd April
+    2023.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to filter the data related to existing customers at the beginning
+    of April 2023\. We've already forecasted demand from new users, so we don't need
+    to consider them in this estimation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we need to model the demand from these users. We will offer our existing
+    students the chance to pass the test the next time they use our product. So, we
+    need to define when each customer returned to our service after the launch and
+    aggregate the number of customers by week. There's no rocket science at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We got the first estimations. If we had launched this test in April 2023, we
+    would have gotten around 1.3K tests in the first week, 0.3K for the second week,
+    80 cases in the third week, and even less afterwards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fbefdfd378810634f2b65d8598dd309d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We assumed that 100% of existing customers would finish the test, and we would
+    need to check it. In real-life tasks, it's worth taking conversion into account
+    and adjusting the numbers. Here, we will continue using 100% conversion for simplicity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, we've done our first modelling. It wasn't challenging at all. But is this
+    estimation good enough?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Taking into account long-term trends
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We are using data from the previous year. However, everything changes. Let's
+    look at the number of active customers over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/aa96d886a01bb6c2677baf121cc54707.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see that it's growing steadily. I would expect it to continue growing.
+    So, it's worth adjusting our forecast due to this YoY (*Year-over-Year*) growth.
+    We can re-use our prediction function and calculate YoY using forecasted values
+    to make it more accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ee2f35233a05c10748da4fa37c376da4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's calculate YoY growth based on our forecast and adjust the model's predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: We've finished the estimations for the existing students as well. So, we are
+    ready to merge both parts and get the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting everything together
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, we can combine all our previous estimations and see the final chart. For
+    that, we need to convert data to the common format and add segments so that we
+    can distinguish demand between new and existing students.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2ed261ca8aa5d7ae80ade41198fecebc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We should expect around 2.5K tests for the first week after launch, mostly from
+    existing customers. Then, within four weeks, we will review tests from existing
+    users and will have only ~100–130 cases per week from new joiners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That's wonderful. Now, we can share our estimations with colleagues so they
+    can also plan their work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if we have demand constraints?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In real life, you will often face the problem of capacity constraints when it's
+    impossible to launch a new feature to 100% of customers. So, it’s time to learn
+    how to deal with such situations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose we've found out that our teachers can check only 1K tests each week.
+    Then, we need to stagger our demand to avoid bad customer experience (when students
+    need to wait for weeks to get their results).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Luckily, we can do it easily by rolling out tests to our existing customers
+    in batches (or cohorts). We can switch the functionality on for all new joiners
+    and X% of existing customers in the first week. Then, we can add another Y% of
+    existing customers in the second week, etc. Eventually, we will evaluate all existing
+    students and have ongoing demand only from new users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's come up with a rollout plan without exceeding the 1K capacity threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we definitely want to launch it for all new students, let's start with
+    them and add them to our plan. We will store all demand estimations by segments
+    in the `raw_demand_est_model_df` data frame and initialise them with our `new_model_df`
+    estimations that we got before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can aggregate this data and calculate the remaining capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/259999a7d45437eadf0ac9b1dbabf9ce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's put this logic into a separate function since we will need it to evaluate
+    our estimations after each iteration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: I've also added a chart to the output of this function that will help us to
+    assess our results effortlessly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/67a0113dbc61d742f2dbf40c7e31ac44.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now, we can start planning the rollout for existing customers week by week.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let's transform our current demand model for existing students. I would
+    like it to be indexed by the sequence number of weeks and show the 100% demand
+    estimation. Then, I can smoothly get estimations for each batch by multiplying
+    demand by weight and calculating the dates based on the launch date and week number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/736f165ce31047c1a725014b012a9c2e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, for example, if we launch our evaluation test for 10% of random customers,
+    then we expect to get 244 tests on the first week, 52 tests on the second week,
+    14 on the third, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will be using the same estimations for all batches. I assume that all batches
+    of the same size will produce the exact number of tests over the following weeks.
+    So, I don't take into account any seasonal effects related to the launch date
+    for each batch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This assumption simplifies your process quite a bit. And it's pretty reasonable
+    in our case because we will do a rollout only within 4–5 weeks, and there are
+    no significant seasonal effects during this period. However, if you want to be
+    more accurate (or have considerable seasonality), you can build demand estimations
+    for each batch by repeating our previous process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's start with the week of 31st March 2024\. As we saw before, we have a spare
+    capacity for 888 tests. If we launch our test to 100% of existing customers, we
+    will get ~2.4K tests to check in the first week. So, we are ready to roll out
+    only to a portion of all customers. Let's calculate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's easier to operate with more round numbers, so let's round the number to
+    a fraction of 5%. I've rounded the number down to have some buffer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we will make several iterations, we need to track the percentage of existing
+    customers for whom we’ve enabled the new feature. Also, it's worth checking whether
+    we've already processed all the customers to avoid double-counting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Also, saving our rollout plan in a separate variable will be helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we need to estimate the expected demand from this batch. Launching tests
+    for 35% of customers on 31st March will lead to some demand not only in the first
+    week but also in the subsequent weeks. So, we need to calculate the total demand
+    from this batch and add it to our plans.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can re-use the function `get_total_demand_mode`, which helps us analyse
+    the current demand vs capacity balance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are utilising most of our capacity for the first week. We still have some
+    free resources, but it was our conscious decision to keep some buffer for sustainability.
+    We can see that there’s almost no demand from this batch after 3 weeks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69099cf101463ab326d82459ced45d43.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With that, we've finished the first iteration and can move on to the following
+    week — 4th April 2024\. We can check an additional 706 cases during this week.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3daf0fc5aa2f9e3b3152e00a51861ff1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can repeat the whole process for this week and move to the next one. We can
+    iterate to the point when we launch our project to 100% of existing customers
+    (`enabled_user_share` equals to 1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can roll out our tests to all customers without breaching the 1K tests per
+    week capacity constraint within just four weeks. In the end, we will have the
+    following weekly forecast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ba0dd724bd732b52409020fe5c6e2b95.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can also look at the rollout plan we've logged throughout our simulations.
+    So, we need to launch the test for randomly selected 35% of customers on the week
+    of 31st March, then for the next 20% of customers next week, followed by 25% and
+    20% of existing users for the remaining two weeks. After that, we will roll out
+    our project to all existing students.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, congratulations. We now have a plan for how to roll out our feature sustainably.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking students' performance over time
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We've already done a lot to estimate demand. We've leveraged the idea of simulation
+    by imitating the launch of our project a year ago, scaling it and assessing the
+    consequences. So, it's definitely a simulation example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, we mostly used the basic tools you use daily — some Pandas data wrangling
+    and arithmetic operations. In the last part of the article, I would like to show
+    you a bit more complex case where we will need to simulate the process for each
+    customer independently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Product requirements often change over time, and it happened with our project.
+    You, with a team, decided that it would be even better if you could allow your
+    students to track progress over time (not only once at the very beginning). So,
+    we would like to offer students to go through a performance test after each module
+    (if more than one month has passed since the previous test) or if the student
+    returned to the service after three months of absence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, the criteria for test assignments are pretty tricky. However, we can still
+    use the same approach by looking at the data for the previous year. However, this
+    time, we will need to look at each customer's behaviour and define at what point
+    they would get a test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will take into account both new and existing customers since we want to estimate
+    the effects of follow-up tests on all of them. We don't need any data before the
+    launch because the first test will be assigned at the next active transaction,
+    and all the history won't matter. So we can filter it out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's also define a function that calculates the number of days between two
+    date strings. It will be helpful for us in the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's start with one user and discuss the logic with all the details. First,
+    we will filter events related to this user and convert them into the list of dictionaries.
+    It will be way easier for us to work with such data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: To simulate our product logic, we will be processing user events one by one
+    and, at each point, checking whether the customer is eligible for the evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s discuss what variables we need to maintain to be able to tell whether
+    the customer is eligible for the test or not. For that, let''s recap all the possible
+    cases when a customer might get a test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there were no previous tests -> we need to know whether they passed a test
+    before.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the customer finished the module and more than one month has passed since
+    the previous test **->** we need to know the last test date.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the customer returns after three months **->** we need to store the date
+    of the last lesson.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To be able to check all these criteria, we can use only two variables: the
+    last test date (`None` if there was no test before) and the previous lesson date.
+    Also, we will need to store all the generated tests to calculate them later. Let''s
+    initialise all the variables.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we need to iterate by event and check the criteria.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's go through all our criteria, starting from the initial test. In this case,
+    `last_test_date` will be equal to `None`. It's important for us to update the
+    `last_test_date` variable after "assigning" the test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the case of the finished module, we need to check that it's the last lesson
+    in the module and that more than 30 days have passed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: The last case is that the customer hasn't used our service for three months.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Besides, we need to update the `last_lesson_date` at each iteration to keep
+    it accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've discussed all the building blocks and are ready to combine them and do
+    simulations for all our customers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can aggregate this data. Since we are again using the previous year's
+    data, I will adjust the number by ~80% YoY, as we've estimated before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: We got quite a similar estimation for the initial test. In this case, the "initial
+    test" segment equals the sum of new and existing demand in our previous estimations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bc6a32d76bbf1b88a6a9de80fac98f1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, looking at other segments is way more interesting since they will be incremental
+    to our previous calculations. We can see around 30–60 cases per week from customers
+    who finished modules starting in May.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There will be almost no cases of reactivation. In our simulation, we got 4 cases
+    per year in total.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c2a0f348fed3e36d1efb42886f7b790.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Congratulations! Now the case is solved, and we’ve found a nice approach that
+    allows us to make precise estimations without advanced math and with only simulation.
+    You can use similar
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the full code for this example on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/simulations/student_activities_model.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let me quickly recap what we''ve discussed today:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main idea of computer simulation is imitation based on your data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In many cases, you can reframe the problem from predicting the future to using
+    the data you already have and simulating the process you're interested in. So,
+    this approach is quite powerful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this article, we went through an end-to-end example of scenario estimations.
+    We've seen how to structure complex problems and split them into a bunch of more
+    defined ones. We've also learned to deal with constraints and plan a gradual rollout.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thank you a lot for reading this article. If you have any follow-up questions
+    or comments, please leave them in the comments section.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*All the images are produced by the author unless otherwise stated.*'
+  prefs: []
+  type: TYPE_NORMAL

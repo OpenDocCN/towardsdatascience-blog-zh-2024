@@ -1,0 +1,303 @@
+- en: Automatic Labeling With GroundingDino
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/automatic-labeling-of-object-detection-datasets-using-groundingdino-b66c486656fe?source=collection_archive---------3-----------------------#2024-02-06](https://towardsdatascience.com/automatic-labeling-of-object-detection-datasets-using-groundingdino-b66c486656fe?source=collection_archive---------3-----------------------#2024-02-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A practical guide to tag object detection datasets with the GroundingDino algorithm.
+    Code included.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lihigurarie?source=post_page---byline--b66c486656fe--------------------------------)[![Lihi
+    Gur Arie, PhD](../Images/7a1eb30725a95159401c3672fa5f43ab.png)](https://medium.com/@lihigurarie?source=post_page---byline--b66c486656fe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b66c486656fe--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b66c486656fe--------------------------------)
+    [Lihi Gur Arie, PhD](https://medium.com/@lihigurarie?source=post_page---byline--b66c486656fe--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b66c486656fe--------------------------------)
+    ·6 min read·Feb 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/18f9e79654ab0663260df8535cdebe7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Annotations by the author using GroundingDino with the ‘ripened tomato’ prompt.
+    Image by [Markus Spiske](https://www.pexels.com/photo/green-and-red-oval-fruits-965740/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Until recently, object detection models performed a specific task, like detecting
+    penguins in an image. However, recent advancements in deep learning have given
+    rise to foundation models. These are large models trained on massive datasets
+    in a general manner, making them adaptable for a wide range of tasks. Examples
+    of such models include [CLIP](https://medium.com/towards-data-science/clip-creating-image-classifiers-without-data-b21c72b741fa)
+    for image classification, SAM for segmentation, and GroundingDino for object detection.
+    Foundation models are generally large and computationally demanding. When having
+    no resources limitations, they can be used directly for zero-shot inference. Otherwise,
+    they can be used to tag a datasets for training a smaller, more specific model
+    in a process known as distillation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this guide, we’ll learn how to use GroundingDino model for zero-shot inference
+    of a tomatoes image. We’ll explore the algorithm’s capabilities and use it to
+    tag an entire tomato dataset. The resulted dataset can then be used to train a
+    downstream target model such as YOLO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t have a paid Medium account, you can read for free [here](/automatic-labeling-of-object-detection-datasets-using-groundingdino-b66c486656fe?sk=7c98df89b60ea49a6de9efd5278f645e).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: GroundingDino
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '***Background***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GroundingDino is a state-of-the-art (SOTA) algorithm developed by IDEA-Research
+    in 2023 [1]. It detects objects from images using text prompts. The name “GroundingDino”
+    is a combination of “grounding” (a process that links vision and language understanding
+    in AI systems) and the transformer-based detector “DINO” [2]. This algorithm is
+    a zero-shot object detector, which means it can identify objects from categories
+    it was not specifically trained on, without needing to see any examples (shots).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Architecture***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The model takes pairs of image and text description as inputs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Image features are extracted with an **image backbone** such as Swin Transformer,
+    and text features with a **text backbone** like BERT.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The **Feature Enhancer** module combines the text and image features through
+    multimodal refinment, using cross attention mechanism that foster interaction
+    between these two modalities.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Next, the ‘**Language-guided Query Selection**’ module selects the features
+    most relevant to the input text to use as decoder queries.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: These queries are then fed into a **decoder** to refine the prediction of object
+    detection boxes that best align with the text information. It outputs the final
+    bounding boxes suggestions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The model outputs 900 object bounding boxes and their similarity scores to the
+    input words. The boxes with similarity scores above the `box_threshold` are chosen,
+    and words whose similarities are higher than the `text_threshold` as predicted
+    labels.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/216264702fee5eb326e11e64b8d85eda.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Xiangyu et al., 2023 [3]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Prompt Engineering***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The GroundingDino model encodes text prompts into a learned latent space. Altering
+    the prompts can lead to different text features, which can affect the performance
+    of the detector. To enhance prediction performance, it’s advisable to experiment
+    with multiple prompts, choosing the one that delivers the best results. It’s important
+    to note that while writing this article I had to try several prompts before finding
+    the ideal one, sometimes encountering unexpected results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '***Getting Started***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To begin, we’ll clone the [GroundingDino repository](https://github.com/IDEA-Research/GroundingDINO)
+    from GitHub, set up the environment by installing the necessary dependencies,
+    and download the pre-trained model weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***Inference on an image***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll start our exploration of the object detection algorithm by applying it
+    to a single image of tomatoes. Our initial goal is to detect all the tomatoes
+    in the image, so we’ll use the text prompt `tomato`. If you want to use different
+    category names, you can separate them with a dot `.`. Note that the colors of
+    the bounding boxes are random and have no particular meaning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f8837e49d2c89df34eedfa619d8021a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Annotations with the ‘**tomato**’ prompt. Image by [Markus Spiske](https://www.pexels.com/photo/green-and-red-oval-fruits-965740/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GroundingDino not only detects objects as categories, such as tomato, but also
+    comprehends the input text, a task known as Referring Expression Comprehension
+    (REC). Let’s change the text prompt from `tomato` to `ripened tomato`, and obtain
+    the outcome:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ffd779c03397578fc361f8935242b524.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Annotations with the ‘**ripened tomato**’ prompt. Image by [Markus Spiske](https://www.pexels.com/photo/green-and-red-oval-fruits-965740/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remarkably, the model can ‘understand’ the text and differentiate between a
+    ‘tomato’ and a ‘ripened tomato’. It even tags partially ripened tomatoes that
+    aren’t fully red. If our task requires tagging only fully ripened red tomatoes,
+    we can adjust the `box_threshold` from the default 0.35 to 0.5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/18f9e79654ab0663260df8535cdebe7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Annotations with the ‘**ripened tomato**’ prompt, with `**box_threshold = 0.5**`.
+    Image by [Markus Spiske](https://www.pexels.com/photo/green-and-red-oval-fruits-965740/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Generation of tagged dataset***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though GroundingDino has remarkable capabilities, it’s a large and slow
+    model. If real-time object detection is needed, consider using a faster model
+    like YOLO. Training YOLO and similar models require a lot of tagged data, which
+    can be expensive and time-consuming to produce. However, if your data isn’t unique,
+    you can use GroundingDino to tag it. To learn more about efficient YOLO training,
+    refer to my previous article [[4]](https://medium.com/towards-data-science/the-practical-guide-for-object-detection-with-yolov5-algorithm-74c04aac4843).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The GroundingDino repository includes a script to annotate image datasets in
+    the **COCO format**, which is suitable for YOLOx, for instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: export_dataset — If set to True, the COCO format annotations will be saved in
+    a directory named ‘coco_dataset’.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: view_dataset — If set to True, the annotated dataset will be displayed for visualization
+    in the FiftyOne app.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: export_annotated_images — If set to True, the annotated images will be stored
+    in a directory named ‘images_with_bounding_boxes’.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: subsample (int) — If specified, only this number of images from the dataset
+    will be annotated.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Different YOLO algorithms require different annotation formats. If you’re planning
+    to train YOLOv5 or YOLOv8, you’ll need to export your dataset in the **YOLOv5
+    format**. Although the export type is hard-coded in the main script, you can easily
+    change it by adjusting the `dataset_type` argument in `create_coco_dataset.main`,
+    from `fo.types.COCODetectionDataset` to `fo.types.YOLOv5Dataset`(line 72). To
+    keep things organized, we’ll also change the output directory name from ‘coco_dataset’
+    to ‘yolov5_dataset’. After changing the script, run `create_coco_dataset.main`
+    again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Concluding remarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: GroundingDino offers a significant leap in object detection annotations by using
+    text prompts. In this tutorial, we have explored how to use the model for automated
+    labeling of an image or a whole dataset. It’s crucial, however, to manually review
+    and verify these annotations before they are utilized in training subsequent models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: _________________________________________________________________
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*A user-friendly Jupyter notebook containing the complete code is included
+    for your convenience:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Want to learn more?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**Explore**](https://medium.com/@lihigurarie) additional articles I’ve written'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[**Subscribe**](https://medium.com/@lihigurarie/subscribe)to get notified when
+    I publish articles'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Follow me on [**Linkedin**](https://www.linkedin.com/in/lihi-gur-arie/)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[0] Code on Colab Notebook: [link](https://gist.github.com/Lihi-Gur-Arie/90e07b06a0cd756df9b5d29b96f7523a)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] [Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set
+    Object Detection](https://arxiv.org/pdf/2303.05499.pdf), 2023.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [Dino: Detr with improved denoising anchor boxes for end-to-end object
+    detection](https://arxiv.org/pdf/2203.03605.pdf), 2022.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [An Open and Comprehensive Pipeline for Unified Object Grounding and Detection](https://arxiv.org/pdf/2401.02361v2.pdf),
+    2023.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [The practical guide for Object Detection with YOLOv5 algorithm](https://medium.com/towards-data-science/the-practical-guide-for-object-detection-with-yolov5-algorithm-74c04aac4843),
+    by Dr. Lihi Gur Arie.'
+  prefs: []
+  type: TYPE_NORMAL

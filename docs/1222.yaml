@@ -1,0 +1,483 @@
+- en: SQL Server’s Secret Feature — Run Python and Add-Ons Natively In SQL Server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/sql-servers-secret-feature-run-python-and-add-ons-natively-in-sql-server-7f3c4efe5c00?source=collection_archive---------2-----------------------#2024-05-15](https://towardsdatascience.com/sql-servers-secret-feature-run-python-and-add-ons-natively-in-sql-server-7f3c4efe5c00?source=collection_archive---------2-----------------------#2024-05-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Import Python libraries, manipulate and output SQL tables and more, all without
+    leaving SQL server.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)[![Sasha
+    Korovkina](../Images/14eac2bafa3c5b417b8aecdef61e6ac3.png)](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------)
+    [Sasha Korovkina](https://medium.com/@sasha.korovkina2003?source=post_page---byline--7f3c4efe5c00--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f3c4efe5c00--------------------------------)
+    ·8 min read·May 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Within this project, we confront the challenge of managing 37,000 company names
+    sourced from two distinct origins. The complexity lies in the potential discrepancy
+    between how identical companies are listed across these sources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The goal of this article is to teach you to run Python natively within Microsoft
+    SQL server. To use add-ons and external libraries, as well as perform further
+    processing on the resulting tables with SQL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/48680f2725a6dfcc1b493153fd74a2e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Christin Hume](https://unsplash.com/@christinhumephoto?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initial Algorithm Build
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here is the strategy I will follow when building the algorithms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Blocking** — Dividing datasets into smaller blocks or groups based on common
+    attributes to reduce computational complexity in comparing records. It narrows
+    down the search space and enhances efficiency in similarity search tasks.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Pre-processing** — Cleaning and standardizing raw data to prepare it for
+    analysis by tasks like lowercase conversion, punctuation removal, and stop word
+    elimination. This step improves data quality and reduces noise.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Similarity search model application** — Applying models to compute similarity
+    or distance between pairs of records based on tokenized representations. This
+    helps identify similar pairs, using metrics like cosine similarity or edit distance,
+    for tasks like record linkage or deduplication.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Blocking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: My datasets are highly disproportional — I have 1,361,373 entities in one table
+    and only 37,171 company names in the second table. If I attempt to match on the
+    unprocessed table, the algorithm would take a very long time to do so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to block the tables, we need to see what common characteristics there
+    are between 2 datasets. In my case, the companies are all associated with internal
+    projects. Hence I will do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract the distinct company name and project code from the smaller table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Loop through the project codes and try to find them in the larger table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Map all of the funds for that project and take it out of the large table.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*Repeat for the next project!*'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This way, I will be reducing the large dataset with each iteration, while also
+    making sure that the mapping is rapid due to a smaller, filtered dataset on the
+    project level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple script to extract the distinct project code and fund name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I will filter both tables by the project code, like so:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A code example of filtered tables based on the project code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With this approach, our small table only has 406 rows for project ‘ABC’ for
+    us to map, while the big table has 15,973 rows for us to map against. This is
+    a big reduction from the raw table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Program Structure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This project will consist of both Python and SQL functions on SQL server; here
+    is a quick sketch of how the program will work to have a clearer understanding
+    of each step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c0b4c640314563a02be34915c0316ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Program structure. Image created by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Program execution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Printing the project code in a loop is the simplest version of this function:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Code to recursively print out the names of companies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It quickly becomes apparent that the SQL cursor uses up too many resources.
+    In short, this happens because cursors operate at row level and go through every
+    row to make an operation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More information on why cursors in SQL are inefficient and it is best to avoid
+    them can be found here: [https://stackoverflow.com/questions/4568464/sql-server-temporary-tables-vs-cursors](https://stackoverflow.com/questions/4568464/sql-server-temporary-tables-vs-cursors)
+    (answer 2)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To increase the performance, I will use temporary tables and remove the cursor.
+    Here is the resulting function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A function to select all values from the large mapping table based on the project
+    code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This now takes about 3 seconds per project to select the project code and the
+    data from the large mapping table, filtered by that project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For demonstration purposes, I will only focus on 2 projects, however I will
+    return to running the function on all projects when doing so on production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The final function we will be working with looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have commented out the function definition to make the code easier to debug
+    and set a limit on the first 2 projects
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mapping Table Preparation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The next step is to prepare the data for the Python pre-processing and mapping
+    functions, for this we will need 2 datasets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The filtered data by project code from the large mapping table
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The filtered data by project code from the small companies table
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Here is what the updated function looks like with the data from 2 tables being
+    selected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Selecting the small companies table and the large mapping table from the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Important: pythonic functions in SQL only take in **1 table input.** Make sure
+    to put your data into a **single wide table** before feeding it into a Python
+    function in SQL.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Tables with sources
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result of this function, we get the projects, the company names and the
+    sources for each project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Now we are ready for Python!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python Execution in SQL
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Python in SQL Server, through `sp_execute_external_script`, allows you to run
+    Python code directly within SQL Server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It enables integration of Python's capabilities into SQL workflows with data
+    exchange between SQL and Python. In the provided example, a Python script is executed,
+    creating a pandas DataFrame from input data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The result is returned as a single output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*How cool is that!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple example from [https://learn.microsoft.com/en-us/sql/machine-learning/tutorials/quickstart-python-create-script?view=sql-server-ver16](https://learn.microsoft.com/en-us/sql/machine-learning/tutorials/quickstart-python-create-script?view=sql-server-ver16)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are a few important things to note about running Python in SQL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Strings are defined by double quotes (“), not single quotes (‘). Make sure to
+    check this especially if you are using regex expressions, to avoid spending time
+    on error tracing
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: There is only 1 output permitted — so your Python code will result in 1 table
+    on output
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You can use print statements for debugging and see the results be printed to
+    the ‘Messages’ tab within your SQL server. Like so:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/eabb77002323fc84ca4d5e14307e5c1b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python Libraries In SQL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In SQL Server, several libraries come pre-installed and are readily accessible.
+    To view the complete list of these libraries, you can execute the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code to retrieve all Python libraries available in SQL
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what the output will look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a0005c7da80a325bcfebd4fd488fa4f0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can import these packages just as you would do in a normal Python script
+    (import …). Image created by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Matching Text With Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Coming back to our generated table, we can now match the company names from
+    different sources using Python. Our Python procedure will take in the long table
+    and output a table with the mapped entities. It should show the match it thinks
+    is most likely from the large mapping table next to each record from the small
+    company table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3faaa5ea0e419159d1b79f2598c15a7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Assuming that Company 1.1 is the closest match to Company 1, the output should
+    look like the output above. Image created by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this, let’s first add a Python function to our SQL procedure. The first
+    step is to simply feed in the dataset into Python, I will do this with a sample
+    dataset and then with our data, here is the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code which feeds the data into the database — both tables are present in the
+    Python function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This system allows us to feed in both of our tables into the pythonic function
+    as inputs, it then prints both tables as outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-Processing In Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In order to match our strings effectively, we must conduct some preprocessing
+    in Python, this includes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remove accents and other language-specific special characters
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Remove the white spaces
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Remove punctuation
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The first step will be done with collation in SQL, while the other 2 will be
+    present in the preprocessing step of the Python function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what our function with preprocessing looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The result of this is 3 columns, one with the name of the company in small,
+    lower cap and no space letters, the second column is the project column and the
+    third column is the source.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Matching Strings In Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here we have to be creative as we are pretty limited with the number of libraries
+    which we can use. Therefore, let’s first identify how we would want our output
+    to look.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We want to match the data coming from source 2, to the data in source 1\. Therefore,
+    for each value in source 2, we should have a bunch of matching values from source
+    1 with scores to represent the closeness of the match.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4657f47f36ebc80037d84480da67c89d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output table structure. Image created by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use **python built-in libraries** first, to avoid the need for library
+    imports and hence simplify the job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The logic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Loop through each project
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Make a table with the funds by source, where source 1 is the large table with
+    the mapping data and 2 is the initial company dataset
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select the data from the small dataset into an array
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Compare each element in the resulting array to each element in the large mapping
+    data frame
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Return the scores for each entity
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code to map data from the large dataset to a small subset of data. Keep in mind
+    to use your own joins and data structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And here is the final output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e758c53c4c91f9cf28880d0f716c184.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is made-up data to demonstrate the result, however the structure should
+    be identical for your dataset. Image generated by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this table, we have each company name, the project which it belongs to and
+    the source — whether it is from the large mapping table or the small companies
+    table. The score on the right indicates the similarity metric between the company
+    name from source 2 and source 1\. It is important to note that company4, which
+    came from source 2, will always have a score of 1–100% match, as it is being matched
+    against itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Executing Python scripts within SQL Server via the Machine Learning Services
+    is a powerful feature that allows for in-database analytics and machine learning
+    tasks. This integration enables direct data access without the need for data movement,
+    significantly optimizing performance and security for data-intensive operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there are limitations to be aware of. The environment supports a **single
+    input**, which might restrict the complexity of tasks that can be performed directly
+    within the SQL context. Additionally, only a **limited set of Python libraries
+    are available**, which may require alternative solutions for certain types of
+    data analysis or machine learning tasks not supported by the default libraries.
+    Furthermore, users must navigate the intricacies of SQL Server’s environment,
+    such as complex spacing in T-SQL queries that include Python code, which can be
+    a source of errors and confusion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Despite these challenges, there are numerous applications where executing Python
+    in SQL Server is advantageous:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. **Data Cleansing and Transformation —** Python can be used directly in SQL
+    Server to perform complex data preprocessing tasks, like handling missing data
+    or normalizing values, before further analysis or reporting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. **Predictive Analytics** — Deploying Python machine learning models directly
+    within SQL Server allows for real-time predictions, such as customer churn or
+    sales forecasting, using live database data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. **Advanced Analytics** — Python’s capabilities can be leveraged to perform
+    sophisticated statistical analysis and data mining directly on the database, aiding
+    in decision-making processes without the latency of data transfer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. **Automated Reporting and Visualization** — Python scripts can generate
+    data visualizations and reports directly from SQL Server data, enabling automated
+    updates and dashboards.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. **Operationalizing Machine Learning Models** — By integrating Python in
+    SQL Server, models can be updated and managed directly within the database environment,
+    simplifying the operational workflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, while the execution of Python in SQL Server presents some challenges,
+    it also opens up a wealth of possibilities for enhancing and simplifying data
+    processing, analysis, and predictive modeling directly within the database environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PS to see more of my articles, you can follow me on LinkedIn here: [https://www.linkedin.com/in/sasha-korovkina-5b992019b/](https://www.linkedin.com/in/sasha-korovkina-5b992019b/)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL

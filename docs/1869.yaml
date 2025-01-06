@@ -1,0 +1,189 @@
+- en: Better A/B Testing with Survival Analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/better-a-b-testing-with-survival-analysis-6205c3a2dc51?source=collection_archive---------12-----------------------#2024-07-31](https://towardsdatascience.com/better-a-b-testing-with-survival-analysis-6205c3a2dc51?source=collection_archive---------12-----------------------#2024-07-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*When running experiments — don’t forget to bring your survival kit*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[![Iyar
+    Lin](../Images/8d27b185b273b7ea035250cdbd3eddbf.png)](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)
+    [Iyar Lin](https://iyarlin.medium.com/?source=post_page---byline--6205c3a2dc51--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6205c3a2dc51--------------------------------)
+    ·5 min read·Jul 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/56414e53785ef2532485fc1ca1f6cf4b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, using DALL-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ve already made the case in several blog posts ([Here](https://iyarlin.github.io/2022/06/08/better_churn_modeling/),
+    [here](https://iyarlin.github.io/2022/10/31/better_churn_modeling_part_2/) and
+    [here](https://www.linkedin.com/pulse/better-churn-prediction-part-3-iyar-lin-ov5af/))
+    that using survival analysis can improve churn prediction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this blog post I’ll show another use case where survival analysis can improve
+    on common practices: A/B testing!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problems with common A/B testing practices
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Usually when running an A/B test analysts assign users randomly to variants
+    over time and measure conversion rate as the ratio between the number of conversions
+    and the number of users in each variant. Users who just entered the test and those
+    who are in the test for 2 weeks get the same weight.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This can be enough for cases where a conversion either happens or not within
+    a short time frame after assignment to a variant (e.g. Finishing an on-boarding
+    flow).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are however many instances where conversions are spread over a longer
+    time frame. One example would be first order after visiting a site landing page.
+    Such conversions may happen within minutes, but a large portion could still happen
+    days after the first visit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such cases the business KPIs are usually “bounded” to a certain period —
+    e.g. “conversion within 7 days” or “churn within 1 month”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In those instances measuring conversions without considering their timing has
+    2 major flaws:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It makes the statistic we’re measuring unintelligible — Average conversions
+    at any point in time does not translate to any bounded metric. In fact as the
+    test keeps running — conversion rates will increase just because users get more
+    time to convert. The experiment results will be thus hard to relate to the business
+    KPIs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It discards the timing information which could lead to reduced power compared
+    with methods that do take conversion timing into account.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'To demonstrate point #2 we’ll run a small simulation study'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll have users join the experiment randomly over a 30 day period. Users’ time
+    to convert will be simulated from a Weibull distribution with scale 𝜎=30,000,
+    𝛼_ctrl=0.18 for the control group and 𝛼_trt=0.157 for the treatment group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below are the corresponding survival curves:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5692debc5db3f2bcc1739bf3a5e29f62.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assuming we’re interested with conversions within 7 days, the true (unknown)
+    conversion rate in the control group is 19.9% and in the treatment is 23.6%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below is the function which will generate the simulation data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To demonstrate the benefits of using survival in A/B testing we’ll compare
+    the power of 3 test statistics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: T-test on conversions (the common procedure)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: T-test on 7 day conversion (estimated using a Kaplan-Meier curve)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Peto & Peto modification of the Gehan-Wilcoxon test
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Below is the code that implements the above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Before measuring power let’s verify our statistics satisfy the desired false
+    positive rate 𝛼=0.05 (5%) when both variants have the same conversion rates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/3a3df2b9074fe78e55a53f0f51b9f3fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, let’s examine power:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c43d8ca5d22569d3687844f0b084d3e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the T-test on KM 7 day conversion relates better to business KPIs than
+    the T-test on conversions (the common procedure), it is only marginally more powerful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The modified Gehan-Wilcoxon statistic on the other hand yields a substantial
+    uplift in power, while only weakly relating to the business KPIs like the regular
+    conversions T-test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It should be noted that the power gains vary somewhat according to the point
+    compared on the survival curve, the actual survival curve shape, experiment duration
+    etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a future post I hope to further explore this topic over a wider set of scenarios
+    and test statistics (The R [ComparisonSurv](https://cran.r-project.org/web/packages/ComparisonSurv/index.html?trk=article-ssr-frontend-pulse_little-text-block)
+    package looks promising).
+  prefs: []
+  type: TYPE_NORMAL
+- en: When doing A/B testing in scenarios where time to convert varies — it’s often
+    useful to apply survival analysis to take advantage of the time dimension. Either
+    compare a point of interest on the survival curve to make the result relate directly
+    to the business KPIs, or use the modified Gehan-Wilcoxon statistic statistic for
+    improved power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Originally published at* [*https://www.linkedin.com*](https://www.linkedin.com/pulse/better-ab-testing-survival-analysis-iyar-lin-o5cpf/?trackingId=fH3Lxwa%2FSEGg4WIp6DBomQ%3D%3D)*.*'
+  prefs: []
+  type: TYPE_NORMAL

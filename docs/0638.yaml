@@ -1,0 +1,390 @@
+- en: A Priority Based Scheduler for Amazon SageMaker Training Jobs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08](https://towardsdatascience.com/a-priority-based-scheduler-for-amazon-sagemaker-training-jobs-a225327e0a94?source=collection_archive---------10-----------------------#2024-03-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Optimizing the use of limited AI training accelerators — Part 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--a225327e0a94--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a225327e0a94--------------------------------)
+    ·12 min read·Mar 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4dd51c7492c9ad3b406d2ca1d86b429.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Adrien Aletti](https://unsplash.com/@ahda_gallery?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post was created in collaboration with [Max Rabin](https://www.linkedin.com/in/maxrabin/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the second part of a series of posts on the topic of maximizing the
+    utility of scarce AI resources. In the [first post](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)
+    we noted the increasing limitations on the ability to scale up AI resources at
+    will and, as a consequence, the growing trend of AI development teams to guarantee
+    AI compute capacity by means such as building up an in-house AI server farm and/or
+    reserving dedicated instances in the cloud. The scarcity of AI compute resources
+    motivates the design of specialized scheduling solutions to minimize idle time
+    and prioritize critical workloads. Please see our [previous post](/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b)
+    in which we proposed a detailed list of requirements for such solutions. The approach
+    we took there was to leverage the existing priority-based [scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)
+    that comes with [Kubernetes](https://kubernetes.io/) and align our training development
+    workflow to its use. In this post we explore the option of maintaining our existing
+    framework for training AI models and enhancing it with our own custom implementation
+    of a priority-based scheduler. Importantly, the need for this type of solution
+    is often motivated not just by the scarcity of AI resources, but also by the desire
+    to increase control over the orchestration and prioritization of training workloads
+    so as to reduce development costs. For example, even in a scenario of abundant
+    capacity, you may choose to limit your use to a fixed number of training instances
+    so as to cap your training expenditure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the purposes of this post, we will assume that our training framework of
+    choice is AWS’s managed service for AI model training, [Amazon SageMaker](https://aws.amazon.com/sagemaker/).
+    The solution we will propose will use additional AWS services such as [Amazon
+    DynamoDB](https://aws.amazon.com/pm/dynamodb/) and [AWS Lambda](https://aws.amazon.com/pm/lambda/).
+    The choice to demonstrate our solution using AWS services should not be viewed
+    as endorsement. There are many cloud-based service offerings available and the
+    best one for you will depend on the particular details of your project. Similar
+    solutions to the one that we will describe can be designed on other cloud-based
+    environments and/or using alternative cloud-based services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Traditional Method for Starting Up SageMaker Training Jobs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Traditionally, we would start up a SageMaker training job using the [Amazon
+    SageMaker Python SDK](https://sagemaker.readthedocs.io/en/stable/). In the code
+    block below we use the SageMaker SDK (version 2.208) to run a PyTorch training
+    workload on a single instance of type [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: When the *estimator.fit()* function is called, the SageMaker library uploads
+    our code to Amazon S3 and then transforms the request to a boto3 SageMaker client
+    [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    request (see [here](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L976)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method for starting up training jobs is dependent on the availability of
+    the requested resources for its success. In our scenario of scarce AI resources,
+    it is likely to fail more often than not. Although this can be partially mitigated
+    by [retaining provisioned compute instances for successive workloads](https://medium.com/@chaimrand/retaining-amazon-sagemaker-instance-capacity-with-sagemaker-managed-warm-pools-f7cfd78fa34c),
+    the API does *not* provide the appropriate tooling for maximizing their utility.
+    Let’s suppose that we wish to utilize precisely two [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)
+    instances. To simplify our discussion, let’s assume that each training workload
+    runs on a single instance. Typically, during an AI model development cycle there
+    will be periods when there are more than two training workloads that are waiting
+    to be processed. The existing API would try to start up a third [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)
+    instance and would most likely fail due to its limited availability. Even when
+    there is instance availability, we may wish to limit our training to just our
+    two designated instances to increase our control over the costs of training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We require a new API for submitting jobs for training, one that does not immediately
+    start up a new [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/) instance,
+    but rather enters the jobs to a priority queue. And we need an associated job
+    scheduler that manages the use of our two resources while prioritizing critical
+    workloads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, please note that as of the time of this writing, Amazon SageMaker
+    does *not* support the option of training on [reserved Amazon EC2 instances](https://aws.amazon.com/ec2/pricing/reserved-instances/).
+    And although [Amazon SageMaker Savings Plans](https://aws.amazon.com/savingsplans/ml-pricing/)
+    has similar properties to instance reservations, it does *not* guarantee instance
+    capacity. In a [previous post](https://chaimrand.medium.com/f7cfd78fa34c) we addressed
+    this limitation and proposed using [SageMaker managed warm pools](https://docs.aws.amazon.com/sagemaker/latest/dg/train-warm-pools.html)
+    as an alternative method for retaining access to provisioned instances. For the
+    remainder of the post, we will assume that we are able to attain two instances
+    of our choice whether it be through this or some other method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Priority-Based Scheduling for Amazon SageMaker
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section we will describe the components of our proposed solution. We
+    will use the [AWS Serverless Application Model (SAM) specification](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html).
+    More specifically, we will create an [AWS SAM template YAML file](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-template-anatomy.html)
+    and gradually add the AWS resources that we need. Please see the [documentation](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/what-is-sam.html)
+    for details on how to define and deploy serverless solutions using AWS SAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/25932c7e09d19a30ed4bb4cffb192a95.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AWS Architecture Diagram (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Private API for Submitting Training Jobs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We start by using [Amazon API Gateway](https://aws.amazon.com/api-gateway/)
+    to define a [private REST API](https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-private-apis.html)
+    for submitting training job requests. We name the API *training-job-queue*. Later,
+    we will add a POST method called *add-job* and modify our training-job creation
+    code to use this method instead of the SageMaker client [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    API. The code block below contains the definition of the private [API resource](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-api.html)
+    in SAM. In practice you will likely want to specify access limitations to the
+    API and/or a method of authorization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Define an AWS DynamoDB Table for Storing Training Job Requests
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will use an [Amazon DynamoDB](https://aws.amazon.com/pm/dynamodb/) table
+    named *sagemaker-queue* to store the submitted training workloads. Each entry
+    will have the following fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'jobName: Stores the unique name of the training job.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'entryTime: Stores the date and time that the job was added.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'jobState: Stores the current state of the training job. The valid values are
+    ‘pending’, ‘running’, and ‘preempted’.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'priority: Stores an integer value representing the relative priority of the
+    job.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'jobDetails: Stores the details of the job request.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We define our DynamoDB table in our SAM template YAML file using the [AWS::Serverless::SimpleTable](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html)
+    resource.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define a function that creates a table entry from a given training job request.
+    We assume that request contains the same contents as the input to the [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    API in JSON format. We further assume that the *priority* of the workload is entered
+    as a key-value [tag](https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Tag.html)
+    in the training job definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The REST API *add-job* method that we will soon define will be programmed to
+    call the *add_job_entry* function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We define a second function that extracts the pending jobs from the database
+    and returns them in order of priority. In the case that multiple jobs have the
+    same priority, they are ordered according to the amount of time they have been
+    waiting in the queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The following utility functions will come in handy in the next sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both our choice of DynamoDB and its usage (e.g., our use of the [Scan](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Scan.html)
+    API rather than the [Query](https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_Query.html)
+    API) assume that the overall number of jobs in our queue will be in the dozens,
+    at most. For a larger scale solution, you may be better off with a heavier duty
+    database (e.g., one that performs the sorting operation for you) or a more sophisticated
+    use of DynamoDB (e.g., see [here](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define the Training Job Queue Manager
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The main component of our solution is the training job scheduler. Here we implement
+    a rather simple manager that performs the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract the list of queued jobs, ordered by priority. If none exist, return.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Discover unused instance capacity. For each free instance, start one pending
+    job on SageMaker. If no jobs remain after that, return.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate the number of SageMaker jobs in the *Stopping* state. If greater than
+    the number of pending jobs, return.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Assess the need for preemption of running SageMaker jobs by comparing their
+    *priorities* to those of our pending jobs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Important notes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our implementation is highly optimistic in the sense that we assume that all
+    the jobs that are inserted are valid and that we will be able to start them up
+    on SageMaker without issue. In practice, appropriate error handling should be
+    added (e.g., removing faulty jobs from the queue with appropriate logging).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In a production environment, we would need to take into consideration the likely
+    occurrence of a [race condition](https://en.wikipedia.org/wiki/Race_condition)
+    when our *queue_manager* is triggered by multiple concurrent events. There are
+    several ways of addressing this problem (e.g., see [here](https://medium.com/@moradiyabhavik/race-condition-understanding-and-solution-926b6d2808cf))
+    including enforcing atomicity (e.g., by setting our [Lambda function concurrency](https://docs.aws.amazon.com/lambda/latest/dg/configuration-concurrency.html)
+    to one), using some form of locking mechanism (e.g., as done [here](https://aws.amazon.com/blogs/database/implementing-priority-queueing-with-amazon-dynamodb/)),
+    or making our function [idempotent](https://en.wikipedia.org/wiki/Idempotence).
+    Here we have taken the approach of what we call “optimistic idempotence”, where
+    we rely on appropriate use of the API and on the idempotency of our underlying
+    calls to the SageMaker APIs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We emphasize that our implementation is naïve. In practice, we recommend a more
+    sophisticated algorithm that 1) accounts for the use of different types of instances
+    and jobs that require more than one instance, 2) takes all edge cases into consideration,
+    and 3) is tailored towards the specific needs of your project.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Define the AWS Lambda Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The next component of the solution is the Lambda function. The following code
+    block includes the [SAM](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html)
+    definition of our serverless function. We program the function to run on two different
+    types of events: any call to [*add-job*](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-api.html)
+    on our private API gateway and a [change to the state of a SageMaker training
+    job](https://docs.aws.amazon.com/sagemaker/latest/dg/automating-sagemaker-with-eventbridge.html).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The *lambda_handler* function is implemented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Intercept the Create Training Job Request
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The final modification required to make our solution complete is to intercept
+    the call to the SageMaker [create_training_job](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sagemaker/client/create_training_job.html)
+    API and reroute it to our *add-job* method. We do this by overriding the [_intercept_create_request](https://github.com/aws/sagemaker-python-sdk/blob/v2.208.0/src/sagemaker/session.py#L6212)
+    function of the [SageMaker Session class](https://sagemaker.readthedocs.io/en/stable/api/utility/session.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Use Case Example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To test our solution we submit the following sequence of jobs. After each call
+    we print the status of the queue (using the *print_queue_state* function) and
+    sleep for twenty seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start job1 with priority 1.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Start job2 with priority 2.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Start job3 with priority 1.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Start job4 with priority 3.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The first two jobs are immediately submitted to SageMaker and updated to the
+    *running* state. Since the third job has low priority and we have precisely two
+    training instances, it remains in the *pending* state and waits its turn. After
+    submitting the first three jobs, the queue state appears as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The fourth job we submit has a higher priority than all of the jobs in the
+    queue. Consequently, the running job with the lowest priority, *job1*, is preempted.
+    The corresponding SageMaker job is stopped and once the instance is released,
+    the queue state becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The SageMaker job running *job2* is the first to finish, *job2* is removed
+    from the queue, and our preempted job is resumed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once *job4* is completed, it too is removed from the queue, making room for
+    *job3*. The remaining jobs are also run to completion, ultimately leaving our
+    queue empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The increasing difficulty of acquiring AI compute capacity has forced AI development
+    teams to reevaluate the processes they use for training AI models. The approach
+    we have demonstrated in this post is to augment the traditional APIs for training
+    models with a custom-made priority queue and an associated job scheduler. Importantly,
+    the proposal we have put forth should be viewed as a general scheme, not as a
+    production-worthy solution. Appropriate modifications and enhancements would be
+    required to address the specifics needs of your project.
+  prefs: []
+  type: TYPE_NORMAL

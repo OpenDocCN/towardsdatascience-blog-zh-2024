@@ -1,0 +1,1130 @@
+- en: A Visual Guide to Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-visual-guide-to-quantization-930ebcd9be94?source=collection_archive---------0-----------------------#2024-07-24](https://towardsdatascience.com/a-visual-guide-to-quantization-930ebcd9be94?source=collection_archive---------0-----------------------#2024-07-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Demystifying the compression of large language models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)[![Maarten
+    Grootendorst](../Images/58e24b9cf7e10ff1cd5ffd75a32d1a26.png)](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)
+    [Maarten Grootendorst](https://medium.com/@maartengrootendorst?source=post_page---byline--930ebcd9be94--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--930ebcd9be94--------------------------------)
+    ·20 min read·Jul 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: As their name suggests, Large Language Models (LLMs) are often too large to
+    run on consumer hardware. These models may exceed billions of parameters and generally
+    need GPUs with large amounts of VRAM to speed up inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As such, more and more research has been focused on making these models smaller
+    through improved training, adapters, etc. One major technique in this field is
+    called *quantization*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1d5698c50d7a9eef4025fa20af6cf525.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this post, I will introduce the field of quantization in the context of language
+    modeling and explore concepts one by one to develop an intuition about the field.
+    We will explore various methodologies, use cases, and the principles behind quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a visual guide, expect many visualizations to develop an intuition about
+    quantization!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 1: The “Problem“ with LLMs'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LLMs get their name due to the number of parameters they contain. Nowadays,
+    these models typically have billions of parameters (mostly *weights*) which can
+    be quite expensive to store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During inference, activations are created as a product of the input and the
+    weights, which similarly can be quite large.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/563c7cc75056061c3d3a9cfb39560079.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As a result, we would like to represent billions of values as efficiently as
+    possible, minimizing the amount of space we need to store a given value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s start from the beginning and explore how numerical values are represented
+    in the first place before optimizing them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Represent Numerical Values
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A given value is often represented as a floating point number (or *floats*
+    in computer science): a positive or negative number with a decimal point.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These values are represented by “*bits*”, or binary digits. The [IEEE-754](https://en.wikipedia.org/wiki/IEEE_754)
+    standard describes how bits can represent one of three functions to represent
+    the value: the *sign*, *exponent*, or *fraction (*or mantissa*)*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c93e39aace5e63020679e4f3852edf0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Together, these three aspects can be used to calculate a value given a certain
+    set of bit values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/79a81ec5110972525d2cf5e2871d26ce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The more bits we use to represent a value, the more precise it generally is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a80df1e4cd1b75723774d3edc4c0b902.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Memory Constraints
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The more bits we have available, the larger the range of values that can be
+    represented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d2e279156746043dbd567d2b092338fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The interval of representable numbers a given representation can take is called
+    the *dynamic range* whereas the distance between two neighboring values is called
+    *precision*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4c2302280fe771745bde748168ea2ebc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A nifty feature of these bits is that we can calculate how much memory your
+    device needs to store a given value. Since there are 8 bits in a byte of memory,
+    we can create a basic formula for most forms of floating point representation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9b8d3210d37f26c8dbb0ad7b529a0bed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**NOTE**: In practice, more things relate to the amount of (V)RAM you need
+    during inference, like the context size and architecture.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s assume that we have a model with 70 billion parameters. Most models
+    are natively represented with float 32-bit (often called *full-precision*), which
+    would require **280GB** of memory just to load the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6e223615a34a4df51c622ead98f7af9f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As such, it is very compelling to minimize the number of bits to represent the
+    parameters of your model (as well as during training!). However, as the precision
+    decreases the accuracy of the models generally does as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We want to reduce the number of bits representing values while maintaining accuracy…
+    This is where *quantization* comes in!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 2: Introduction to Quantization'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Quantization aims to reduce the precision of a model’s parameter from higher
+    bit-widths (like 32-bit floating point) to lower bit-widths (like 8-bit integers).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/800e4ae3fc95e6227e560635a33b176b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: There is often some loss of precision (granularity) when reducing the number
+    of bits to represent the original parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To illustrate this effect, we can take any image and use only 8 colors to represent
+    it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44c2bfa5a66104dad4b645292dec21fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image adapted from the original by [Slava Sidorov](https://pixabay.com/users/slava_web-designer-39623293/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=8668140).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how the zoomed-in part seems more “grainy” than the original since we
+    can use fewer colors to represent it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main goal of quantization is to reduce the number of bits (colors) needed
+    to represent the original parameters while preserving the precision of the original
+    parameters as best as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Common Data Types
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, let’s look at common data types and the impact of using them rather than
+    32-bit (called *full-precision* or *FP32*) representations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FP16
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s look at an example of going from 32-bit to 16-bit (called *half precision*
+    or *FP16*) floating point:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7dc0fe11f24c9aa61beeb507ec0c07d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice how the range of values FP16 can take is quite a bit smaller than FP32.
+  prefs: []
+  type: TYPE_NORMAL
+- en: BF16
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To get a similar range of values as the original FP32, *bfloat 16* was introduced
+    as a type of “truncated FP32”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ecc3dee020b41a16315446bea8d875b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: BF16 uses the same amount of bits as FP16 but can take a wider range of values
+    and is often used in deep learning applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: INT8
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When we reduce the number of bits even further, we approach the realm of *integer-based
+    representations* rather than floating-point representations. To illustrate, going
+    FP32 to INT8, which has only 8 bits, results in a fourth of the original number
+    of bits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ddb5e4b4685fe6c463bb4c29cea1d22d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Depending on the hardware, integer-based calculations might be faster than floating-point
+    calculations but this isn’t always the case. However, computations are generally
+    faster when using fewer bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each reduction in bits, a mapping is performed to “squeeze” the initial
+    FP32 representations into lower bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, we do not need to map the entire FP32 range [-3.4e38, 3.4e38] into
+    INT8\. We merely need to find a way to map the range of our data (the model’s
+    parameters) into IN8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Common squeezing/mapping methods are *symmetric* and *asymmetric* quantization
+    and are forms of *linear mapping*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s explore these methods to quantize from FP32 to INT8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symmetric Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In symmetric quantization, the range of the original floating-point values is
+    mapped to a symmetric range around zero in the quantized space. In the previous
+    examples, notice how the ranges before and after quantization remain centered
+    around zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that the quantized value for zero in the floating-point space is
+    exactly zero in the quantized space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/724c7aff658a290a3200d6146c0ebeec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A nice example of a form of symmetric quantization is called absolute maximum
+    (*absmax*) quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a list of values, we take the *highest* absolute value (**α**) as the
+    range to perform the linear mapping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e892f689d2be15f0337a0aaca10bb0d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note the [-127, 127] range of values represents the restricted range. The unrestricted
+    range is [-128, 127] and depends on the quantization method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since it is a linear mapping centered around zero, the formula is straightforward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first calculate a scale factor (***s***) using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***b*** is the number of bytes that we want to quantize to (8),'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**α**is the *highest* absolute value,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then, we use the ***s*** to quantize the input ***x***:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4acaa26b1f84826907c832d05fe26d20.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Filling in the values would then give us the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1e85a8311f1c11636e62add702385c6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To retrieve the original FP32 values, we can use the previously calculated *scaling
+    factor* (***s***) to *dequantize* the quantized values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8aa12dab62a9c5dc0684ec985e8767a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Applying the quantization and then dequantization process to retrieve the original
+    looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1277ab53f019e59413d6749142350224.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can see certain values, such as **3.08** and **3.02** being assigned to
+    the INT8, namely **36**. When you dequantize the values to return to FP32, they
+    lose some precision and are not distinguishable anymore.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is often referred to as the *quantization error* which we can calculate
+    by finding the difference between the original and dequantized values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bf22d8878eb82d368c01509b922d9bf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generally, the lower the number of bits, the more quantization error we tend
+    to have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Asymmetric Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Asymmetric quantization, in contrast, is not symmetric around zero. Instead,
+    it maps the minimum (**β**) and maximum (**α**) values from the float range to
+    the minimum and maximum values of the quantized range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method we are going to explore is called *zero-point quantization*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/75eb1a6364b57a9497d80f563e23f6ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice how the 0 has shifted positions? That’s why it’s called *asymmetric quantization*.
+    The min/max values have different distances to 0 in the range [-7.59, 10.8].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to its shifted position, we have to calculate the zero-point for the INT8
+    range to perform the linear mapping. As before, we also have to calculate a *scale
+    factor* (***s***) but use the difference of INT8’s range instead [-128, 127]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8e96941b8aaf3158cb6a9570e6a89a5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice how this is a bit more involved due to the need to calculate the *zeropoint*
+    (***z***) in the INT8 range to shift the weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As before, let’s fill in the formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0111294f49ba0ed2916c2d3393a968ce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To dequantize the quantized from INT8 back to FP32, we will need to use the
+    previously calculated *scale factor* (***s***) and *zeropoint* (***z***).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Other than that, dequantization is straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d484ec53b8893487c618e793099c23b3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'When we put symmetric and asymmetric quantization side-by-side, we can quickly
+    see the difference between methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd90cb9a22b149c32c5c1e2b3955aeaa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note the zero-centered nature of symmetric quantization versus the offset of
+    asymmetric quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Range Mapping and Clipping
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our previous examples, we explored how the range of values in a given vector
+    could be mapped to a lower-bit representation. Although this allows for the full
+    range of vector values to be mapped, it comes with a major downside, namely *outliers*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Imagine that you have a vector with the following values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e26dc53821610741f8618258732e7c7d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Note how one value is much larger than all others and could be considered an
+    outlier. If we were to map the full range of this vector, all small values would
+    get mapped to the same lower-bit representation and lose their differentiating
+    factor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/00ea8f5efc68a537694b1c64caf67148.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is the absmax method we used earlier. Note that the same behavior happens
+    with asymmetric quantization if we do not apply clipping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, we can choose to *clip* certain values. Clipping involves setting a
+    different dynamic range of the original values such that all outliers get the
+    same value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the example below, if we were to manually set the dynamic range to [-5,
+    5] all values outside that will either be mapped to -127 or to 127 regardless
+    of their value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c5d4d2a1ccead9642fa5af70a20974d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The major advantage is that the quantization error of the *non-outliers* is
+    reduced significantly. However, the quantization error of *outliers* increases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calibration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the example, I showed a naive method of choosing an arbitrary range of [-5,
+    5]. The process of selecting this range is known as *calibration* which aims to
+    find a range that includes as many values as possible while minimizing the quantization
+    error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performing this calibration step is not equal for all types of parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weights (and Biases)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can view the weights and biases of an LLM as *static* values since they are
+    known before running the model. For instance, the [~20GB file of Llama 3](https://huggingface.co/meta-llama/Meta-Llama-3-8B/tree/main)
+    consists mostly of its weight and biases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d0fd23498dde269231c7988ebfdf7c3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Since there are significantly fewer biases (millions) than weights (billions),
+    the biases are often kept in higher precision (such as INT16), and the main effort
+    of quantization is put towards the weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For weights, which are static and known, calibration techniques for choosing
+    the range include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manually choosing a *percentile* of the input range
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optimize the *mean squared error* (MSE) between the original and quantized weights.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Minimizing *entropy* (KL-divergence) between the original and quantized values
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/bb30d435cec911f17d435c4a0ad0f34d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Choosing a percentile, for instance, would lead to similar clipping behavior
+    as we have seen before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Activations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The input that is continuously updated throughout the LLM is typically referred
+    to as “*activations*”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62a87756db38fd50c429d4d7118731b1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note that these values are called activations since they often go through some
+    activation function, like sigmoid or relu.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike weights, activations vary with each input data fed into the model during
+    inference, making it challenging to quantize them accurately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since these values are updated after each hidden layer, we only know what they
+    will be during inference as the input data passes through the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c9850f46ac0337b283b8fde060895dc1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Broadly, there are two methods for calibrating the quantization method of the
+    weights and activations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Post-Training Quantization (PTQ) — Quantization ***after*** training
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantization Aware Training (QAT) — Quantization ***during*** training/fine-tuning
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Part 3: Post-Training Quantization'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One of the most popular quantization techniques is post-training quantization
+    (PTQ). It involves quantizing a model’s parameters (both weights and activations)
+    **after** training the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantization of the *weights* is performed using either symmetric or asymmetric
+    quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantization of the *activations*, however, requires inference of the model
+    to get their potential distribution since we do not know their range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two forms of quantization of the activations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Dynamic* Quantization'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Static* Quantization'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dynamic Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'After data passes a hidden layer, its activations are collected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb0cbd3a3829bb0cb3d85762e2878201.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This distribution of activations is then used to calculate the *zeropoint*
+    (***z***) and *scale factor* (**s**) values needed to quantize the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/078163c8a7e46c300281f5968f9dba80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The process is repeated each time data passes through a new layer. Therefore,
+    each layer has its own separate ***z*** and ***s*** values and therefore different
+    quantization schemes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Static Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In contrast to dynamic quantization, static quantization does not calculate
+    the *zeropoint* (***z***) and scale factor (***s***) during inference but beforehand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To find those values, a **calibration dataset** is used and given to the model
+    to collect these potential distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c6fd75060b58d14d8c58f73f5dd107d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: After these values have been collected, we can calculate the necessary ***s***
+    and ***z*** values to perform quantization during inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you are performing actual inference, the ***s*** and ***z*** values are
+    not recalculated but are used globally over all activations to quantize them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general, dynamic quantization tends to be a bit more accurate since it only
+    attempts to calculate the ***s*** and ***z*** values per hidden layer. However,
+    it might increase compute time as these values need to be calculated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, static quantization is less accurate but is faster as it already
+    knows the ***s*** and ***z*** values used for quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Realm of 4-bit Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Going below 8-bit quantization has proved to be a difficult task as the quantization
+    error increases with each loss of bit. Fortunately, there are several smart ways
+    to reduce the bits to 6, 4, and even 2-bits (although going lower than 4-bits
+    using these methods is typically not advised).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will explore two methods that are commonly shared on HuggingFace:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*GPTQ —* full model on GPU'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*GGUF —* potentially offload layers on the CPU'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: GPTQ
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: GPTQ is arguably one of the most well-known methods used in practice for quantization
+    to 4-bits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It uses asymmetric quantization and does so layer by layer such that each layer
+    is processed independently before continuing to the next:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5d08178bc862bc52c3084fe65bd078e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: During this layer-wise quantization process, it first converts the layer’s weights
+    into the inverse-**Hessian**. It is a second-order derivative of the model’s loss
+    function and tells us how sensitive the model’s output is to changes in each weight.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simplified, it essentially demonstrates the (*inverse*) **importance of each
+    weight** in a layer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weights associated with smaller values in the Hessian matrix are more crucial
+    because small changes in these weights can lead to significant changes in the
+    model’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4aa81d22bc428d5b5e956e539655bbc0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the inverse-Hessian, lower values indicate more “important” weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we quantize and then dequantize the weight of the first row in our weight
+    matrix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/67a39f66598eeecf55587eeea2cc6ca4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This process allows us to calculate the **quantization error (*q*)** which we
+    can weigh using the inverse-Hessian (***h_1****)* that we calculated beforehand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Essentially, we are creating a weighted-quantization error based on the importance
+    of the weight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0dab4e2a5c306d26d24ff12bd188b4e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Next, we redistribute this weighted quantization error over the other weights
+    in the row. This allows for maintaining the overall function and output of the
+    network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if we were to do this for the second weight, namely .3 (***x_2***),
+    we would add the quantization error (***q***) multiplied by the inverse-Hessian
+    of the second weight (***h*_2**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2771deaf0b7f15ced1e99e6a53828f27.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can do the same process over the third weight in the given row:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2a779fc041aea05239fe43da6ebbf80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We iterate over this process of redistributing the weighted quantization error
+    until all values are quantized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This works so well because weights are typically related to one another. So
+    when one weight has a quantization error, related weights are updated accordingly
+    (through the inverse-Hessian).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***NOTE****:* [*The authors*](https://arxiv.org/pdf/2210.17323) *used several
+    tricks to speed up computation and improve performance, such as adding a dampening
+    factor to the Hessian, “lazy batching”, and precomputing information using the
+    Cholesky method. I would highly advise checking out* [*this YouTube video*](https://www.youtube.com/watch?v=mii-xFaPCrA)
+    *on the subject.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '***TIP****: Check out* [*EXL2*](https://github.com/turboderp/exllamav2) *if
+    you want a quantization method aimed at performance optimizations and improving
+    inference speed.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: GGUF
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While GPTQ is a great quantization method to run your full LLM on a GPU, you
+    might not always have that capacity. Instead, we can use GGUF to offload any layer
+    of the LLM to the CPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows you to use both the CPU and GPU when you do not have enough VRAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quantization method GGUF is updated frequently and might depend on the level
+    of bit quantization. However, the general principle is as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, the weights of a given layer are split into “super” blocks each containing
+    a set of “sub” blocks. From these blocks, we extract the scale factor (***s***)
+    and alpha (***α***):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b160bf227643b7221cbb561c8335b4cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'To quantize a given “sub” block, we can use the *absmax* quantization we used
+    before. Remember that it multiplies a given weight by the scale factor **(*s*)**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90491819aebf3ecd21c99cff26ea881d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The scale factor is calculated using the information from the “sub” block but
+    is quantized using the information from the “super” block which has its own scale
+    factor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/674b771ec4778d6014a45f2f9787c3b1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This block-wise quantization uses the scale factor (**s_super**) from the “super”
+    block to quantize the scale factor (**s_sub**) from the “sub” block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quantization level of each scale factor might differ with the “super” block
+    generally having a higher precision than the scale factor of the “sub” block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To illustrate, let’s explore a couple of quantization levels (2-bit, 4-bit,
+    and 6-bit):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a715fae8e4bd90416502893d2c72e07a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**NOTE**: Depending on the quantization type, an additional minimum value (***m***)
+    is needed to adjust the zero-point. These are quantized the same as the scale
+    factor (***s***).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check out [the original pull request](https://github.com/ggerganov/llama.cpp/pull/1684)
+    for an overview of all quantization levels. Also, see [this pull request](https://github.com/ggerganov/llama.cpp/pull/4861)
+    for more information on quantization using importance matrices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part 4: Quantization Aware Training'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In Part 3, we saw how we could quantize a model ***after*** training. A downside
+    to this approach is that this quantization does not consider the actual training
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where Quantization Aware Training (QAT) comes in. Instead of quantizing
+    a model ***after*** it was trained with post-training quantization (PTQ), QAT
+    aims to learn the quantization procedure ***during*** training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef4186f67e2cec1e59556df15191f2cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'QAT tends to be more accurate than PTQ since the quantization was already considered
+    during training. It works as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'During training, so-called “*fake*” quants are introduced. This is the process
+    of first quantizing the weights to, for example, INT4 and then dequantizing back
+    to FP32:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f82f9314295ffc5de26231825652cd9b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This process allows the model to consider the quantization process during training,
+    the calculation of loss, and weight updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: QAT attempts to explore the loss landscape for “*wide*” minima to minimize the
+    quantization errors as “*narrow*” minima tend to result in larger quantization
+    errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1c351f258b013ba16e3875f3774f018.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For example, imagine if we did not consider quantization during the backward
+    pass. We choose the weight with the smallest loss according to gradient descent.
+    However, that would introduce a larger quantization error if it’s in a “*narrow*”
+    minima.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, if we consider quantization, a different updated weight will be
+    selected in a “*wide*” minima with a much lower quantization error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0ec4111a1b509814dcf7c5655f5f389.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As such, although PTQ has a lower loss in high precision (e.g., FP32), QAT results
+    in a lower loss in lower precision (e.g., INT4) which is what we aim for.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Era of 1-bit LLMs: BitNet'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Going to 4-bits as we saw before is already quite small but what if we were
+    to reduce it even further?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where [BitNet](https://arxiv.org/pdf/2310.11453) comes in, representing
+    the weights of a model single 1-bit, using either **-1** or **1** for a given
+    weight.[3](https://newsletter.maartengrootendorst.com/p/a-visual-guide-to-quantization#footnote-3-145531349)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It does so by injecting the quantization process directly into the Transformer
+    architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember that the Transformer architecture is used as the foundation of most
+    LLMs and is composed of computations that involve linear layers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d199e450db63f85fcc96eeae29033c7a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: These linear layers are generally represented with higher precision, like FP16,
+    and are where most of the weights reside.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BitNet replaces these linear layers with something they call the **BitLlinear**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6974ee25c63c942d077b49cffa35ae6d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A BitLinear layer works the same as a regular linear layer and calculates the
+    output based on the weights multiplied by the activation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In contrast, a BitLinear layer represents the weights of a model using 1-bit
+    and activations using INT8:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c538a9cc49bf74c2fe445107d8d1abd5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A BitLinear layer, like Quantization-Aware Training (QAT) performs a form of
+    “fake” quantization during training to analyze the effect of quantization of the
+    weights and activations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cc856a73580c93e702d90869ded663e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**NOTE**: In the paper they used **γ** instead of **α** but since we used a
+    throughout our examples, I’m using that. Also, note that **β** is not the same
+    as we used in zero-point quantization but the average absolute value.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s go through the BitLinear step-by-step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weight Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While training, the weights are stored in INT8 and then quantized to 1-bit using
+    a basic strategy, called the *signum function.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In essence, it moves the distribution of weights to be centered around 0 and
+    then assigns everything left to 0 to be -1 and everything to the right to be 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a6b74a8a7fb9c3c83e65a527c64cf43a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Additionally, it tracks a value **β (***average* absolute value**)** that we
+    will use later on for dequantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Activation Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To quantize the activations, BitLinear makes use of *absmax quantization* to
+    convert the activations from FP16 to INT8 as they need to be in higher precision
+    for the matrix multiplication (×).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4948bc11cddc3b7fd073818748690587.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Additionally, it tracks **α (***highest* absolute value**)** that we will use
+    later on for dequantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dequantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We tracked **α (***highest absolute value of activations***)** and **β (***average
+    absolute value of weights***)** as those values will help us dequantize the activations
+    back to FP16.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The output activations are rescaled with {**α**, γ} to dequantize them to the
+    original precision:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c932398e3fdb6a868f0397ffda3d41ad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And that’s it! This procedure is relatively straightforward and allows models
+    to be represented with only two values, either **-1** or **1**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using this procedure, the authors observed that as the model size grows, the
+    smaller the performance gap between a 1-bit and FP16-trained becomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this is only for larger models (>30B parameters) and the gab with smaller
+    models is still quite large.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All Large Language Models are in 1.58 Bits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[BitNet 1.58b](https://arxiv.org/pdf/2402.17764) was introduced to improve
+    upon the scaling issue previously mentioned.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this new method, every single weight of the is not just **-1** or **1**,
+    but can now also take **0** as a value, making it *ternary*. Interestingly, adding
+    just the **0** greatly improves upon BitNet and allows for much faster computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Power of 0
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So why is adding 0 such a major improvement?
+  prefs: []
+  type: TYPE_NORMAL
+- en: It has everything to do with *matrix multiplication*!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, let’s explore how matrix multiplication in general works. When calculating
+    the output, we multiply a weight matrix by an input vector. Below, the first multiplication
+    of the first layer of a weight matrix is visualized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3623b0a4d8d71d1b141fa998f1d61d7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note that this multiplication involves two actions, **multiplying** individual
+    weights with the input and then **adding** them all together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BitNet 1.58b, in contrast, manages to forego the act of multiplication since
+    ternary weights essentially tell you the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1 —** I want to add this value'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**0** — I do not want this value'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**-1 —** I want to subtract this value'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As a result, you only need to perform addition if your weights are quantized
+    to 1.58 bit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ba0776a158064ae21399b74961eefd2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Not only can this speed up computation significantly, but it also allows for
+    **feature filtering**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By setting a given weight to 0 you can now ignore it instead of either adding
+    or subtracting the weights as is the case with 1-bit representations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To perform weight quantization BitNet 1.58b uses *absmean* quantization which
+    is a variation of the absmax quantization that we saw before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It simply compresses the distribution of weights and uses the absolute mean
+    (**α**) to quantize values. They are then rounded to either -1, 0, or 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/051c2bcc456142b4b3600c594232a3eb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Compared to BitNet the activation quantization is the same except for one thing.
+    Instead of scaling the activations to range [**0**, **2ᵇ⁻¹**], they are now scaled
+    to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[**-2ᵇ⁻¹**, **2ᵇ⁻¹**] instead using *absmax quantization*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And that’s it! 1.58-bit quantization required (mostly) two tricks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding **0** to create ternary representations [-1, 0, 1]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*absmean quantization* for weights'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As a result, we get lightweight models due to having only 1.58 computationally
+    efficient bits!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank You For Reading!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This concludes our journey in quantization! Hopefully, this post gives you a
+    better understanding of the potential of quantization, GPTQ, GGUF, and BitNet.
+    Who knows how small the models will be in the future?!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To see more visualizations related to LLMs and to support this newsletter, check
+    out the book I’m writing with Jay Alammar. It will be released soon!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ca223b3b0991f513aacab1f56a18c8e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can view the book with a free trial on the [O’Reilly website](https://www.oreilly.com/library/view/hands-on-large-language/9781098150952/)
+    or pre-order the book on [Amazon](https://www.amazon.com/Hands-Large-Language-Models-Understanding/dp/1098150961).
+    All code will be uploaded to [Github](https://github.com/HandsOnLLM/Hands-On-Large-Language-Models).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are, like me, passionate about *AI* and/or *Psychology*, please feel
+    free to add me on [**LinkedIn**](https://www.linkedin.com/in/mgrootendorst/)and
+    [**Twitter**](https://twitter.com/MaartenGr), or subscribe to my [**Newsletter**](http://maartengrootendorst.substack.com/).
+    You can also find some of my content on my [**Personal Website**](https://maartengrootendorst.com/)**.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://newsletter.maartengrootendorst.com/?source=post_page-----930ebcd9be94--------------------------------)
+    [## Exploring Language Models | Maarten Grootendorst | Substack'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ML Engineer writing about the intersection of AI, Language Models, and Psychology.
+    Open Source Developer (BERTopic…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: newsletter.maartengrootendorst.com](https://newsletter.maartengrootendorst.com/?source=post_page-----930ebcd9be94--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images without a source credit were created by the author — Which means
+    all of them (except for one!), I like creating my own images ;)*'
+  prefs: []
+  type: TYPE_NORMAL

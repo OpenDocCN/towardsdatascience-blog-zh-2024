@@ -1,0 +1,555 @@
+- en: Handling Feedback Loops in Recommender Systems — Deep Bayesian Bandits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/handling-feedback-loops-in-recommender-systems-deep-bayesian-bandits-e83f34e2566a?source=collection_archive---------6-----------------------#2024-07-31](https://towardsdatascience.com/handling-feedback-loops-in-recommender-systems-deep-bayesian-bandits-e83f34e2566a?source=collection_archive---------6-----------------------#2024-07-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding fundamentals of exploration and Deep Bayesian Bandits to tackle
+    feedback loops in recommender systems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)[![Sachin
+    Hosmani](../Images/d32632e6175883b8ffcf8dd7b10f25c3.png)](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)
+    [Sachin Hosmani](https://medium.com/@sachinhosmani?source=post_page---byline--e83f34e2566a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e83f34e2566a--------------------------------)
+    ·11 min read·Jul 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c9bffad3719c1dd1d0b753b0b3477d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from ChatGPT-4o
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Recommender system models are typically trained to optimize for user engagement
+    like clicks and purchases. The well-meaning intention behind this is to favor
+    items that the user has previously engaged with. However, this creates a feedback
+    loop that over time can manifest as the “cold start problem”. Simply put, the
+    items that have historically been popular for a user tend to continue to be favored
+    by the model. In contrast, new but highly relevant items don’t receive much exposure.
+    In this article, I introduce exploration techniques from the basics and ultimately
+    explain Deep Bayesian Bandits, a highly-effective algorithm described in a [paper](https://arxiv.org/abs/2008.00727)
+    by Guo, Dalin, et al [1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: An ad recommender system
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let us use a simple ad recommender system as an example throughout this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c41c07cace57419dd1e44597f074e5d9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simple three-component ad recommender system. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is a three-component system
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Retrieval**: a component to efficiently retrieve candidates for ranking'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Ranking**: a deep neural network that predicts the click-through rate (CTR)
+    as the score for an ad given a user'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`score = predict_ctr(user features, ad features)`'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Auction**: a component that'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '- retrieves candidate ads for the user'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- scores them using the ranking model'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- selects the highest-scored ad and returns it*'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Our focus in this article will be exclusively on the ranking model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**real-world auction systems also take the ad’s bid amount into account, but
+    we ignore that for simplicity*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ranking model architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ranking model is a deep neural network that predicts the click-through rate
+    (CTR) of an ad, given the user and ad features. For simplicity, I propose a simple
+    fully connected DNN below, but one could very well enrich it with techniques like
+    wide-and-deep network, DCN, and DeepFM without any loss of applicability of the
+    methods I explain in this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7337ff75e80fb643aa08375d018d36ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A binary classifier deep neural network that predicts pCTR. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ranking model is trained on data that comprises clicks as binary labels
+    and, concatenation of user and ad features. The exact set of features used is
+    unimportant to this article, but I have assumed that some advertiser brand-related
+    features are present to help the model learn the user’s affinity towards brands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a80b00a3ecdd55e344fd7c219350e2b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training data with sample features. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The cold-start problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine we successfully trained our ranking model on our ads click dataset,
+    and the model has learned that one of our users Jane loves buying bags from the
+    bag company “Vogue Voyage”. But there is a new bag company “Radiant Clutch” in
+    the market and they sell great bags. However, despite “Radiant Clutch” running
+    ad campaigns to reach users like Jane, Jane never sees their ads. This is because
+    our ranking model has so firmly learned that Jane likes bags from “Vogue Voyage”,
+    that only their ads are shown to her. She sometimes clicks on them and when the
+    model is further trained on these new clicks, it only strengthens the model’s
+    belief. This becomes a vicious cycle leading to some items remaining in the dark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/57214dd9d1a58c9b133183f099eb4389.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The feedback loop in action, causing the cold-start problem: bags from Radiant
+    Clutch don’t stand a chance. Image by author, thumbnails generated with ChatGPT-4o'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we ponder about this, we’d realize that the model did not do anything wrong
+    by learning that Jane likes bags from “Vogue Voyage”. But the problem is simply
+    that the model is not being given a chance to learn about Jane’s interests in
+    other companies’ bags.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploration vs exploitation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a great time to introduce the trade-off between exploration vs exploitation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exploitation**: During ad auction, once we get our CTR predictions from our
+    ranking model, we simply select the ad with the highest score. This is a 100%
+    exploitation strategy because we are completely acting on our current best knowledge
+    to achieve the greatest immediate reward.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exploration**: What our approach has been lacking is the willingness to take
+    some risk and show an ad even if it wasn’t assigned the highest score. If we did
+    that, the user might click on it and the ranking model when updated on this data
+    would learn something new about it. But if we never take the risk, the model will
+    never learn anything new. This is the motivation behind exploration.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploration vs exploitation is a balancing act. Too little exploration would
+    leave us with the cold-start problem and too much exploration would risk showing
+    highly irrelevant ads to users, thus losing user trust and money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploration techniques
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve set the stage for exploration, let us delve into some concrete
+    techniques for controlled exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ε-greedy policy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The idea here is simple. In our auction service, when we have the scores for
+    all the candidate ads, instead of just taking the top-scored ad, we do the following
+  prefs: []
+  type: TYPE_NORMAL
+- en: select a random number r in [0, 1)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: if r < ε, select a random ad from our candidates (exploration)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: else, select the top-scored ad (exploitation)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: where ε is a constant that we carefully select in [0, 1) knowing that the algorithm
+    will explore with ε probability and exploit with 1 — ε probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f247a0cc0bcb07442bdfaa118784004.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Exploration with ε probability: pick any candidate ad at random. Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f2bc4f67231e97099840ba606aba9311.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Exploitation with 1 — ε probability: pick the highest CTR ad. Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a very simple yet powerful technique. However, it can be too naive because
+    when it explores, it **completely randomly** selects an ad. Even if an ad has
+    an absurdly low pCTR prediction that the user has repeatedly disliked in the past,
+    we might still show the ad. This can be a bit harsh and can lead to a serious
+    loss in revenue and user trust. We can certainly do better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upper confidence bound (UCB)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our motivation for exploration was to ensure that all ad candidates have an
+    opportunity to be shown to the user. But as we give some exposure to an ad, if
+    the user still doesn’t engage with it, it becomes prudent to cut future exposure
+    to it. So, we need a mechanism by which we select the ad based on both its score
+    estimate and also the amount of exposure it has already received.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine our ranking model could produce not just the CTR score but also a confidence
+    interval for it*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**how this is achieved is explained later in the article*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/249d31ed0d7a5cc98840265412dbd41a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The model predicts a confidence interval along with the score. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Such a confidence interval is typically inversely proportional to the amount
+    of exposure the ad has received because the more an ad is shown to the user, the
+    more user feedback we have about it, which reduces the uncertainty interval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a420875a92a76fc85f8ebc8ce683e3f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Increased exposure to an ad leads to a decrease in the confidence interval in
+    the model’s score prediction. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: During auction, instead of selecting the ad with the greatest pCTR, we select
+    the ad with the highest upper confidence bound. This approach is called UCB. The
+    philosophy here is “Optimism in the face of uncertainty”. This approach effectively
+    takes into account both the ad’s score estimate and also the uncertainty around
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/37c4d0861398242e13f207fca13acbaf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'UCB in action: Ad-1 wins auction at first on account of its large confidence
+    interval, but as the model learns about it, its UCB falls leading to Ad-2 winning
+    auction. Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thompson sampling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The UCB approach went with the philosophy of “(complete) optimism in the face
+    of uncertainty”. Thompson sampling softens this optimism a little. Instead of
+    using the upper confidence bound as the score of an ad, why not sample a score
+    in the posterior distribution?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this to be possible, imagine our ranking model could produce not just the
+    CTR and the confidence interval but an actual score distribution*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**how this is achieved is explained later in the article*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/748e502314178c5c76352adf69ca02f2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The model can predict a distribution of scores for one ad. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we just sample a score from this distribution and use that as the score
+    during auction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/423cd452e28b712a0e486725ab767961.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Ad-1 wins auction due to a high sampled score from its wide distribution. Image
+    by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fa48fcf0ccee3990290847148543babc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Ad-1 has received exposure and the model has lesser uncertainty about it. Ad-2
+    wins auction due to its higher score distribution mass. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69793d78a025e54de269b45f81e10635.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Ad-2’s score distribution stdev further shrinks as it gets more exposure. Image
+    by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importance of updating the model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For the UCB and Thompson sampling techniques to work, we must update our models
+    as often as possible. Only then will it be able to update its uncertainty estimates
+    in response to user feedback. The ideal setup is a **continuous learning** setup
+    where user feedback events are sent in near-real time to the model to update its
+    weights. However, periodically statefully updating the weights of the model is
+    also a viable option if continuous learning infrastructure is too expensive to
+    set up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9491cf68aa60049e407d3c511c1e949.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A high-level continuous learning setup utilizing streaming infrastructure. Image
+    by author, thumbnail generated by ChatGPT-4o
+  prefs: []
+  type: TYPE_NORMAL
+- en: Posterior approximation techniques
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the UCB and Thompson sampling approaches, I explained the idea of our model
+    producing not just one score but an uncertainty measure as well (either as a confidence
+    interval or a distribution of scores). How can this be possible? Our DNN can produce
+    just one output after all! Here are the approaches discussed in the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bootstrapping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Bootstrapping in statistics simply means sampling with replacement. What this
+    means for us is that we apply bootstrapping on our training dataset to create
+    several closely related but slightly different datasets and train a separate model
+    with each dataset. The models learned would thereby be slight variants of each
+    other. If you have studied decision trees and bagging, you would already be familiar
+    with the idea of training multiple related trees that are slight variants of each
+    other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c67da12373ba080f7c7041586f32e942.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Bootstrapped datasets are used to train separate models, resulting in a distribution
+    of scores. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: During auction, for each ad, we get one score from each bootstrapped model.
+    This gives us a distribution of scores which is exactly what we wanted for Thompson
+    sampling. We can also extract a confidence interval from the distribution if we
+    choose to use UCB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The biggest drawback with this approach is the sheer computational and maintenance
+    overhead of training and serving several models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-head bootstrapping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To mitigate the costs of several bootstrapped models, this approach unifies
+    the several models into one multi-head model with one head for each output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6b2e9aa378f486bbc08c69b03f714da0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multi-head model. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key cost reduction comes from the fact that all the layers except the last
+    are shared.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training is done as usual on bootstrapped subsets of data. While each bootstrapped
+    subset of data should be used to update the weights of all the shared layers,
+    care must be taken to update the weight of just one output head with a subset
+    of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/280120ebb90c3e6dd641a1434a0cae09.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Constrained influence of each bootstrapped subset of data on one head during
+    backprop. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stochastic Gradient descent (SGD)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instead of using separate bootstrapped datasets to train different models, we
+    can just use one dataset, but train each model with SGD with random weight initialization
+    thus utilizing the inherent stochasticity offered by SGD. Each model trained thus
+    becomes a variant of the other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-head SGD
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the same way, using a multi-head architecture brought down the number of
+    models trained with bootstrapping to one, we can use a multi-head architecture
+    with SGD. We just have to randomly initialize the weights at each head so that
+    upon training on the whole dataset, each head is learned to be a slight variant
+    of the others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forward-propagation dropout
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Dropout is a well-known regularization technique where during model training,
+    some of the nodes of a layer are randomly dropped to prevent chances of overfitting.
+    We borrow the same idea here except that we use it during forward propagation
+    to create controlled randomness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We modify our ranking model’s last layer to introduce dropout. Then, when we
+    want to score an ad, we pass it through the model several times, each time getting
+    a slightly different score on account of the randomness introduced by dropout.
+    This gives us the distribution and confidence interval that we seek.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/21ed429f2fef679f5290d50fe2bac778.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The same model produces a distribution of scores through random dropout. Image
+    by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: One significant disadvantage of this approach is that it requires several full
+    forward passes through the network which can be quite costly during inference
+    time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hybrid
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the hybrid approach, we perform a key optimization to give us the advantages
+    of dropout and bootstrapping while bringing down the serving and training costs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: With dropout applied to just the last-but-one layer, we don’t have to run a
+    full forward pass several times to generate our score distribution. We can do
+    one forward pass until the dropout layer and then do several invocations of just
+    the dropout layer in parallel. This gives us the same effect as the multi-head
+    model where each dropout output acts like a multi-head output.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also, with dropout deactivating one or more nodes randomly, it serves as a Bernoulli
+    mask on the higher-order features at its layer, thus producing an effect equivalent
+    to bootstrapping with different subsets of the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which approach works best?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unfortunately, there is no easy answer. The best way is to experiment under
+    the constraints of your problem and see what works best. But if the findings from
+    the authors of the Deep Bayesian Bandits [paper](https://arxiv.org/pdf/2008.00727)
+    are anything to go by,
+  prefs: []
+  type: TYPE_NORMAL
+- en: ε-greedy unsurprisingly gives the lowest CTR improvement due to its unsophisticated
+    exploration, however, the simplicity and low-cost nature of it make it very alluring.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: UCB generally outperformed Thompson sampling.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Bootstrap UCB gave the highest CTR return but was also the most computationally
+    expensive due to the need to work with multiple models.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The hybrid model which relied on dropout at the penultimate layer needed more
+    training epochs to perform well and was on par with SGD UCB’s performance but
+    at lower computational cost.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The model’s PrAuc measured offline was inversely related to the CTR gain: this
+    is an important observation that shows that offline performance can be easily
+    attained by giving the model easier training data (for example, data not containing
+    significant exploration) but that will not always translate to online CTR uplifts.
+    This underscores the significance of robust online tests.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: That said, the findings can be quite different for a different dataset and problem.
+    Hence, real-world experimentation remains vital.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, I introduced the cold-start problem created by feedback loops
+    in recommender systems. Following the Deep Bayesian Bandits paper, we framed our
+    ad recommender system as a k-arm bandit and saw many practical applications of
+    reinforcement learning techniques to mitigate the cold-start problem. We also
+    scratched the surface of capturing uncertainty in our neural networks which is
+    a good segue into Bayesian networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Guo, Dalin, et al. “Deep bayesian bandits: Exploring in online personalized
+    recommendations.” *Proceedings of the 14th ACM Conference on Recommender Systems*.
+    2020.'
+  prefs: []
+  type: TYPE_NORMAL

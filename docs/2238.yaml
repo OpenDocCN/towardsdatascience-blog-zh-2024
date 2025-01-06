@@ -1,0 +1,672 @@
+- en: 'Hands-On Imitation Learning: From Behavior Cloning to Multi-Modal Imitation
+    Learning'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/hands-on-imitation-learning-from-behavior-cloning-to-multi-modal-imitation-learning-11ec0d37f4a2?source=collection_archive---------10-----------------------#2024-09-12](https://towardsdatascience.com/hands-on-imitation-learning-from-behavior-cloning-to-multi-modal-imitation-learning-11ec0d37f4a2?source=collection_archive---------10-----------------------#2024-09-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '***An overview of the most prominent methods in imitation learning while testing
+    on a grid environment***'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mryasinusif?source=post_page---byline--11ec0d37f4a2--------------------------------)[![Yasin
+    Yousif](../Images/9c702c021e7e5285bddefe76a144a3e1.png)](https://medium.com/@mryasinusif?source=post_page---byline--11ec0d37f4a2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--11ec0d37f4a2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--11ec0d37f4a2--------------------------------)
+    [Yasin Yousif](https://medium.com/@mryasinusif?source=post_page---byline--11ec0d37f4a2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--11ec0d37f4a2--------------------------------)
+    ·14 min read·Sep 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/120c495851c2f0539761925dddc91cbf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Possessed Photography](https://unsplash.com/@possessedphotography?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reinforcement learning is one branch of machine learning concerned with learning
+    by guidance of scalar signals (rewards); in contrast to supervised learning, which
+    needs full labels of the target variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An intuitive example to explain reinforcement learning can be given in terms
+    of a school with two classes having two types of tests repeated continuously.
+    The first class solves the test and gets the full correct answers (supervised
+    learning: SL). The second class solves the test and gets only the grades for each
+    question (reinforcement learning: RL). In the first case, it seems easier for
+    the students to learn the correct answers and memorize them. In the second class,
+    the task is harder because they can learn only by trial and error. However, their
+    learning will be more robust because they don’t only know what is right but also
+    all the wrong answers to avoid.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to learn efficiently with RL, an accurate reward signal (the grades)
+    should be designed, which is considered a difficult task, especially for real-world
+    applications. For example, a human expert driver knows how to drive, but cannot
+    set rewards for ‘correct driving’ skill, same thing for cooking or painting. This
+    created the need for imitation learning methods (IL). IL is a new branch of RL
+    concerned with learning from mere expert trajectories, without knowing the rewards.
+    Main application areas of IL are in robotics and autonomous driving fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following, we will explore the most famous methods of IL in the literature,
+    ordered by their proposal time from old to new, as shown in the timeline picture
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/052ad6e337c649a08caa6e76fb3ecd9a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Timeline of IL methods
+  prefs: []
+  type: TYPE_NORMAL
+- en: The mathematical formulations will be shown along with nomenclature of the symbols.
+    However, the theoretical derivation is kept to a minimum here; if further depth
+    is needed, the original references can be looked up as cited in the references
+    section at the end. The full code for recreating all the experiments is provided
+    in the accompanying [github repo](https://www.github.com/engyasin/ilsurvey).
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, buckle up! and let’s dive through imitation learning, from behavior cloning
+    (BC) to information maximization generative adversarial imitation learning (InfoGAIL).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example Environment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The environment used in this post is represented as a 15x15 grid. The environment
+    state is illustrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Agent: red color'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Initial agent location: blue color'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Walls: green color'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/417a0103d83622ac19add6a8c7479bf8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The goal of the agent is to reach the first row in the shortest possible way
+    through any of the three windows and towards a symmetrical location to its initial
+    position with respect to the vertical axis passing through the middle of the grid.
+    The goal location will not be shown in the state grid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So the initial position has 15 possibilities only, and the goal location is
+    changed based on that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Action Space
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The action space *A* consists of a discrete number from 0 to 4 representing
+    movements in four directions and the stopping action, as illustrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a40b44e70067c461e30172c23fe1768.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Reward Function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The ground truth reward here *R*(*s*,*a*) is a function of the current state
+    and action, with a value equal to the displacement distance towards the goal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: where 𝑝1​ is the old position and *p*2​ is the new position. The agent will
+    always be initialized at the last row, but in a random position each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expert Policy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The expert policy used for all methods (except InfoGAIL) aims to reach the
+    goal in the shortest possible path. This involves three steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving towards the nearest window
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Moving directly towards the goal
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Stopping at the goal location
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This behavior is illustrated by a GIF:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1629324006841fb80098705a78561bd6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The expert policy generates demonstration trajectories used by other IL methods.
+    Each trajectory *τ* is represented as an ordered sequence of state-action tuples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: where the expert demonstrations set is defined as D={*τ*0​,⋯,*τn*​}
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The expert episodic return was 16.33±6 on average for 30 episodes with a length
+    of 32 steps each.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Forward Reinforcement Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, we will train a model using the ground truth reward to set some baselines
+    and tune hyperparameters for later use with IL methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation of the Forward RL algorithm used in this post is based on
+    Clean RL scripts [12], which provides a readable implementation of RL methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will test both Proximal Policy Optimization (PPO) [2] and Deep Q-Network
+    (DQN) [1], state-of-the-art on-policy and well-known off-policy RL methods, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following is a summary of the training steps for each method, along with
+    their characteristics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On-Policy (PPO)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This method uses the current policy under training and updates its parameters
+    after collecting rollouts for every episode. PPO has two main parts: critic and
+    actor. The actor represents the policy, while the critic provides value estimations
+    for each state with its own updated objective.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Off-Policy (DQN)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: DQN trains its policy offline by collecting rollouts in a replay buffer using
+    epsilon-greedy exploration. This means that DQN does not take always the best
+    action according to the current policy for every state but rather selects a random
+    action. This enables the exploration of different solutions. An additional target
+    network may be used with less frequently updated version of the policy to make
+    the learning objective more stable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results and Discussion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The following figure shows the episodic return curves for both methods. DQN
+    is in black, while PPO is shown as an orange line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a1db66541085517545021eef57c3ea4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'For this simple example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both PPO and DQN converge, but with a slight advantage for PPO. Neither method
+    reaches the expert level of 16.6 (PPO comes close with 15.26).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: DQN seems slower to converge in terms of interaction steps, known as sample
+    inefficiency compared to PPO.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PPO takes longer training time, possibly due to actor-critic training, updating
+    two networks with different objectives.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The parameters for training both methods are mostly the same. For a closer look
+    at how these curves were generated, check the scripts `ppo.py` and `dqn.py` in
+    the accompanying repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Behavior Cloning (BC)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Behavior Cloning, first proposed in [4], is a direct IL method. It involves
+    supervised learning to map each state to an action based on expert demonstrations
+    D. The objective is defined as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: where *π_bc*​ is the trained policy, *π_E*​ is the expert policy, and *l*(*π_bc*​(*s*),*π_E*​(*s*))
+    is the loss function between the expert and trained policy in response to the
+    same state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference between BC and supervised learning lies in defining the problem
+    as an interactive environment where actions are taken in response to dynamic states
+    (e.g., a robot moving towards a goal). In contrast, supervised learning involves
+    mapping input to output, like classifying images or predicting temperature. This
+    distinction is explained in [8].
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this implementation, the full set of initial positions for the agent contains
+    only 15 possibilities. Consequently, there are only 15 trajectories to learn from,
+    which can be memorized by the BC network effectively. To make the problem harder,
+    we clip the size of the training dataset D to half (only 240 state-action pairs
+    out of 480) and repeat this for all IL methods that follow in this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After training the model (as shown in `bc.py` script), we get an average episodic
+    return of 11.49 with a standard deviation of 5.24.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is much less than the forward RL methods before. The following GIF shows
+    the trained BC model in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d844fec525ada99e1b12814cdde3f86.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: From the GIF, it’s evident that almost two-thirds of the trajectories have learned
+    to pass through the wall. However, the model gets stuck with the last third, as
+    it cannot infer the true policy from previous examples, especially since it was
+    given only half of the 15 expert trajectories to learn from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maximum Entropy Inverse Reinforcement Learning (MaxENT)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'MaxEnt [3] is another method to train a reward model separately (not iteratively),
+    beside Behavior Cloning (BC). Its main idea lies in maximizing the probability
+    of taking expert trajectories based on the current reward function. This can be
+    expressed as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where *N* is the trajectory length, and *Z* is a normalizing constant of the
+    sum of all possible trajectories returns under the given policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From there, the method derives its main objective based on the maximum entropy
+    theorem [3], which states that *the most representative policy fulfilling a given
+    condition is the one with highest entropy H.* Therefore, MaxEnt requires an additional
+    objective to maximize the entropy of the policy. This leads to the following formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Which has the derivative:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where *SVD* is the state visitation frequency, which can be calculated with
+    a dynamic programming algorithm given the current policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our implementation here of MaxEnt, we skip the training of a new reward,
+    where the dynamic programming algorithm would be slow and lengthy. Instead, we
+    opt to test the main idea of maximizing the entropy by re-training a BC model
+    exactly as in the previous process, but with an added term of the negative entropy
+    of the inferred action distribution to the loss. The entropy should be negative
+    because we wish to maximize it by minimizing the loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After adding the negative entropy of the distributions of actions with a weight
+    of 0.5 (choosing the right value is important; otherwise, it may lead to worse
+    learning), we see a slight improvement over the performance of the previous BC
+    model with an average episodic return of 11.56 now (+0.07). The small value of
+    the improvement can be explained by the simple nature of the environment, which
+    contains a limited number of states. If the state space gets bigger, the entropy
+    is expected to have a bigger importance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generative Adversarial Imitation Learning (GAIL)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The original work on GAIL [5] was inspired by the concept of Generative Adversarial
+    Networks (GANs), which apply the idea of adversarial training to enhance the generative
+    abilities of a main model. Similarly, in GAIL, the concept is applied to match
+    state-action distributions between trained and expert policies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This can be derived as Kullback-Leibler divergence, as shown in the main paper
+    [5]. The paper finally derives the main objective for both models (called generator
+    and discriminator models in GAIL) as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d98990eb6f613a4842efbd3f5682a05.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Where *Dt*​ is the discriminator, *πθ*​ is the generator model (i.e., the policy
+    under training), *πE*​ is the expert policy, and *H*(*πθ*​) is the entropy of
+    the generator model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The discriminator acts as a binary classifier, while the generator is the actual
+    policy model being trained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Main Benefit of GAIL
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The main benefit of GAIL over previous methods (and the reason it performs better)
+    lies in its interactive training process. The trained policy learns and explores
+    different states guided by the discriminator’s reward signal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After training GAIL for 1.6 million steps, the model converged to a higher level
+    than BC and MaxEnt models. If continued to be trained, even better results can
+    be achieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifically, we obtained an average episodic reward of 12.8, which is noteworthy
+    considering that only 50% of demonstrations were provided without any real reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This figure shows the training curve for GAIL (with ground truth episodic rewards
+    on the y-axis). It’s worth noting that the rewards coming from log(*D*(*s*,*a*))
+    will be more chaotic than the ground truth due to GAIL’s adversarial training
+    nature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/64b2b61d8406584fafe7665aed713417.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adversarial Inverse Reinforcement Learning (AIRL)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: One remaining problem with GAIL is that the trained reward model (the discriminator)
+    does not actually represent the ground truth reward. Instead, the discriminator
+    is trained as a binary classifier between expert and generator state-action pairs,
+    resulting in an average of its values of 0.5\. This means that the discriminator
+    can only be considered a surrogate reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To solve this problem, the paper in [6] reformulates the discriminator using
+    the following formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: where *fω*​(*s*,*a*) should converge to the actual advantage function. In this
+    example, this value represents how close the agent is to the invisible goal. The
+    ground truth reward can be found by adding another term to include a shaped reward;
+    however, for this experiment, we will restrict ourselves to the advantage function
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'After training the AIRL model with the same parameters as GAIL, we obtained
+    the following training curve:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fca3ec99819c63a12137e5791e9c6f12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It is noted that given the same training steps (1.6 Million steps), AIRL was
+    slower to converge due to the added complexity of training the discriminator.
+    However, now we have a meaningful advantage function, albeit with a performance
+    of only 10.8 episodic reward, which is still good enough.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s compare the values of this advantage function and the ground truth reward
+    in response to expert demonstrations. To make these values more comparable, we
+    also normalized the values of the learned advantage function *fω*​. From this,
+    we got the following plot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5a9cc6f81f11b38b39c4840e9be7e623.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this figure, there are 15 pulses corresponding to the 15 initial states of
+    the agent. We can see bigger errors in the trained model for the last half of
+    the plot, which is due to the limited use of only half the expert demos in training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the first half, we observe a low state when the agent stands still at the
+    goal with zero reward, while it was evaluated as a high value in the trained model.
+    In the second half, there’s a general shift towards lower values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Roughly speaking, the learned function approximately follows the ground truth
+    reward and has recovered useful information about it using AIRL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Information Maximization GAIL (InfoGAIL)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Despite the advancements made by previous methods, an important problem still
+    persists in Imitation Learning (IL): **multi-modal learning**. To apply IL to
+    practical problems, it is necessary to learn from multiple possible expert policies.
+    For instance, when driving or playing football, there is no single “true” way
+    of doing things; experts vary in their methods, and the IL model should be able
+    to learn these variations consistently.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To address this issue, InfoGAIL was developed [7]. Inspired by InfoGAN [11],
+    which conditions the style of outputs generated by GAN using an additional style
+    vector, InfoGAIL builds on the GAIL objective and adds another criterion: maximizing
+    the mutual information between state-action pairs and a new controlling input
+    vector *z*. This objective can be derived as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kullback-Leibler divergence,
+  prefs: []
+  type: TYPE_NORMAL
+- en: where estimating the posterior *p*(*z*∣*s*,*a*) is approximated with a new model,
+    *Q*, which takes (*s*,*a*) as input and outputs *z*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The final objective for InfoGAIL can be written as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5bc5c1f07a8eea226011e43329d8b49.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As a result, the policy has an additional input, namely *z*, as shown in the
+    following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cdb73e4f39a5c4a376c9da575e4f02e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In our experiments, we generated new multi-modal expert demos where each expert
+    could enter from one gap only (of the three gaps on the wall), regardless of their
+    goal. The full demo set was used without labels indicating which expert was acting.
+    The *z* variable is a one-hot encoding vector representing the expert class with
+    three elements (e.g., `[1 0 0]` for the left door). The policy should:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn to move towards the goal
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Link randomly generated *z* values to different modes of experts (thus passing
+    through different doors)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The *Q* model should be able to detect which mode it is based on the direction
+    of actions in every state
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that the discriminator, Q-model, and policy model training graphs are chaotic
+    due to adversarial training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fortunately, we were able to learn two modes clearly. However, the third mode
+    was not recognized by either the policy or the Q-model. The following three GIFs
+    show the learned expert modes from InfoGAIL when given different values of *z*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c12ec76451dee278e191b253b631f0ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**z = [1,0,0]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ab355cdb776ac470e7b1e8b5aa1552a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**z = [0,1,0]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a66821dfd5078e24edbf1a7557fef59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**z = [0,0,1]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, the policy was able to converge to an episodic reward of around 10 with
+    800K training steps. With more training steps, better results can be achieved,
+    even if the experts used in this example are not optimal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Overview and Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As we review our experiments, it’s clear that all IL methods have performed
+    well in terms of episodic reward criteria. The following table summarizes their
+    performance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b240ddb57578ec3271d55c9076130b7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**InfoGAIL results are not comparable as the expert demos were based on multi-modal
+    experts*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The table shows that GAIL performed the best for this problem, while AIRL was
+    slower due to its new reward formulation, resulting in a lower return. InfoGAIL
+    also learned well but struggled with recognizing all three modes of experts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imitation Learning is a challenging and fascinating field. The methods we’ve
+    explored are suitable for grid simulation environments but may not directly translate
+    to real-world applications. Practical uses of IL are still in its infancy, except
+    for some BC methods. Linking simulations to reality introduces new errors due
+    to differences of their nature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another open challenge in IL is Multi-agent Imitation Learning. Research like
+    MAIRL [9] and MAGAIL [10] have experimented with multi-agent environments but
+    a general theory for learning from multiple expert trajectories remains an open
+    question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The attached [repository on GitHub](http://github.com/engyasin/ilsurvey) provides
+    a basic approach to implementing these methods, which can be easily extended.
+    The code will be updated in the future. If you’re interested in contributing,
+    please submit an issue or pull request with your modifications. Alternatively,
+    feel free to leave a comment as we’ll follow up with updates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: Unless otherwise noted, all images are generated by author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Mnih, V. (2013). Playing atari with deep reinforcement learning. arXiv
+    preprint arXiv:1312.5602.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Schulman, J., Wolski, F., Dhariwal, P., Radford, A., & Klimov, O. (2017).
+    Proximal policy optimization algorithms. arXiv preprint arXiv:1707.06347.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Ziebart, B. D., Maas, A. L., Bagnell, J. A., & Dey, A. K. (2008, July).
+    Maximum entropy inverse reinforcement learning. In Aaai (Vol. 8, pp. 1433–1438).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Bain, M., & Sammut, C. (1995, July). A Framework for Behavioural Cloning.
+    In Machine Intelligence 15 (pp. 103–129).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Ho, J., & Ermon, S. (2016). Generative adversarial imitation learning.
+    Advances in neural information processing systems, 29.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Fu, J., Luo, K., & Levine, S. (2017). Learning robust rewards with adversarial
+    inverse reinforcement learning. arXiv preprint arXiv:1710.11248.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Li, Y., Song, J., & Ermon, S. (2017). Infogail: Interpretable imitation
+    learning from visual demonstrations. Advances in neural information processing
+    systems, 30.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Osa, T., Pajarinen, J., Neumann, G., Bagnell, J. A., Abbeel, P., & Peters,
+    J. (2018). An algorithmic perspective on imitation learning. Foundations and Trends®
+    in Robotics, 7(1–2), 1–179.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] Yu, L., Song, J., & Ermon, S. (2019, May). Multi-agent adversarial inverse
+    reinforcement learning. In International Conference on Machine Learning (pp. 7194–7201).
+    PMLR.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10] Song, J., Ren, H., Sadigh, D., & Ermon, S. (2018). Multi-agent generative
+    adversarial imitation learning. Advances in neural information processing systems,
+    31.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11] Chen, X., Duan, Y., Houthooft, R., Schulman, J., Sutskever, I., & Abbeel,
+    P. (2016). Infogan: Interpretable representation learning by information maximizing
+    generative adversarial nets. Advances in neural information processing systems,
+    29.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[12] Huang, S., Dossa, R. F. J., Ye, C., Braga, J., Chakraborty, D., Mehta,
+    K., & AraÃšjo, J. G. (2022). Cleanrl: High-quality single-file implementations
+    of deep reinforcement learning algorithms. Journal of Machine Learning Research,
+    23(274), 1–18.'
+  prefs: []
+  type: TYPE_NORMAL

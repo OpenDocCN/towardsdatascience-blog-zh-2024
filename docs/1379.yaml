@@ -1,0 +1,373 @@
+- en: Linear Attention Is All You Need
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/linear-attention-is-all-you-need-5fa9c845c1b5?source=collection_archive---------2-----------------------#2024-06-02](https://towardsdatascience.com/linear-attention-is-all-you-need-5fa9c845c1b5?source=collection_archive---------2-----------------------#2024-06-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Self-attention at a fraction of the cost?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sam.maddrellmander?source=post_page---byline--5fa9c845c1b5--------------------------------)[![Sam
+    Maddrell-Mander](../Images/709060d916a5a281f4cf016d7e82e4d9.png)](https://medium.com/@sam.maddrellmander?source=post_page---byline--5fa9c845c1b5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5fa9c845c1b5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5fa9c845c1b5--------------------------------)
+    [Sam Maddrell-Mander](https://medium.com/@sam.maddrellmander?source=post_page---byline--5fa9c845c1b5--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5fa9c845c1b5--------------------------------)
+    ·9 min read·Jun 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d52a880d9c5eb18caffe34d6353d8ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Guillaume Jaillet](https://unsplash.com/@i_am_g?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***“Attention scales badly with long sequence lengths”***'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is the kind of thing anyone who’s spent much time working with transformers
+    and self-attention will have heard a hundred times. It’s both absolutely true,
+    we’ve all experienced this as you try to increase the context size of your model
+    everything suddenly comes to a grinding halt. But then at the same time, virtually
+    every week it seems, there’s a new state of the art model with a new record breaking
+    context length. (Gemini has context length of 2M tokens!)
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are lots of sophisticated methods like RingAttention that make training
+    incredibly long context lengths in large distributed systems possible, but what
+    I’m interested in today is a simpler question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How far can we get with linear attention alone?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Let’s break down the maths.**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This will be a bit of a whistle stop tour, but bear with me as we touch on a
+    few key points before digging into the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can basically summarise the traditional attention mechanism with two key
+    points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, the typical softmax attention expression takes the product of the query
+    and key matrices, normalises for stability, then takes the softmax (row wise)
+    to get the attention scores between each element of the sequence.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second, the time complexity is dominated by the N² dot products, and the one
+    inside the softmax is the limiting factor. That’s where we compute the attention
+    scores.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This is expressed in the traditional form as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/378929b0da93f20b26a13517c2daf911.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Traditional formulation of the softmax attention mechansm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It turns out if we ask our mathematician friends we can think about this slightly
+    differently. The softmax can be thought of as one of many ways of describing the
+    probability distribution relating tokens with each other. We can use any similarity
+    measure we like (the dot product being one of the simplest) and so long as we
+    normalise it, we’re fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2a388afc1bfe8d1681fd60e1b4177647.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: General expression for attention using any similarity function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s a little sloppy to say this *is* attention, as in fact it’s only the attention
+    we know and love when the similarity function is the exponential of the dot product
+    of queries and keys (given below) as we find in the softmax. But this is where
+    it gets interesting, if instead of using this this expression what if we could
+    approximate it?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8ee1bffdeb7e4632dc67d4af146542bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Approximate the similarity function from self-attention with two feature maps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can assume there is some feature map “*phi*” which gives us a result *nearly*
+    the same as taking the exponential of the dot product. And crucially, writing
+    the expression like this allows us to play with the order of matrix multiplication
+    operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the [paper](https://arxiv.org/abs/2006.16236) they propose the Exponential
+    Lineaer Unit (ELU) as the feature map due to a number of useful properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5e24e7c42a47432c427608cf089dc3e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For values above 0 the ELU(x) gives a linear result, which while not the same
+    as the exponential does preserve the relative ordering between scores.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For values less than or equal to 0 the exponential term preserves the continuous
+    nature of the function, and ensures the gradients don’t just vanish.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/7769c7f88acf8b4fcbbbce09ea6aabb6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We won’t spend too much more time on this here, but this is pretty well empirically
+    verified as a fair approximation to the softmax function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What this allows us to do is change the order of operations. We can take the
+    product of our feature map of K with V first to make a KV block, then the product
+    with Q. The square product becomes over the model dimension size rather than sequence
+    length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Putting this all together into the linear attention expression gives us:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1c7a658306ca21041ef4bf63e8d4305.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Linear attention using feature maps to approximate the softmax similarity score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where we only need to compute the terms in the brackets once per query row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(If you want to dig into how the casual masking fits into this and how the
+    gradients are calculated, take a look at the paper. Or watch this space for a
+    future blog.)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**How much faster is linear attention anyway?**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The mathematical case is strong, but personally until I’ve seen some benchmarks
+    I’m always a bit suspicious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s start by looking at the snippets of the code to describe each of these
+    terms. The softmax attention will look very familiar, we’re not doing anything
+    fancy here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then for the linear attention we start by getting the Query, Key and Value matrices,
+    then apply the ELU(x) feature mapping to the Query and Keys. Then we use einsum
+    notation to perform the multiplications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Seeing this written in code is all well and good, but what does it actually
+    mean experimentally? How much of a performance boost are we talking about here?
+    It can be hard to appreciate the degree of speed up going from a quadratic to
+    a linear bottleneck, so I’ve run the following experiemnt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’re going to to take a single attention layer, with a fixed d_k model dimension
+    of 64, and benchmark the time taken for a forward pass of a 32 batch size set
+    of sequences. The only variable to change will be the sequence length, spanning
+    128 up to 6000 (the GPT-3 context length for reference if 2048). Each run is done
+    100 times to get a mean and standard deviation, and experiments are run using
+    an Nvidia T4 GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For such a simple experiment the results are pretty striking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf50445d2ef3cead3386f1d3ca801fa5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Benchmarks: Measuring the time per iteration for a single sequence with both
+    traditional (softmax) attention and linear attention. Each sequence length is
+    averaged over 100 iterations and the standard deviation plotted. Sequence lengths
+    used range from 128 to 6000\. The ratio is is also shown to more easily gauge
+    the increased performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results show for even an incredibly small toy example that we get a speed
+    up of up to 60x.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discussion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There are a few obvious take-aways here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The advantage of linear attention is huge — either in speed, higher throughput
+    is always a good thing. Or in terms of memory requirements to process long sequences.
+    In low memory environments this could be a big advantage.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The ratio plot has a surprising kink — leads us to suspect there’s some additional
+    lower level optimisation happening here meaning the expected ratio doesn’t quite
+    materalise. So we need to take this result with a pinch of salt.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For completeness also do not mistake this as saying *“linear attention is 60x
+    faster for small models”.* In reality the feed-forward layers are often a bigger
+    chunk of the parameters in a Transformer and the encoding / decoding is often
+    a limiting size component as well. But in this tightly defined problem, pretty
+    impressive!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Computational Complexity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If we think about the real time complexity of each approach we can show where
+    this difference comes from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s break down the time complexity of the traditional softmax attention, the
+    first term gives the complexity of QK multiplication which is n² scores, each
+    a dot product of length d_k. The second term describes the complexity of the softmax
+    on the attention scores, is in n². And the third term takes the n² matrix and
+    dots it with the values vector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we assume for simplicity the query, key and vector matries have the same
+    dimension we get the final term with the dominant n² term. (Provided the model
+    dimension is << sequence length. )
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f6453c03d33ccf18589f620e457f8ad2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Normal self-attention softmax is dominated by the n² term from the sequence
+    length, where usually the model dimmension d_k is << n.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The linear attention tells a different story. Again, if we look at the expression
+    below for the time complexity we’ll analyse each of the terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first term is the cost of applying the feature map to the Q and K matrices,
+    the second term is the product between the Q and V matricies which results in
+    a (d_k, d_v) matrix, and the K(QV) multiplication has the same complexity in the
+    third term. Then the final output, again assuming the model dimensions are the
+    same for the different matricies, gives a final complexity linear in sequence
+    length, and quadratic in model dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e93e08c9c7502953dd226fcd9fbe87f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Linear self attention flips the script here, and is linear in n and quadratic
+    in the model dimension (if the dk and dv hidden dimensions are the same as I’ve
+    done here for simplicity.) So in any regime where n >> dk the complexity here
+    is much lower.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, so long as the model dimension is less than the sequence length we
+    have a significantly faster model. The only real question left then is, how good
+    an approximation is it anyway?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**No free lunch — can we actually train a model?**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Enough messing around, hopefully we’re all convinced that the linear attention
+    is much faster than traditional attention so let’s do the real test. Can we actually
+    train the models and do they perform similarly with the two different attention
+    mechanisms?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The models we use here are really small — (and if there’s interest in a deeper
+    dive into setting up a simple training harness we can look at that in the future)
+    — and the data is simple. We’re just going to use the Penn Treebank dataset (publicly
+    available through [*torchtext*](https://pytorch.org/text/0.8.1/datasets.html#penntreebank)*)*,
+    which contains a collection of short snippets of text, which can be used to model
+    / test small language models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Can we train a real model to do real prediction**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Real prediction might be a bit of a stretch here if we’re honest, given the
+    number of parameters and time we’re training for all I’m really going to look
+    for is do the training dynamics look similar. We’ll look at the loss curves for
+    autoregressive training on a simple language modelling dataset, and if they follow
+    the same shape we can at least have some confidence that the different mechanisms
+    are giving us similar results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The nature of the data means the outputs are rarely of high quality, but it
+    gives all the trapping we’d expect of a proper training run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at the training curves. The plot on the left shows the loss for training
+    and validation for both the traditional and linear attention methods. We can see
+    over the 10 epochs the two approaches are basically indistinguishable. Similarly
+    if we look at the right plot, the loss for the traditional softmax and the linear
+    attention is shown, again showing absolutely identical training dynamics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6f15ba1d247f6c9eb8448f787a94befe.png)![](../Images/849d62a5006a461e76f5cdc22ff3802e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (left) Training and validation losses per epoch for both linear and traditional
+    attention, (right) training loss curves for linear and traditional attention mechanisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is obviously far from comprehensive, and we’re not exactly going to be
+    competing with GPT here, but we can be pretty optimistic about reducing the complexity
+    of the attention mechanism and not losing modelling ability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Watch this space for a bigger comparison in Part 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images, unless otherwise stated, have been created by the author, and the
+    training data comes from the publicly available [PennTreebank](https://pytorch.org/text/0.8.1/datasets.html#id4)
+    dataset accessed through *PyTorch torchtext* datasets. More details can be found
+    [here](https://catalog.ldc.upenn.edu/docs/LDC95T7/cl93.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more details on the implementation of linear attention I strongly recommend
+    you look in more depth at the original paper ([https://arxiv.org/abs/2006.16236](https://arxiv.org/abs/2006.16236))
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If you enjoyed this content follow this account or find me on* [*Twitter*](https://x.com/smaddrellmander)*.*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,352 @@
+- en: Visualizing Gradient Descent Parameters in Torch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26](https://towardsdatascience.com/visualizing-gradient-descent-parameters-in-torch-332a63d1e5c5?source=collection_archive---------0-----------------------#2024-02-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Prying behind the interface to see the effects of SGD parameters on your model
+    training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![P.G.
+    Baumstarck](../Images/b23cb187c99cc30201ad8028afca72ed.png)](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
+    [P.G. Baumstarck](https://thepgb.medium.com/?source=post_page---byline--332a63d1e5c5--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--332a63d1e5c5--------------------------------)
+    ·7 min read·Feb 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Behind the simple interfaces of modern machine learning frameworks lie large
+    amounts of complexity. With so many dials and knobs exposed to us, we could easily
+    fall into cargo cult programming if we don’t understand what’s going on underneath.
+    Consider the many parameters of Torch’s [stochastic gradient descent (SGD) optimizer](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Besides the familiar learning rate `lr` and `momentum` parameters, there are
+    several other that have stark effects on neural network training. In this article
+    we’ll visualize the effects of these parameters on a simple ML objective with
+    a variety of loss functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To start we construct a toy problem of performing linear regression over a
+    set of points. To make it interesting we’re going to use a quadratic function
+    plus noise so that the neural network will have to make trade-offs—and we’ll also
+    get to observe more of the impact of the loss functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46819efbc1942caad0ed06096226be7a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We start off just using `numpy` and `matplotlib` to visualization our data—no
+    `torch` required yet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/fc9a458f92c166abbba3805523a44f56.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1\. Toy problem set of points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next we’ll break out the `torch` and introduce a simple training loop for a
+    single-neuron network. To get consistent results when we vary the loss function,
+    we’ll start our training from the same set of parameters each time with the neuron’s
+    first “guess” being the equation `y = 6*x — 3` (which we effect via the neuron’s
+    `weight` and `bias` parameters):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this gives us text output that shows us the loss is decreasing, eventually
+    down to a minimum, as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To visualize our fit, we take the learned bias and weight out of our neuron
+    and plot the fit against the points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b45c711099dd52f177b3ff13e8098502.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2\. L2-learned linear boundary on toy problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualizing the Loss Function
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The above seems a reasonable fit, but so far everything has been handled by
+    high-level Torch functions like `optimizer.zero_grad()`, `loss.backward()`, and
+    `optimizer.step()`. To understand where we’re going next, we’ll need to visualize
+    the journey our model is taking through the loss function. To visualize the loss,
+    we’ll sample it in a grid of 101-by-101 points, then plot it using `imshow`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f827e4cc908fde0c3706cb7893924698.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3\. L2 loss function on toy problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we can capture the model parameters while running gradient descent to show
+    us how the optimizer is performing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9d08ab225a9b8cba02f255503b700ef4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4\. Visualized gradient descent down loss function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From inspection this looks exactly as it should: the model starts off at our
+    force-initialized parameters of `(-3, 6)`, it takes progressively smaller steps
+    in the direction of the gradient, and it eventually bottoms-out in the global
+    minimum.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualizing the Other Parameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Loss Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now we’ll start examining the effects of the other parameters on gradient descent.
+    First is the loss function, for which we used the standard L2 loss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fb8c557e293869de99c1499dbcf614e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'L2 loss (`torch.nn.MSELoss) accumulates the squared error. Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html).
+    Screen capture by author.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But there are several other loss functions we could use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4bddd81b3c6d0dedc452902c6366a2f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'L1 loss (torch.nn.L1Loss) `accumulates absolute` errors. `Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html).
+    Screen capture by author.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a64709da24887fc575dd61e2d012c98.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Huber loss (torch.nn.HuberLoss) uses L2 for small errors and L1 for large.
+    `Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html).
+    Screen capture by author.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a52df315f2839329b503ba215290e53b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Smooth L1 loss (torch.nn.SmoothL1Loss) is roughly equivalent to Huber loss
+    with an extra beta parameter. `Source: [link](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html).
+    Screen capture by author.`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We wrap everything we’ve done so far in a loop to try out all the loss functions
+    and plot them together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2a7f3f2a63ba5652ce65510a4a010915.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5\. Visualized gradient descent down all loss functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we can see the interesting contours of the non-L2 loss functions. While
+    the L2 loss function is smooth and exhibits large values up to 100, the other
+    loss functions have much smaller values as they reflect only the absolute errors.
+    But the L2 loss’s steeper gradient means the optimizer makes a quicker approach
+    to the global minimum, as evidenced by the greater spacing between its early points.
+    Meanwhile the L1 losses all display much more gradual approaches to their minima.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Momentum
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The next most interesting parameter is the momentum, which dictates how much
+    of the last step’s gradient to add in to the current gradient update going froward.
+    Normally very small values of momentum are sufficient, but for the sake of visualization
+    we’re going to set it to the crazy value of 0.9—kids, do NOT try this at home:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/3f5d67a6c7da5fe4e6be615b5e5eba6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6\. Visualized gradient descent down all loss functions with high momentum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thanks to the outrageous momentum value, we can clearly see its effect on the
+    optimizer: it overshoots the global minimum and has to swerve sloppily back around.
+    This effect is most pronounced in the L2 loss, whose steep gradients carry it
+    clean over the minimum and bring it very close to diverging.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nesterov Momentum
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Nesterov momentum is an interesting tweak on momentum. Normal momentum adds
+    in some of the gradient from the last step to the gradient for the current step,
+    giving us the scenario in figure 7(a) below. But if we already know where the
+    gradient from the last step is going to carry us, then Nesterov momentum instead
+    calculates the current gradient by looking ahead to where that will be, giving
+    us the scenario in figure 7(b) below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1fef60334367760ff9aedcab24d46ab5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7\. (a) Momentum vs. (b) Nesterov momentum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/af2be22828b89deacf074725c7de16cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8\. Visualized gradient descent down all loss functions with high Nesterov
+    momentum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When viewed graphically, we can see that Nesterov momentum has cut down the
+    overshooting we observed with plain momentum. Especially in the L2 case, since
+    our momentum carried us clear over the global minimum, using Nesterov to lookahead
+    where we were going to land allowed us to mix in countervailing gradients from
+    the opposite side of the objective function, in effect course-correcting earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weight Decay
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Next weight decay adds a regularizing L2 penalty on the values of the parameters
+    (the weight and bias of our linear network):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0ac8ddd706e0e1814dd328b503652295.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9\. Visualized gradient descent down all loss functions with high Nesterov
+    momentum and weight decay.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In all cases, the regularizing factor has pulled the solutions away from their
+    rightful global minima and closer to the origin (0, 0). The effect is least pronounced
+    with the L2 loss, however, since the loss values are large enough to offset the
+    L2 penalties on the weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dampening
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally we have dampening, which discounts the momentum by the dampening factor.
+    Using a dampening factor of 0.8 we see how it effectively moderates the momentum
+    path through the loss function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d81b751b1cbc2d155e7eec6e8757802c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10\. Visualized gradient descent down all loss functions with high momentum
+    and high dampening.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html](https://pytorch.org/docs/stable/generated/torch.nn.MSELoss.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.L1Loss.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html](https://pytorch.org/docs/stable/generated/torch.nn.HuberLoss.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html](https://pytorch.org/docs/stable/generated/torch.nn.SmoothL1Loss.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://pytorch.org/docs/stable/generated/torch.optim.SGD.html](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: See Also
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[https://towardsdatascience.com/extending-context-length-in-large-language-models-74e59201b51f](/extending-context-length-in-large-language-models-74e59201b51f)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Code available at: [https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py](https://github.com/pbaumstarck/scaling-invention/blob/main/code/torch_loss.py)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://github.com/tomgoldstein/loss-landscape](https://github.com/tomgoldstein/loss-landscape)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://neptune.ai/blog/pytorch-loss-functions](https://neptune.ai/blog/pytorch-loss-functions)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

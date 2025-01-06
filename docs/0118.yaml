@@ -1,0 +1,424 @@
+- en: Efficient Feature Selection via CMA-ES (Covariance Matrix Adaptation Evolution
+    Strategy)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173?source=collection_archive---------4-----------------------#2024-01-12](https://towardsdatascience.com/efficient-feature-selection-via-cma-es-covariance-matrix-adaptation-evolution-strategy-ee312bc7b173?source=collection_archive---------4-----------------------#2024-01-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Using evolutionary algorithms for fast feature selection with large datasets*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://florin-andrei.medium.com/?source=post_page---byline--ee312bc7b173--------------------------------)[![Florin
+    Andrei](../Images/372ac3e80dbc03cbd20295ec1df5fa6f.png)](https://florin-andrei.medium.com/?source=post_page---byline--ee312bc7b173--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ee312bc7b173--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ee312bc7b173--------------------------------)
+    [Florin Andrei](https://florin-andrei.medium.com/?source=post_page---byline--ee312bc7b173--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ee312bc7b173--------------------------------)
+    ·11 min read·Jan 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This is part 1 of a two-part series about feature selection. Read* [*part
+    2 here*](/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For more examples of the applications of CMA-ES, check* [*this paper by Nomura
+    and Shibata*](https://arxiv.org/abs/2402.01373)*; this article is mentioned (ref.
+    [6]) in the paper as a noteworthy application of optimization via CMA-ES with
+    Margin.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When you’re fitting a model to a dataset, you may need to perform feature selection:
+    keeping only some subset of the features to fit the model, while discarding the
+    rest. This can be necessary for a variety of reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: to keep the model explainable (having too many features makes interpretation
+    harder)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to avoid the curse of dimensionality
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to maximize/minimize some objective function related to the model (R-squared,
+    AIC, etc)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: to avoid a poor fit, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If the number of features N is small, an exhaustive search may be doable: you
+    can literally try all possible combinations of features, and just keep the one
+    that minimizes the cost / objective function. But if N is large, then an exhaustive
+    search might be impossible. The total number of combinations to try is `2^N` which,
+    if N is larger than a few dozen, becomes prohibitive — it’s an exponential function.
+    In such cases you must use a heuristic method: explore the search space in an
+    efficient way, looking for a combination of features that minimizes the objective
+    function you use to conduct the search.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What you’re looking for is a vector `[1, 0, 0, 1, 0, 1, 1, 1, 0, ...]` of length
+    N, with elements taking values from `{0, 1}` . Each element in the vector is assigned
+    to a feature; if the element is 1, the feature is selected; if the element is
+    0, the feature is discarded. You need to find the vector that minimizes the objective
+    function. The search space has as many dimensions N as there are features; the
+    only possible values along any dimension are 0 and 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finding a good heuristic algorithm is not trivial. The `regsubsets()` function
+    in R has some options you can use. Also, scikit-learn offers [several methods](https://scikit-learn.org/stable/modules/feature_selection.html)
+    to perform a heuristic feature selection, provided your problem is a good fit
+    for their techniques. But finding a good, general purpose heuristic — in the most
+    general form — is a hard problem. In this series of articles we will explore a
+    few options that may work reasonably well even when N is large, and the objective
+    function can be literally anything you can compute in code, provided it’s not
+    too slow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataset and full code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For all optimization techniques in this series of articles, I am using [the
+    very popular House Prices dataset on Kaggle](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data)
+    (MIT license) — after a few simple feature transformations, it ends up having
+    213 features (N=213) and 1453 observations. The model I’m using is linear regression,
+    `statsmodels.api.OLS()` , and the objective function I am trying to minimize is
+    BIC — the Bayesian Information Criterion — a measure of information loss, so a
+    lower BIC is better. It is similar to AIC — the Akaike Information Criterion —
+    except BIC tends to produce more parsimonious models: it prefers models with fewer
+    features. Minimizing either AIC or BIC tends to reduce overfitting. But other
+    objective functions could also be used instead, e.g. R-squared (the explained
+    variance in the target) or adjusted R-squared — just keep in mind that a larger
+    R-squared is better, so that’s a maximization problem.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ultimately, the choice of objective function is irrelevant here. What matters
+    is that we have one objective function that we’re consistently trying to optimize
+    using various techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The full code used in this series of articles is contained in a single notebook
+    in [my feature selection repository](https://github.com/FlorinAndrei/fast_feature_selection)
+    — also linked at the end. I will provide code snippets within the text here, but
+    please check the notebook for the full context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’re going to try and minimize BIC via feature selection, so here is the baseline
+    value of BIC from `statsmodels.api.OLS()`, before any feature selection is done
+    — with all features enabled:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: And now let’s check a well-known, tried-and-true feature selection technique,
+    which we will compare with the more complex techniques described later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SFS — Sequential Feature Search
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: SFS, the forward version, is fairly simple. It starts by trying to choose a
+    single feature, and it selects that feature that minimizes the objective function.
+    Once a feature is selected, it stays selected forever. Then it tries to add another
+    feature to it (for a total of 2 features), in such a way as to minimize the objective
+    again. It increases the number of selected features by 1, every time trying to
+    find the best new feature to add to the existing collection. The search ends when
+    all features are tried together. Whichever combination minimizes the objective,
+    wins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SFS is a greedy algorithm — each choice is locally optimal — and it never goes
+    back to correct its own mistakes. But it’s reasonably fast even when N is quite
+    large. The total number of combinations it tries is `N(N+1)/2` which is a quadratic
+    polynomial (whereas an exhaustive search needs to perform an exponential number
+    of trials).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s see what the SFS code may look like in Python, using [the mlxtend library](https://rasbt.github.io/mlxtend/):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It runs through the combinations quickly and these are the summary results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The best number of features is 36 out of 213\. The best BIC is 33708.986 (baseline
+    value before feature selection is 34570.166), and it takes less than 1 minute
+    to complete on my system. It invokes the objective function 22.8k times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These are the best BIC and R-squared values, as functions of the number of
+    features selected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/20e26ad1e5129f0b3912d6f93c631f45.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: BIC and R-squared for SFS
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more information, such as the names of the features actually selected, check
+    the notebook in the repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s try something more complex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CMA-ES (Covariance Matrix Adaptation Evolution Strategy)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is a numeric optimization algorithm. It’s in the same class as genetic
+    algorithms (they’re both evolutionary), but CMA-ES is quite distinct from GA.
+    The algorithm is stochastic, and it does not require you to compute a derivative
+    of the objective function (unlike gradient descent, which relies on partial derivatives).
+    It is computationally efficient, and it’s used in a variety of numeric optimization
+    libraries such as Optuna. I will only attempt a brief sketch of CMA-ES here; for
+    more detailed explanations, please refer to the literature in the links section
+    at the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the 2-dimensional Rastrigin function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b415948f91befc1f571507180fe93343.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Rastrigin function
+  prefs: []
+  type: TYPE_NORMAL
+- en: The heatmap below shows the values of this function — brighter colors mean a
+    higher value. The function has the global minimum in the origin (0, 0), but it’s
+    peppered with many local extremes. We need to find the global minimum via CMA-ES.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3ab2749810f8ad107b61626be88b40b2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: the Rastrigin function heatmap
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'CMA-ES is based on the multivariate normal distribution. It generates test
+    points in the search space from this distribution. You will have to guess the
+    original mean value of the distribution, and its standard deviation, but after
+    that the algorithm will iteratively modify all these parameters, sweeping the
+    distribution through the search space, looking for the best objective function
+    values. Here’s the original distribution that the test points are drawn from:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/96ce2563d3ce0d11d42c6536bc729bbe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: CMA-ES distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`xi` is the set of points that the algorithm generates at each step, in the
+    search space. `lambda` is the number of points generated. The mean value of the
+    distribution will be updated at every step, and hopefully will converge eventually
+    on the true solution. `sigma` is the standard deviation of the distribution —
+    the spread of the test points. `C` is the covariance matrix: it defines the shape
+    of the distribution. Depending on the values of `C` the distribution may have
+    a “round” shape or a more elongated, oval shape. Changes to `C` allow CMA-ES to
+    “sneak” into certain areas in the search space, or avoid other areas.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb3ae64a92ba6cb4fec5961083196b0b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: first generation of test points
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A population of 6 points was generated in the image above, which is the default
+    population size picked by the optimizer for this problem. This is the first step.
+    After this, the algorithm needs to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: compute the objective function (Rastrigin) for each point
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: update the mean, the standard deviation, and the covariance matrix, effectively
+    creating a new multivariate normal distribution, based on what it has learned
+    from the objective function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: generate a new set of test points from the new distribution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: repeat until some criterion is fulfilled (either converge on some mean value,
+    or exceed the maximum number of steps, etc.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'I will not show the updates for all distribution parameters here, or else this
+    article will become very large — check the links at the end for a complete explanation.
+    But updating just the mean value of the distribution is quite simple, and it works
+    like this: after computing the objective function for each test point, weights
+    are assigned to the points, with the larger weights given to the points with a
+    better objective value, and a weighted sum is calculated from their positions,
+    which becomes the new mean. Effectively, CMA-ES moves the distribution mean value
+    towards the points with a better objective value:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4474eeec4e64e343df3764a94a715f94.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: updating the CMA-ES distribution mean
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the algorithm converges to the true solution, then the mean value of the
+    distribution will converge to that solution. The standard deviation will converge
+    to 0\. The covariance matrix will change the shape of the distribution (round
+    or oval), depending on the geography of the objective function, extending into
+    promising areas, and shying away from bad areas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an animated GIF showing the evolution in time of the test points while
+    CMA-ES is solving the Rastrigin problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c7360fac3216f40f0db4b34caab8535e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: animation showing the convergence of CMA-ES
+  prefs: []
+  type: TYPE_NORMAL
+- en: CMA-ES for feature selection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The 2D Rastrigin function was relatively simple, since it only has 2 dimensions.
+    For our feature selection problem, we have N=213 dimensions. Moreover, the space
+    is not continuous. Each test point is an N-dimensional vector with component values
+    from `{0, 1}` . In other words, each test point looks like this: `[1, 0, 0, 1,
+    1, 1, 0, ...]` — a binary vector. But other than that, the problem is the same:
+    we need to find the points (or vectors) that minimize the objective function:
+    the BIC parameter of an OLS model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a simple version of the CMA-ES code for feature selection, using [the
+    cmaes library](https://github.com/CyberAgentAILab/cmaes):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The CMA-ES optimizer is defined with some initial guesses for the mean value
+    and for sigma (standard deviation). It then loops through many generations, creating
+    test points `x_for_eval` , evaluating them with the objective, modifying the distribution
+    (mean, sigma, covariance matrix), etc. Each `x_for_eval` point is a binary vector
+    `[1, 1, 1, 0, 0, 1, ...]` used to select the features from the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please note that the `CMAwM()` optimizer is used (CMA with margin) instead of
+    the default `CMA()`. The default optimizer works well for regular, continuous
+    problems, but the search space here is high-dimensional, and only two discrete
+    values (0 and 1) are allowed. The default optimizer gets stuck in this space.
+    `CMAwM()` enlarges a bit the search space (while the solutions it returns are
+    still binary vectors), and that seems enough to unblock it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This simple code definitely works, but it’s far from optimal. In the companion
+    notebook, I have a more complex, optimized version of it, which is able to find
+    better solutions, faster. But the code is big, so I will not show it here — [check
+    the notebook](https://github.com/FlorinAndrei/fast_feature_selection).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image below shows the history of the complex, optimized CMA-ES code searching
+    for the best solution. The heatmap shows the prevalence / popularity of each feature
+    at every generation (brighter = more popular). You can see how some features are
+    always very popular, while others fall out of fashion quickly, and yet others
+    are “discovered” later. The population size picked by the optimizer, given the
+    parameters of this problem, is 20 points (individuals), so feature popularity
+    is averaged across these 20 points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9cec9295c8e62cbf369a4fad1e66e18a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: CMA-ES optimization history
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These are the main stats of the optimized CMA-ES code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: It was able to find a better (smaller) objective value than SFS, it invoked
+    the objective function fewer times (20k), and it took about the same time to do
+    it. This is a net gain over SFS by all metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Again, the baseline BIC before any feature selection is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a side note: after studying traditional optimization algorithms (genetic
+    algorithms, simulated annealing, etc), CMA-ES was a pleasant surprise. It has
+    almost no hyperparameters, it’s computationally lightweight, it only needs a small
+    population of individuals (points) to explore the search space, and yet it performs
+    pretty well. It’s worth keeping it in your toolbox if you need to solve optimization
+    problems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This is part 1 of a two-part series about feature selection. Read* [*part
+    2 here*](/efficient-feature-selection-via-genetic-algorithms-d6d3c9aff274)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notes and links
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thank you, [cmaes team](https://github.com/CyberAgentAILab/cmaes), for unblocking
+    me. Your explanations really helped!
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images were created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Repository with all code: [https://github.com/FlorinAndrei/fast_feature_selection](https://github.com/FlorinAndrei/fast_feature_selection)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The House Prices dataset (MIT license): [https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data](https://www.kaggle.com/c/house-prices-advanced-regression-techniques/data)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The mlxtend library: [https://github.com/rasbt/mlxtend](https://github.com/rasbt/mlxtend)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The cmaes library: [https://github.com/CyberAgentAILab/cmaes](https://github.com/CyberAgentAILab/cmaes)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*cmaes : A Simple yet Practical Python Library for CMA-ES* — a paper by Nomura
+    M. and Shibata M. (2024) describing practical applications of CMA-ES as an optimization
+    algorithm: [https://arxiv.org/abs/2402.01373](https://arxiv.org/abs/2402.01373)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The CMA Evolution Strategy: A Tutorial* — a paper by Hansen N. (2016) describing
+    CMA-ES in detail: [https://arxiv.org/abs/1604.00772](https://arxiv.org/abs/1604.00772)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Wikipedia entry on CMA-ES: [https://en.wikipedia.org/wiki/CMA-ES](https://en.wikipedia.org/wiki/CMA-ES)'
+  prefs: []
+  type: TYPE_NORMAL

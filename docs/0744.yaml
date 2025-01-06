@@ -1,0 +1,474 @@
+- en: Build a (recipe) recommender chatbot using RAG and hybrid search (Part I)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20](https://towardsdatascience.com/build-a-recipe-recommender-chatbot-using-rag-and-hybrid-search-part-i-c4aa07d14dcf?source=collection_archive---------2-----------------------#2024-03-20)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This tutorial will teach you how to create sparse and dense embeddings and build
+    a recommender system using hybrid search
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Sebastian
+    Bahr](../Images/082ca57697e35575127e71308a613b54.png)](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)
+    [Sebastian Bahr](https://medium.com/@sebastianbahr?source=post_page---byline--c4aa07d14dcf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c4aa07d14dcf--------------------------------)
+    ·14 min read·Mar 20, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6619ea46b5aacdb61382fdadae8d715d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Katie Smith](https://unsplash.com/@kate5oh3?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/avocado-tomatoes-eggs-mushrooms-spring-onions-and-leaves-uQs1802D0CQ?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This tutorial provides a step-by-step guide with code on how to create a chatbot-style
+    recommender system. By the end, you will have built a recommender that uses the
+    user’s open-text input to find matching items through a hybrid search on sparse
+    and dense vectors. The dataset used in this tutorial contains recipes. However,
+    you can easily replace the dataset with one that suits your needs with minimal
+    adjustments. The first part of this task will focus on building the recommender
+    system, which involves data cleaning, creating sparse and dense embeddings, uploading
+    them to a vector database, and performing dense vector search and hybrid search.
+    In the second part, you will create a chatbot that generates responses based on
+    user input and recommendations, and a UI using a Plotly dashboard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To follow this tutorial, you will need to set up accounts for paid services
+    such as Vertex AI, OpenAI API, and Pinecone. Fortunately, most services offer
+    free credits, and the costs associated with this tutorial should not exceed $5\.
+    Additionally, you can reduce costs further by using the files and datasets provided
+    on my GitHub [repository](https://github.com/sebastianbahr/RecipeRecommender).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data preparation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For this project, we will use recipes from [Public Domain Recipes](https://publicdomainrecipes.com/).
+    All recipes are stored as markdown files in this GitHub [repository.](https://github.com/ronaldlong46/public-domain-recipes)
+    For this tutorial, I already did some data cleaning and created features from
+    the raw text input. If you are keen on doing the data cleaning part yourself,
+    the code is available on my GitHub [repository](https://github.com/sebastianbahr/RecipeRecommender).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset consists of the following columns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*title:* the title of the recipe'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*date:* the date the recipe was added'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*tags:* a list of tags that describe the meal'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*introduction:* an introduction to the recipe, the content varies strongly
+    between records'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*ingredients:* all needed ingredients. Note that I removed the quantity as
+    it is not needed for creating embeddings and contrary may lead to undesirable
+    recommendations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*direction:* all required steps you need to perform to cook the meal'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*recipe_type:* indicator if the recipe is vegan, vegetarian, or regular'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*output:* contains the *title*, *ingredients,* and *direction* of the recipe
+    and will be later provided to the chat model as input.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s have a look at the distribution of the *recipe_type* feature. We see that
+    the majority (60%) of the recipes include fish or meat and aren’t vegetarian-friendly.
+    Approximately 35% are vegetarian-friendly and only 5% are vegan-friendly. This
+    feature will be used as a hard filter for retrieving matching recipes from the
+    vector database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7fe0a3fb021229bc428ebc654abad1a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/493e0101786f39c0ad909cc73d765734.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Distribution of recipe types
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hybrid search uses a combination of sparse and dense vectors and a weighting
+    factor *alpha,* which allows adjusting the importance of the dense vector in the
+    retrieval process. In the following, we will create dense vectors based on the
+    *title*, *tags*, and *introduction* and sparse vectors on the *ingredients*. By
+    adjusting *alpha* we can therefore later on determine how much “attention” should
+    be paid to ingredients the user mentioned in its query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before creating the embeddings a new feature needs to be created that contains
+    the combined information of the *title*, the *tags*, and the *introduction*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7c5589bf23680055144fc3a93bd8e990.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Finally, before diving deeper into the generation of the embeddings we’ll have
+    a look at the output column. The second part of the tutorial will be all about
+    creating a chatbot using OpenAI that is able to answer user questions using knowledge
+    from our recipe database. Therefore, after finding the recipes that match best
+    the user query the chat model needs some information it builds its answer on.
+    That’s where the *output* is used, as it contains all the needed information for
+    an adequate answer
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Further, a unique identifier needs to be added to each recipe, which allows
+    retrieving the records of the recommended candidate recipes and their *output*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Generate sparse embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step involves creating sparse embeddings for all 360 observations.
+    To calculate these embeddings, a more sophisticated method than the frequently
+    used TF-IDF or BM25 approach is used. Instead, the SPLADE **Sp**arse **L**exical
+    **a**n**d** **E**xpansion model is applied. A detailed explanation of SPLADE can
+    be found [here](https://www.pinecone.io/learn/splade/). Dense embeddings have
+    the same shape for each text input, regardless of the number of tokens in the
+    input. In contrast, sparse embeddings contain a weight for each unique token in
+    the input. The dictionary below represents a sparse vector, where the token ID
+    is the key and the assigned weight is the value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/69a25dad27f8097f9e1d64df625d39e1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: sparse embeddings of the first recipe
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating dense embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point of the tutorial, some costs will arise if you use a text embedding
+    model from VertexAI (Google) or OpenAI. However, if you use the same dataset,
+    the costs will be at most $5\. The cost may vary if you use a dataset with more
+    records or longer texts, as you are charged by tokens. If you do not wish to incur
+    any costs but still want to follow the tutorial, particularly the second part,
+    you can download the pandas DataFrame *recipes_with_vectors.pkl* with pre-generated
+    embedding data from my GitHub [repository.](https://github.com/sebastianbahr/RecipeRecommender)
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can choose to use either VertexAI or OpenAI to create the embeddings. OpenAI
+    has the advantage of being easy to set up with an API key, while VertexAI requires
+    logging into Google Console, creating a project, and adding the VertexAI API to
+    your project. Additionally, the OpenAI model allows you to specify the number
+    of dimensions for the dense vector. Nevertheless, both of them create state-of-the-art
+    dense embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using VertexAI API
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using OpenAI API
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Upload data to vector database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'After generating the sparse and dense embeddings, we have all the necessary
+    data to upload them to a vector database. In this tutorial, Pinecone will be used
+    as they allow performing a hybrid search using sparse and dense vectors and offer
+    a serverless pricing schema with $100 free credits. To perform a hybrid search
+    later on, the similarity metric needs to be set to dot product. If we would only
+    perform a dense instead of a hybrid search we would be able to select one of these
+    similarity metrics: dot product, cosine, and Euclidean distance. More information
+    about similarity metrics and how they calculate the similarity between two vectors
+    can be found [here](https://www.pinecone.io/learn/vector-similarity/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/164af1e806cbfad149d54caeb0a5d067.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Congratulations on creating your first Pinecone index! Now, it’s time to upload
+    the embedded data to the vector database. If the embedding model you used creates
+    vectors with a different number of dimensions, make sure to adjust the *dimension*
+    argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it’s time to upload the data to the newly created Pinecone index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you are curious about what the uploaded data looks like, log in to Pinecone,
+    select the newly created index, and have a look at its items. For now, we don’t
+    need to pay attention to the score, as it is generated by default and indicates
+    the match with a vector randomly generated by Pinecone. However, later we will
+    calculate the similarity of the embedded user query with all items in the vector
+    database and retrieve the *k* most similar items. Further, each item contains
+    an item ID generated by Pinecone, and the metadata, which consists of the recipe
+    *ID* and its *recipe_type*. The dense embeddings are stored in *Values* and the
+    sparse embeddings in *Sparse Values.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62c6420c8583f925846f22822a799b95.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The first three items of the index (*Image by author*)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can fetch the information from above using the Pinecone Python SDK. Let’s
+    have a look at the stored information of the first item with the index item ID
+    50.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/67424101a92329f08d02ba4bac2b2dfb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As in the Pinecone dashboard, we get the item ID of the element, its metadata,
+    the sparse values, and the dense values, which are stored in the list at the bottom
+    of the truncated output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Search
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will solely use dense vectors to find the best-matching
+    entries in our database (*dense search*). In the second step, we will utilize
+    the information stored in both the sparse and dense vectors to perform a hybrid
+    search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regular search using dense vectors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To test the functionality of our recommender system, we will attempt to obtain
+    recommendations for a vegetarian Italian dish. It is important to note that the
+    same model must be used to generate the dense embeddings as the one used to embed
+    the recipes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using OpenAI API
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: After embedding the user text, we can query the vector database for the recipes
+    that resemble the user query the most. As previously defined Pinecone uses the
+    dot product to calculate the similarity score. Further, we specify that Piencone
+    should return the metadata of the recommended items, as we need the *ID* of the
+    recipe to filter the recipes database and get the output of the corresponding
+    items. The parameter *top_k* allows us to specify the number of matches that should
+    be returned and lastly, we specify with a hard filter to only recommend coffee
+    blends that cost equal to or less than the indicated price (10.0). More information
+    on how the filtering of metadata works in Pinecone can be found [here](https://docs.pinecone.io/docs/metadata-filtering).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c10907a654af67b069ab69bcc05a33b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: After obtaining the IDs of the recommended recipes we can easily query the *recipes*
+    dataset for them and have a look at their *output*. The *output* contains all
+    the needed information as the *title*, the *ingredients*, and the *directions*.
+    A look at the first recommendations reveals that they are all vegetarian, this
+    is not surprising as we applied a “hard” filter, but they are all Italian dishes
+    as requested by the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d13ce43cfeefe2b52d9d511f9ee2b074.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: recipes with the highest similarity scores
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Hybrid Search
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now it’s time to implement hybrid search. The concept sounds fancier than it
+    is and you will realize it when we implement it in just two lines of code. Hybrid
+    search weights the values of the dense vector by a factor *alpha* and the values
+    of the sparse vector by *1-alpha.* In other words, *alpha* determines how much
+    “attention” should be paid to the dense respectively the sparse embeddings of
+    the input text. If *alpha=1* we perform a pure dense vector search, *alpha=0.5*
+    is a pure hybrid search, and *alpha=0* is a pure sparse vector search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As you remember the sparse and dense vectors were created using different information.
+    Whereas the sparse vector contains information about the ingredients, the dense
+    vector incorporates the title, tags, and introduction. Therefore, by changing
+    *alpha* we can tell the query engine to prioritize some features of the recipes
+    more than others. Let’s use an alpha of 1 first and run a pure dense search on
+    the user query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What can I cook with potatos, mushrooms, and beef?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Unfortunately, besides beef, the recommended recipe doesn’t contain any of the
+    other mentioned ingredients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate sparse embeddings
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Generate dense embeddings
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s set alpha to 0.5 and have a look at the ingredients of the recommended
+    recipe. This alpha score leads to a much better result and the recommended recipe
+    contains all three asked ingredients:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 500g beef
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 300–400g potatoes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2–3 champignon mushrooms
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Congratulations, you made it to the end of this tutorial!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final remarks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The implementation of hybrid search is meaningfully different between pod-based
+    and serverless indexes. If you switch from one to the other, you may experience
+    a regression in accuracy or performance.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When you query a serverless index, the dense value of the query is used to retrieve
+    the initial candidate records, and then the sparse value is considered when returning
+    the final results.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this tutorial, you have learned how to embed a dataset using sparse and dense
+    embeddings and use dense and hybrid search to find the closest matching entries
+    in a vector database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the second part, you will build a chatbot using a GPT 3.5-turbo model with
+    function calling and generate a UI using Plotly Dash. Have a look at it if you’re
+    curious and enjoyed the first part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please support my work!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you liked this blog post, please leave a clap or comment. To stay tuned follow
+    me on [Medium](https://medium.com/@sebastianbahr) and [LinkedIn](https://www.linkedin.com/in/sebastian-bahr-61b58b197/).
+  prefs: []
+  type: TYPE_NORMAL

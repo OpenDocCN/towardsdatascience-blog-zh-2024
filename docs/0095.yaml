@@ -1,0 +1,631 @@
+- en: How to Build a Semantic Search Engine for Emojis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-build-a-semantic-search-engine-for-emojis-ef4c75e3f7be?source=collection_archive---------8-----------------------#2024-01-10](https://towardsdatascience.com/how-to-build-a-semantic-search-engine-for-emojis-ef4c75e3f7be?source=collection_archive---------8-----------------------#2024-01-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Find The Sentiment You’re Looking For 🔍🤔😀🚀
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jacob_marks?source=post_page---byline--ef4c75e3f7be--------------------------------)[![Jacob
+    Marks, Ph.D.](../Images/94d9832b8706d1044e3195386613bfab.png)](https://medium.com/@jacob_marks?source=post_page---byline--ef4c75e3f7be--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ef4c75e3f7be--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ef4c75e3f7be--------------------------------)
+    [Jacob Marks, Ph.D.](https://medium.com/@jacob_marks?source=post_page---byline--ef4c75e3f7be--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ef4c75e3f7be--------------------------------)
+    ·15 min read·Jan 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/38c4d89af0b8bd1549b7af17e735042e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Semantic search over emojis for “halloween” using a custom emoji search engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you’ve ever used Google Docs, or Slack, you may have noticed that when you
+    type a “:” immediately followed by another character, a list of emojis pops up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/22de006beada9fd015206018637aeaf2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Since I discovered this, I’ve been making *major* use out of the feature. I
+    add emojis into way more of my messages, blog posts, and other written works than
+    I ever imagined I would. I actually got so accustomed to this means of adding
+    emojis that I installed [Rocket](https://matthewpalmer.net/rocket/) — a free app
+    that brings the same emoji searchability to all text boxes and text editors on
+    the computer. It’s a game changer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But as I’ve used these emoji search engines more and more, I’ve noticed a frustrating
+    limitation: all of the searches are based on the *exact* text in your query and
+    in the name and description of the emoji. Essentially, you need to search for
+    something incredibly precisely for any results to show up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example: if we search for “audio”, not a single result shows up:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8a07cd9f11d0ee6dbaebc12f5c01ab83.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This isn’t because the set of emojis is lacking in the audio category. If we
+    were to type in “music” or “speaker”, we would get a long list of results. Instead,
+    it has to do with the fact that the specific string of text “audio” does not show
+    up in the name or textual description associated with any of the emojis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4df2c1363dab033580d0ac83ffbf4870.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This relatively minor inconvenience bothered me so much that I decided to build
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: By “this”, I mean an open-source semantic emoji search engine, with both UI-centric
+    and CLI versions. The Python CLI library can be found [here](https://github.com/jacobmarks/emoji_search),
+    and the UI-centric version can be found [here](https://github.com/jacobmarks/emoji-search-plugin).
+    You can also play around with a hosted (also free) version of the UI emoji search
+    engine online [here](https://try.fiftyone.ai/datasets/emojis/samples).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2bb7629d1dedcae260e9e34cf7d77451.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Command line version of the Semantic Emoji Search Engine*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building this was not as simple or straightforward as I initially hoped. It
+    took a lot of experimentation, and a lot of ideas I thought were quite clever
+    fell essentially flat. But in the end, I was able to create an emoji search engine
+    that works fairly well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s how I built it, what worked, and what didn’t, and the lessons learned
+    along the way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[What is an Emoji](#ae15)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[The Data](#a881)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Emojis versus Images and Text](#2396)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Bridging the Modality Gap](#89d6)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Using the Emoji Search Engine](#733f)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is an Emoji
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before building a semantic search engine for emojis, it’s worth briefly explaining
+    what exactly an emoji is. The term *emoji* derives from the Japanese kanji 絵 (eh)
+    meaning *picture*, and 文字 (mōji) meaning letter or character. Essentially, this
+    means that an emoji is etymologically a pictogram, and while it is connected to
+    the English word *emotion,* it is not an “emotion icon” — that is an [emoticon](https://en.wikipedia.org/wiki/Emoticon).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Along with [alphanumeric characters](https://en.wikipedia.org/wiki/List_of_Unicode_characters#Latin_script),
+    [African click sounds](https://en.wikipedia.org/wiki/Latin_Extended-B#African_letters_for_clicks),
+    [mathematical](https://en.wikipedia.org/wiki/List_of_Unicode_characters#Mathematical_symbols)
+    and [geometric symbols](https://en.wikipedia.org/wiki/List_of_Unicode_characters#Geometric_Shapes),
+    [dingbats](https://en.wikipedia.org/wiki/List_of_Unicode_characters#Dingbats),
+    and [computer control sequences](https://en.wikipedia.org/wiki/List_of_Unicode_characters#Control_codes),
+    emojis can be represented as Unicode characters, making them computer-readable.
+    Unlike alphanumeric characters and other symbols, however, emojis are *maintained*
+    by the [Unicode Consortium](https://home.unicode.org/)*.* The consortium solicits
+    proposals for new emojis, and regularly selects which emojis will be added to
+    the standard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the time of writing, in November 2023, there are [more than 3,600 recognized
+    emojis](https://home.unicode.org/emoji/about-emoji/), symbolizing a wide range
+    of ideas and sentiments. Some emojis are represented by a single unicode character,
+    or *code-point*. For example, the “grinning face” emoji, 😀, is represented in
+    unicode as U+1F600.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Others are represented with sequences of code-points. These sequences, which
+    combine single code-point emojis with the zero-width-joiner unicode character,
+    are known as ZWJ sequences, and allow for the combining of concepts, in much the
+    same way as [Chinese radicals](https://en.wikipedia.org/wiki/Kangxi_radical) can
+    be combined to create a character that tells a story. As an example, the emoji
+    👨‍👩‍👧is a zero-width joining of the emojis for *man* 👨(U+1F468), *woman* 👩(​​U+1F469),
+    and *girl* 👧(U+1F467), connected by the ZWJ code-point U+200D:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'According to the Unicode Consortium, 92% of the world’s online population uses
+    emojis in their communications, and the ten most-used emojis in 2021 were: 😂 ❤️
+    🤣 👍 😭 🙏 😘 🥰 😍 😊.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Starting with the Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Given that emojis are pictographs of sorts, I wanted to utilize both textual
+    and visual information in the search process. My initial hypothesis was that for
+    many emojis, the name — the text string used to invoke the emoji — conveys but
+    a fraction of its meaning. This can be due to many reasons, from the limitations
+    of natural language, to the additional meanings imbued by cultures and visual
+    similarities. In order to truly bring the full essence of the emoji to bear, I
+    needed to make use of visual information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I found this [Kaggle Emojis dataset](https://www.kaggle.com/datasets/subinium/emojiimage-dataset)
+    from 2021, which has data about 1816 emojis, including the emoji representation,
+    the text associated with it, the unicode code (or codes), and a [base64](https://en.wikipedia.org/wiki/Base64)
+    encoded image. Here’s what the first few rows of the dataset look like, loaded
+    as a pandas DataFrame:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ac2785f516f75b2549052b5388d10910.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'There are separate columns with names `Apple`, `Google`, `Facebook`, etc. because
+    the emoji renders differently depending on the computer, website, or application.
+    I decoded the images from base64 and converted them into [Pillow](https://pypi.org/project/Pillow/)
+    images. Here is the first image from the Kaggle dataset (grinning face):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d2948f4c8927c66d864a400e50897b2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Upon conversion, however, it became clear that the images were very low resolution.
+    This one, for instance, is only 72x72 pixels. To improve the quality of the images
+    that I was going to pass into downstream models, and to improve the quality of
+    the experience in the eventual UI-based application, I passed all of these low-resolution
+    images into [Real-ESRGAN](https://replicate.com/nightmareai/real-esrgan) to 10x
+    the resolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is what the resulting images looked like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d6b93d5b04f05729c9f7dc4e48f6164.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Not all of the emojis had images for all of the image columns in the pandas
+    DataFrame, so I used the first viable base64 encoding for each row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Emojis Versus Images and Text
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before diving any deeper, I want to emphasize one crucial element of emojis
+    that makes them so special, and deserving of their own semantic search engine:
+    in a sense, they are *both* images and text. From the human perspective, we can
+    represent each emoji as a unicode character, on the same playing field as text
+    characters, and we can represent it as a standalone image, both of which we saw
+    in the previous section. Said another way, if we squint with one eye, we can see
+    a pictogram as a picture, and if we squint with the other eye, we can see the
+    same pictogram as text.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Computers, however, are not known for their ability to squint. While a computer
+    may be able to display a unicode code-point as an emoji, a machine learning model
+    may not have a good way of interpreting the emoji as text or images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever I’m working on semantic search applications that connect images and
+    text, I start with a family of models known as [contrastive language image pre-training](https://github.com/openai/CLIP)
+    (CLIP). These models are trained on image-text pairs to generate similar vector
+    representations or [*embeddings*](/neural-network-embeddings-explained-4d028e6f0526)
+    for images and their captions, and dissimilar vectors when images are paired with
+    other text strings. There are multiple CLIP-style models, including [OpenCLIP](https://github.com/mlfoundations/open_clip)
+    and [MetaCLIP](https://github.com/facebookresearch/metaclip), but for simplicity
+    we’ll focus on the original CLIP model from OpenAI. No model is perfect, and at
+    a fundamental level there is no *right* way to compare images and text, but CLIP
+    certainly provides a good starting point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpreting Emojis as Text
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At a high level, language models process input text by converting it into an
+    ordered sequence of *tokens*, and then *encoding* the tokens and positional information
+    in a dense numerical vector. Each language model has its own *vocabulary* of tokens
+    to decompose a text string into, spanning from individual letters to complete
+    words. Some tokens are easily interpretable by a human, while others are not,
+    and in the case of CLIP, the vocabulary has 49,408 entries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s see an explicit example. Assuming the CLIP library is installed, we can
+    *tokenize* a text string “a dog” with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output tensor contains four nonzero entries: 49406, 320, 1929, and 49407\.
+    To make sense of these, we can map these values back to keys in the [CLIP vocabulary
+    dictionary](https://huggingface.co/openai/clip-vit-base-patch32/resolve/main/vocab.json).
+    The first number, 49406, corresponds to the key “<|startoftext|>”, and the last
+    number, 49407 corresponds to the key “<|endoftext|>”. These are special tokens
+    denoting the beginning and end of the text string to be encoded. The second number,
+    320, maps back to “a</w>”, which signifies the character “a” followed by a new
+    word. Finally, 1929 is the value for key “dog</w>”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we try to tokenize a string containing an emoji, however, we quickly run
+    into a hitch: emojis don’t get tokenized in the same way as other characters do.
+    Let’s start with the dog emoji 🐶:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Doing a reverse lookup for the key associated with 10,631, we get the token
+    “ðŁĲ¶</w>”. But if we pass this string into the tokenizer, we get a completely
+    different set of token IDs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'An even more curious case concerns the flag emojis. If we take the emoji for
+    the flag of Cameroon, for instance, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The two non-start/end tokens here correspond to “ðŁĩ¨ðŁĩ” and “²</w>”. If we
+    plug the first of these back into the tokenizer, we get another completely different
+    set of token IDs, but the second maps back to itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Things get even more precarious when we start comparing embeddings of text strings
+    with embeddings of emojis, parsed as text strings via this tokenizer. After all,
+    we want to find the most relevant emojis given a *text query*. We can use the
+    [cosine distance](https://medium.com/@milana.shxanukova15/cosine-distance-and-cosine-similarity-a5da0e4d9ded)
+    as a way to measure how similar or different two vectors are — and by proxy the
+    inputs that generated those embedding vectors are. A distance of 0 means that
+    two vectors are completely aligned, and a distance of 1 implies that two vectors
+    are orthogonal. If we wanted to treat emojis as text, we would want the name for
+    an emoji to be relatively close to the tokenized emoji in the embedding space,
+    but this is not always the case!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The utility below will compare an emoji and a list of text prompts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here’s an example, where according to CLIP, the encoding for the “birthday”
+    emoji 🎂is closer to “man” than “birthday”, closer to “dog” than “birthday present”,
+    and closer to “car” than “candle”, “date”, or “holiday”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Sometimes, the emoji and its name (and similar concepts) are close together
+    in the embedding space, but sometimes they are most certainly not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also go the other way and retrieve the emojis whose embeddings most
+    closely match the embedding of an input text prompt. For instance, for the input
+    “love”, we get the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9df5407cefbb3a9eb346f00af77ca861.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Of course, we can do way better than this!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpreting Emojis as Images
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The high-resolution images of emojis that we generated using Real-ESRGAN provide
+    an alternative pathway to searching through our emojis: treating emojis as *images*.
+    We can use CLIP’s vision encoder to embed the images into the same vector space,
+    and then query these image embeddings with our input text prompt.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For applications like cross-modal retrieval (or semantically searching images
+    with text), CLIP typically works best when the image embeddings are compared to
+    a text prompt that is the user’s query wrapped in the phrase “A photo of <query>”.
+    As an example, the image embedding for a photo of a dog will be closer (in terms
+    of the angle between the vectors) to the embedding of “A photo of a dog” than
+    the embedding of the raw query “dog”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, when I used this template, the results were underwhelming. For instance,
+    here are the 25 top results for the query “A photo of a dog”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d281ba379d7de5eb874e930f9e631113.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Because emojis aren’t exactly *photos*, I decided to dig a little deeper into
+    this and try out a few templating, or wrapping strategies. To cover my bases,
+    I test five formats for text prompts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: <emoji_name>
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A photo of a <emoji_name>
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: An emoji of <emoji_name>
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A photo of a <emoji_name> emoji
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A <emoji_name> emoji
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: I generated embeddings for all 1816 emojis with each of these methods, and computed
+    the CLIPScore (cosine similarity multiplied by 100) of these vectors with the
+    corresponding image embedding vectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here were the aggregate results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: From these statistics, I thought that the “An emoji of” descriptors were the
+    best fit of the bunch, as they had the highest mean and max. But when I tried
+    to use this, the results were again less than ideal. They seemed to preference
+    faces (e.g. 😄😢🙃👦👧), to the detriment of other emojis like symbols, animals, and
+    flags. When it came to semantic emoji searches, I found that entering the raw
+    text tended to work best. In other words, the CLIP embedding of “dog” worked better
+    than “A photo of a dog”, or “An emoji of a dog”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There were a few takeaways from this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall image-text “alignment” isn’t necessarily important for semantic search
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The images of the emojis encode (to some degree) the fact that they are not
+    photos
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The word “emoji” biases CLIP toward faces
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bridging the Modality Gap
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: By this point, I had come to the conclusion that treating emojis as just images
+    or just text leaves a lot of rich information on the table. To build a robust
+    semantic emoji search engine, I wanted to incorporate both textual and image information,
+    and bridge the gap between these two modalities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I tried generating descriptions of the emoji images using Adept’s multimodal
+    [Fuyu-8b](https://www.adept.ai/blog/fuyu-8b) model, but these descriptions proved
+    far too detailed; I tried using other CLIP-style models like [MetaCLIP](https://github.com/facebookresearch/metaclip),
+    but saw the same behavior as in CLIP; I even tried using [GPT-4V](https://openai.com/research/gpt-4v-system-card)
+    to generate captions for the emoji images, but was cut off by OpenAI because the
+    rate limit for the model is 100 queries per day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the end, I was able to pass the emoji unicode characters into the base GPT-4
+    API with the prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: After post-processing these captions, I removed the “A photo of” prefix and
+    used these descriptions in the semantic search pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The emoji search engine works as follows, taking in an input *query*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate a set of 100 candidate emojis (out of 1816) with an image similarity
+    search that compares the image embeddings to the query embedding. Save this ordering,
+    *clip_image_ordering.*
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Order these candidate emojis by the similarity of the CLIP embeddings of the
+    emoji names to the query’s embedding (*clip_name_ordering*).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using a [cross-encoder](https://ai.plainenglish.io/decoding-sentence-representations-a-comprehensive-guide-to-cross-encoders-and-bi-encoders-67c4ac16e35f),
+    order the emojis based on the similarity of their name (*cross_encoder_name_ordering*)
+    and their description generated by GPT-4 (*cross_encoder_description_ordering*)
+    to the query.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Combine all four orderings using [reciprocal rank fusion](https://www.elastic.co/guide/en/elasticsearch/reference/current/rrf.html),
+    and return the top results!
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The resulting search engine isn’t perfect, but it does a decent job at incorporating
+    textual and visual information. Because using a cross-encoder is more computationally
+    expensive (and higher latency), this is reserved for the pared-down set of candidates.
+    I use the `distilroberta-base` checkpoint with the `CrossEncoder` class from the
+    [Sentence Transformers](https://www.sbert.net/index.html) library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When all of these steps are combined, this is the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ddaf850b6a4265b791b6faf02d0df4f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Again, it isn’t perfect. But it’s not bad!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the Emoji Search Engine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are three ways to use this emoji search engine: hosted (free), locally
+    via UI (open source), or locally via command line (also open source). All three
+    options are quite easy!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Online
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Head over to [try.fiftyone.ai/datasets/emojis](https://try.fiftyone.ai/datasets/emojis/samples),
+    sign in (it’s free), and click on the emoji button in the menu above the grid
+    of images. That’s it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locally via the UI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you want to perform emoji searches locally with the same visual interface,
+    you can do so with the [Emoji Search plugin](https://github.com/jacobmarks/emoji-search-plugin)
+    for [FiftyOne](https://github.com/voxel51/fiftyone).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, install FiftyOne:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then download the Emoji Search plugin and install its requirements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Launch the FiftyOne App:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Click on the “browse operations” text, search for “emoji”, and click on the
+    entry “Create Emoji Dataset”. This will download the high-resolution images of
+    the emojis, along with embeddings and all other relevant data. At the top left
+    of the app, click in the “Select dataset” box and select “Emojis”. Now you should
+    see the same UI as in the hosted version.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Locally via the CLI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Finally, you can search via the command line using the [Emoji Search](https://github.com/jacobmarks/emoji_search)
+    Python CLI library. Install the package from GitHub repository with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then you can start searching using the `emoji-search` command, followed by the
+    text query (with or without quotation marks).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first search you perform will download embeddings to your device if necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All three versions support copying an emoji to clipboard with [pyperclip](https://pypi.org/project/pyperclip/).
+    In the UI, click on the image for an emoji, and you’ll see a copy button appear
+    in the menu. In the CLI, pass the `-c` argument to copy the top result to clipboard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Emojis might seem like a silly subject to obsess over. And in practice, the
+    utility of a semantic emoji search engine over lexical emoji search may be somewhat
+    limited. The real value in this endeavor is in understanding the boundaries and
+    overlaps between two modalities we traditionally think of as distinct: images
+    and text. Emojis sit squarely in this intersection and as such, they allow us
+    to probe the strengths and weaknesses — the capabilities and limitations of today’s
+    multimodal models.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Semantic Emoji Search Engine I ended up building is far from perfect. Frankly,
+    emojis have subjectivity, connoting different things for different people, that
+    is impossible to precisely bottle up. But going back to the motivating example,
+    when I type in “an audio player”, I get some solid results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1861d91728d8781810ec0c2072406e80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'I’ll end with a quote from [Nancy Gibbs](https://en.wikipedia.org/wiki/Nancy_Gibbs),
+    a Professor at the Harvard Kennedy School and former managing editor for *TIME*
+    magazine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*What makes emojis special is the fact that [they have] helped millions express
+    themselves better than even the wide array of words in the Oxford dictionary [could].*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Nancy Gibbs
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Note: All images in article created by the author unless otherwise noted*'
+  prefs: []
+  type: TYPE_NORMAL

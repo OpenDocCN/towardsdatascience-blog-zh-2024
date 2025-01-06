@@ -1,0 +1,342 @@
+- en: 'Long-form video representation learning (Part 1: Video as graphs)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/long-form-video-representation-learning-part-1-video-as-graphs-c55b609d9100?source=collection_archive---------7-----------------------#2024-05-14](https://towardsdatascience.com/long-form-video-representation-learning-part-1-video-as-graphs-c55b609d9100?source=collection_archive---------7-----------------------#2024-05-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We explore novel video representations methods that are equipped with long-form
+    reasoning capability. This is part 1 focusing on video representation as graphs
+    and how to learn light-weights graph neural networks for several downstream applications.
+    [Part II](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-2-video-as-sparse-transformers-29fbd0ed9e71)
+    focuses on sparse video-text transformers. And [Part III](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-3-latest-and-greatest-in-long-form-video-1b6dee0f5f6e)
+    provides a sneak peek into our latest and greatest explorations.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@subarna.tripathi?source=post_page---byline--c55b609d9100--------------------------------)[![Subarna
+    Tripathi](../Images/0a949764464eeef40a6d3ae0d183873f.png)](https://medium.com/@subarna.tripathi?source=post_page---byline--c55b609d9100--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c55b609d9100--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c55b609d9100--------------------------------)
+    [Subarna Tripathi](https://medium.com/@subarna.tripathi?source=post_page---byline--c55b609d9100--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c55b609d9100--------------------------------)
+    ·10 min read·May 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Existing video architectures tend to hit computation or memory bottlenecks after
+    processing only a few seconds of the video content. So, how do we enable accurate
+    and efficient long-form visual understanding? An important first step is to have
+    a model that practically runs on long videos. To that end, we explore novel video
+    representations methods that are equipped with long-form reasoning capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is long-form reasoning and why ?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we saw the huge leap of success of image-based understanding tasks with deep
+    learning models such as convolutions or transformers, the next step naturally
+    became going beyond still images and exploring video understanding. Developing
+    video understanding models require two equally important focus areas. First is
+    a large scale video dataset and the second is the learnable backbone for extracting
+    video features efficiently. Creating finer-grained and consistent annotations
+    for a dynamic signal such as a video is not trivial even with the best intention
+    from both the system designer as well as the annotators. Naturally, the large
+    video datasets that were created, took the relatively easier approach of annotating
+    at the whole video level. About the second focus area, again it was natural to
+    extend image-based models (such as CNN or transformers) for video understanding
+    since videos are perceived as a collection of video frames each of which is identical
+    in size and shape of an image. Researchers made their models that use sampled
+    frames as inputs as opposed to all the video frames for obvious memory budget.
+    To put things into perspective, when analyzing a 5-minute video clip at 30 frames/second,
+    we need to process a bundle of 9,000 video frames. Neither CNN nor Transformers
+    can operate on a sequence of 9,000 frames as a whole if it involves dense computations
+    at the level of 16x16 rectangular patches extracted from each video frame. Thus
+    most models operate in the following way. They take a short video clip as an input,
+    do prediction, followed by temporal smoothing as opposed to the ideal scenario
+    where we want the model to look at the video in its entirety.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now comes this question. If we need to know whether a video is of type ‘swimming’
+    vs ‘tennis’, do we really need to analyze a minute-worth content? The answer is
+    most certainly NO. In other words, the models optimized for video recognition,
+    most likely learned to look at background and other spatial context information
+    instead of learning to reason over what is actually happening in a ‘long’ video.
+    We can term this phenomenon as learning the spatial shortcut. These models were
+    good for video recognition tasks in general. Can you guess how do these models
+    generalize for other tasks that require actual temporal reasoning such as action
+    forecasting, video question-answering, and recently proposed episodic memory tasks?
+    Since they weren’t trained for doing temporal reasoning, they turned out not quite
+    good for those applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So we understand that datasets / annotations prevented most video models from
+    learning to reason over time and sequence of actions. Gradually, researchers realized
+    this problem and started coming up with different benchmarks addressing long-form
+    reasoning. However, one problem still persisted which is mostly memory-bound i.e.
+    how do we even make the first practical stride where a model can take a long-video
+    as input as opposed to a sequence of short-clips processed one after another.
+    To address that, we propose a novel video representation method based on Spatio-Temporal
+    Graphs Learning (SPELL) to equip the model with long-form reasoning capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Video as a temporal graph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let G = (V, E) be a graph with the node set V and edge set E. For domains such
+    as social networks, citation networks, and molecular structure, the V and E are
+    available to the system, and we say the graph is given as an input to the learnable
+    models. Now, let’s consider the simplest possible case in a video where each of
+    the video frame is considered a node leading to the formation of V. However, it
+    is not clear whether and how node t1 (frame at time=t1) and node t2 (frame at
+    time=t2) are connected. Thus, the set of edges, E, is not provided. Without E,
+    the topology of the graph is not complete, resulting into unavailability of the
+    “ground truth” graphs. One of the most important challenges remains how to convert
+    a video to a graph. This graph can be considered as a latent graph since there
+    is no such labeled (or “ground truth”) graph available in the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a video is modeled as a temporal graph, many video understanding problems
+    can be formulated as either node classification or graph classification problems.
+    We utilize a SPELL framework for tasks such as Action Boundary Detection, Temporal
+    Action Segmentation, Video summarization / highlight reels detection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Video Summarization : Formulated as a node classification problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here we present such a framework, namely VideoSAGE which stands for Video Summarization
+    with Graph Representation Learning. We leverage the video as a temporal graph
+    approach for video highlights reel creation using this framework. First, we convert
+    an input video to a graph where nodes correspond to each of the video frames.
+    Then, we impose sparsity on the graph by connecting only those pairs of nodes
+    that are within a specified temporal distance. We then formulate the video summarization
+    task as a binary node classification problem, precisely classifying video frames
+    whether they should belong to the output summary video. A graph constructed this
+    way (as shown in Figure 1) aims to capture long-range interactions among video
+    frames, and the sparsity ensures the model trains without hitting the memory and
+    compute bottleneck. Experiments on two datasets(SumMe and TVSum) demonstrate the
+    effectiveness of the proposed nimble model compared to existing state-of-the-art
+    summarization approaches while being one order of magnitude more efficient in
+    compute time and memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46bd7806ce3bad4dd5aef3c2feab206c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(image by author) Figure 1: *VideoSAGE constructs a graph from the input video
+    with each node encoding a frame. We formulate the video summarization problem
+    as a binary node classification problem*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tables below show the comparative results of our method, namely VideoSAGE,
+    on performances and objective scores. This has recently been accepted in a workshop
+    at CVPR 2024\. The paper details and more results are available [here.](https://arxiv.org/pdf/2404.10539)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7eb6d1cadf078899548713e0d781918a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(image by author) Table 1: (left) Comparison with SOTA methods on the SumMe
+    and TVSum datasets and (right) profiling inference using A2Summ, PGL-SUM and VideoSAGE.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Action Segmentation : Formulated as a node classification problem'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Similarly, we also pose the action segmentation problem as a node classification
+    in such a sparse graph constructed from the input video. The GNN structure is
+    similar to the above, except the last GNN layer is Graph Attention Network (GAT)
+    instead of SageConv as used in the video summarization. We perform experiments
+    on 50-Salads dataset. We leverage MSTCN or ASFormer as the stage 1 initial feature
+    extractors. Next, we utilize our sparse, Bi-Directional GNN model that utilizes
+    concurrent temporal “forward” and “backward” local message-passing operations.
+    The GNN model further refine the final, fine-grain per-frame action prediction
+    of our system. Refer to table 2 for the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d311245330649d21ebfc5e28487a4029.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(image by author) Table 2: Action Segmentation results on 50-Salads dataset
+    as measured by F1@.1 and Accuracy.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Video as “object-centric” spatio-temporal graph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, we will describe how we can take the similar graph based approach
+    where nodes denote “objects” instead of one whole video frame. We will start with
+    a specific example to describe the spatio-temporal graph approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e875282b21bc287d0b5ec792a2f090fd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(image by author) Figure 2: We convert a video into a canonical graph from
+    the audio-visual input data, where each node corresponds to a person in a frame,
+    and an edge represents a spatial or temporal interaction between the nodes. The
+    constructed graph is dense enough for modeling long-term dependencies through
+    message passing across the temporally-distant but relevant nodes, yet sparse enough
+    to be processed within low memory and computation budget. The ASD task is posed
+    as a binary node classification in this long-range spatial-temporal graph.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Active Speaker Detection : Task formulated as node classification'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Figure 2 illustrates an overview of our framework designed for Active Speaker
+    Detection (ASD) task. With the audio-visual data as input, we construct a multimodal
+    graph and cast the ASD as a graph node classification task. Figure 3 demonstrates
+    the graph construction process. First, we create a graph where the nodes correspond
+    to each person within each frame, and the edges represent spatial or temporal
+    relationships among them. The initial node features are constructed using simple
+    and lightweight 2D convolutional neural networks (CNNs) instead of a complex 3D
+    CNN or a transformer. Next, we perform binary node classification i.e. active
+    or inactive speaker — on each node of this graph by learning a light-weight three-layer
+    graph neural network (GNN). Graphs are constructed specifically for encoding the
+    spatial and temporal dependencies among the different facial identities. Therefore,
+    the GNN can leverage this graph structure and model the temporal continuity in
+    speech as well as the long-term spatial-temporal context, while requiring low
+    memory and computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can ask why the graph construction is this way? Here comes the influence
+    of the domain knowledge. The reason the nodes within a time distance that share
+    the same face-id are connected with each other is to model the real-world scenario
+    that if a person is taking at t=1 and the same person is talking at t=5, the chances
+    are that person is talking at t=2,3,4\. Why we connect different face-ids if they
+    share the same time-stamp? That’s because, in general, if a person is talking
+    others are most likely listening. If we had connected all nodes with each other
+    and made the graph dense, the model not only would have required huge memory and
+    compute, they would also have become noisy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We perform extensive experiments on the AVA-ActiveSpeaker dataset. Our results
+    show that SPELL outperforms all previous state-of-the-art (SOTA) approaches. Thanks
+    to sparsity (~95%) of the constructed graphs, SPELL requires significantly less
+    hardware resources for the visual feature encoding (11.2M #Params) compared to
+    ASDNet (48.6M #Params), one of the leading state-of-the-art methods of that time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5cdd5baf9097f49bfd4a92b2a7144280.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(image by author) Figure 3: (a): An illustration of our graph construction
+    process. The frames above are temporally ordered from left to right. The three
+    colors of blue, red, and yellow denote three identities that are present in the
+    frames. Each node in the graph corresponds to each face in the frames. SPELL connects
+    all the inter-identity faces from the same frame with the undirected edges. SPELL
+    also connects the same identities by the forward/backward/undirected edges across
+    the frames (controlled by a hyperparameter, τ) . In this example, the same identities
+    are connected across the frames by the forward edges, which are directed and only
+    go in the temporally forward direction. (b): The process for creating the backward
+    and undirected graph is identical, except in the former case the edges for the
+    same identities go in the opposite direction and the latter has no directed edge.
+    Each node also contains the audio information which is not shown here.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How long the temporal context is?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Refer to figure 4 below that shows the temporal context achieved by our methods
+    on two different applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The hyper-parameter τ (= 0.9 second in our experiments) in SPELL imposes additional
+    constraints on direct connectivity across temporally distant nodes. The face identities
+    across consecutive timestamps are always connected. Below is the estimate of the
+    effective temporal context size of SPELL. The AVA-ActiveSpeaker dataset contains
+    3.65 million frames and 5.3 million annotated faces, resulting in 1.45 faces per
+    frame. Averaging 1.45 faces per frame, a graph with 500 to 2000 faces in sorted
+    temporal order can span 345 to 1379 frames, corresponding to anywhere between
+    13 and 55 seconds for a 25 frame/second video. In other words, the nodes in the
+    graph might have a time difference of about 1 minute, and SPELL is able to effectively
+    reason over that long-term temporal window within a limited memory and compute
+    budget. It is noteworthy that the temporal window size in [MAAS](https://openaccess.thecvf.com/content/ICCV2021/papers/Alcazar_MAAS_Multi-Modal_Assignation_for_Active_Speaker_Detection_ICCV_2021_paper.pdf)
+    is 1.9 seconds and TalkNet uses up to 4 seconds as long-term sequence-level temporal
+    context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The work on spatio-temporal graphs for active speaker detection has been published
+    at ECCV 2022\. The manuscript can be found [here](https://link.springer.com/chapter/10.1007/978-3-031-19833-5_22)
+    . In an earlier [blog](https://community.intel.com/t5/Blogs/Tech-Innovation/Artificial-Intelligence-AI/Spatio-Temporal-Graphs-for-Long-Term-Video-Understanding/post/1425258#.Y1oG7jhUOBs.linkedin)
+    we provided more details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/951c6765f91d02fe1eb515f2fc3b7dc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(image by author) Figure 4: Left and right figure demonstrate the compartive
+    time-support of our method compared to others for Active Speaker Detection and
+    Action Detection applications, respectively.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Action Detection : Task formulated as node classification'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ASD problem setup in Ava active speaker dataset has access to the labeled
+    faces and labeled face tracks as input to the problem setup. That largely simplifies
+    the construction of the graph in terms of identifying the nodes and edges. For
+    other problems, such as Action Detection, where the ground truth object (person)
+    locations and tracks are not provided, we use pre-processing to detect objects
+    and object tracks, then utilize SPELL for the node classification problem. Similar
+    to the previous case, we utilize domain knowledge and construct a sparse graph.
+    The “object-centric” graphs are first created keeping the underlying application
+    in mind.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On an average, we achieve ~90% sparse graphs; a key difference compared to visual
+    transformer-based methods which rely on dense General Matrix Multiply (GEMM) operations.
+    Our sparse GNNs allow us to (1) achieve better performance than transformer-based
+    models; (2) aggregate temporal context over 10x longer windows compared to transformer-based
+    models (100 seconds vs 10 seconds); and (3) Achieve 2–5X compute savings compared
+    to transformers-based methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GraVi-T: Open Source Software Library'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have open-sourced our software library, GraVi-T. At present, GraVi-T supports
+    multiple video understanding applications, including Active Speaker Detection,
+    Action Detection, Temporal Segmentation, Video Summarization. See our opensource
+    software library [GraVi-T](https://github.com/IntelLabs/GraVi-T) to more on the
+    applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Highlights
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Compared to transformers, our graph approach can aggregate context over 10x
+    longer video, consumes ~10x lower memory and 5x lower FLOPs. Our first and major
+    work in this topic (Active Speaker Detection) was published at [ECCV’22](https://link.springer.com/chapter/10.1007/978-3-031-19833-5_22).
+    Watch out for our latest publication at upcoming CVPR 2024 on video summarization
+    aka video highlights reels creation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our approach of modeling video as a sparse graph outperformed complex SOTA methods
+    on several applications. It secured top places in multiple leaderboards. The list
+    includes ActivityNet 2022, Ego4D audio-video diarization challenges at ECCV 2022,
+    CVPR 2023\. [Source code](https://intelailabpage.github.io/2023/03/29/gravi-t.html)
+    for the training the past challenge winning models are also included in our open-sourced
+    software library, [GraVi-T](https://intelailabpage.github.io/2023/03/29/gravi-t.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are excited about this generic, lightweight and efficient framework and are
+    working towards other new applications. More exciting news coming soon !!!
+  prefs: []
+  type: TYPE_NORMAL

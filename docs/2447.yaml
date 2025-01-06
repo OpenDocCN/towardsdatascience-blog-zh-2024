@@ -1,0 +1,271 @@
+- en: Implementing Sequential Algorithms on TPU
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/implementing-sequential-algorithms-on-tpu-41d75c6aaa95?source=collection_archive---------8-----------------------#2024-10-07](https://towardsdatascience.com/implementing-sequential-algorithms-on-tpu-41d75c6aaa95?source=collection_archive---------8-----------------------#2024-10-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Accelerating AI/ML Model Training with Custom Operators — Part 3.A
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--41d75c6aaa95--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--41d75c6aaa95--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--41d75c6aaa95--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--41d75c6aaa95--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--41d75c6aaa95--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--41d75c6aaa95--------------------------------)
+    ·11 min read·Oct 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a2daa59de127264e6b8d93713b38f15d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Bernd Dittrich](https://unsplash.com/@hdbernd?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a direct sequel to a [previous post](https://chaimrand.medium.com/the-rise-of-pallas-unlocking-tpu-potential-with-custom-kernels-67be10ab846a)
+    on the topic of implementing custom TPU operations with [Pallas](https://jax.readthedocs.io/en/latest/pallas/index.html).
+    Of particular interest are custom kernels that leverage the unique properties
+    of the TPU architecture in a manner that optimizes runtime performance. In this
+    post, we will attempt to demonstrate this opportunity by applying the power of
+    Pallas to the challenge of running sequential algorithms that are interspersed
+    within a predominantly parallelizable deep learning (DL) workload.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will focus on [Non Maximum Suppression (NMS)](https://learnopencv.com/non-maximum-suppression-theory-and-implementation-in-pytorch/)
+    of bounding-box proposals as a representative algorithm, and explore ways to optimize
+    its implementation. An important component of computer vision (CV) [object detection](https://en.wikipedia.org/wiki/Object_detection)
+    solutions (e.g., [Mask RCNN](https://arxiv.org/abs/1703.06870)), NMS is commonly
+    used to filter out overlapping bounding boxes, keeping only the “best” ones. NMS
+    receives a list of bounding box proposals, an associated list of scores, and an
+    [IOU](https://en.wikipedia.org/wiki/IOU) threshold, and proceeds to *greedily*
+    and *iteratively* choose the remaining box with the highest score and disqualify
+    all other boxes with which it has an IOU that exceeds the given threshold. The
+    fact that the box chosen at the *n-th* iteration depends on the preceding *n-1*
+    steps of the algorithm dictates the sequential nature of its implementation. Please
+    see [here](https://learnopencv.com/non-maximum-suppression-theory-and-implementation-in-pytorch/)
+    and/or [here](https://medium.com/analytics-vidhya/non-max-suppression-nms-6623e6572536)
+    for more on the rationale behind NMS and its implementation. Although we have
+    chosen to focus on one specific algorithm, most of our discussion should carry
+    over to other sequential algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Offloading Sequential Algorithms to CPU
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The presence of a sequential algorithm within a predominantly parallelizable
+    ML model (e.g., Mask R-CNN) presents an interesting challenge. While GPUs, commonly
+    used for such workloads, excel at executing parallel operations like matrix multiplication,
+    they can significantly underperform compared to CPUs when handling sequential
+    algorithms. This often leads to computation graphs that include crossovers between
+    the GPU and CPU, where the GPU handles the parallel operations and the CPU handles
+    the sequential ones. NMS is a prime example of a sequential algorithm that is
+    commonly offloaded onto the CPU. In fact, a close analysis of [torchvision](https://pytorch.org/vision/stable/index.html)’s
+    “CUDA” implementation of [NMS](https://github.com/pytorch/vision/blob/v0.19.1/torchvision/csrc/ops/cuda/nms_kernel.cu),
+    reveals that even it runs a significant portion of the algorithm on [CPU](https://github.com/pytorch/vision/blob/v0.19.1/torchvision/csrc/ops/cuda/nms_kernel.cu#L136C33-L136C41).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Although offloading sequential operations to the CPU may lead to improved runtime
+    performance, there are several potential drawbacks to consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross-device execution between the CPU and GPU usually requires multiple points
+    of synchronization between the devices which commonly results in idle time on
+    the GPU while it waits for the CPU to complete its tasks. Given that the GPU is
+    typically the most expensive component of the training platform our goal is to
+    minimize such idle time.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In standard ML workflows, the CPU is responsible for preparing and feeding data
+    to the model, which resides on the GPU. If the data input pipeline involves compute-intensive
+    processing, this can strain the CPU, leading to “input starvation” on the GPU.
+    In such scenarios, offloading portions of the model’s computation to the CPU could
+    further exacerbate this issue.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To avoid these drawbacks you could consider alternative approaches, such as
+    replacing the sequential algorithm with a comparable alternative (e.g., the one
+    suggested [here](https://hertasecurity.com/wp-content/uploads/work-efficient-parallel-non-maximum-suppression.pdf)),
+    settling for a slow/suboptimal GPU implementation of the sequential algorithm,
+    or running the workload on CPU — each of which come with their own potential trade-offs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sequential Algorithms on TPU
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is where the unique architecture of the TPU could present an opportunity.
+    Contrary to GPUs, TPUs are sequential processors. While their ability to run highly
+    vectorized operations makes them competitive with GPUs when running parallelizable
+    operations such as matrix multiplication, their sequential nature could make them
+    uniquely suited for running ML workloads that include a mix of both sequential
+    and parallel components. Armed with the [Pallas extension](https://jax.readthedocs.io/en/latest/pallas/index.html)
+    to JAX, our [newfound TPU kernel creation](https://chaimrand.medium.com/the-rise-of-pallas-unlocking-tpu-potential-with-custom-kernels-67be10ab846a)
+    tool, we will evaluate this opportunity by implementing and evaluating a custom
+    implementation of NMS for TPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disclaimers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The NMS implementations we will share below are intended for demonstrative purposes
+    only. We have not made any significant effort to optimize them or to verify their
+    robustness, durability, or accuracy. Please keep in mind that, as of the time
+    of this writing, Pallas is an *experimental* feature — still under active development.
+    The code we share (based on [JAX](https://pypi.org/project/jax/) version 0.4.32)
+    may become outdated by the time you read this. Be sure to refer to the most up-to-date
+    APIs and resources available for your Pallas development. Please do not view our
+    mention of any algorithm, library, or API as an endorsement for their use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NMS on CPU
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We begin with a simple implementation of NMS in [numpy](https://numpy.org/)
+    that will serve as a baseline for performance comparison:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To evaluate the performance of our NMS function, we generate a batch of random
+    boxes and scores (as JAX tensors) and run the script on a [Google Cloud TPU v5e](https://cloud.google.com/tpu/docs/v5e)
+    system using the same environment and same benchmarking utility as in our [previous
+    post](https://chaimrand.medium.com/the-rise-of-pallas-unlocking-tpu-potential-with-custom-kernels-67be10ab846a).
+    For this experiment, we specify the CPU as the [JAX default device](https://jax.readthedocs.io/en/latest/_autosummary/jax.default_device.html):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resultant average runtime is 2.99 milliseconds. Note the assumption that
+    the input and output tensors reside on the CPU. If they are on the TPU, then the
+    time to copy them between the devices should also be taken into consideration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NMS on TPU
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If our NMS function is a component within a larger computation graph running
+    on the TPU, we might prefer a TPU-compatible implementation to avoid the drawbacks
+    of cross-device execution. The code block below contains a JAX implementation
+    of NMS specifically designed to enable acceleration via JIT compilation. Denoting
+    the number of boxes by *N*, we begin by calculating the IOU between each of the
+    *N(N-1)* pairs of boxes and preparing an *N*x*N* boolean tensor (*mask_threshold*)where
+    the (*i,j*)-th entry indicates whether the IOU between boxes *i* and *j* exceed
+    the predefined threshold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To simplify the iterative selection of boxes, we create a copy of the mask
+    tensor (*mask_threshold2*) where the diagonal elements are zeroed to prevent a
+    box from suppressing itself. We further define two score-tracking tensors: *out_scores*,
+    which retains the scores of the chosen boxes (and zeros the scores of the eliminated
+    ones), and *remaining_scores*, which maintains the scores of the boxes still being
+    considered. We then use the [jax.lax.while_loop](https://jax.readthedocs.io/en/latest/_autosummary/jax.lax.while_loop.html)
+    function to iteratively choose boxes while updating the *out_scores* and *remaining_scores*
+    tensors. Note that the format of the output of this function differs from the
+    previous function and may need to be adjusted to fit into subsequent steps of
+    the computation graph.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The runtimes of this implementation of NMS are 1.231 and 0.416 milliseconds
+    on CPU and TPU, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom NMS Pallas Kernel
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We now present a custom implementation of NMS in which we explicitly leverage
+    the fact that on TPUs Pallas kernels are executed in a [sequential manner](https://jax.readthedocs.io/en/latest/pallas/grid_blockspec.html#grid-a-k-a-kernels-in-a-loop).
+    Our implementation uses two boolean matrix masks and two score-keeping tensors,
+    similar to the approach in our previous function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We define a kernel function, *choose_box*, responsible for selecting the next
+    box and updating the score-keeping tensors, which are maintained in scratch memory.
+    We invoke the kernel across a one-dimensional grid where the number of steps (i.e.,
+    the grid-size) is determined by the *max_output_size* parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that due to some [limitations](https://jax.readthedocs.io/en/latest/pallas/tpu/details.html#supported-operations)
+    (as of the time of this writing) on the operations supported by Pallas, some acrobatics
+    are required to implement both the “argmax” function and the validity check for
+    the selected boxes. For the sake of brevity, we omit the technical details and
+    refer the interested reader to the comments in the code below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The average runtime of our custom NMS operator is 0.139 milliseconds, making
+    it roughly three times faster than our JAX-native implementation. This result
+    highlights the potential of tailoring the implementation of sequential algorithms
+    to the unique properties of the TPU architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in our Pallas kernel implementation, we load the full input tensors
+    into [TPU VMEM memory](https://jax.readthedocs.io/en/latest/pallas/tpu/pipelining.html#constraints-of-using-vmem-smem).
+    Given the limited capacity of VMEM, scaling up the input size (i.e., increase
+    the number of bounding boxes) will likely lead to memory issues. Typically, such
+    limitations can be addressed by [chunking the inputs](https://jax.readthedocs.io/en/latest/pallas/grid_blockspec.html#blockspec-a-k-a-how-to-chunk-up-inputs)
+    with BlockSpecs. Unfortunately, applying this approach would break the current
+    NMS implementation. Implementing NMS across input chunks would require a different
+    design, which is beyond the scope of this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The results of our experiments are summarized in the table below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f06e6fa7106deb64169f9bfcf4f9b70.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of NMS experiments (lower is better) — by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: These results demonstrate the potential for running full ML computation graphs
+    on TPU, even when they include sequential components. The performance improvement
+    demonstrated by our Pallas NMS operator, in particular, highlights the opportunity
+    of customizing kernels in a way that leverages the TPUs strengths.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our [previous post](https://chaimrand.medium.com/the-rise-of-pallas-unlocking-tpu-potential-with-custom-kernels-67be10ab846a)
+    we learned of the opportunity for building custom TPU operators using the Pallas
+    extension for JAX. Maximizing this opportunity requires tailoring the kernel implementations
+    to the specific properties of the TPU architecture. In this post, we focused on
+    the sequential nature of the TPU processor and its use in optimizing a custom
+    NMS kernel. While scaling the solution to support an unrestricted number of bounding
+    boxes would require further work, the core principles we have discussed remain
+    applicable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still in the experimental phase of its development, there remain some limitations
+    in Pallas that may require creative workarounds. But the strength and potential
+    are clearly evident and we anticipate that they will only increase as the framework
+    matures.
+  prefs: []
+  type: TYPE_NORMAL

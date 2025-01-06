@@ -1,0 +1,385 @@
+- en: Optimizing Marketing Campaigns with Budgeted Multi-Armed Bandits
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/optimizing-marketing-campaigns-with-budgeted-multi-armed-bandits-a65fccd61878?source=collection_archive---------5-----------------------#2024-08-16](https://towardsdatascience.com/optimizing-marketing-campaigns-with-budgeted-multi-armed-bandits-a65fccd61878?source=collection_archive---------5-----------------------#2024-08-16)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: With demos, our new solution, and a video
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vadim.arzamasov?source=post_page---byline--a65fccd61878--------------------------------)[![Vadim
+    Arzamasov](../Images/70ced2eafa6fc926052979875a0a4265.png)](https://medium.com/@vadim.arzamasov?source=post_page---byline--a65fccd61878--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a65fccd61878--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a65fccd61878--------------------------------)
+    [Vadim Arzamasov](https://medium.com/@vadim.arzamasov?source=post_page---byline--a65fccd61878--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a65fccd61878--------------------------------)
+    ·9 min read·Aug 16, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/55a83b9cdcdd0c333303cd1cc2b0619f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by authors with GPT-4o
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s dive right into a running example. Suppose a bank or a telecom company
+    launches a new product/plan for existing customers. To promote this product, the
+    company creates several call templates (scripts) for its sales representatives.
+    The goal is to effectively convince customers to buy the new product or sign up
+    for the new plan.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s how the campaign works:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Call script creation:** The marketing team develops multiple versions of
+    the call script, each with a different approach to promoting the new product or
+    plan.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Agent calls:** Sales agents use these scripts to call a subset of customers.
+    Each customer interaction uses one of the predefined scripts.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Data Collection:** During the calls, the company collects data on customer
+    responses, such as interest shown, questions asked, and, ultimately conversion
+    rates (i.e., how many customers buy the new product or sign up for the new plan).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Real-time analysis:** The company analyzes this data in real time to evaluate
+    the effectiveness of each script. This analysis helps determine which scripts
+    are more successful in converting customers to the new plan/product.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Strategy Update:** Based on ongoing analysis, the company dynamically adjusts
+    the frequency of use of each script. Scripts with higher conversion rates are
+    used more often, ensuring that the campaign becomes increasingly effective over
+    time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Next, we show how to model a simple version of this campaign using the conventional
+    multi-armed bandit problem. As we add more details to make this model more realistic,
+    we demonstrate how existing solutions and their simple adaptations fall short.
+    We then present a new budgeted multi-armed bandit algorithm from our paper accepted
+    for the KDD 2024 conference that performs very well at this task. We also provide
+    links to the code and a short video summarizing the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this story, “we” is used because I am writing it together with Marco Heyden
+    ([Linkedin](https://www.linkedin.com/in/marco-heyden-036375156/), [Github](https://github.com/heymarco)),
+    the author of the algorithm idea and of our paper [1]. All subsequent plots are
+    created by us and with the code from this [Jupyter notebook](https://github.com/heymarco/OmegaUCB/blob/medium_post/MediumGraphs.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Multi-armed Bandit Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our scenario is similar to a multi-armed bandit (MAB) problem. Imagine a player
+    in a casino facing a slot machine (“bandit”) with multiple arms, each with an
+    unknown payoff (reward) distribution. The player’s goal is to maximize their total
+    winnings by deciding which arms to play and how often to play each one. The challenge
+    lies in balancing **exploration**, trying different arms to gather information
+    about their rewards, and **exploitation**, using the information gathered to play
+    the arm with the highest known reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our example, each call script acts like a slot machine arm, where the reward
+    is the success of the script. The reward is 1 if the customer signs up for the
+    new plan or buys the new product and 0 otherwise. For instance, three call scripts
+    with conversion rates of *0.1*, *0.3*, and *0.7* have successes following a Bernoulli
+    distribution with expected values of *0.1*, *0.3*, and *0.7*, respectively. The
+    figure below illustrates the cumulative rewards for different strategies. The
+    purple line represents using the **script 1** with a conversion rate of *0.1*,
+    while the green line represents using the **script 3** with a conversion rate
+    of *0.7*. These lines define the range of probable rewards. The light blue line
+    shows the cumulative reward for a strategy that randomly selects a script for
+    each call. In a realistic environment where only **estimates** of conversion rates
+    are available, the cumulative reward of a good strategy should be close to the
+    green line and at least above the light blue line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b97615e347ddcfff1b6142a200d49b35.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A popular strategy for the multi-armed bandit problem is the Upper Confidence
+    Bound (UCB) algorithm [2]. It assigns an upper confidence bound to the expected
+    reward of each arm (call script) and plays the arm with the highest upper confidence
+    bound. In this way, the algorithm actively explores actions with high uncertainty
+    while exploiting actions with high known rewards. Mathematically, the UCB algorithm
+    plays the arm *i,* which solves
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6bee372fad712b4b37a1ca32275063d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*rᵢ(t)* is the **empirical** mean reward of arm *i* up to time *t*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Nᵢ(t)* is the number of times arm *i* has been played up to time *t*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*t* is the total number of plays so far.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The white line in the figure below shows this strategy in action for our example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a19ab6f9cf4b5b6e71d1cbfc8c39a10c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This upper bound is based on the Chernoff-Hoeffding bounds assuming a payoff
+    distribution with support in [0,1], which is exactly our case. For reward distributions
+    with different support [a*ᵢ*ʳ,b*ᵢ*ʳ], where aᵢʳ and a*ᵢ*ʳ are finite, the UCB
+    should be scaled accordingly:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/faa210a12056d9487ddab651356ba58b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Importance of the Budget
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far we have focused on maximizing the sum of rewards after a given number
+    of calls. However, it is unrealistic to expect calls corresponding to different
+    scripts to have the same duration. If the marketing team’s capacity does not allow
+    them to reach all customers within a given time budget (e.g., several months),
+    it would be more practical to maximize the cumulative reward for a given call
+    duration rather than the number of calls.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our example, assume that the call duration (=costs) for **scripts 1**, **2**,
+    and **3** are constant (we will relax this assumption later) and equal *1*, *2*,
+    and *8* minutes, respectively. If we now plot the results based on the total call
+    duration instead of the number of calls, the strategy that always uses **script
+    2** becomes the best choice, while the strategy that uses **script 3** becomes
+    the worst. The above UCB strategy that only considers conversion rates now performs
+    much worse than a random strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5a4d274d04fea2f00a452e848323ffa7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'It is not difficult to cure the UCB strategy by normalizing reward estimates
+    *rᵢ(t)* wit*h cᵢ* counterparts and adjusting the UCB as in formula (2) above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2d4afca2106e95bd1087e51c69df2f2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The UCB strategy that was updated in this way is working quite well again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b82a9d31388ad0b6c8de1bbe64f741b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Random Call Duration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Observe that the assumption of a fixed call duration is also unrealistic. When
+    both reward and cost are not fixed, there are several ways to extend the UCB strategy
+    to this case, such as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reductive:** By treating the reward to cost ratio *vᵢ=rᵢ/cᵢ* as a single
+    random variable and pulling the arm with the highest upper bound UCB*ᵢᵛ* of it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d7ab7d3534c9c520e92024230b169cc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**United:** By ignoring the variation in costs and using their estimates *cᵢ(t)*
+    to scale the UCB*ᵢʳ* of rewards similarly to formula (3):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d6594c1d73d09c1d7725f02b5e70fd15.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Composite:** By pulling the arm that maximizes the ratio UCB*ᵢʳ/*LCB*ᵢᶜ*
+    of the upper reward bound to the lower cost bound:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9a22c90c36f6116bba9671560e2c8a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In (6) we assume that the rewards come from *[0,1]*, as before, to keep the
+    formula a bit simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the above strategies have problems, being either excessively optimistic,
+    too pessimistic, or just optimizing the wrong quantity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **Reductive** strategy (4)seeks to maximize the expectation of the reward-cost
+    ratio 𝔼(*vᵢ*)=𝔼(*rᵢ/cᵢ*). This is different from the campaign goal of maximizing
+    reward while keeping costs within a given budget. For sufficiently high budgets,
+    the latter is equivalent to maximizing the ratio of reward and cost expectations
+    𝔼(*rᵢ*)*/*𝔼(*cᵢ*). To see why 𝔼(*rᵢ/cᵢ*)*≠*𝔼(*rᵢ*)*/*𝔼(*cᵢ*), observe that if
+    both *rᵢ* and *cᵢ* are i.i.d. Bernoulli distributed variables, then 𝔼(*rᵢ*)*/*𝔼(*cᵢ*)*=1*,
+    while 𝔼(*rᵢ/cᵢ*) is infinite or undefined, depending on how you resolve the division
+    by zero. The support of *vᵢ=rᵢ/cᵢ* is also infinite in this case, making the UCB
+    formula (4) useless.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because the **United** strategy does not account for cost variation, it often
+    produces upper confidence bounds that are too tight, limiting the exploration
+    part of the strategy. This happens whenever the empirical mean of the costs exceeds
+    the true mean, e.g. in 50% of the cases with a symmetric cost distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **Composite** strategy explicitly models uncertainty in costs. However,
+    this model is too conservative, allowing the denominator to be zero or even negative(!).
+    As a result, the composite strategy spends too many resources on exploration and
+    undervalues the exploitation step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note also that the upper bound for the mean reward discussed so far can be well
+    above 1, even though we know that the reward takes values in *{0,1}*. In such
+    a case, this bound is obviously too loose, which may increase exploration and
+    thus partially offset the effect of considering the costs fixed in the **United**
+    strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following plot shows the performance of all three strategies for our example
+    setting, where we now model the call duration with beta distributions with support
+    *[1,10]* and expected values of *1*, *2*, and *8* minutes for **scripts 1**, **2**,
+    and **3**, respectively. The **Reductive** strategy performs almost as poorly
+    as selecting a random script, the **Composite** strategy performs slightly better,
+    and the **United** strategy emerges as the clear winner. But can one beat the
+    **United** strategy?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c3bfb542d5898b7868a92dfbc4232fc1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Our Solution: Asymmetric Confidence Intervals'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our ω-UCB strategy addresses the shortcomings of the previously described solutions.
+    While we start with the same ratio of UCB*ᵢʳ*/LCB*ᵢᶜ* as the composite strategy,
+    we use a different method to compute these bounds. Our confidence intervals are
+    more precise and remain within the support of the rewards or costs. Specifically,
+    let *p* be a bounded random variable — either a reward or a cost — with support
+    *[a,b]*. We compute the confidence interval *[*LCB*ᵖ*, UCB*ᵖ]* for *p* as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/36754f8229e783e24d9eb3cfa9ef806a.png)![](../Images/f0c4c5e86829d8df30dd5a937e530a54.png)![](../Images/77c2468bdc80721b55824dd9fda421ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*μ* is the empirical mean of *p* at time *t*,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*σ²* is the empirical variance of *p* at time *t*,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*N* is the number of observations of *p* up to time *t*,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*t* is the current time,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*c* is the number of arm pulls after which one expects reliable estimates of
+    mean and variance; in practice, *c=30* works well,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*ρ* is the parameter of ω-UCB; *ρ=1* gives better asymptotic properties of
+    ω-UCB, but for practical use, when the number of games is *~10⁴* or less, we recommend
+    *ρ=1/4.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The following figure shows how good the ω-UCB is. Using it provides almost the
+    maximum possible cumulative reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b121d0fe1b5c56d663f8a5e30630e03f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We also created a 2-minute video summarizing the idea of the ω-UCB:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Video created by Marco Heyden for KDD 2024\. If you enjoy it, please feel free
+    to give it an upvote on YouTube
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Thoughts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: By now, you are well equipped with insights on how to optimize a marketing campaign
+    in real time using instant customer feedback. We have described a powerful algorithm
+    to help you do this. However, it would be overly optimistic to assume that this
+    alone will guarantee success. Below, we outline a few additional considerations
+    that can further enhance a campaign’s effectiveness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, it is unlikely that the reward will be known immediately. Often, the
+    best you can hope for is an indication of interest from the customer. Therefore,
+    constructing a reliable proxy for the reward, perhaps using data from previous
+    campaigns, is essential.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, this discussion has focused on selecting the best script for an average
+    or representative customer. Digging a little deeper, it is likely that different
+    scripts will work better for different groups of customers. The best script may
+    vary by group. A simple approach would be to segment customers and treat each
+    segment-script combination as a separate arm in the Budgeted MAB algorithm we
+    described. In an earlier story, I discussed a method for identifying interesting
+    customer segments; for a campaign, selecting an appropriate target variable for
+    this method will be important.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/find-unusual-segments-in-your-data-with-subgroup-discovery-2661a586e60c?source=post_page-----a65fccd61878--------------------------------)
+    [## Find Unusual Segments in Your Data with Subgroup Discovery'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Patient rule induction method finds 35% better segments than previously reported
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/find-unusual-segments-in-your-data-with-subgroup-discovery-2661a586e60c?source=post_page-----a65fccd61878--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, in addition to customer characteristics, “environmental” factors such
+    as time of day or day of week can affect the relative performance of scripts.
+    To account for all of these factors, you might consider extending the methodology
+    to **contextual budgeted bandits**, which is the subject of a separate story.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Marco Heyden, Vadim Arzamasov, Edouard Fouché, and Klemens Böhm. “Budgeted
+    Multi-Armed Bandits with Asymmetric Confidence Intervals.” *KDD* ’24'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Peter Auer, Nicolo Cesa-Bianchi, and Paul Fischer. “Finite-time analysis
+    of the multiarmed bandit problem.” *Machine learning* 47 (2002): 235–256.'
+  prefs: []
+  type: TYPE_NORMAL

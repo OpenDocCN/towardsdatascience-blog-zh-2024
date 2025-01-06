@@ -1,0 +1,394 @@
+- en: 'Introducing zeroCPR: An Approach to Finding Complementary Products'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/introducing-zerocpr-an-approach-to-finding-complementary-products-20f2b98c5d03?source=collection_archive---------8-----------------------#2024-07-15](https://towardsdatascience.com/introducing-zerocpr-an-approach-to-finding-complementary-products-20f2b98c5d03?source=collection_archive---------8-----------------------#2024-07-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Recommendation Systems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Current ML models can recommend similar products, but how about complementary?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)[![Michelangiolo
+    Mazzeschi](../Images/9211748ac638d2ed07679ac73ea17296.png)](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)
+    [Michelangiolo Mazzeschi](https://medium.com/@ardito.bryan?source=post_page---byline--20f2b98c5d03--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--20f2b98c5d03--------------------------------)
+    ·9 min read·Jul 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Full zeroCPR code is open-source and available at my* [*Github repo*](https://github.com/atlantis-nova/zeroCPR)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the domain of **AI Recommendation Systems**, Machine Learning models have
+    been heavily used to recommend **similar samples**, whether products, content
+    or even suggesting similar contacts. Most of these pre-trained models are open-source
+    and can be used without training a model from scratch. However, with the lack
+    of Big Data, there is no open-source technology we can rely on for the recommendation
+    of complementary products.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following article, I am proposing a framework (with code in the form
+    of a **user-friendly library**) that exploits LLM for the discovery of complementary
+    products in a non-expensive way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My goal for introducing this framework is for it to be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Scalable**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is a framework that should not require supervision when running, that does
+    not risk breaking, and the output should be easily structured to be used in combination
+    with additional tools.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Affordable**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It should be affordable to find the complementary of thousands of products with
+    **minimum spending (approx. 1 USD per 1000 computed products — using groq pricing)**,
+    in addition, without requiring any fine-tuning (this means that it could even
+    be tested on a single product).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '****Feel free to contact me for support or feature requests. In this article,
+    I am introducing both the framework (and its respective library)* ***zeroCPR***
+    *and a new prompting technique that I call* ***Chain-of-DataFrame*** *for list
+    reasoning.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before digging into the theory of the zeroCPR framework, let us understand
+    why current technology is limited in this very domain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why do neural networks excel at recommending similar products?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: These models excel at this task because neural networks innately group samples
+    with common features in the same space region. To simplify, if, for example, a
+    neural network is trained on top of the human language, it will allocate in the
+    same space region words or sentences that have **similar meanings**. Following
+    the same principle, if trained on top of customer behavior, customers sharing
+    similar behavior will be arranged in similar space regions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bc7435d04a61d724196aaefd4203328a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'visualization of an embedding, Image from source: [https://projector.tensorflow.org/](https://projector.tensorflow.org/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The models capable of recommending similar sentences are called semantic models,
+    and they are both **light and accessible**, allowing the creation of recommendation
+    systems that **rely on language similarity** rather than customer behavior.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A retail company that lacks customer data can easily recommend similar products
+    by exploiting the capabilities of a semantic model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about complementary products?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: However, recommending **complementary products** is a totally different task.
+    To my knowledge, **no open-source model is** capable of performing such an enterprise.
+    Retail companies train their custom complementary recommender systems based on
+    their data, resulting in models that are difficult to generalize, and that are
+    industry-specific.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The zeroCPR framework
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**zeroCPR** stands for **zero-shot complementary product recommender**. The
+    functioning is simple. By receiving a **list of your available products** and
+    **reference products**, it tried to find if in your list there are complementary
+    products that can be recommended.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Large Language Models can easily recommend complementary products. You can ask
+    ChatGPT to output what products can be paired with a toothbrush, and it will likely
+    recommend **dental floss** and **toothpaste**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, my goal is to create an **enterprise-grade tool** that can work with
+    our custom data. ChatGPT may be correct, but it is generating an unstructured
+    output that cannot be integrated with our list of products.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The **zeroCPR framework** can be outlined as follows, where we apply the following
+    3 steps for each product in our product list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e3ec98c4fe0f08e574e41a46ee8a1df5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: zeroCPR framework, Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. List complementary products
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As explained, the first bottleneck to solve is finding actual complementary
+    products. Because similarity models are out of the question, we need to use a
+    LLM. The execution of the first step is quite simple. Given an **input product
+    (ex. Coca-Cola)**, produce a list of valid complementary products a user may purchase
+    with it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I have asked the LLM to output a perfectly parsable list using Python: once
+    parsed, we can visualize the output.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9eb66118a65fcdb9167d5f8879bd8d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: list of valid complementary products, Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The results are not bad at all: these are all products that are likely to be
+    purchased **in pairs with Coca-Cola**. There is, however, a small issue: THESE
+    PRODUCTS MAY NOT BE IN OUR DATA.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Matching the available products in our data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step is trying to match every complementary product suggested by the
+    LLM with a corresponding product in our dataset. For example, we want to match
+    “Nachos” with the closest possible product in our dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can perform this matching using vector search. For each LLM product, we will
+    match it with the most semantically similar in our dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c24f77f37759972448a8d7bb6d3b8a87.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: similarity matching, Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see, the results are far from accurate. **“Nachos”** will be matched
+    with **“SET OF SALT AND PEPPER TOADSTOOLS”**, while the closest match with **“Burgers”**
+    is **“S/2 BEACH HUT STOOLS”**.Some of the matches are valid (we can look at Napkins),
+    but if there are no valid matches, a semantic search will still fit it with an
+    irrelevant candidate. Using a **cosine similarity threshold** is, by experience,
+    a terrible method for selecting valid choices. Instead, I will use an LLM again
+    to validate the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Select correct complements using Chain-of-DataFrame
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The goal is now to validate the matching of the previous step. My first attempts
+    to match the products recommended by an LLM were frustrated by the lack of coherence
+    in the output. Though being a 70B model, when I was passing in the prompt a list
+    of products to match, the output was less than desirable (with combinations of
+    errors in the formatting and highly unrealistic output).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, I have noticed that by inputting a list of products and asking the
+    model to **reason on each sample** and **output a score (0 or 1)**: (following
+    the format of a pandas dataframe and applying a transformation to a single column),
+    the model is much more reliable (in terms of format and output). I call this prompting
+    paradigm Chain-of-Dataframe, in reference to the well-known pandas data structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8d446fb66c0b5aec8834c30ca220621.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chain-of-DataFrame, Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To give you an idea of the Chain-of-Dataframe prompting. In the following example,
+    the **{product_name}** is coca-cola, while the **{complementary_list}** is the
+    **column called recommended_product** we can see in the image below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output is a multidimensional list that can be parsed easily and immediately
+    converted again into a **pandas dataframe**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/95385a6ee7acf88510883bae38ad20e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Chain-of-Dataframe output, Image by author: Michelangiolo Mazzeschi'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice the **reasoning** and **score** columns generated by the model to find
+    the **best complementary products**. With this last step, we have been able to
+    filter out most of the irrelevant matches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***The algorithm may look similar to [CHAIN-OF-TABLE: EVOLVING TABLES IN THE
+    REASONING CHAIN FOR TABLE UNDERSTANDING](https://arxiv.org/pdf/2401.04398), but
+    I deem the one proposed above is much simpler and uses a different structure.
+    Feel free to comment if you think otherwise.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. Dealing with little data: Nearest Substitute Filling'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is **one last issue we need to address**. It is likely that, due to the
+    lack of data, the number of recommended products is minimal. In the example above,
+    we can recommend 6 complementary products, but there might be cases where we can
+    only recommend 2 or 3\. How can we improve the user experience, and expand the
+    number of valid recommendations, given the limitations imposed by our data?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c5c2160c9515207737bd2e2a01c2f5bf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Nearest Substitute Filling, Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: One solution that came to mind is, as usual, a simple one. The output from zeroCPR
+    are all complementary products (the first row of the image you can see above).
+    To fill in missing recommendations, we can find k substitutes of each complementary
+    product through semantic similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the zeroCPR engine
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'You can refer to the following [EXAMPLE NOTEBOOK](https://github.com/atlantis-nova/zeroCPR/blob/main/notebooks/example_notebook.ipynb)
+    to run the code smoothly: clone the full repository maintain the file structure,
+    and the notebook should run adjusting to the correct path.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the repository, I am using the product list obtained from the [following
+    Kaggle dataset](https://www.kaggle.com/datasets/ramzanzdemir/online-retail-gift-products).
+    The more products there are in your list, the more the search will have a chance
+    to be accurate. For now, the library only supports [GroqCloud](https://groq.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, do recall that the framework performs well with a 70B model, and has not
+    been designed or tested to match in performance with small language models (ex.
+    llama3-8B).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next step is preparing a list of products (in the format of a python list).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The library utilizes [sentence-transformers](https://sbert.net/) to encode
+    the list into vectors, so you won’t have to implement this feature yourself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finding complementaries of a single product
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This function has been built to test the performance of the engine on a single
+    product (a very inexpensive test, but with impressive results,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/95385a6ee7acf88510883bae38ad20e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: complementary products of a single item, Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finding complementaries of a list
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The core of the entire library is contained in this function. The code runs
+    the previous function on a list (it could be 10, or even 1000 products), and builds
+    a dataframe with all complementaries. The reason this function differs from the
+    previous one is not only that it can take a list as input (otherwise we could
+    have simply used a for cycle on the previous library).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Because we are dealing with a LLM, the process sometimes can fail: we cannot
+    let this inconvenience break the code. The function is designed to run an iterative
+    process of trial and error for each sample. As you can see from the output, when
+    trying to find complementaries for BLACK GEMSTONE BRACELET, the first iteration
+    was a fail (may have been because of **a wrong parsing**, or maybe **a HTTPS request
+    failure**).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The pipeline is designed to try a maximum of 5 times before giving up on a product
+    and proceeding to the next one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3668b347f4bdd5d07bc505ff3f5094ea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Final output: complementary list of inputted products, Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Immediately at the end of this process, I am saving the output dataframe into
+    a file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Enjoy!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This library is an attempt to allow for the search for complementary products
+    with a lack of data, which is a common problem in emerging businesses. In combination
+    with its main goal, it also shows how Large Language Models can be used on structured
+    data without resulting in tedious prompt tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is a huge disparity separating the businesses that own data from the ones
+    that just started. The goal of this class of algorithms is to ameliorate this
+    discrepancy, allowing even the small startup to access enterprise-tier technology.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is one of my first open-source libraries based on one of my latest experiments.
+    With some luck, this library can grow to reach a bigger audience and grow accordingly.
+    I hope you enjoy the article, and that the code provided will serve you well.
+    Godspeed!
+  prefs: []
+  type: TYPE_NORMAL

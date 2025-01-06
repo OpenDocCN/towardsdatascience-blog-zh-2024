@@ -1,0 +1,481 @@
+- en: 'Maximizing the Utility of Scarce AI Resources: A Kubernetes Approach'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b?source=collection_archive---------12-----------------------#2024-02-13](https://towardsdatascience.com/maximizing-the-utility-of-scarce-ai-resources-a-kubernetes-approach-0230ba53965b?source=collection_archive---------12-----------------------#2024-02-13)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Optimizing the use of limited AI training accelerators
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--0230ba53965b--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--0230ba53965b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0230ba53965b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0230ba53965b--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--0230ba53965b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0230ba53965b--------------------------------)
+    ·13 min read·Feb 13, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cffd5cd8990a848557b12e0d977c3003.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Roman Derrick Okello](https://unsplash.com/@okello_1?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the ever-evolving landscape of AI development, nothing rings truer than the
+    old saying (attributed to Heraclitus), “the only constant in life is change”.
+    In the case of AI, it seems that *change* is indeed constant, but the *pace of
+    change* is forever increasing. Staying relevant in these unique and exciting times
+    amounts to an unprecedented test of the capacity of AI teams to consistently adapt
+    and adjust their development processes. AI development teams that fail to adapt,
+    or are slow to adapt, may quickly become obsolete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most challenging developments of the past few years in AI development
+    has been the increasing difficulty to attain the hardware required to train AI
+    models. Whether it be due to an [ongoing crisis in the global supply chain](https://en.wikipedia.org/wiki/2021%E2%80%932023_global_supply_chain_crisis)
+    or a significant increase in the demand for AI chips, getting your hands on the
+    GPUs (or alternative training accelerators) that you need for AI development,
+    has gotten much harder. This is evidenced by the huge [wait time](https://www.nextplatform.com/2023/11/17/what-to-do-when-you-cant-get-nvidia-h100-gpus/)
+    for new GPU orders and by the fact that cloud service providers (CSPs) that once
+    offered virtually infinite capacity of GPU machines, now struggle to keep up with
+    the demand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The changing times are forcing AI development teams that may have once relied
+    on endless capacity of AI accelerators to adapt to a world with reduced accessibility
+    and, in some cases, higher costs. Development processes that once took for granted
+    the ability to spin up a new GPU machine at will, must be modified to meet the
+    demands of a world of scarce AI resources that are often shared by multiple projects
+    and/or teams. Those that fail to adapt risk annihilation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post we will demonstrate the use of [Kubernetes](https://kubernetes.io/)
+    in the orchestration of AI-model training workloads in a world of scarce AI resources.
+    We will start by specifying the goals we wish to achieve. We will then describe
+    why Kubernetes is an appropriate tool for addressing this challenge. Last, we
+    will provide a simple demonstration of how Kubernetes can be used to maximize
+    the use of a scarce AI compute resource. In subsequent posts, we plan to enhance
+    the Kubernetes-based solution and show how to apply it to a cloud-based training
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disclaimers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While this post does not assume prior experience with Kubernetes, some basic
+    familiarity would certainly be helpful. This post should not, in any way, be viewed
+    as a Kubernetes tutorial. To learn about Kubernetes, we refer the reader to the
+    many great online resources on the subject. Here we will discuss just a few properties
+    of Kubernetes as they pertain to the topic of maximizing and prioritizing resource
+    utilization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many alternative tools and techniques to the method we put forth here,
+    each with their own pros and cons. Our intention in this post is purely educational;
+    Please do not view any of the choices we make as an endorsement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, the Kubernetes platform remains under constant development, as do many
+    of the frameworks and tools in the field of AI development. Please take into account
+    the possibility that some of the statements, examples, and/or external links in
+    this post may become outdated by the time you read this and be sure to take into
+    account the most up-to-date solutions available before making your own design
+    decisions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adapting to Scarce AI Compute Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To simplify our discussion, let’s assume that we have a single worker node at
+    our disposal for training our models. This could be a local machine with a GPU
+    or a [reserved](https://aws.amazon.com/ec2/pricing/reserved-instances/) compute-accelerated
+    instance in the cloud, such as a [p5.48xlarge](https://aws.amazon.com/ec2/instance-types/p5/)
+    instance in AWS or a [TPU node](https://cloud.google.com/tpu) in GCP. In our example
+    below we will refer to this node as “my precious”. Typically, we will have spent
+    a lot of money on this machine. We will further assume that we have multiple training
+    workloads all competing for our single compute resource where each workload could
+    take anywhere from a few minutes to a few days. Naturally, we would like to maximize
+    the utility of our compute resource by ensuring that it is in constant use and
+    that the most important jobs get prioritized. What we need is some form of a [priority
+    queue](https://en.wikipedia.org/wiki/Priority_queue)and an associated priority-based
+    [scheduling](https://en.wikipedia.org/wiki/Scheduling_(computing)) algorithm.
+    Let’s try to be a bit more specific about the behaviors that we desire.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scheduling Requirements
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Maximize Utilization:** We would like for our resource to be in constant
+    use. Specifically, as soon as it completes a workload, it will promptly (and automatically)
+    start working on a new one.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Queue Pending Workloads:** We require the existence of a *queue* of training
+    workloads that are waiting to be processed by our unique resource. We also require
+    associated APIs for creating and submitting new jobs to the queue, as well as
+    monitoring and managing the state of the queue.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Support Prioritization:** We would like each training job to have an associated
+    priority such that workloads with higher priority will be run before workloads
+    with a lower priority.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Preemption:** Moreover, in the case that an urgent job is submitted to the
+    queue while our resource is working on a lower priority job, we would like for
+    the running job to be preempted and replaced by the urgent job. The preempted
+    job should be returned to the queue.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: One approach to developing a solution that satisfies these requirements could
+    be to take an existing API for submitting jobs to a training resource and wrap
+    it with a customized implementation of a priority queue with the desired properties.
+    At a minimum, this approach would require a data structure for storing a list
+    of pending jobs, a dedicated process for choosing and submitting jobs from the
+    queue to the training resource, and some form of mechanism for identifying when
+    a job has been completed and the resource has become available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An alternative approach and the one we take in this post, is to leverage an
+    existing solution for priority-based [scheduling](https://en.wikipedia.org/wiki/Scheduling_(computing))
+    that fulfils our requirements and align our training development workflow to its
+    use. The default [scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)
+    that comes with [Kubernetes](https://kubernetes.io/) is an example of one such
+    solution. In the next sections we will demonstrate how it can be used to address
+    the problem of optimizing the use of scarce AI training resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ML Orchestration with Kubernetes
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section we will get a bit philosophical about the application of Kubernetes
+    to the orchestration of ML training workloads. If you have no patience for such
+    discussions (totally fair) and want to get straight to the practical examples,
+    please feel free to skip to the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kubernetes is (another) one of those software/technological solutions that tend
+    to elicit strong reactions in many developers. There are some that swear by it
+    and use it extensively, and others that find it overbearing, clumsy, and unnecessary
+    (e.g., see [here](https://cloudnativejourney.wordpress.com/2023/04/19/kubernetes-advantages-and-disadvantages/)
+    for some of the arguments for and against using Kubernetes). As with many other
+    heated debates, it is the author’s opinion that the truth lies somewhere in between
+    — there are situations where Kubernetes provides an ideal framework that can significantly
+    increase productivity, and other situations where its use borders on an insult
+    to the SW development profession. The big question is, where on the spectrum does
+    ML development lie? Is Kubernetes the appropriate framework for training ML models?
+    Although a cursory online search might give the impression that the general consensus
+    is an emphatic “yes”, we will make some arguments for why that may not be the
+    case. But first, we need to be clear about what we mean by “ML training orchestration
+    using Kubernetes”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While there are many online resources that address the topic of ML using Kubernetes,
+    it is important to be aware of the fact that they are not always referring to
+    the same mode of use. Some resources (e.g., [here](/distributed-deep-learning-training-with-horovod-on-kubernetes-6b28ac1d6b5d))
+    use Kubernetes only for deploying a cluster; once the cluster is up and running
+    they start the training job outside the context of Kubernetes. Others (e.g., [here](https://aws.amazon.com/blogs/machine-learning/introducing-amazon-sagemaker-operators-for-kubernetes/))
+    use Kubernetes to define a pipeline in which a dedicated module starts up a training
+    job (and associated resources) using a completely different system. In contrast
+    to these two examples, many other resources define the training workload as a
+    [Kubernetes Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
+    artifact that runs on a [Kubernetes Node](https://kubernetes.io/docs/concepts/architecture/nodes/).
+    However, they too vary greatly in the particular attributes on which they focus.
+    Some (e.g., [here](https://medium.com/pytorch/a-step-by-step-guide-to-building-a-distributed-spot-based-training-platform-on-aws-using-b54acd06ecb2))
+    emphasize the auto-scaling properties and others (e.g., [here](https://blog.realvarez.com/get-more-out-of-gpus-with-nvidia-multi-instance-gpu/))
+    the Multi-Instance GPU ([MIG](https://www.nvidia.com/en-eu/technologies/multi-instance-gpu/))
+    support. They also vary greatly in the details of implementation, such as the
+    precise artifact ([Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
+    extension) for representing a training job (e.g., [ElasticJob](https://github.com/pytorch/elastic/tree/master/kubernetes),
+    [TrainingWorkload](https://docs.run.ai/v2.15/admin/workloads/workload-overview-admin/),
+    [JobSet](https://github.com/kubernetes-sigs/jobset), [VolcanoJob](https://volcano.sh/en/docs/vcjob/),
+    etc.). In the context of this post, we too will assume that the training workload
+    is defined as a [Kubernetes Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/).
+    However, in order to simplify the discussion, we will stick with the core Kubernetes
+    objects and leave the discussion of [Kubernetes extensions](https://kubernetes.io/docs/concepts/extend-kubernetes/)
+    for ML for a future post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Arguments Against Kubernetes for ML
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here are some arguments that could be made against the use of Kubernetes for
+    training ML models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Complexity:** Even its greatest proponents have to admit that Kubernetes
+    can be hard. Using Kubernetes effectively, requires a high level of expertise,
+    has a steep learning curve, and, realistically speaking, typically requires a
+    dedicated devops team. Designing a training solution based on Kubernetes increases
+    dependencies on dedicated experts and by extension, increases the risk that things
+    could go wrong, and that development could be delayed. Many alternative ML training
+    solutions enable a greater level of developer independence and freedom and entail
+    a reduced risk of bugs in the development process.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Fixed Resource Requirements:** One of the most touted properties of Kubernetes
+    is its [scalability](https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/)
+    — its ability to automatically and seamlessly scale its pool of compute resources
+    up and down according to the number of jobs, the number of clients (in the case
+    of a service application), resource capacity, etc. However, one could argue that
+    in the case of an ML training workload, where the number of resources that are
+    required is (usually) fixed throughout training, auto-scaling is unnecessary.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Fixed Instance Type:** Due to the fact that Kubernetes orchestrates *containerized*
+    applications, Kubernetes enables a great deal of flexibility when it comes to
+    the types of machines in its node pool. However, when it comes to ML, we typically
+    require very specific machinery with dedicated accelerators (such as GPUs). Moreover,
+    our workloads are often tuned to run optimally on one very specific instance type.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Monolithic Application Architecture:** It is common practice in the development
+    of modern-day applications to break them down into small elements called [microservices](https://en.wikipedia.org/wiki/Microservices).
+    Kubernetes is often seen as a key component in this design. ML training applications
+    tend to be quite monolithic in their design and, one could argue, that they do
+    not lend themselves naturally to a microservice architecture.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Resource Overhead:** The dedicated processes that are required to run Kubernetes
+    requires some system resources on each of the nodes in its pool. Consequently,
+    it may incur a certain performance penalty on our training jobs. Given the expense
+    of the resources required for training, we may prefer to avoid this.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Granted, we have taken a very one-sided view in the Kubernetes-for-ML debate.
+    Based solely on the arguments above, you might conclude that we would need a darn
+    good reason for choosing Kubernetes as a framework for ML training. It is our
+    opinion that the challenge put forth in this post, i.e., the desire to maximize
+    the utility of scarce AI compute resources, is exactly the type of justification
+    that warrants the use of Kubernetes despite the arguments made above. As we will
+    demonstrate, the default [scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)
+    that is built-in to [Kubernetes](https://kubernetes.io/), combined with its support
+    for [priority and preemption](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/)
+    makes it a front-runner for fulfilling the requirements stated above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section we will share a brief example that demonstrates the priority
+    scheduling support that is built in to Kubernetes. For the purposes of our demonstration,
+    we will use [Minikube](https://minikube.sigs.k8s.io/docs/) (version v1.32.0).
+    Minikube is a tool that enables you to run a Kubernetes cluster in a local environment
+    and is an ideal playground for experimenting with Kubernetes. Please see the official
+    documentation on [installing and getting started](https://minikube.sigs.k8s.io/docs/start/)
+    with Minikube.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cluster Creation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s start by creating a two-node cluster using the [Minikube start](https://minikube.sigs.k8s.io/docs/commands/start/)
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is a local Kubernetes cluster consisting of a master (“control-plane”)
+    node named *minikube,* and a single worker node, named *minikube-m02*, which will
+    simulate our single AI resource. Let’s apply the [label](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/)
+    *my-precious* to identify it as a unique resource type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use the [Minikube dashboard](https://minikube.sigs.k8s.io/docs/handbook/dashboard/)
+    to visualize the results. In a separate shell run the command below and open the
+    generated browser link.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you press on the *Nodes* tab on the left-hand pane, you should see a summary
+    of our cluster’s nodes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77af57927c95d3cd62defaac704ecf15.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Nodes List in Minikube Dashboard (Captured by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: PriorityClass Definitions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we define two [PriorityClasses](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/#priorityclass),
+    *low-priority* and *high-priority*, as in the *priorities.yaml* file displayed
+    below. New jobs will receive the *low-priority* assignment, by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To apply our new classes to our cluster, we run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create a Job
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We define a simple job using a *job.yaml* file displayed in the code block below.
+    For the purpose of our demonstration, we define a [Kubernetes Job](https://kubernetes.io/docs/concepts/workloads/controllers/job/)
+    that does nothing more than sleep for 100 seconds. We use [busybox](https://hub.docker.com/_/busybox)
+    as its Docker image. In practice, this would be replaced with a training script
+    and an appropriate ML Docker image. We define the job to run on our special instance,
+    *my-precious*, using the [nodeSelector](https://kubernetes.io/docs/concepts/scheduling-eviction/assign-pod-node/#nodeselector)
+    field, and specify the resource requirements so that only a single instance of
+    the job can run on the instance at a time. The priority of the job defaults to
+    *low-priority* as defined above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We submit the job with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create a Queue of Jobs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To demonstrate the manner in which Kubernetes queues jobs for processing, we
+    create three identical copies of the job defined above, named *test1*, *test2*,
+    and *test3*. We group the three jobs in a single file, *jobs.yaml*, and submit
+    them for processing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The image below captures the *Workload Status* of our cluster in the [Minikube
+    dashboard](https://minikube.sigs.k8s.io/docs/handbook/dashboard/) shortly after
+    the submission. You can see that *my-precious* has begun processing *test1*, while
+    the other jobs are *pending* as they wait their turn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6efd9f7f525b7319dd48870d0fc7c7af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cluster Workload Status (Captured by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once *test1* is completed, processing of *test2* begins:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6fd10d8f89a5fef5073ae2411edeb91c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cluster Workload Status — Automated Scheduling (Captured by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So long as no other jobs with higher priority are submitted, our jobs would
+    continue to be processed one at a time until they are all completed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Job Preemption
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We now demonstrate Kubernetes’ built-in support for [job preemption](https://kubernetes.io/docs/concepts/scheduling-eviction/pod-priority-preemption/)
+    by showing what happens when we submit a fourth job, this time with the *high-priority*
+    setting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The impact on the *Workload Status* is displayed in the image below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62ebad9df10e25effd21dbea9d2865ac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cluster Workload Status — Preemption (Captured by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The *test2* job has been *preempted* — its processing has been stopped and it
+    has returned to the *pending* state. In its stead, *my-precious* has begun processing
+    the higher priority *test-p1* job. Only once *test-p1* is completed will processing
+    of the lower priority jobs resume. (In the case where the preempted job is a ML
+    training workload, we would program it to resume from the most recent saved model
+    [model checkpoint](https://pytorch.org/tutorials/recipes/recipes/saving_and_loading_a_general_checkpoint.html)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image below displays the *Workload Status* once all jobs have been completed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f242a5d5bfa89d01de0134dba77273c3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cluster Workload Status — Completion (Captured by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kubernetes Extensions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The solution we demonstrated for priority-based scheduling and preemption relied
+    only on core components of Kubernetes. In practice, you may choose to take advantage
+    of enhancements to the basic functionality introduced by extensions such as [Kueue](https://github.com/kubernetes-sigs/kueue)
+    and/or dedicated, ML-specific features offered by platforms build on top of Kubernetes,
+    such as [Run:AI](https://www.run.ai/) or [Volcano](https://volcano.sh/en/). But
+    keep in mind that to fulfill the basic requirements for maximizing the utility
+    of a scarce AI compute resource all we need is the core Kubernetes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The reduced availability of dedicated AI silicon has forced ML teams to adjust
+    their development processes. Unlike in the past, when developers could spin up
+    new AI resources at will, they now face limitations on AI compute capacity. This
+    necessitates the procurement of AI instances through means such as purchasing
+    dedicated units and/or reserving cloud instances. Moreover, developers must come
+    to terms with the likelihood of needing to share these resources with other users
+    and projects. To ensure that the scarce AI compute power is appropriated towards
+    maximum utility, dedicated scheduling algorithms must be defined that minimize
+    idle time and prioritize critical workloads. In this post we have demonstrated
+    how the [Kubernetes scheduler](https://kubernetes.io/docs/concepts/scheduling-eviction/kube-scheduler/)
+    can be used to accomplish these goals. As emphasized above, this is just one of
+    many approaches to address the challenge of maximizing the utility of scarce AI
+    resources. Naturally, the approach you choose, and the details of your implementation
+    will depend on the specific needs of your AI development.
+  prefs: []
+  type: TYPE_NORMAL

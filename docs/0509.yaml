@@ -1,0 +1,464 @@
+- en: OpenAI vs Open-Source Multilingual Embedding Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/openai-vs-open-source-multilingual-embedding-models-e5ccb7c90f05?source=collection_archive---------0-----------------------#2024-02-24](https://towardsdatascience.com/openai-vs-open-source-multilingual-embedding-models-e5ccb7c90f05?source=collection_archive---------0-----------------------#2024-02-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Choosing the model that works best for your data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://ya-lb.medium.com/?source=post_page---byline--e5ccb7c90f05--------------------------------)[![Yann-Aël
+    Le Borgne](../Images/acc1c8b32373d7f345064b89b51869fd.png)](https://ya-lb.medium.com/?source=post_page---byline--e5ccb7c90f05--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e5ccb7c90f05--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e5ccb7c90f05--------------------------------)
+    [Yann-Aël Le Borgne](https://ya-lb.medium.com/?source=post_page---byline--e5ccb7c90f05--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e5ccb7c90f05--------------------------------)
+    ·12 min read·Feb 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4106437a23e5edaba980ce8486937d9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We’ll use the EU AI act as the data corpus for our embedding model comparison.
+    Image by Dall-E 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OpenAI recently released their new generation of embedding models, called *embedding
+    v3*, which they [describe](https://openai.com/blog/new-embedding-models-and-api-updates)
+    as their most performant embedding models, with higher multilingual performances.
+    The models come in two classes: a smaller one called `text-embedding-3-small`,
+    and a larger and more powerful one called `text-embedding-3-large`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Very little information was disclosed concerning the way these models were designed
+    and trained. As their previous embedding model release (December 2022 with the
+    ada-002 model class), OpenAI again chooses a closed-source approach where the
+    models may only be accessed through a paid API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But are the performances so good that they make it worth paying?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The motivation for this post is to empirically compare the performances of
+    these new models with their open-source counterparts**. We’ll rely on a data retrieval
+    workflow, where the most relevant documents in a corpus have to be found given
+    a user query.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our corpus will be the [European AI Act](https://artificialintelligenceact.eu/),
+    which is currently in its final stages of validation. An interesting characteristic
+    of this corpus, besides being the first-ever legal framework on AI worldwide,
+    is its availability in 24 languages. This makes it possible to compare the accuracy
+    of data retrieval **across different families of languages**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The post will go through the two main following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate a custom synthetic question/answer dataset from a multilingual text
+    corpus
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compare the accuracy of OpenAI and state-of-the-art open-source embedding models
+    on this custom dataset.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The code and data to reproduce the results presented in this post are made available
+    in [this Github repository](https://github.com/Yannael/multilingual-embeddings).
+    Note that the EU AI Act is used as an example, and the methodology followed in
+    this post can be adapted to other data corpus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate a custom Q/A dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let us first start by generating a dataset of questions and answers (Q/A) on
+    custom data, which will be used to assess the performance of different embedding
+    models. The benefits of generating a custom Q/A dataset are twofold. First, it
+    avoids biases by ensuring that the dataset has not been part of the training of
+    an embedding model, which may happen on reference benchmarks such as [MTEB](https://huggingface.co/spaces/mteb/leaderboard).
+    Second, it allows to tailor the assessment to a specific corpus of data, which
+    can be relevant in the case of retrieval augmented applications (RAG) for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will follow the simple process suggested by [Llama Index in their documentation](https://blog.llamaindex.ai/fine-tuning-embeddings-for-rag-with-synthetic-data-e534409a3971).
+    The corpus is first split into a set of chunks. Then, for each chunk, a set of
+    synthetic questions are generated by means of a large language model (LLM), such
+    that the answer lies in the corresponding chunk. The process is illustrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/debcd01ca6179cf42bb71ec7c684627d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generating a question/answer dataset for your data, methodology from [Llama
+    Index](https://blog.llamaindex.ai/fine-tuning-embeddings-for-rag-with-synthetic-data-e534409a3971)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing this strategy is straightforward with a data framework for LLM
+    such as Llama Index. The loading of the corpus and splitting of text can be conveniently
+    carried out using high-level functions, as illustrated with the following code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, the corpus is the EU AI Act in English, taken directly from
+    the Web using this [official URL](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52021PC0206).
+    We use the draft version from April 2021, as the final version is not yet available
+    for all European languages. In this version, English language can be replaced
+    in the URL by any of the 23 other EU official languages to retrieve the text in
+    a different language (BG for Bulgarian, ES for Spanish, CS for Czech, and so forth).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b228519bd3b36c7cec689ffd01b3226c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Download links to the EU AI Act for the 24 official EU languages (from [EU official
+    website](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A52021PC0206))
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use the SentenceSplitter object to split the document in chunks of 1000 tokens.
+    For English, this results in about 100 chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each chunk is then provided as context to the following prompt ([the default
+    prompt suggested in the Llama Index library](https://github.com/run-llama/llama_index/blob/c058f2531ea86ee74822cb1421ceaeee7098a99f/llama_index/finetuning/embeddings/common.py#L51)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The prompt aims at generating questions about the document chunk, as if a teacher
+    were preparing an upcoming quiz. The number of questions to generate for each
+    chunk is passed as the parameter ‘num_questions_per_chunk’, which we set to two.
+    Questions can then be generated by calling the generate_qa_embedding_pairs from
+    the Llama Index library:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We rely for this task on the GPT-3.5-turbo-0125 mode from OpenAI, which is according
+    to OpenAI the flagship model of this family, supporting a 16K context window and
+    optimized for dialog ([https://platform.openai.com/docs/models/gpt-3-5-turbo](https://colab.research.google.com/corgiredirector?site=https%3A%2F%2Fplatform.openai.com%2Fdocs%2Fmodels%2Fgpt-3-5-turbo)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The resulting objet ‘qa_dataset’ contains the questions and answers (chunks)
+    pairs. As an example of generated questions, here is the result for the first
+    two questions (for which the ‘answer’ is the first chunk of text):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) What are the main objectives of the proposal for a Regulation laying down
+    harmonised rules on artificial intelligence (Artificial Intelligence Act) according
+    to the explanatory memorandum?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 2) How does the proposal for a Regulation on artificial intelligence aim to
+    address the risks associated with the use of AI while promoting the uptake of
+    AI in the European Union, as outlined in the context information?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The number of chunks and questions depends on the language, ranging from around
+    100 chunks and 200 questions for English, to 200 chunks and 400 questions for
+    Hungarian.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation of OpenAI embedding models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Our evaluation function follows the [Llama Index documentation](https://docs.llamaindex.ai/en/stable/examples/finetuning/embeddings/finetune_embedding.html)
+    and consists in two main steps. First, the embeddings for all answers (document
+    chunks) are stored in a VectorStoreIndex for efficient retrieval. Then, the evaluation
+    function loops over all queries, retrieves the top k most similar documents, and
+    the accuracy of the retrieval in assessed in terms of MRR ([Mean Reciprocal Rank](https://en.wikipedia.org/wiki/Mean_reciprocal_rank)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The embedding model is passed to the evaluation function by means of the `embed_model`
+    argument, which for OpenAI models is an OpenAIEmbedding object initialised with
+    the name of the model, and the model dimension.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `dimensions` API parameter can shorten embeddings (i.e. remove some numbers
+    from the end of the sequence) without the embedding losing its concept-representing
+    properties. OpenAI for example suggests [in their annoucement](https://openai.com/blog/new-embedding-models-and-api-updates)
+    that on the MTEB benchmark, an embedding can be shortened to a size of 256 while
+    still outperforming an unshortened `text-embedding-ada-002` embedding with a size
+    of 1536.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We ran the evaluation function on four different OpenAI embedding models:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'two versions of `text-embedding-3-large` : one with the lowest possible dimension
+    (256), and the other one with the highest possible dimension (3072). These are
+    called ‘OAI-large-256’ and ‘OAI-large-3072’.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'OAI-small: The `text-embedding-3-small` embedding model, with a dimension of
+    1536.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'OAI-ada-002: The legacy `text-embedding-ada-002` model, with a dimension of
+    1536.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Each model was evaluated on four different languages: English (EN), French
+    (FR), Czech (CS) and Hungarian (HU), covering examples of Germanic, Romance, Slavic
+    and Uralic language, respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The resulting accuracy in terms of MRR is reported below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e85932db410223b301977602a81afcd7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary of performances for the OpenAI models
+  prefs: []
+  type: TYPE_NORMAL
+- en: As expected, for the large model, better performances are observed with the
+    larger embedding size of 3072\. Compared with the small and legacy Ada models,
+    the large model is however smaller than we would have expected. For comparison,
+    we also report below the performances obtained by the OpenAI models on the MTEB
+    benchmark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d7f95f6dd6fc1fa806136b1f0a8236bd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Performances of OpenAI embedding models, as reported in their [official announcement](https://openai.com/blog/new-embedding-models-and-api-updates)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is interesting to note that the differences in performances between the large,
+    small and Ada models are much less pronounced in our assessment than in the MTEB
+    benchmark, reflecting the fact that the average performances observed in large
+    benchmarks do not necessarily reflect those obtained on custom datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation of open-source embedding models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The open-source research around embeddings is quite active, and new models are
+    regularly published. A good place to keep updated about the latest published models
+    is the [Hugging Face 😊 MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the comparison in this article, we selected a set of four embedding models
+    recently published (2024). The criteria for selection were their average score
+    on the MTEB leaderboard and their ability to deal with multilingual data. A summary
+    of the main characteristics of the selected models are reported below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Selected open-source embedding models
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[***E5-Mistral-7B-instruct***](https://huggingface.co/intfloat/e5-mistral-7b-instruct)(E5-mistral-7b):
+    This E5 embedding model by Microsoft is initialized from [Mistral-7B-v0.1](https://huggingface.co/mistralai/Mistral-7B-v0.1)
+    and fine-tuned on a mixture of multilingual datasets. The model performs best
+    on the MTEB leaderboard, but is also by far the biggest one (14GB).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[***multilingual-e5-large-instruct***](https://huggingface.co/intfloat/multilingual-e5-large-instruct)(ML-E5-large):
+    Another E5 model from Microsoft, meant to better handle multilingual data. It
+    is initialized from [xlm-roberta-large](https://huggingface.co/xlm-roberta-large)
+    and trained on a mixture of multilingual datasets. It is much smaller (10 times)
+    than E5-Mistral, but also has a much lower context size (514).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[***BGE-M3***](https://huggingface.co/BAAI/bge-m3): The model was designed
+    by the Beijing Academy of Artificial Intelligence, and is their state-of-the-art
+    embedding model for multilingual data, supporting more than 100 working languages.
+    It was not yet benchmarked on the MTEB leaderboard as of 22/02/2024.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[***nomic-embed-text-v1***](https://huggingface.co/nomic-ai/nomic-embed-text-v1)(Nomic-Embed):
+    The model was designed by [Nomic](https://home.nomic.ai/), and claims better performances
+    than OpenAI Ada-002 and text-embedding-3-small while being only 0.55GB in size.
+    Interestingly, the model is the first to be fully reproducible and auditable (open
+    data and open-source training code).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The code for evaluating these open-source models is similar to the code used
+    for OpenAI models. The main change lies in the model specifications, where additional
+    details such as maximum context length and pooling types have to be specified.
+    We then evaluate each model for each of the four languages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The resulting accuracies in terms of MRR are reported below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f77ab24c4d15f7334aa730420a285de6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary of performances for the open-source models
+  prefs: []
+  type: TYPE_NORMAL
+- en: BGE-M3 turns out to provide the best performances, followed on average by ML-E5-Large,
+    E5-mistral-7b and Nomic-Embed. BGE-M3 model is not yet benchmarked on the MTEB
+    leaderboard, and our results indicate that it could rank higher than other models.
+    It is also interesting to note that while BGE-M3 is optimized for multilingual
+    data, it also performs better for English than the other models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We additionally report the processing times for each embedding model below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/026e18ce209b4a9150cc60b529e46e89.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Processing times in seconds for going throught the English Q/A dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: The E5-mistral-7b, which is more than 10 times larger than the other models,
+    is without surprise by far the slowest model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let us put side-by-side of the performance of the eight tested models in a single
+    figure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2098db260ef495cac46c32a79518bcc3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary of performances for the eight tested models
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The key observations from these results are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Best performances were obtained by open-source models**. The [BGE-M3](https://huggingface.co/BAAI/bge-m3)
+    model, developed by the Beijing Academy of Artificial Intelligence, emerged as
+    the top performer. The model has the same context length as OpenAI models (8K),
+    for a size of 2.2GB.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Consistency Across OpenAI’s Range**. The performances of the large (3072),
+    small and legacy OpenAI models were very similar. Reducing the embedding size
+    of the large model (256) however led to a degradation of performances.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Language Sensitivity.** Almost all models (except ML-E5-large) performed
+    best on English. Significant variations in performances were observed in languages
+    like Czech and Hungarian.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Should you therefore go for a paid OpenAI subscription, or for hosting an open-source
+    embedding model?
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenAI’s [recent price revision](https://openai.com/pricing) has made access
+    to their API significantly more affordable, with the cost now standing at $0.13
+    per million tokens. Dealing with one million queries per month (and assuming that
+    each query involves around 1K token) would therefore cost on the order of $130\.
+    Depending on your use case, it may therefore not be cost-effective to rent and
+    maintain your own embedding server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cost-effectiveness is however not the sole consideration. Other factors such
+    as latency, privacy, and control over data processing workflows may also need
+    to be considered. Open-source models offer the advantage of complete data control,
+    enhancing privacy and customization. On the other hand, latency issues have been
+    observed with OpenAI’s API, sometimes resulting in extended response times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, the choice between open-source models and proprietary solutions
+    like OpenAI’s does not lend itself to a straightforward answer. Open-source embeddings
+    present a compelling option, combining performance with greater control over data.
+    Conversely, OpenAI’s offerings may still appeal to those prioritizing convenience,
+    especially if privacy concerns are secondary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Useful links
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Companion Github repository: [https://github.com/Yannael/multilingual-embeddings](https://github.com/Yannael/multilingual-embeddings)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Everything you wanted to know about sentence embeddings (and maybe a bit more)](https://osanseviero.github.io/hackerllama/blog/posts/sentence_embeddings/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[OpenAI blog announcement: New embedding models and API updates](https://openai.com/blog/new-embedding-models-and-api-updates)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Embeddings: OpenAI guide](https://platform.openai.com/docs/guides/embeddings/embedding-models)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MTEB: Massive Text Embedding Benchmark](https://arxiv.org/abs/2210.07316)
+    and [Hugging Face MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Text Embeddings: Comprehensive Guide](/text-embeddings-comprehensive-guide-afd97fce8fb5)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A Practitioners Guide to Retrieval Augmented Generation (RAG)](https://cameronrwolfe.substack.com/p/a-practitioners-guide-to-retrieval)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[How to Find the Best Multilingual Embedding Model for Your RAG](/how-to-find-the-best-multilingual-embedding-model-for-your-rag-40325c308ebb)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Notes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The EU AI act draft is published under the [Commission’s document reuse policy](https://eur-lex.europa.eu/content/legal-notice/legal-notice.html)
+    based on [Decision 2011/833/EU](https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A32011D0833),
+    and can be re-used for commercial or non-commercial purposes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Enjoyed this post? Share your thoughts, give it claps, or* [*connect with
+    me on LinkedIn*](https://www.linkedin.com/in/yannaelb/)*.*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,186 @@
+- en: A Python Engineer’s Introduction to 3D Gaussian Splatting (Part 2)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-2-7e45b270c1df?source=collection_archive---------1-----------------------#2024-06-13](https://towardsdatascience.com/a-python-engineers-introduction-to-3d-gaussian-splatting-part-2-7e45b270c1df?source=collection_archive---------1-----------------------#2024-06-13)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding and coding how Gaussians are used within 3D Gaussian Splatting
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@dcaustin33?source=post_page---byline--7e45b270c1df--------------------------------)[![Derek
+    Austin](../Images/1bcc5955f32cb798988af5713baae212.png)](https://medium.com/@dcaustin33?source=post_page---byline--7e45b270c1df--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7e45b270c1df--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7e45b270c1df--------------------------------)
+    [Derek Austin](https://medium.com/@dcaustin33?source=post_page---byline--7e45b270c1df--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7e45b270c1df--------------------------------)
+    ·8 min read·Jun 13, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now on to gaussians! Everyone’s favorite distribution. If you are just joining
+    us, we have covered how to take a 3D point and translate it to 2D given the location
+    of the camera in [part 1](/a-python-engineers-introduction-to-3d-gaussian-splatting-part-1-e133b0449fc6).
+    For this article we will be moving onto dealing with the gaussian part of gaussian
+    splatting. We will be using part_2.ipynb in our [GitHub](https://github.com/dcaustin33/intro_to_gaussian_splatting).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One slight change that we will make here is that we are going to use perspective
+    projection that utilizes a different internal matrix than the one shown in the
+    previous article. However, the two are equivalent when projecting a point to 2D
+    and I find the first method introduced in part 1 far easier to understand, however
+    we change our method in order to replicate, in python, as much of the author’s
+    code as possible. Specifically our “internal” matrix will now be given by the
+    OpenGL projection matrix shown here and the order of multiplication will now be
+    points @ external.transpose() @ internal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c4e5dbf74788f7bb266d014014d1529f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Internal perspective projection matrix. Parameters are explained in paragraph
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For those curious to know about this new internal matrix (otherwise feel free
+    to skip this paragraph) r and l are the clipping planes of the right and left
+    sides, essentially what points could be in view with regards to the width of the
+    photo, and t and b are the top and bottom clipping planes. N is the near clipping
+    plane (where points will be projected to) and f is the far clipping plane. For
+    more information I have found scratchapixel’s chapters here to be quite informative
+    ([https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix.html](https://www.scratchapixel.com/lessons/3d-basic-rendering/perspective-and-orthographic-projection-matrix/opengl-perspective-projection-matrix.html)).
+    This also returns the points in normalized device coordinates (between -1 and
+    1) and which we then project to pixel coordinates. Digression aside the task remains
+    the same, take the point in 3D and project onto a 2D image plane. However, in
+    this part of the tutorial we are now using gaussians instead of a points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A 3D gaussian splat consists of x, y, and z coordinates as well as the associated
+    covariance matrix. As noted by the authors: “An obvious approach would be to directly
+    optimize the covariance matrix Σ to obtain 3D gaussians that represent the radiance
+    field. However, covariance matrices have physical meaning only when they are positive
+    semi-definite. For our optimization of all our parameters, we use gradient descent
+    that cannot be easily constrained to produce such valid matrices, and update steps
+    and gradients can very easily create invalid covariance matrices.”¹'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, the authors use a decomposition of the covariance matrix that will
+    always produce positive semi definite covariance matrices. In particular they
+    use 3 “scale” parameters and 4 quaternions that are turned into a 3x3 rotation
+    matrix (R). The covariance matrix is then given by
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/43f0fb2a98182c99e50f6164a9b75d00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Equation for the covariance matrix where R represents the 3x3 rotation matrix
+    derived from the 4 quaternions, and S are 3 scale parameters. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note one must normalize the quaternion vector before converting to a rotation
+    matrix in order to obtain a valid rotation matrix. Therefore in our implementation
+    a gaussian point consists of the following parameters, coordinates (3x1 vector),
+    quaternions (4x1 vector), scale (3x1 vector) and a final float value relating
+    to the opacity (how transparent the splat is). Now all we need to do is optimize
+    these 11 parameters to get our scene — simple right!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well it turns out it is a little bit more complicated than that. If you remember
+    from high school mathematics, the strength of a gaussian at a specific point is
+    given by the equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0e54c4a7f7c119a7b8fbcf1364982fdc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Strength of a gaussian at a point x is given by the mean (mu) and the inverse
+    of the covariance matrix. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, we care about the strength of 3D gaussians in 2D, ie. in the image
+    plane. But you might say, we know how to project points to 2D! Despite that, we
+    have not yet gone over projecting the covariance matrix to 2D and so we could
+    not possibly find the inverse of the 2D covariance matrix if we have yet to find
+    the 2D covariance matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now this is the fun part (depending on how you look at it). EWA Splatting, a
+    paper reference by the 3D gaussian splatting authors, shows exactly how to project
+    the 3D covariance matrix to 2D.² However, this assumes knowledge of a Jacobian
+    affine transformation matrix, which we compute below. I find code most helpful
+    when walking through a difficult concept and thus I have provided some below in
+    order to exemplify how to go from a 3D covariance matrix to 2D.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: First off, tan_fovY and tan_fovX are the tangents of half the field of view
+    angles. We use these values to clamp our projections, preventing any wild, off-screen
+    projections from affecting our render. One can derive the jacobian from the transformation
+    from 3D to 2D as given with our initial forward transform introduced in part 1,
+    but I have saved you the trouble and show the expected derivation above. Lastly,
+    if you remember we transposed our rotation matrix above in order to accommodate
+    a reshuffling of terms and therefore we transpose back on the penultimate line
+    before returning the final covariance calculation. As the EWA splatting paper
+    notes, we can ignore the third row and column seeing as we only care about the
+    2D image plane. You might wonder, why couldn’t we do that from the start? Well,
+    the covariance matrix parameters will vary depending on which angle you are viewing
+    it from as in most cases it will not be a perfect sphere! Now that we’ve transformed
+    to the correct viewpoint, the covariance z-axis info is useless and can be discarded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given that we have the 2D covariance matrix we are close to being able to calculate
+    the impact each gaussian has on any random pixel in our image, we just need to
+    find the inverted covariance matrix. Recall again from linear algebra that to
+    find the inverse of a 2x2 matrix you only need to find the determinant and then
+    do some reshuffling of terms. Here is some code to help guide you through that
+    process as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: And tada, now we can compute the pixel strength for every single pixel in an
+    image. However, doing so is extremely slow and unnecessary. For example, we really
+    don’t need to waste computing power figuring out how a splat at (0,0) affects
+    a pixel at (1000, 1000), unless the covariance matrix is massive. Therefore, the
+    authors make a choice to calculate what they call the “radius” of each splat.
+    As seen in the code below we calculate the eigenvalues along each axis (remember,
+    eigenvalues show variation). Then, we take the square root of the largest eigenvalue
+    to get a standard deviation measure and multiply it by 3.0, which covers 99.7%
+    of the distribution within 3 standard deviations. This radius helps us figure
+    out the minimum and maximum x and y values that the splat touches. When rendering,
+    we only compute the splat strength for pixels within these bounds, saving a ton
+    of unnecessary calculations. Pretty smart, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: All of these steps above give us our preprocessed scene that can then be used
+    in our render step. As a recap we now have the points in 2D, colors associated
+    with those points, covariance in 2D, inverse covariance in 2D, sorted depth order,
+    the minimum x, minimum y, maximum x, maximum y values for each splat, and the
+    associated opacity. With all of these components we can finally move onto rendering
+    an image!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Kerbl, Bernhard, et al. “3d gaussian splatting for real-time radiance field
+    rendering.” *ACM Transactions on Graphics* 42.4 (2023): 1–14.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Zwicker, Matthias, et al. “EWA splatting.” *IEEE Transactions on Visualization
+    and Computer Graphics* 8.3 (2002): 223–238.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

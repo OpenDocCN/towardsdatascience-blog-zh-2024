@@ -1,0 +1,531 @@
+- en: Local RAG From Scratch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/local-rag-from-scratch-3afc6d3dea08?source=collection_archive---------0-----------------------#2024-05-11](https://towardsdatascience.com/local-rag-from-scratch-3afc6d3dea08?source=collection_archive---------0-----------------------#2024-05-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Develop and deploy an entirely local RAG system from scratch
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[![Joe
+    Sasson](../Images/f0edde425f64b6b09d3d8d4adc953d2d.png)](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------)
+    [Joe Sasson](https://sassonjoe66.medium.com/?source=post_page---byline--3afc6d3dea08--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3afc6d3dea08--------------------------------)
+    ·18 min read·May 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bcaa6134389831879fbac286af8d1c13.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Kevin Ku](https://unsplash.com/@ikukevk?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'High-level abstractions offered by libraries like [llama-index](https://docs.llamaindex.ai/en/stable/)
+    and [Langchain](https://www.langchain.com) have simplified the development of
+    Retrieval Augmented Generation (RAG) systems. Yet, a deep understanding of the
+    underlying mechanics enabling these libraries remains crucial for any machine
+    learning engineer aiming to fully leverage their potential. In this article, I
+    will guide you through the process of developing a RAG system from the ground
+    up. I will also take it a step further, and we will create a containerized flask
+    API. I have designed this to be highly practical: this walkthrough is inspired
+    by real-life use cases, ensuring that the insights you gain are not only theoretical
+    but immediately applicable.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Use-case overview*** — This implementation is designed to handle a wide
+    array of document types. While the current example utilizes many small documents,
+    each depicting individual products with details such as SKU, name, description,
+    price, and dimensions, the approach is highly adaptable. Whether the task involves
+    indexing a diverse library of books, mining data from extensive contracts, or
+    any other set of documents, the system can be tailored to meet the specific needs
+    of these varied contexts. This flexibility allows for the seamless integration
+    and processing of different types of information.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Quick note*** — this implementation will work solely with text data. Similar
+    steps can be followed to convert images to embeddings using a multi-modal model
+    like CLIP, which you can then index and query against.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table of Contents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Outline the modular framework
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Prepare the data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Chunking, indexing, and retrieval*** *(core functionality)*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LLM component
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Build and deploy the API
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Modular Framework
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The implementation has four main components that can be swapped out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Text data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Embedding model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LLM
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vector store
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Integrating these services into your project is highly flexible, allowing you
+    to tailor them according to your specific requirements. In this example implementation,
+    I start with a scenario where the initial data is in a JSON format, which conveniently
+    provides the data as a string. However, you might encounter data in various other
+    formats such as PDFs, emails, or Excel spreadsheets. In such cases, it is essential
+    to “normalize” this data by converting it into a string format. Depending on the
+    needs of your project, you can either convert the data to a string in memory or
+    save it to a text file for further refinement or downstream processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, the choices of embeddings model, vector store, and LLM can be customized
+    to fit your project’s needs. Whether you require a smaller or larger model, or
+    perhaps an external model, the flexibility of this approach allows you to simply
+    swap in the appropriate options. This plug-and-play capability ensures that your
+    project can adapt to various requirements without significant alterations to the
+    core architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5d5f665f981a4a9c6797f0669a2daf07.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Simplified Modular Framework. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I highlighted the main components in gray. In this implementation our vector
+    store will simply be a JSON file. Once again, depending on your use-case, you
+    may want to just use an in-memory vector store (Python dict) if you’re only processing
+    one file at a time. If you need to persist this data, like we do for this use-case,
+    you can save it to a JSON file locally. If you need to store hundreds of thousands
+    or millions of vectors you would need an external vector store (Pinecone, Azure
+    Cognitive Search, etc…).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prepare Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As mentioned above, this implementation starts with JSON data. I used GPT-4
+    and Claude to generate it synthetically. The data contains product descriptions
+    for different pieces of furniture each with its own SKU. Here is an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In a real world scenario, we can extrapolate this to millions of SKUs and descriptions,
+    most likely all residing in different places. The effort of aggregating and organizing
+    this data seems trivial in this scenario, but generally data in the wild would
+    need to be organized into a structure like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to simply convert each SKU into its own text file. In total
+    there are 105 text files (SKUs). ***Note — you can find all the data/code linked
+    in my GitHub at the bottom of the article.***
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I used this prompt to generate the data and sent it numerous times:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: To move forward, you should have a directory with text files containing your
+    product descriptions with the SKUs as the filenames.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Chunking, Indexing, & Retrieval
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Chunking
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Given a piece of text, we need to efficiently chunk it so that it is optimized
+    for retrieval. I tried to model this after the llama-index [SentenceSplitter](https://docs.llamaindex.ai/en/stable/api_reference/node_parsers/sentence_splitter/)
+    class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The most important parameter here is the “chunk_size”. As you can see, we are
+    using the [transformers](https://huggingface.co/docs/transformers/en/index) library
+    to count the number of tokens in a given string. Therefore, the chunk_size represents
+    the number of tokens in a chunk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is breakdown of what is happening inside the function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For every file in the specified directory →
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Split Text into Paragraphs:***'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Divide the input text into paragraphs using a specified separator.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '***Chunk Paragraphs into Words:***'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- For each paragraph, split it into words.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Create chunks of these words without exceeding a specified token count (chunk_size).'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '***Refine Chunks:***'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- If any chunk exceeds the chunk_size, further split it using a regular expression
+    based on punctuation.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '- Merge sub-chunks if necessary to optimize chunk size.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '***Apply Overlap:***'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- For sequences with multiple chunks, create overlaps between them to ensure
+    contextual continuity.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '***Compile and Return Chunks:***'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '- Loop over every final chunk, assign it a unique ID which maps to the text
+    and metadata of that chunk, and finally assign this chunk dictionary to the doc
+    ID.'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: In this example, where we are indexing numerous smaller documents, the chunking
+    process is relatively straightforward. Each document, being brief, requires minimal
+    segmentation. This contrasts sharply with scenarios involving more extensive texts,
+    such as extracting specific sections from lengthy contracts or indexing entire
+    novels. To accommodate a variety of document sizes and complexities, I developed
+    the `document_chunker` function. This allows you to input your data—regardless
+    of its length or format—and apply the same efficient chunking process. Whether
+    you are dealing with concise product descriptions or expansive literary works,
+    the `document_chunker` ensures that your data is appropriately segmented for optimal
+    indexing and retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Usage:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now have a mapping with a unique doc ID, that points to all the chunks in
+    that doc, each chunk having its own unique ID which points to the text and metadata
+    of that chunk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The metadata can hold arbitrary key/value pairs. Here I am setting the file
+    name (SKU) as the metadata so we can trace our models results back to the original
+    product.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indexing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we’ve created the document store, we need to create the vector store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may have already noticed, but we are using ***BAAI/bge-small-en-v1.5***
+    as our embeddings model. In the previous function, we only use it for tokenization,
+    now we will use it to vectorize our text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To prepare for deployment, let’s save the tokenizer and model locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: All we’ve done is simply convert the chunks in the document store to embeddings.
+    You can plug in any embeddings model, and any vector store. Since our vector store
+    is just a dictionary, all we have to do is dump it into a JSON file to persist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieval
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now let’s test it out with a query!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The `compute_matches` function is designed to identify the top_k most similar
+    text chunks to a given query string from a stored collection of text embeddings.
+    Here’s a breakdown:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Embed the query string
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Calculate cosine similarity. For each chunk, the cosine similarity between the
+    query vector and the chunk vector is computed. Here, `np.linalg.norm` computes
+    the Euclidean norm (L2 norm) of the vectors, which is required for cosine similarity
+    calculation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Handle normilzation and compute dot product. The cosine similarity is defined
+    as:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/f4129e0066236017d5a7c9d1de0ed65e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Where **A** and **B** are vectors and **||A||** and **||B||** are their norms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Sort and select the scores. The scores are sorted in descending order, and
+    the top_k results are selected
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Usage:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Where each tuple has the document ID, followed by the chunk ID, followed by
+    the score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Awesome, it’s working! All there’s left to do is connect the LLM component and
+    run a full end-to-end test, then we are ready to deploy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM Component
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To enhance the user experience by making our RAG system interactive, we will
+    be utilizing the `llama-cpp-python` library. Our setup will use a mistral-7B parameter
+    model with GGUF 3-bit quantization, a configuration that provides a good balance
+    between computational efficiency and performance. Based on extensive testing,
+    this model size has proven to be highly effective, especially when running on
+    machines with limited resources like my M2 8GB Mac. By adopting this approach,
+    we ensure that our RAG system not only delivers precise and relevant responses
+    but also maintains a conversational tone, making it more engaging and accessible
+    for end users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quick note on setting up the LLM locally on a Mac— my preference is to use anaconda
+    or miniconda. Make sure you’ve install an arm64 version and follow the setup instructions
+    for ‘metal’ from the library, [here](https://pypi.org/project/llama-cpp-python/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, it’s quite easy. All we need to do is define a function to construct a
+    prompt that includes the retrieved documents and the users query. The response
+    from the LLM will be sent back to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ve defined the below functions to stream the text response from the LLM and
+    construct our final prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Final output which gets returned to the user:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Based on the retrieved context, and the user’s query, the Hearth & Home electric
+    fireplace with realistic LED flames fits the description. This model measures
+    50 inches wide, 6 inches deep, and 21 inches high, and comes with a remote control
+    for easy operation.”
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We are now ready to deploy our RAG system. Follow along in the next section
+    and we will convert this quasi-spaghetti code into a consumable API for users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build & Deploy API
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To extend the reach and usability of our system, we will package it into a containerized
+    Flask application. This approach ensures that our model is encapsulated within
+    a Docker container, providing stability and consistency regardless of the computing
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You should have downloaded the embeddings model and tokenizer above. Place these
+    at the same level as your application code, requirements, and Dockerfile. You
+    can download the LLM [here](https://huggingface.co/TheBloke).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You should have the following directory structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3aae7ab37e37c53b7e65d5e7ca516cd7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Deployment directory structure. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: app.py
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Dockerfile
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Something important to note — we are setting the working directory to ‘/app’
+    in the second line of the Dockerfile. So any local paths (models, vector or document
+    store), should be prefixed with ‘/app’ in your application code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, when you run the app in the container (on a Mac), it will not be able
+    to access the GPU, see [this](https://github.com/pytorch/pytorch/issues/81224)
+    thread. I’ve noticed it usually takes about 20 minutes to get a response using
+    the CPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Build & run:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`docker build -t <image-name>:<tag> .`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`docker run -p 5001:5001 <image-name>:<tag>`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Running the container automatically launches the app (see last line of the
+    Dockerfile). You can now access your endpoint at the following URL:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`http://127.0.0.1:5001/rag_endpoint`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Call the API:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I want to recap on the all the steps required to get to this point, and the
+    workflow to retrofit this for any data / embeddings / LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pass your directory of text files to the `document_chunker` function to create
+    the document store.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Choose your embeddings model. Save it locally.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Convert document store to vector store. Save both locally.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Download LLM from HF hub.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Move the files to the app directory (embeddings model, LLM, doc store and vec
+    store JSON files).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Build and run Docker container.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Essentially it can be boiled down to this — use the `build` notebook to generate
+    the doc_store and vector_store, and place these in your app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: GitHub [here](https://github.com/j0sephsasson/rag-from-scratch). Thank you for
+    reading!
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,339 @@
+- en: Dynamic Visualizations in Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/animated-plotting-in-python-with-opencv-and-matplotlib-d640462c41f4?source=collection_archive---------3-----------------------#2024-11-21](https://towardsdatascience.com/animated-plotting-in-python-with-opencv-and-matplotlib-d640462c41f4?source=collection_archive---------3-----------------------#2024-11-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to animate plots with OpenCV and Matplotlib
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)[![Florian
+    Trautweiler](../Images/63aa57830a244986c400982f7b78d614.png)](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------)
+    [Florian Trautweiler](https://medium.com/@flip.flo.dev?source=post_page---byline--d640462c41f4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d640462c41f4--------------------------------)
+    ·8 min read·Nov 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c206bd2b728441d5c595ce0f3b6404f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Tracking a ball trajectory and visualizing it’s vertical position in real-time
+    animated plots
+  prefs: []
+  type: TYPE_NORMAL
+- en: In **Computer Vision** a fundamental goal is to extract meaningful information
+    from static images or video sequences. To understand these signals, it is often
+    helpful to **visualize** them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example when tracking individual cars on a highway, we could draw bounding
+    boxes around them or in the case of detecting problems in a product line on a
+    conveyor belt, we could use a distinct color for anomalies. But what if the extracted
+    information is of a more **numerical** nature and you want to visualize the **time
+    dynamics** of this signal?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just showing the value as a number on the screen might not give you enough insight,
+    especially when the signal is changing rapidly. In these cases a great way to
+    visualize the signal is a plot with a **time axis**. In this post I am going to
+    show you how you can combine the power of **OpenCV** and **Matplotlib** to create
+    animated real-time visualizations of such signals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code and video I used for this project is available on GitHub:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------)
+    [## GitHub - trflorian/ball-tracking-live-plot: Tracking a ball using OpenCV and
+    plotting the…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking a ball using OpenCV and plotting the trajectory using Matplotlib -
+    trflorian/ball-tracking-live-plot
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plotting a Ball Trajectory
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s explore a toy problem where I recorded a video of a ball thrown vertically
+    into the air. The goal is to track the ball in the video and plot it’s **position
+    *p(t)***, **velocity *v(t)*** and **acceleration *a(t)*** over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cbb6dde91a35cfe409e6e7077d25dfa5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Input Video
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s define our reference frame to be the camera and for simplicity we only
+    track the vertical position of the ball in the image. We expect the position to
+    be a parabola, the velocity to linearly decrease and the acceleration to be constant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0854134188a624ac8728d8b27a37126.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sketch of graphs we should expect
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ball Segmentation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In a first step we need to identify the ball in each frame of the video sequence.
+    Since the camera remains static, an easy way to detect the ball is using a background
+    subtraction model, combined with a color model to remove the hand in the frame.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First let’s get our video clip displayed with a simple loop using [**VideoCapture**](https://docs.opencv.org/4.x/dd/d43/tutorial_py_video_display.html)
+    from **OpenCV**. We simply restart the video clip once it has reached its end.
+    We also make sure to playback the video at the original frame rate by calculating
+    the **sleep_time** in milliseconds based on the FPS of the video. Also make sure
+    to release the resources at the end and close the windows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/de085d4139f222d448033a6c43aa09a5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of Input Video
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s first work on extracting a binary segmentation mask for the ball. This
+    essentially means that we want to create a mask that is active for pixels of the
+    ball and inactive for all other pixels. To do this, I will combine two masks:
+    a motion mask and a color mask. The motion mask extracts the moving parts and
+    the color mask mainly gets rid of the hand in the frame.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the color filter, we can convert the image to the [**HSV**](https://en.wikipedia.org/wiki/HSL_and_HSV)
+    color space and select a specific hue range (20–100) that contains the green colors
+    of the ball but no skin color tones. I don’t filter on the saturation or brightness
+    values, so we can use the full range (0–255).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: To create a motion mask we can use a simple [**background subtraction**](https://en.wikipedia.org/wiki/Foreground_detection#Background_mixture_models)
+    model. We use the first frame of the video for the background by setting the **learning
+    rate to 1**. In the loop, we apply the background model to get the foreground
+    mask, but don’t integrate new frames into it by setting the **learning rate to
+    0**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the next step, we can combine the two masks and apply a [**opening morphology**](https://en.wikipedia.org/wiki/Opening_(morphology))to
+    get rid of the small noise and we end up with a perfect segmentation of the ball.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9267b761f4ad6bc0b8b5c340245d198d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Top Left:** Video Sequence, **Top Right:** Color Mask, **Bottom Left:** Motion
+    Mask, **Bottom Right:** Combined Mask'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking the Ball
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The only thing we’re left with is our ball in the mask. To track the center
+    of the ball, I first extract the contour of the ball and then take the center
+    of its bounding box as reference point. In case some noise would make it through
+    our mask, I am filtering the detected contours by size and only look at the largest
+    one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can also add some annotations to our frame to visualize our detection. I
+    am going to draw two circles, one for the center and one for the perimeter of
+    the ball.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: To keep track of the ball position, we can use a **list**. Whenever we detect
+    the ball, we simply add the center position to the list. We can also visualize
+    the trajectory by drawing lines between each of the segments in the tracked position
+    list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f650435618b04b8ca29fd3cd5b1b6325.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of the Ball Trajectory
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Plot
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now that we can track the ball, let’s start exploring how we can plot the signal
+    using **matplotlib**. In a first step, we can create the final plot at the end
+    of our video first and then in a second step we worry about how to animate it
+    in real-time. To show the position, velocity and acceleration we can use three
+    horizontally aligned subplots:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are only interested in the y position in the image (array index 1), and to
+    get a zero-offset position plot, we can subtract the first position.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the velocity we can use the difference in position as an approximation and
+    for the acceleration we can use the difference of the velocity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And now we can plot these three values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1d470d2c80763c501bdbc00c9af25a39.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Static Plots of the Position, Velocity and Acceleration
+  prefs: []
+  type: TYPE_NORMAL
+- en: Animating the Plot
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now on to the fun part, we want to make this plot dynamic! Since we are working
+    in an OpenCV GUI loop, we cannot directly use the **show** function from **matplotlib**,
+    as this will just block the loop and not run our program. Instead we need to make
+    use of some trickery ✨
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main idea is to draw the plots in memory into a buffer and then display
+    this buffer in our OpenCV window. By manually calling the draw function of the
+    canvas, we can force the figure to be rendered to a buffer. We can then get this
+    buffer and convert it to an array. Since the buffer is in **RGB** format, but
+    OpenCV uses **BGR**, we need to convert the color order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Make sure that the **axs.plot** calls are now inside the frame loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can simply display the plot using the **imshow** function from OpenCV.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/4587f731ece8dfd1948f4c91e8287b31.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Animated Plots
+  prefs: []
+  type: TYPE_NORMAL
+- en: And voilà, you get your animated plot! However you will notice that the performance
+    is quite low. Re-drawing the full plot every frame is quite expensive. To improve
+    the performance, we need to make use of [**blitting**](https://matplotlib.org/stable/users/explain/animations/blitting.html).
+    This is an advanced rendering technique, that draws static parts of the plot into
+    a background image and only re-draws the changing foreground elements. To set
+    this up, we first need to define a reference to each of our three plots before
+    the frame loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we need to draw the background of the figure once before the loop and get
+    the background of each axis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the loop, we can now change the data for each of the plots and then for each
+    subplot we need to restore the region’s background, draw the new plot and then
+    call the **blit** function to apply the changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here we go, the plotting is sped up and the performance has drastically
+    improved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9a892839ffccb8b9c85b6df8e94d300.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Optimized Plots
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, you learned how to apply simple Computer Vision techniques to
+    extract a moving foreground object and track it’s trajectory. We then created
+    an animated plot using **matplotlib** and **OpenCV**. The plotting is demonstrated
+    on a toy example video with a ball being thrown vertically into the air. However,
+    the tools and techniques used in this project are useful for all kinds of tasks
+    and real-world applications! The full source code is available from my GitHub.
+    I hope you learned something today, happy coding and take care!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------)
+    [## GitHub - trflorian/ball-tracking-live-plot: Tracking a ball using OpenCV and
+    plotting the…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tracking a ball using OpenCV and plotting the trajectory using Matplotlib -
+    trflorian/ball-tracking-live-plot
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/trflorian/ball-tracking-live-plot?source=post_page-----d640462c41f4--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All visualizations in this post were created by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

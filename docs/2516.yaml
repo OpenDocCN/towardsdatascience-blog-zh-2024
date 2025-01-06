@@ -1,0 +1,1176 @@
+- en: Dataflow architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15](https://towardsdatascience.com/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=collection_archive---------1-----------------------#2024-10-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'a (not-so) brief history of a health & fitness data pipeline: part ii'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: on derived data views and eventual consistency
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![CALEB](../Images/c0f24b30f8dd69352f59b1f7b8124a8c.png)](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
+    [CALEB](https://caleb-llh.medium.com/?source=post_page---byline--e3bc25176cf8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e3bc25176cf8--------------------------------)
+    ·19 min read·Oct 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Welcome to* ***part ii*** *of our coming-of-age trilogy on a public health
+    and fitness data pipeline.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*In this chapter, we reimagine the backend system as a distributed state machine
+    and explore the art of achieving consistency — with a functional flavour.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick recap of part i
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Event-driven Architecture — Evolution from Servers to Brokers to Queues'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a (not-so) brief history of a health & fitness data pipeline: part i'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The evolution of a data pipeline*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In [part I](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189),
+    we watched[*SmartGym*](https://youtu.be/nVVD97pMRiI) grow into (version 2.1),
+    an integrated health and fitness platform that **streams**, **processes**, and
+    **saves** data from a range of gym equipment sensors and medical devices. These
+    data provided insights that empowered users to take more active ownership of their
+    personal health and fitness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8d5ff76a69924bde9c62e30669808c3b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym shoulder press
+  prefs: []
+  type: TYPE_NORMAL
+- en: As our system evolved from merely saving and retrieving data to responding to
+    a real-world events, our architecture had to reflect this paradigm shift — from
+    a *request-driven* to an *event-driven* one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An event-driven ingestion pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There were two pipelines that kept the lights on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Streaming** pipeline: data is continuously streamed from sensors, processed,
+    and stored in a buffer.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Saving** pipeline: when the user ends a session, the buffered data is processed
+    and saved in the database, as a record that represents the user session (a single
+    workout).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/43d0ee7433e3a9ed7952ee7c358cc8a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Streaming** and **Saving** pipelines'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The event-driven architecture was a double-edged sword, introducing both order
+    and chaos. Ultimately, we watched it evolve into a well-oiled machine capable
+    of taming its complexities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Part ii: the evolution goes on'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this installment, we’ll explore the next three versions of the system, each
+    enhancing a user’s workout experience in a different way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'v3.0: fitness as a *personalised* experience'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'v4.0: fitness as a *collective* experience'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'v5.0: fitness as a *personalised-collective* experience'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: But first, meet the main character of this article!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/518463b2e778a51c2dac5646d7a7a4ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Magic Black Box
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Be it distributed, event-driven, or not, we can think of the SmartGym/SENSEI
+    backend system as a magic black box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/37271edc55adb14a0bacaa0ba254d924.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Input**: We feed this black box new information — e.g. users info, sensor
+    data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State Transition**: This new information interacts with its existing state
+    based on a certain logic, resulting in a new internal state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Output**: At any time, we can query its internal state to retrieve relevant
+    information — e.g. user workout information'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Magic Black Box is *deterministic:* if you take two identical black boxes
+    with the same state and logic, feed them with the same inputs in the same order,
+    both will end up with [identical internal states](https://en.wikipedia.org/wiki/State_machine_replication).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inside the black box
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If we tear it apart, we’ll find there’s nothing truly magical — just a **dataflow
+    architecture** comprising a bunch of data views and ingestion pipelines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/34d0c185157512fd546cef19251ba500.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Sources of truth** (solid), **derived data views** (dotted) and **stream/save
+    pipeline** logic (arrows)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two main types of data views:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1\. Source of truth** (solid line) — e.g. users, sensor stream'
+  prefs: []
+  type: TYPE_NORMAL
+- en: New data is first written here. These are original, authoritative data — typically
+    represented exactly once in a normalised way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The system’s state is a function of these sources of truth and the state transition
+    logic — a reflection of the sequence of events that have transformed it over time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**2\. Derived data** (dotted line) — e.g. workouts'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This data is processed from existing data in other views, usually involving
+    denormalization, aggregation, or transformation. It is precomputed for efficient
+    future queries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Derived data is redundant, effectively “duplicating” existing information; if
+    it is lost, it can always be re-derived from the original source.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The process of deriving data views from sources of truth is known as **materialisation**,
+    a deterministic task handled by workers in the ingestion pipeline.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: All internal **state** of the magic box are encapsulated within these *data
+    views*, while the *ingestion pipeline* — the machinery behind the materialisation
+    process — remains **stateless**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that whenever the source of truth changes, the derived data has to be re-derived.
+    Else, the state transition is incomplete and the magic black box is left in an
+    **inconsistent** state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/34d0c185157512fd546cef19251ba500.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: v2.1 dataflow architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the previous example, we feed the magic black box:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*user details* through our CRUD API'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*sensor telemetry* through an event stream (**streaming pipeline**)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These inputs serve as sources of truth, reflecting real-world entities or events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From these two pieces of information, we derive a single *workout* session record
+    in the **saving pipeline**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, you might be offended by Mr. Magic Black Box mansplaining what appears
+    to be common sense to you. But bear with him because he would prove to be a useful
+    abstraction throughout this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'v3.0 — Metrics, dashboards, insights: fitness as a personalised experience'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the streaming and saving pipelines working tirelessly to ingest data into
+    the system, our database now houses a wealth of user and workout records. We are
+    empowered to provide meaningful macro insights by analysing trends, groups, averages,
+    and totals for our users and stakeholders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8e123fecb7a3beee177273a884dad12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym product metrics dashboard prototype
+  prefs: []
+  type: TYPE_NORMAL
+- en: User insights and fitness metrics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This is where *SmartGym’s* vision of becoming *“every citizen’s #1 fitness
+    companion”* begins to take shape. Beyond giving real-time feedback during my workout,
+    recalling my historical performance, and telling me what a great job I’ve done
+    — a diligent fitness companion provides tangible metrics to measure my improvement
+    in performance over time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c5d150cd740ad5414c53c9ef5013371.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym user workout insights page
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By leveraging recent workouts and user information — such as body metrics captured
+    by the SmartGym weighing scale — we can estimate various performance metrics,
+    including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1RM (1 Rep Max)** for weight-based workouts (e.g. leg press)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Max reps per minute** for bodyweight workouts (e.g. push-ups)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**VO2 max** or **MET (Metabolic Equivalent)** for cardio workouts (e.g. treadmill)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Deriving both product and fitness metrics typically involves denormalization
+    and aggregation across records, which can be resource-intensive in terms of memory
+    usage, database reads, and network throughput.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since it doesn’t make sense to run these operations every time a user loads
+    the dashboard, we need a precomputed intermediate data representation, ready for
+    query and visualisation — another **derived data view** for *user fitness metrics*!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The periodic processing pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s return to our magic black box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f31648d06e0a552483038b9458011bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: v3.0 dataflow architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: As new users and workout records continuously flow in, *user fitness metrics*
+    — a derived data view — require continuous updates in response to changes in the
+    upstream data views they rely on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this, we decided to recompute *user fitness metrics* periodically,
+    accepting that these metrics may be a few hours stale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our ingestion pipeline now includes a cronjob service that schedules batch processing
+    jobs within the **periodic pipeline** based on a preconfigured schedule, ensuring
+    timely updates without overloading the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e2eb655a80ae13a1c4ad109df1097701.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Streaming**, **Saving**, and **Periodic** pipelines'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'v4.0 — Gamification: fitness as a collective experience'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Moving from individuals to community
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Staying fit is difficult work. But with a healthy dose of competition and collective
+    suffering, it can be an experience that feels larger than life. Imagine if every
+    rep, every set, and every workout session contributed to something greater.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing **exercise leaderboard** and **fitness challenges**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exercise leaderboard
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The leaderboard showcases users who have logged the most effort over the month
+    — measured by distance run, weights lifted, and more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Boy, did this feature stroke some egos! Some of the gym regulars started renaming
+    their randomly-generated username with titles like “Beefy” or “Armstrong”. For
+    many others, surveying the leaderboard became the first order of business upon
+    entering the gym, and the same post-workout ritual before strutting out with newfound
+    swagger.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9e990cda9ce8378a362aa12c87db72d9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym leaderboard
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to how we compute product and user fitness metrics, the leaderboard
+    data is updated periodically in batches, derived from user profiles and their
+    historical workout data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f126b45336d44df423ebb94fd7af8d9a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fitness challenge system
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In collaboration with the gym management team, we launched a fitness challenge
+    to coincide with periods such as Singapore’s National Day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3145c2c83809e7629852a2640ae7fc38.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym fitness challenge at Our Tampines Hub
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each day, users received a challenge requiring them to complete a specific number
+    of reps on a weighted machine or spend a certain number of minutes on a cardio
+    machine, earning rewards for their hard work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This kickstarted a series of diverse fitness challenges, each featuring unique
+    gameplay variations in terms of duration, workout types, intensity, streaks, and
+    more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b35769de095912a05451c392513c86d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym fitness challenge UI
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Configurable rules: rule engines and syntax trees'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At its core, a fitness challenge is a unique set of workout requirements, specified
+    by an administrator. By comparing a user’s workout history to these requirements,
+    we can assess their progress and completion status for the challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c5fdce652a422d11a5348edcc9a5f771.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Rules syntax tree**: representing one set of chest-press/leg-press/treadmill
+    workout'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of cluttering our codebase with a new bunch of if-else statements for
+    each variation of the fitness challenge, we externalised the business logic by
+    representing these logical rules in a syntax tree. During runtime, the rule engine
+    parses this tree and evaluates it against users’ actual workout histories to track
+    their challenge progress.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c0ec01c775f100e0abaf8b325f48274.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Runtime evaluation of syntax tree
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the program admin modifies the parameters of a fitness challenge, they
+    are directly updating the underlying rules syntax tree. This same data structure
+    is shared between the backend rules engine and the frontend rules configuration
+    page, ensuring consistency and ease of management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8161add68c5de2d49d97e12dd5881b9b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SmartGym fitness challenge configuration page
+  prefs: []
+  type: TYPE_NORMAL
+- en: The on-demand processing pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Lets revisit our magic black box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/91bc947764698241e8f7201ebfac08fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: v4.0 dataflow architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*User fitness challenge results*, derived from the *workouts* and *user fitness
+    challenge* data through the rules engine, need to be recalculated whenever changes
+    occur in the upstream data views they depend on — such as each time a user completes
+    a workout set.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Among our enthusiastic users, these fitness challenges are a matter of honour
+    and glory. If they don’t see updated challenge results immediately after finishing
+    a set, they get confused and frustrated. Therefore, we can’t afford to reprocess
+    *user fitness challenge results* in periodic batches; every change in the *workouts*
+    data view must be propagated instantly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To achieve that, we extend our ingestion pipeline with a Change Data Capture
+    mechanism, introducing a service that continuously listens for changes in relevant
+    data views, using built-in database triggers or change streams. This **on-demand
+    pipeline** triggers a cascade of updates to the downstream derived data views.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, an *on-demand worker* implements the logic of the rules engine
+    to evaluate *user fitness challenges results* on the fly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/41e693713abf38051a93dc5749e06afc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Unveiling our latest inline-four *engine* with **Streaming**, **Saving**, **Periodic**,
+    and **On-demand** pipelines
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A recap of the different stages of our ingestion pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Stream processing***: Responsible for ingesting, processing, and storing
+    a stream of live sensor data into a buffer'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Save processing***: Responsible for consolidating data from the stream buffer,
+    processing, and saving it into the database as a record that represents a single
+    workout or a user session.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Periodic processing***: Responsible for precomputing derived data views
+    periodically'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***On-demand processing***: Responsible for propagating updates from upstream
+    data views to derived data views immediately'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'v5.0 — Recommendation: fitness as a personalised-collective experience'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What if we could give the fitness challenges a personal touch?
+  prefs: []
+  type: TYPE_NORMAL
+- en: NSFIT x SmartGym
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In late 2021, a team from the Singapore Army described their predicament: each
+    year, servicemen must meet specific fitness benchmarks. If they fall short, they
+    are enrolled in a structured training program, known as NSFIT. However, these
+    sessions were limited to specific times, required sign-ups, and needed staff to
+    facilitate and monitor progress. With the ongoing pandemic and social distancing
+    measures then, gathering servicemen for group sessions wasn’t feasible.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the SmartGym fitness challenge system, servicemen could carry out their
+    training on their own schedule — no need for staff to hover over every session.
+    All that’s required is for the staff to verify that the training was completed
+    and the standards were met.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb17d66f7e2f2c54b2a2e8e8e406435b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Real-time recommendation for treadmill intensity based on fitness profile
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But here’s the twist: servicemen come in all shapes, sizes, and fitness levels.
+    A one-size-fits-all fitness challenge just wouldn’t cut it. They need something
+    that meets them where they are, in order to push their fitness to new heights.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, why not add a recommendation step before curating a user fitness challenge?
+    By leveraging the fitness metrics we already compute (like in v3.0), we could
+    tailor the intensity of their subsequent training sessions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our personalized fitness challenge now follows three key steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad035cc1deb027a042f3c748c1d07d54.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Step 1 — Profiling** Using historical workout data, we profile each user’s
+    fitness level.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To further optimise this process, we could expand our profiling methods beyond
+    simple heuristics, incorporating machine learning methods to extract more sophisticated
+    features — resulting in new derived data views.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2 — Recommendation** Starting with a generic challenge template (including
+    general information like location, total workouts, participant groups, start/end
+    dates, etc), the recommendation engine fleshes out this skeletal template into
+    a rules syntax tree tailored to each user’s fitness profile.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For even greater personalization, a domain expert could manually fine-tune the
+    challenge requirements, offering a professional perspective beyond algorithmic
+    deduction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3 — Evaluation** Once personalized parameters are embedded into the
+    rules syntax tree, evaluations can be triggered on-demand after the workout is
+    saved, or even performed in real-time against the sensor stream and displayed
+    on the frontend console.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Real-time personalised fitness challenge evaluation
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e7cd01b789fcce738caffe680c133aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: v5.0 dataflow architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dataflow paradigm
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Magic Black Box revisited
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Earlier in the article, we mentioned that the magic black box is composed of
+    data views, where the **state** lives, and a **stateless** ingestion pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To get **reliable** outputs from the magic black box, these data views must
+    be **consistent**, achieved through a **deterministic** series of materialisation
+    in the ingestion pipeline.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Buckle up and brace yourself, because we will be diving deep into *consistency*
+    and *determinism —* the undercurrents of dataflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The challenge of consistency: a necessary evil'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'At first glance, it might seem simpler to create one massive data view containing
+    every bit of detail from the raw data. With only one data source, consistency
+    is implied. However, there are several reasons why we need derived data views
+    despite the complexity of maintaining consistency:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data polymorphism**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Data can be represented in a myriad of forms — in different combinations and
+    at multiple levels of granularity — each serving their own unique purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, it turns out that a user is not interested in knowing if the 3rd
+    rep of his 2nd set of chest press on September 2020 was fully extended or not
+    — after that real-time window of immediacy, low-level raw details become increasingly
+    irrelevant, while higher-level derived insights become much more valuable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid having to assume how data will be used and represented in future —
+    *raw is better*, a.k.a the Sushi Principle.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Read-write performance**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With that, we decouple the write model from the range of potential read models,
+    and bridge the gap with a series of materialisation stages. This separation is
+    commonly known as Command and Query Responsibility Segregation (CQRS).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f59125e22652d9f40f27a2f8289ab5a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Having a materialisation path gives a piece of data the space and time — to
+    morph and discover its different personalities, enabling:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Faster & simpler *writes***: a shortened write path by deferring data processing
+    and complex data models to a later stage'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Efficient & flexible *reads***: a shortened read path by computing different
+    derived views in advance'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Basis of consistency**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: By designating the write model as the authoritative source of truth to reason
+    from, it is easier to achieve consistency — without the complexities of having
+    multiple authoritative systems trying to reach a consensus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are instances when the raw data grows too rapidly. E.g. with 1 message/sec
+    per treadmill sensor, with multiple gyms, you end up with millions of messages
+    in the *sensor stream* in just one day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f94a46f7c2a5c9cfd1aa80e791ed99fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**workouts** replacing **sensor stream** as the new authoritative data view'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the *sensor stream* grows prohibitively large, we can treat *workouts*
+    records as a “lossy compression” of the *sensor stream*, purge the processed *sensor
+    stream*, and promote the derived *workouts* records as a new authoritative source
+    of truth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the one-way chain of materialisation still starts from a single source
+    of truth, we retain our basis of consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Anti-fragility: fault recovery and application evolution**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Derived views offers resilience. If a bug corrupts the output, we can roll back
+    to previous versions and rerun the materialisation process, ensuring accurate
+    data again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Derived views also enable gradual evolution of application. You can introduce
+    new data views without deleting or restructuring the old ones, keeping both as
+    independent views of the same data, with the option of falling back if something
+    goes wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/af047d09835a13db2b6ade70fbb53d88.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Non-breaking* evolution of derivation logic'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [part one](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#7072)
+    of the series, we’ve seen how the publisher-subscriber (pub/sub) pattern (via
+    a fanout exchange) of the ingestion pipeline makes it easy to extend system functionality
+    in a plug-and-play manner, without disrupting existing pipelines or requiring
+    upstream modifications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A key to agile development and building anti-fragile systems — those that improve
+    with each bug fix or new feature — is the ease of recovery and evolution. The
+    decoupling enabled by the pub/sub pattern and derived views makes this possible.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The art of consistency and control
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next, let’s dissect the nature of consistency and control flow of the dataflow
+    architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Broadly speaking, distributed systems can be categorised by two consistency
+    levels — **strong** or **eventual**;and two types of control flow — **orchestration**
+    (centralised) or **choreography** (decentralised).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c9ced666ed1acddd4624c3a85c35ea1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Relationship between consistency levels and control flow
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strong consistency** guarantees that every read reflects the most recent
+    write. It ensures that all data views are updated immediately and accurately after
+    a change. Strong consistency is typically associated with **orchestration**, since
+    it often relies on a central coordinator to manage atomic updates across multiple
+    data views — either updating all at once, or none at all. Such “over-engineering”
+    may be required for systems where minor discrepancies can be disastrous, e.g.
+    financial transactions, but not in our case.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Eventual consistency** allows for temporary discrepancies between data views,
+    but given enough time, all views will converge to the same state. This approach
+    typically pairs with **choreography**, where each worker reacts to events independently
+    and asynchronously, without needing a central coordinator.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **asynchronous** and **loosely-coupled** design of the dataflow architecture
+    is characterised by **eventual consistency** of data views, achieved through a
+    **choreography** of materialisation logic.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: And there are perks to that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Perks: at the system level**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Resilience to partial failures**: The asynchrony of choreography is more
+    robust against component failures or performance bottlenecks, as disruptions are
+    contained locally. In contrast, orchestration can propagate failures across the
+    system, amplifying the issue through tight coupling.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Simplified write path**: Choreography also reduces the responsibility of
+    the write path, which reduces the code surface area for bugs to corrupt the source
+    of truth. Conversely, orchestration makes the write path more complex, and increasingly
+    harder to maintain as the number of different data representations grows.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Perks: at the *human* level**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The decentralised control logic of choreography allows different materialisation
+    stages to be developed, specialised, and maintained independently and concurrently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Determinism: the event-driven work ethic (revisited)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The spreadsheet ideal
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A reliable dataflow system is akin to a spreadsheet: when one cell changes,
+    all related cells update instantly — no manual effort required.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In an ideal dataflow system, we want the same effect: when an upstream data
+    view changes, all dependent views update seamlessly. Like in a spreadsheet, we
+    shouldn’t have to worry about how it works; it just should.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: But ensuring this level of reliability in distributed systems is far from simple.
+    Network partitions, service outages, and machine failures are the norm rather
+    than the exception, and the concurrency in the ingestion pipeline only adds complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since message queues in the ingestion pipeline provide [reliability guarantees](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#037c),
+    **deterministic retries** can make transient faults seem like they never happened.
+    To achieve that, our ingestion workers need to adopt the [event-driven work ethic](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189#f36e):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pure functions have no free will
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In computer science, *pure functions* exhibit determinism, meaning their behaviour
+    is entirely predictable and repeatable.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: They are ephemeral — here for a moment and gone the next, retaining no state
+    beyond their lifespan. Naked they come, and naked they shall go. And from the
+    immutable message inscribed into their birth, their legacy is determined. They
+    *always* return the same output for the same input — everything unfolds exactly
+    as predestined.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that is exactly what we want our ingestion workers to be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Immutable inputs (statelessness)** This immutable message encapsulates all
+    necessary information, removing any dependency on external, changeable data. Essentially
+    we are passing data to the workers by value rather than by reference, such that
+    processing a message tomorrow would yield the same result as it would today.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Task isolation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To avoid concurrency issues, workers should not share mutable state.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Transitional states within the workers should be isolated, like local variables
+    in pure functions — without reliance on shared caches for intermediate computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s also crucial to scope tasks independently, ensuring that each worker handles
+    tasks without sharing input or output spaces, allowing parallel execution without
+    race conditions. E.g. scoping the user fitness profiling task by a particular
+    user_id, since inputs (*workouts*) are outputs (*user fitness metrics)* are tied
+    to a unique user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deterministic execution** Non-determinism can sneak in easily: using system
+    clocks, depending on external data sources, probabilistic/statistical algorithms
+    relying on random numbers, can all lead to unpredictable results. To prevent this,
+    we embed all “moving parts” (e.g. random seeds or timestamp) directly in the immutable
+    message.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deterministic ordering** Load balancing with message queues (multiple workers
+    per queue) can result in out-of-order message processing when a message is retried
+    after the next one is already processed. E.g. Out-of-order evaluation of *user
+    fitness challenge results* appearing as 50% completion to 70% and back to 60%,
+    when it should increase monotonically. For operations that require sequential
+    execution, like inserting a record followed by notifying a third-party service,
+    out-of-order processing could break such causal dependencies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the application level, these sequential operations should either run synchronously
+    on a single worker or be split into separate sequential stages of materialisation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the ingestion pipeline level, we could assign only one worker per queue to
+    ensure serialised processing that “blocks” until retry is successful. To maintain
+    load balancing, you can use multiple queues with a consistent hash exchange that
+    routes messages based on the hash of the routing key. This achieves a similar
+    effect to Kafka’s hashed partition key approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Idempotent outputs**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Idempotence is a property where multiple executions of a piece of code should
+    always yield the same result, no matter how many times it got executed.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For example, a trivial database “insert” operation is not idempotent while an
+    “insert if does not exist” operation is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This ensures that you get the same outcome as if the worker only executed once,
+    regardless of how many retries it actually took.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Caveat****: Note that unlike pure functions, the worker does not “return”
+    an object in the programming sense. Instead, they overwrite a portion of the database.
+    While this may look like a side-effect, you can think of this overwrite as similar
+    to the immutable output of a pure function: once the worker commits the result,
+    it reflects a final, unchangeable state.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataflow-ception
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Dataflow in client-side applications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Traditionally, we think of web/mobile apps as stateless clients talking to a
+    central database. However, modern “single-page” frameworks have changed the game,
+    offering “stateful” client-side interaction and persistent local storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This extends our dataflow architecture beyond the confines of a backend system
+    into a multitude of client devices. Think of the on-device state (the “model”
+    in model-view-controller) as derived view of server state — the screen displays
+    a materialised view of local on-device state, which mirrors the central backend’s
+    state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Push-based protocols like server-sent events and WebSockets take this analogy
+    further, enabling servers to actively push updates to the client without relying
+    on polling — delivering eventual consistency from end to end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d166c2825d528fbcabfc9999fc3f7123.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: v5.0 dataflow architecture (extended)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, this real-time synchronization is exactly how we evaluated personalized
+    fitness challenges in the frontend console — as a derived data view residing in
+    a client device.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a98ce9b3165cccbb3e3815c6cfbac80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Real-time personalised fitness challenge evaluation
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataflow in databases
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even down the stack, we see a semblance of dataflow in databases. Database triggers,
+    stored procedures, and materialized view maintenance routines are not very different
+    from the on-demand and periodic processing pipelines; B-tree indexes and materialised
+    views of a relational database are essentially derived data views— talk about
+    dataflows within dataflows!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataflows, dataflows everywhere
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**“The goal of data integration is to make sure that data ends up in the right
+    form, in all the right places.”**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: — Designing Data-Intensive Applications (Martin Kleppmann)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As data systems scale, we should progress beyond seeing them as passive databases
+    manipulated by applications like global variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, it is useful to reimagine data systems in an organisation as an interplay
+    of data views, one derived from another, with state changes rippling out from
+    a central source of truth, propagated through functional application code. Dataflows,
+    built upon dataflows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s magic black boxes — *all the way down.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Congratulations on making it this far!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In part I, we evolved from a trivial request-response system into an event-driven
+    system that **streams**, **processes**, and **saves** data from a range of gym
+    equipment sensors and medical devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this second instalment, we expanded upon those saved records and processed
+    them **periodically** and **on-demand**. This enabled new features that enhance
+    a user’s workout experience into a more *collective* yet *personalised* one. As
+    our ingestion pipeline evolved, so did our dataflow architecture, scaling to meet
+    new demands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c844159ae4f7bbe6792c6ba9772df96a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary of SmartGym features built upon the ingestion pipeline
+  prefs: []
+  type: TYPE_NORMAL
+- en: The story of our evolution doesn’t end here.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In the next and final part, we explore adding and removing functionality in
+    a plug-and-play manner, paving the way for an ecosystem to emerge from our platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stay tuned…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images and gifs featured in this article are original works created and
+    captured by the author.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Shoutout to the data engineering bible, a.k.a Designing Data-Intensive Applications
+    — by Martin Kleppmann, for giving me the vocabulary to think about these distributed
+    systems with clarity.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A(not-so) brief history of a health & fitness data pipeline — series
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Event-driven Architecture — Evolution from Servers to Brokers to Queues'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a (not-so) brief history of a health & fitness data pipeline: part i'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/a-not-so-brief-history-of-a-health-fitness-data-pipeline-part-i-event-driven-architecture-79d2fa8ce189?source=post_page-----e3bc25176cf8--------------------------------)
+    [](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Dataflow Architecture-Derived Data Views and Eventual Consistency
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a (not-so) brief history of a health & fitness data pipeline: part ii'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/dataflow-architecture-derived-data-views-and-eventual-consistency-e3bc25176cf8?source=post_page-----e3bc25176cf8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Find out more on the feature development from my teammates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**User insights dashboard**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Fitness Lover to Developer: Building a SmartGym Vision'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an account of my short yet meaningful internship journey with GovTech’s
+    SmartGym team!
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/fitness-lover-to-developer-building-a-smartgym-vision-592d92989905?source=post_page-----e3bc25176cf8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Product metrics dashboard**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Web development with Python, really?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My experience working with an unconventional web development framework: Plotly
+    Dash'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/web-development-with-python-really-87e2e39644c8?source=post_page-----e3bc25176cf8--------------------------------)
+    [](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Internship Experience — Don’t DASH through data analysis
+  prefs: []
+  type: TYPE_NORMAL
+- en: An enriching internship journey with the SmartGym team as a data analyst
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/internship-experience-dont-dash-through-data-analysis-9219e0e15860?source=post_page-----e3bc25176cf8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Leaderboard and fitness challenge analytics dashboard**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------)
+    [## My Internship in the SmartGym team'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/ytpo-govtech/internship-blog-7b021006e020?source=post_page-----e3bc25176cf8--------------------------------)
+    [](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Don’t throw darts in the dark
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/dont-throw-darts-in-the-dark-11e3404f8436?source=post_page-----e3bc25176cf8--------------------------------)
+    [](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------)
+    [## My Most Fulfilling Moment at SmartGym
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Author: https://medium.com/@dharmil.shah_35509'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/my-most-fulfilling-moment-at-smartgym-843819c77432?source=post_page-----e3bc25176cf8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Personalised workout for physiotherapy**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/siot-govtech/designing-an-end-to-end-experience-for-physiotherapist-and-patients-910991042f46?source=post_page-----e3bc25176cf8--------------------------------)
+    [## Designing an end to end experience for Physiotherapist and Patients'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/siot-govtech/designing-an-end-to-end-experience-for-physiotherapist-and-patients-910991042f46?source=post_page-----e3bc25176cf8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

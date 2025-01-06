@@ -1,0 +1,203 @@
+- en: Stop Wasting LLM Tokens
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/stop-wasting-llm-tokens-a5b581fb3e6e?source=collection_archive---------5-----------------------#2024-08-07](https://towardsdatascience.com/stop-wasting-llm-tokens-a5b581fb3e6e?source=collection_archive---------5-----------------------#2024-08-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Batching your inputs together can lead to substantial savings without compromising
+    on performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)[![Tobias
+    Schnabel](../Images/92a6c1addc602dae8e8d54fec5116385.png)](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)
+    [Tobias Schnabel](https://medium.com/@toschnab?source=post_page---byline--a5b581fb3e6e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a5b581fb3e6e--------------------------------)
+    ·5 min read·Aug 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef7ee72d335ca3384877e59bbc877f89.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Orgalux](https://unsplash.com/@orgalux?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you use LLMs to annotate or process larger datasets, chances are that you’re
+    not even realizing that you are wasting a lot of input tokens. As you repeatedly
+    call an LLM to process text snippets or entire documents, your task instructions
+    and static few-shot examples are repeated for *every* input example. Just like
+    neatly stacking dishes saves space, batching inputs together can result in substantial
+    savings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assume you want to tag a smaller document corpus of 1000 single-page documents
+    with instructions and few-shot examples that are about half a page long. Annotating
+    each document separately would cost you about 1M input tokens. However, if you
+    annotated ten documents in the same call, you’d save about **300K** **input tokens**
+    (or 30%) because we don’t have to repeat instructions! As we’ll show in the example
+    below, this can often happen with minimal performance loss (or even performance
+    gain), especially when you optimize your prompt alongside.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Saving tokens with minibatching
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Below I have plotted the savings assuming that our average document length
+    is *D* tokens and our instructions and few-shot examples have *r*D* tokens. The
+    example scenario from the previous paragraph where the instructions are half the
+    length of the document (*r* = 0.5) appears in blue below. For longer shared instructions,
+    our savings can be even higher:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/64d532489c7951a7ac87012d7fc726cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The main takeaways are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even with relatively short instructions (blue line), there is value in minibatching
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s not necessary to use really large minibatch sizes. Most savings can be
+    obtained with even moderate minibatch sizes (*B* ≤ 10).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Minibatching in practice
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s turn practical with a task where we want to categorize pieces of text
+    for further analysis. We’ll use a fun task from the [Natural-Instructions benchmark](https://instructions.apps.allenai.org/)
+    where we need to annotate sentences in debates with one of four categories (value,
+    fact, testimony or policy).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at an example, we see that we get the current topic for context and
+    then need to categorize the sentence in question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'One question we haven’t answered yet:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**How do we pick the right minibatch size?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Previous work](https://arxiv.org/pdf/2301.08721.pdf) has shown that the best
+    minibatch size depends on the task as well as the model. We essentially have two
+    options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We pick a reasonable minibatch size, let’s say 5 and hope that we don’t see
+    any drops.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We optimize the minibatch size along with other choices, e.g., the number of
+    few-shot examples.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As you might have guessed, we’ll pursue option 2 here. To run our experiments,
+    we’ll use [SAMMO](https://github.com/microsoft/sammo), an open-source framework
+    for LLM calling and prompt optimization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prompts are coded up in SAMMO as prompt programs (which are simply nested Python
+    classes that’ll be called with input data). We’ll structure our task into three
+    sections and format our minibatches in JSON format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Running this without minibatching and using five few-shot examples, we get an
+    **accuracy of 0.76** and have to pay **58255 input tokens**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now explore how minibatching affects costs and performance. Since minibatching
+    reduces the total input costs, we can now use some of those savings to add more
+    few-shot examples! We can study those trade-offs by setting up a search space
+    in SAMMO:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Running this shows us the full gamut of trade-offs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, even with 20 few-shot examples, we save nearly **70 % input costs** ([58255–17438]/58255)
+    all while **maintaining overall accuracy!** As an exercise, you can implement
+    your own objective to automatically factor in costs or include different ways
+    of formatting the data in the search space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Caveats
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Implicit in all of this is that (i) we have enough input examples that use the
+    shared instructions and (ii) we have some flexibility regarding latency. The first
+    assumption is met in many annotation scenarios, but obviously doesn’t hold in
+    one-off queries. In annotation or other offline processing tasks, latency is also
+    not super critical as throughput matters most. However, if your task is to provide
+    a user with the answer as quickly as possible, it might make more sense to issue
+    *B* parallel calls than one call with *B* input examples*.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As illustrated in this quick and practical example, prompting LLMs with multiple
+    inputs at the same time can greatly reduce costs under better or comparable accuracy.
+    The good news is also that even with moderate minibatch sizes (e.g., 5 or 10),
+    savings can be substantial. With SAMMO, you can automatically see how performance
+    behaves under different choices to make an optimal choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An open research question is how to integrate this with Retrieval Augmented
+    Generation (RAG) — one can form the union over all retrieved examples or rank
+    them in some fashion. SAMMO lets you explore some of these strategies along with
+    a lot of other choices during prompt construction, for example how to format your
+    input data. Please leave a comment if you would like to see more on this topic
+    or anything else.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Disclaimer:**I am the author of SAMMO, an open-source MIT licensed framework
+    for prompt optimization.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Code for this example:** [Notebook file](https://github.com/microsoft/sammo/blob/main/examples/blog/stop_wasting_tokens.ipynb)
+    or [live on MyBinder](https://mybinder.org/v2/gh/microsoft/sammo/main?urlpath=tree%2Fexamples%2Fblog%2Fstop_wasting_tokens.ipynb)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Reading:** [SAMMO user guide](https://microsoft.github.io/sammo/) and [paper
+    on arXiv](https://arxiv.org/abs/2404.02319) with more details'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

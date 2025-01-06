@@ -1,0 +1,575 @@
+- en: 'Cypher Generation: The Good, The Bad and The Messy'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29](https://towardsdatascience.com/cypher-generation-the-good-the-bad-and-the-messy-4ec119dd72ea?source=collection_archive---------6-----------------------#2024-01-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Methods for creating fine-tuning datasets for text-to-Cypher generation.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[![Silvia
+    Onofrei](../Images/198b04b2063b4269eaff52402dc5f8d5.png)](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)
+    [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--4ec119dd72ea--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4ec119dd72ea--------------------------------)
+    ·13 min read·Jan 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad8b418ba27894f9c93e3debc77b318b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Created with ChatGPT-DALLE
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Cypher is Neo4j’s graph query language. It was inspired and bears similarities
+    with SQL, enabling data retrieval from knowledge graphs. Given the rise of generative
+    AI and the widespread availability of large language models (LLMs), it is natural
+    to ask which LLMs are capable of generating Cypher queries or how we can finetune
+    our own model to generate Cypher from the text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The issue presents considerable challenges, primarily due to the scarcity of
+    fine-tuning datasets and, in my opinion, because such a dataset would significantly
+    rely on the specific graph schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, I will discuss several approaches for creating a fine-tuning
+    dataset aimed at generating Cypher queries from text. The initial approach is
+    grounded in Large Language Models (LLMs) and utilizes a predefined graph schema.
+    The second strategy, rooted entirely in Python, offers a versatile means to produce
+    a vast array of questions and Cypher queries, adaptable to any graph schema. For
+    experimentation I created a knowledge graph that is based on a subset of the ArXiv
+    dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I was finalizing this blogpost, Tomaz Bratanic launched an [initiative project](https://medium.com/@bratanic-tomaz/crowdsourcing-text2cypher-dataset-e65ba51916d4)
+    aimed at developing a comprehensive fine-tuning dataset that encompasses various
+    graph schemas and integrates a human-in-the-loop approach to generate and validate
+    Cypher statements. I hope that the insights discussed here will also be advantageous
+    to the project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Knowledge Graph Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I like working with the ArXiv dataset of scientific articles because of its
+    clean, easy-to-integrate format for a knowledge graph. Utilizing techniques from
+    my recent [Medium blogpost](https://medium.com/towards-data-science/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b),
+    I enhanced this dataset with additional keywords and clusters. Since my primary
+    focus is on building a fine-tuning dataset, I’ll omit the specifics of constructing
+    this graph. For those interested, details can be found in this [Github repository.](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The graph is of a reasonable size, featuring over 38K nodes and almost 96K
+    relationships, with 9 node labels and 8 relationship types. Its schema is illustrated
+    in the following image:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9d2e0017b08013546e0efeae020a78c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this knowledge graph isn’t fully optimized and could be improved, it serves
+    the purposes of this blogpost quite effectively. If you prefer to just test queries
+    without building the graph, I uploaded the dump file in this [Github repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating Training Pairs with LLM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first approach I implemented was inspired by Tomaz Bratanic’s blogposts
+    on [building a knowledge graph chatbot](https://medium.com/neo4j/knowledge-graph-based-chatbot-with-gpt-3-and-neo4j-c4ebbd325ed)
+    and [finetuning a LLM with H2O Studio](/fine-tuning-an-llm-model-with-h2o-llm-studio-to-generate-cypher-statements-3f34822ad5).
+    Initially, a selection of sample queries was provided in the prompt. However,
+    some of the recent models have enhanced capability to generate Cypher queries
+    directly from the graph schema. Therefore, in addition to GPT-4 or GPT-4-turbo,
+    there are now accessible open source alternatives such as Mixtral-8x7B I anticipate
+    could effectively generate decent quality training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this project, I experimented with two models. For the sake of convenience,
+    I decided to use GPT-4-turbo in conjunction with ChatGPT, see this [Colab Notebook](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb).
+    However, in this [notebook](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/5_ArXiv_KG_Synthetic_Data_Mixtral.ipynb)
+    I performed a few tests with Mixtral-7x2B-GPTQ, a quantized model that is small
+    enough to run on Google Colab, and which delivers satisfactory results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To maintain data diversity and effectively monitor the generated questions,
+    Cypher statements pairs, I have adopted a two steps approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: provide the full schema to the LLM and request it to generate 10–15
+    different categories of potential questions related to the graph, along with their
+    descriptions,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Step 2: provide schema information and instruct the LLM to create a specific
+    number N of training pairs for each identified category.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Extract the categories of samples:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this step I used ChatGPT Pro version, although I did iterate through the
+    prompt several times, combined and enhanced the outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract a schema of the graph as a string (more about this in the next section).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Build a prompt to generate the categories:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ask the LLM to generate the categories.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Review, make corrections and enhance the categories as needed. Here is a sample:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 💡**Tips**💡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If the graph schema is very large, split it into overlapping subgraphs (this
+    depends on the graph topology also) and repeat the abov*e process for each subgraph.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*When working with open source models, choose the best model you can fit on
+    your computational resources.* [*TheBloke*](https://huggingface.co/TheBloke) *has
+    posted an extensive list of quantized models,* [*Neo4j GenAI*](https://neo4j.com/emil/introducing-genai-stack-developers/)
+    *provides tools to work on your own hardware and* [*LightningAI Studio*](https://lightning.ai/onboarding)
+    *is a recently released platform which gives you access to a multitude of LLMs.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Generate the training pairs:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This step was performed with OpenAI API, working with GPT-4-turbo which also
+    has the option to output JSON format. Again the schema of the graph is provided
+    with the prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Build the function which will prompt the model and will retrieve the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Loop through the categories and collect the outputs in a list:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'At this point in the project I collected almost 500 pairs of questions, Cypher
+    statements. Here is a sample:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The data requires significant cleaning and wrangling. While not overly complex,
+    the process is both time-consuming and tedious. Here are several of the challenges
+    I encountered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: non-JSON entries due to incomplete Cypher statements;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the expected format is {’question’: ‘some question’, ‘cypher’:’some cypher’},
+    but deviations are frequent and need to be standardized;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: instances where the questions and the Cypher statements are clustered together,
+    necessiting their separation and organization.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 💡**Tip**💡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*It is better to iterate through variations of the prompt than trying to find
+    the best prompt format from the beginning. In my experience, even with diligent
+    adjustments, generating a large volume of data like this inevitably leads to some
+    deviations.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now regarding the content. GPT-4-turbo is quite capable to generate good questions
+    about the graph, however not all the Cypher statements are valid (working Cypher)
+    and correct (extract the intended information). When fine-tuning in a production
+    environment, I would either rectify or eliminate these erroneous statements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I created a function `execute_cypher_queries()` that sends the queries to the
+    Neo4j graph database . It either records a message in case of an error or retrieves
+    the output from the database. This function is available in this [Google Colab
+    notebook](https://github.com/SolanaO/Blogs_Content/blob/master/cypher_generator/4_ArXiv_KG_Synthetic_Data_OpenAI.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From the prompt, you may notice that I instructed the LLM to generate mock
+    data to populate the attributes values. While this approach is simpler, it results
+    in numerous empty outputs from the graph. And it demands extra effort to identify
+    those statements involving hallucinatins, such as made-up attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `Article` node has no `creation_date` attribute in the ArXiv graph!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 💡**Tip**💡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*To minimize the empty outputs, we could instead extract instances directly
+    from the graph. These instances can then be incorporated into the prompt, and
+    instruct the LLM to use this information to enrich the Cypher statements.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building Functional Queries
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This method allows to create anywhere from hundreds to hundreds of thousands
+    of correct Cypher queries, depending on the graph’s size and complexity. However,
+    it is crucial to strike a balance bewteen the quantity and the diversity of these
+    queries. Despite being correct and applicable to any graph, these queries can
+    occasionally appear formulaic or rigid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract Information About the Graph Structure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this process we need to start with some data extraction and preparation.
+    I use the Cypher queries and the some of the code from the [neo4j_graph.py](https://github.com/langchain-ai/langchain/blob/master/libs/community/langchain_community/graphs/neo4j_graph.py)
+    module in Langchain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Connect to an existing Neo4j graph database.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extract the schema in JSON format.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extract several node and relationship instances from the graph, i.e. data from
+    the graph to use as samples to populate the queries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'I created a Python class that perfoms these steps, it is available at `utils/neo4j_schema.py`
+    in the [Github repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator).
+    With all these in place, extracting the relevant data about the graph necessitates
+    a few lines of code only:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Extract Data From the Graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This data will provide authentic values to populate our Cypher queries with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we extract several node instances, this will retrieve all the data for
+    nodes in the graph, including labels, attributes and their values :'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, extract relationship instances, this includes all the data on the start
+    node, the relationship with its type and properties, and the end node information:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 💡**Tips**💡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Both of the above methods work for the full lists of nodes, relationships
+    or sublists of them.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*If the graph contains instances that lack records for some attributes, it
+    is advisable to collect more instances to ensure all possible scenarios are covered.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The next step is to serialize the data, by replacing the Neo4j.time values with
+    strings and save it to files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parse the Extracted Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I refer to this phase as Python gymnastics. Here, we handle the data obtained
+    in the previous step, which consists of the graph schema, node instances, and
+    relationship instances. We reformat this data to make it easily accessible for
+    the functions we are developing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first identify all the datatypes in the graph with:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each datatype we extract the attributes (and the corresponding nodes) that
+    have that dataype.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We parse instances of each datatype.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We also process and filter the relationships so that the start and the end nodes
+    have attributes of specifid data types.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All the code is available in the [Github repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator).
+    The reasons of doing all these will become transparent in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Build One or One Thousand Cypher Statements
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Being a mathematician, I often perceive statements in terms of the underlying
+    functions. Let’s consider the following example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The above can be regarded as functions of several variables `f(x, y, z)` and
+    `g(x. y, z)` where
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: How many queries of this type can we build? To simplify the argument let’s assume
+    that there are `N` node labels, each having in average `n` properties that have
+    `STRING` datatype. So at least `Nxn` queries are available for us to build, not
+    taking into account the options for the string choices `z`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 💡**Tip**💡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Just because we are able to construct all these queries using a single line
+    of code doesn’t imply that we should incorporate the entire set of examples into
+    our fine-tuning dataset.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Develop a Process and a Template
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main challenge lies in creating a sufficiently varied list of queries that
+    covers a wide range of aspects related to the graph. With both proprietary and
+    open-source LLMs capable of generating basic Cypher syntax, our focus can shift
+    to generating queries about the nodes and relationships within the graph, while
+    omitting syntax-specific queries. To gather query examples for conversion into
+    functional form, one could refer to any Cypher language book or explore the [Neo4j
+    Cypher documentation site](https://neo4j.com/docs/cypher-manual/current/introduction/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [GitHub repository](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator),
+    there are about 60 types of these queries that are then applied to the ArXiv knowledge
+    graph. They are versatile and applicable to any graph schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below is the complete Python function for creating one set of similar queries
+    and incorporate it in the fine-tuning dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'the function find_nodes_connected_to_node_via_relation() takes the generating
+    prompter and evaluates it for all the elements in all_rels which is the collection
+    of extracted and processed relationship instances, whose entries are of the form:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: the prompter inputs are two nodes denoted `label_1` and `label_2` , the property
+    `prop_1` for `label_1` and the relationship `rel_1` ,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the `message` contains the components of the prompt for the corresponding entry
+    in the fine-tuning dataset,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'the `subschema` extracts first neighbors for the two nodes denoted `label_1`
+    and `label_2` , this means: the two nodes listed, all the nodes related to them
+    (distance one in the graph), the relationships and all the corresponding attributes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 💡**Tip**💡
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Including the* `*subschema*` *in the finetuning dataset is not essential,
+    although the more closely the prompt aligns with the fine-tuning data, the better
+    the generated output tends to be. From my perspective, incorporating the subschema
+    in the fine-tuning data still offers advantages.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concluding Remarks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To summarize, post has explored various methods for building a fine-tuning
+    dataset for generating Cypher queries from text. Here is a breakdown of these
+    techniques, along with their advantages and disadvantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LLM generated question and Cypher statements pairs**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method may seem straightforward in terms of data collection, yet it often
+    demands excessive data cleaning.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While certain proprietary LLMs yield good outcomes, many open source LLMs still
+    lack the proficiency of generating a wide range of accurate Cypher statements.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This technique becomes burdensome when the graph schema is complex.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Functional approach or parametric query generation:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This method is adaptable across various graphs schemas and allows for easy scaling
+    of the sample size. However, it is important to ensure that the data doesn’t become
+    overly repetitive and maintains diversity.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It requires a significant amount of Python programming. The queries generated
+    can often seem mechanial and may lack a conversational tone.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To expand beyond these approaches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The graph schema can be seamlessley incorporated into the framework for creating
+    the functional queries. Consider the following question, Cypher statement pair:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Instead of using a direct parametrization, we could incorporate basic parsing
+    (such as replacing WRITTEN_BY with written by), enhancing the naturalness of the
+    generated question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This highligts the significance of the graph schema’s design and the labelling
+    of graph’s entities in the construction of the fine-tuning pars. Adhering to general
+    norms like using nouns for node labels and suggestive verbs for the relationships
+    proves beneficial and can create a more organically conversational link between
+    the elements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, it is crucial not to overlook the value of collecting actual user generated
+    queries from graph interactions. When available, parametrizing these queries or
+    enhancing them through other methods can be very useful. Ultimately, the effectiveness
+    of this method depends on the specific objectives for which the graph has been
+    designed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To this end, it is important to mention that my focus was on simpler Cypher
+    queries. I did not address creating or modifying data within the graph, or the
+    graph schema, nor I did include APOC queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Are there any other methods or ideas you might suggest for generating such
+    fine-tuning question and Cypher statement pairs?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Code**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Github Repository: Knowledge_Graphs_Assortment](https://www.notion.so/GraphRAG-Unleashing-the-Power-of-KG-with-LLM-51cf4430ea3349ff9320b3375fe47fe5?pvs=21)
+    — for building the ArXiv knowledge graph'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Github Repository: Cypher_Generator](https://github.com/SolanaO/Blogs_Content/tree/master/cypher_generator)
+    — for all the code related to this blogpost'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '• Repository of scholary articles: [arXiv Dataset](https://www.kaggle.com/datasets/Cornell-University/arxiv)
+    that has [CC0: Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)
+    license.'
+  prefs: []
+  type: TYPE_NORMAL

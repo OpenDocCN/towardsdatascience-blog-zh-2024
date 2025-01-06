@@ -1,0 +1,403 @@
+- en: Write-Audit-Publish for Data Lakes in Pure Python (no JVM)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/write-audit-publish-for-data-lakes-in-pure-python-no-jvm-25fbd971b17d?source=collection_archive---------4-----------------------#2024-04-12](https://towardsdatascience.com/write-audit-publish-for-data-lakes-in-pure-python-no-jvm-25fbd971b17d?source=collection_archive---------4-----------------------#2024-04-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An open source implementation of WAP using Apache Iceberg, Lambdas, and Project
+    Nessie all running entirely Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)[![Ciro
+    Greco](../Images/4a20e5d435998e8d8ff7aeac1f8ff60d.png)](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------)
+    [Ciro Greco](https://medium.com/@ciro.greco?source=post_page---byline--25fbd971b17d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25fbd971b17d--------------------------------)
+    ·9 min read·Apr 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f6c7fd882cb9f69244db1e5fe0bc7b6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Look Ma: no JVM! Photo by [Zac Ong](https://unsplash.com/@zacong?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this blog post we provide a no-nonsense, reference implementation for Write-Audit-Publish
+    (WAP) patterns on a data lake, using [Apache Iceberg](https://iceberg.apache.org/)
+    as an open table format, and [Project Nessie](https://projectnessie.org/) as a
+    data catalog supporting git-like semantics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We chose [Nessie](https://projectnessie.org/) because its branching capabilities
+    provide a good abstraction to implement a WAP design. Most importantly, we chose
+    to build on [PyIceberg](https://py.iceberg.apache.org/) to eliminate the need
+    for the JVM in terms of developer experience. In fact, to run the entire project,
+    including the integrated applications we will only need Python and AWS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While [Nessie](https://projectnessie.org/) is technically built in Java, the
+    data catalog is run as a container by [AWS Lightsail](https://aws.amazon.com/lightsail/)
+    in this project, we are going to interact with it only through its endpoint. Consequently,
+    we can express the entire WAP logic, including the queries downstream, in Python
+    only!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because [PyIceberg](https://py.iceberg.apache.org/) is fairly new, a bunch of
+    things are actually not supported out of the box. In particular, writing is still
+    in early days, and branching Iceberg tables is still not supported. So what you’ll
+    find here is the result of some original work we did ourselves to make branching
+    Iceberg tables in [Nessie](https://projectnessie.org/) possible directly from
+    Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So all this happened, more or less.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What on earth is WAP?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Back in 2017, Michelle Winters from Netflix [talked](https://www.youtube.com/watch?v=fXHdeBnpXrg)
+    about a design pattern called Write-Audit-Publish (WAP) in data. Essentially,
+    WAP is a functional design aimed at making data quality checks easy to implement
+    **before** the data become available to downstream consumers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For instance, an atypical use case is data quality at ingestion. The flow will
+    look like creating a staging environment and run quality tests on freshly ingested
+    data, before making that data available to any downstream application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As the name betrays, there are essentially three phases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Write.*** Put the data in a location that is not accessible to consumers
+    downstream (e.g. a staging environment or a branch).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***Audit.*** Transform and test the data to make sure it meets the specifications
+    (e.g. check whether the schema abruptly changed, or whether there are unexpected
+    values, such as NULLs).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***Publish.*** Put the data in the place where consumers can read it from (e.g.
+    the production data lake).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/fed5dd1e2f2e05ee22ab00dc9438b184.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from the authors
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is only one example of the possible applications of WAP patterns. It is
+    easy to see how it can be applied at different stages of the data life-cycle,
+    from ETL and data ingestion, to complex data pipelines supporting analytics and
+    ML applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite being so useful, [WAP is still not very widespread](https://lakefs.io/blog/data-engineering-patterns-write-audit-publish/),
+    and only recently companies have started thinking about it more systematically.
+    The rise of open table formats and projects like [Nessie](https://projectnessie.org/)
+    and [LakeFS](https://lakefs.io/) is accelerating the process, but it still a bit
+    *avant garde*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In any case, it is a very good way of thinking about data and it is extremely
+    useful in taming some of the most widespread problems keeping engineers up at
+    night. So let’s see how we can implement it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: WAP on a data lake in Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We are not going to have a theoretical discussion about WAP nor will we provide
+    an exhaustive survey of the different ways to implement it ([Alex Merced](https://www.linkedin.com/in/alexmerced/)
+    from [Dremio](https://www.dremio.com/) and [Einat Orr](https://www.linkedin.com/in/einat-orr-359ba6/)
+    from [LakeFs](https://lakefs.io/) are already doing a phenomenal job at that).
+    Instead, we will provide a reference implementation for WAP on a data lake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 👉 **So buckle up, clone the** [Repo](https://github.com/BauplanLabs/no-jvm-wap-with-iceberg)**,
+    and give it a spin!**
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 📌 F**or more details, please refer to the** [**README**](https://github.com/BauplanLabs/no-jvm-wap-with-iceberg/blob/main/README.md)
+    **of the project.**
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Architecture and workflow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The idea here is to simulate an ingestion workflow and implement a WAP pattern
+    by branching the data lake and running a data quality test before deciding whether
+    to put the data into the final table into the data lake.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use Nessie branching capabilities to get our sandboxed environment where
+    data cannot be read by downstream consumers and AWS Lambda to run the WAP logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Essentially, each time a new parquet file is uploaded, a Lambda will go up,
+    create a branch in the data catalog and append the data into an Iceberg table.
+    Then, a simple a simple data quality test is performed with PyIceberg to check
+    whether a certain column in the table contains some NULL values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**If the answer is yes,** the data quality test fails. The new branch will
+    not be merged into the main branch of the data catalog, making the data impossible
+    to be read in the main branch of data lake. Instead, an alert message is going
+    to be sent to [Slack](https://slack.com/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**If the answer is no,** and the data does not contain any NULLs, the data
+    quality test is passed. The new branch will thus be merged into the *main* branch
+    of the data catalog and the data will be appended in the Iceberg table in the
+    data lake for other processes to read.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cec8ad1994f7ffe5eea60bbdbf027ea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Our WAP workflow: image from the authors'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All data is completely synthetic and is generated automatically by simply running
+    the project. Of course, we provide the possibility of choosing whether to generate
+    data that complies with the data quality specifications or to generate data that
+    include some NULL values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To implement the whole end-to-end flow, we are going to use the following components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Storage: [AWS S3](https://aws.amazon.com/s3/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Open table format: [Apache Iceberg](https://iceberg.apache.org/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Data catalog: [Project Nessie](https://projectnessie.org/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Code implementation: [PyIceberg](https://py.iceberg.apache.org/), [PyNessie](https://projectnessie.org/develop/python/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Serverless runtime: [Lambda](https://aws.amazon.com/lambda/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Virtual private server: [Lightsail](https://aws.amazon.com/lightsail/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alerting system: [Slack](https://slack.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/50bd27c1f3c729677ca7ab2ea24ac596.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Project architecture: image from the authors'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This project is pretty self-contained and comes with scripts to set up the entire
+    infrastructure, so it requires only introductory-level familiarity with AWS and
+    Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s also not intended to be a production-ready solution, but rather a reference
+    implementation, a starting point for more complex scenarios: the code is verbose
+    and heavily commented, making it easy to modify and extend the basic concepts
+    to better suit anyone’s use cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualize
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To visualize the results of the data quality test, we provide a very simple
+    [Streamlit](https://streamlit.io/) app that can be used to see what happens when
+    some new data is uploaded to first location on S3 — the one that is not available
+    to downstream consumers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can use the app to check how many rows are in the table across the different
+    branches, and for the branches other than *main*, it is easy to see in what column
+    the data quality test failed and in how many rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62d00f29924ccf899b8755c6a8e842ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data quality app — this is what you see when you examine a certain upload branch
+    (i.e. *emereal-keen-shame*) where a table of 3000 row was appended and did not
+    pass the data quality check because one value in *my_col_1 is a NULL*. Image from
+    the authors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the lake to the Lakehouse
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once we have a WAP flow based on Iceberg, we can leverage it to implement a
+    composable design for our downstream consumers. In our repo we provide instructions
+    for a [Snowflake](https://www.snowflake.com/en/) integration as a way to explore
+    this architectural possibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2208722df95aa1b1fbbeefe9c18dcc3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The first step towards the Lakehouse: image from the authors'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is one of the main tenet of the [**Lakehouse**](https://www.databricks.com/sites/default/files/2020/12/cidr_lakehouse.pdf)
+    architecture, conceived to be more flexible than modern data warehouses and more
+    usable than traditional data lakes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the one hand, the Lakehouse hinges on leveraging object store to eliminate
+    data redundancy and at the same time lower storage cost. On the other, it is supposed
+    to provide more flexibility in choosing different compute engines for different
+    purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All this sounds very interesting in theory, but it also sounds very complicated
+    to engineer at scale. Even a simple integration between Snowflake and an S3 bucket
+    as an external volume is frankly pretty tedious.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***And in fact, we cannot stress this enough, moving to a full Lakehouse architecture
+    is a lot of work. Like a lot!***'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Having said that, even a journey of a thousand miles begins with a single step,
+    so why don’t we start by reaching out the lowest hanging fruits with simple but
+    very tangible practical consequences?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The example in the repo showcases one of these simple use case: WAP and data
+    quality tests. The WAP pattern here is a chance to move the computation required
+    for data quality tests (and possibly for some ingestion ETL) **outside the data
+    warehouse,** while still maintaining the possibility of taking advantage of Snowflake
+    for more high value analyitcs workloads on certified artifacts. We hope that this
+    post can help developers to build their own proof of concepts and use the'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The reference implementation here proposed has several advantages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tables are better than files
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Data lakes are historically hard to develop against, since the data abstractions
+    are very different from those typically adopted in good old databases. Big Data
+    frameworks like [Spark](https://spark.apache.org/) first provided the capabilities
+    to process large amounts of raw data stored as files in different formats (e.g.
+    parquet, csv, etc), but people often do not think in terms of files: they think
+    it terms of tables.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use an open table format for this reason. Iceberg turns the main data lake
+    abstraction into tables rather than files which makes things considerably more
+    intuitive. We can now use SQL query engines natively to explore the data and we
+    can count on Iceberg to take care of providing correct schema evolution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interoperability is good for ya
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Iceberg also allows for greater interoperability from an architectural point
+    of view. One of the main benefits of using open table formats is that data can
+    be kept in object store while high-performance SQL engines (Spark, [Trino](https://trino.io/),
+    [Dremio](https://www.dremio.com/)) and Warehouses ([Snowflake](https://www.snowflake.com/en/),
+    [Redshift](https://aws.amazon.com/redshift/)) can be used to query it. The fact
+    that Iceberg is supported by the majority of computational engines out there has
+    profound consequences for the way we can architect our data platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As described above, our suggested integration with Snowflake is meant to show
+    that one can deliberately move the computation needed for the ingestion ETL and
+    the data quality tests outside of the Warehouse, and keep the the latter for large
+    scale analytics jobs and last mile querying that require high performance. At
+    scale, this idea can translate into significantly lower costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Branches are useful abstractions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: WAP pattern requires a way to write data in a location where consumers cannot
+    accidentally read it. Branching semantics naturally provides a way to implement
+    this, which is why we use Nessie to leverage branching semantics at the data catalog
+    level. Nessie builds on Iceberg and on its time travel and table branching functionalities.
+    A lot of the work done in our repo is to make Nessie work directly with Python.
+    The result is that one can interact with the Nessie catalog and write Iceberg
+    tables in different branches of the data catalog without a JVM based process to
+    write.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simpler developer experience
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, making the end-to-end experience completely Python-based simplifies
+    remarkably the set up fo the system and the interaction with it. Any other system
+    we are aware of would require a JVM or an additional hosted service to write back
+    into Iceberg tables into different branches, while in this implementation the
+    entire WAP logic can run inside one single lambda function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is nothing inherently wrong with the JVM. It is a fundamental component
+    of many Big Data frameworks, providing a common API to work with platform-specific
+    resources, while ensuring security and correctness. However, the JVM takes a toll
+    from a developer experience perspective. Anybody who worked with Spark knows that
+    JVM-based systems tend to be finicky and fail with mysterious errors. For many
+    people who work in data and consider Python as their *lingua franca* the advantage
+    of the JVM is paid in the coin of usability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We hope more people are excited about composable designs like we are, we hope
+    open standards like Iceberg and Arrow will become the norm, but most of all we
+    hope this is useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So it goes.
+  prefs: []
+  type: TYPE_NORMAL

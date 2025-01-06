@@ -1,0 +1,762 @@
+- en: 'Spicing up Ice Hockey with AI: Player Tracking with Computer Vision'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/spicing-up-ice-hockey-with-ai-player-tracking-with-computer-vision-ce9ceec9122a?source=collection_archive---------0-----------------------#2024-07-09](https://towardsdatascience.com/spicing-up-ice-hockey-with-ai-player-tracking-with-computer-vision-ce9ceec9122a?source=collection_archive---------0-----------------------#2024-07-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/c26f194ba6b3bcdd31b1a7dfbad44347.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Using PyTorch, computer vision techniques, and a Convolutional Neural Network
+    (CNN), I worked on a model that tracks players, teams and basic performance statistics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)[![Raul
+    Vizcarra Chirinos](../Images/9f507c6b9542809b9a32ab185e953ca1.png)](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------)
+    [Raul Vizcarra Chirinos](https://medium.com/@raul.vizcarrach?source=post_page---byline--ce9ceec9122a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ce9ceec9122a--------------------------------)
+    ·30 min read·Jul 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Nowadays, I don’t play hockey as much as I want to, but it’s been a part of
+    me since I was a kid. Recently, I had the chance to help with the referee table
+    and keep some stats in the first Ice Hockey Tournament in Lima (3 on 3). This
+    event involved an extraordinary effort of the the Peruvian Inline Hockey Association
+    (APHL) and a kind visit from the [Friendship League](https://friendshipleague.org/).
+    To add an AI twist, I used **PyTorch**, **computer vision** techniques, and a
+    **Convolutional Neural Network (CNN)** to build a model that tracks players and
+    teams and gathers some basic performance stats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article aims to be a **quick guide** to designing and deploying the model.
+    Although the model still needs some fine-tuning, I hope it can help anyone introduce
+    themselves to the interesting world of computer vision applied to sports. I would
+    like to acknowledge and thank the [Peruvian Inline Hockey Association (APHL)](https://www.instagram.com/aphl.pe/?igsh=MThvZWxhNThwdXpibA%3D%3D)
+    for allowing me to use a 40-second video sample of the tournament for this project
+    *(you can find the video input sample in the* [*project’s GitHub repository*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)*).*
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before moving on with the project, I did some quick research to find a baseline
+    from which I could work and avoid “reinventing the wheel”. I found that in terms
+    of using computer vision to track players, there is a lot of interesting work
+    on football *(not surprising, being the most popular team sport in the world)*.
+    However, I didn’t find many resources for ice hockey. [Roboflow](https://universe.roboflow.com/search?q=hockey)
+    has some interesting pre-trained models and datasets for training your own, but
+    working with a hosted model presented some latency issues that I will explain
+    further. In the end, I leveraged the soccer material for reading the video frames
+    and obtaining the individual track IDs, following the basic principles and tracking
+    method approach explained in [this tutorial](https://youtu.be/neBZ6huolkg?feature=shared)
+    *(If you are interested in gaining a better understanding of some basic computer
+    vision techniques, I suggest watching at least the first hour and a half of the
+    tutorial).*
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the tracking IDs covered, I then built my own path. As we walk through
+    this article, we’ll see how the project evolves from a simple object detection
+    task to a model that fully detects players, teams, and delivers some basic performance
+    metrics *(sample clips from 01 to 08, author’s own creation).*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e100ca9ea1c1eb7ab22675a9de0f18ef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Model Architecture. Author’s own creation
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Tracking Mechanism
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The tracking mechanism is the backbone of the model. It ensures that each detected
+    object within the video is identified and assigned a unique identifier, maintaining
+    this identity across each frame. The main components of the tracking mechanism
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**YOLO (You Only Look Once):** It’s a powerful real-time object detection algorithm
+    originally introduced in 2015 in the paper “[You Only Look Once: Unified, Real-Time
+    Object Detection](https://arxiv.org/abs/1506.02640)”. Stands out for its speed
+    and its versatility in detecting around 80 pre-trained classes *(it’s important
+    to note that it can also be trained on custom datasets to detect specific objects)*.
+    For our use case, we will rely on YOLOv8x, a computer vision model built by Ultralytics
+    based on previous YOLO versions. You can download it [here](https://github.com/ultralytics/ultralytics).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**ByteTrack Tracker:** To understand ByteTrack, we have to understand MOT (Multiple
+    Object Tracking), which involves tracking the movements of multiple objects over
+    time in a video sequence and linking those objects detected in a current frame
+    with corresponding objects in previous frames. To accomplish this, we will use
+    ByteTrack *( introduced in 2021 in the paper “*[*ByteTrack: Multi-Object Tracking
+    by Associating Every Detection Box*](https://arxiv.org/abs/2110.06864)*”)*. To
+    implement the ByteTrack tracker and assign track IDs to detected objects, we will
+    rely on the Python’s supervision library.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**OpenCV:** is a well-known library for various computer vision tasks in Python.
+    For our use case, we will rely on [OpenCV](https://opencv.org/) to visualize and
+    annotate video frames with bounding boxes and text for each detected object.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'In order to build our tracking mechanism, we’ll begin with these initial two
+    steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying the YOLO model with ByteTrack to detect objects (in our case, players)
+    and assign unique track IDs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Initializing a dictionary to store object tracks in a pickle (pkl) file. This
+    will be extremely useful to avoid executing the video frame-by-frame object detection
+    process each time we run the code, and save significant time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For the following step, these are the Python packages that we’ll need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we’ll specify our libraries and the path for our sample video file and
+    pickle file (if it exists; if not, the code will create one and save it in the
+    same path):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now let’s go ahead and define our tracking mechanism *(you can find the video
+    input sample in the* [*project’s GitHub repository*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)*)*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The method begins by initializing the YOLO model and the ByteTrack tracker.
+    Next, each frame is processed in batches of 20, using the YOLO model to detect
+    and collect objects in each batch. If the pickle file is available in its path,
+    it precomputes the tracks from the file. If the pickle file is not available *(you
+    are running the code for the first time or have erased a previous pickle file)*,
+    the **get_object_tracks** converts each detection into the required format for
+    ByteTrack, updates the tracker with these detections, and stores the tracking
+    information in a new pickle file in the designated path.Finally, iterations are
+    made over each frame, drawing bounding boxes and track IDs for each detected object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To execute the tracker and save a new output video with bounding boxes and
+    track IDs, you can use the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If everything in your code worked correctly, you should expect a video output
+    similar to the one shown in **sample clip 01**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d5caaaa073f19f9f874cb779de45aa22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sample Clip 01: Basic tracking mechanism ( Objects and Tracking IDs)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TIP #01:** Don’t underestimate your compute power! When running the code
+    for the first time, expect the frame processing to take some time, depending on
+    your compute capacity. For me, it took between 45 to 50 minutes using only a CPU
+    setup (consider CUDA as an option). The YOLOv8x tracking mechanism, while powerful,
+    demands significant compute resources (at times, my memory hit 99%, fingers crossed
+    it didn’t crash!🙄). If you encounter issues with this version of YOLO, lighter
+    models are available on [Ultralytics’ GitHub](https://github.com/ultralytics/ultralytics)
+    to balance accuracy and compute capacity.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The Ice Rink
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As you’ve seen from the first step, we have some challenges. Firstly, as expected,
+    the model picks up all moving objects; players, referees, even those outside the
+    rink. Secondly, those red bounding boxes can make tracking players a bit unclear
+    and not very neat for presentation. In this section, we’ll focus on narrowing
+    our detection to objects within the rink only. Plus, we’ll swap out those bounding
+    boxes for ellipses at the bottom, ensuring clearer visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s switch from using boxes to using ellipses first. To accomplish this,
+    we’ll simply add a new method above the labels and bounding boxes method in our
+    existing code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We’ll also need to update the annotation step by replacing the bounding boxes
+    and IDs with a call to the ellipse method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: With these changes, your output video should look much neater, as shown in **sample
+    clip 02**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0e17fb82b7df8f4b41e25e34b5da15d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sample Clip 02: Replacing bounding boxes with ellipses'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, to work with the rink boundaries, we need to have some basic knowledge
+    of resolution in computer vision. In our use case, we are working with a 720p
+    (1280x720 pixels) format, which means that each frame or image we process has
+    dimensions of 1280 pixels (width) by 720 pixels (height).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***What does it mean to work with a 720p (1280x720 pixels) format?*** It means
+    that the image is made up of 1280 pixels horizontally and 720 pixels vertically.
+    Coordinates in this format start at (0, 0) in the top-left corner of the image,
+    with the x-coordinate increasing as you move right and the y-coordinate increasing
+    as you move down. These coordinates are used to mark specific areas in the image,
+    like using (x1, y1) for the top-left corner and (x2, y2) for the bottom-right
+    corner of a box. Understanding this will helps us measure distances and speeds,
+    and decide where in the video we want to focus our analysis.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That said, we will start marking the frame borders with green lines using the
+    following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result should be a green rectangle as shown in (a) in **sample clip 03**.
+    But in order to track only the moving objects within the rink we would need a
+    delimitation more similar to the one in (b) .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e6de1323015e8fa64b0a9667df89ff1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 03: Border Definition for the Ice Rink (Author’s own creation)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Getting (b) right is like an iterative process of trial and error, where you
+    test different coordinates until you find the boundaries that best fit your model.
+    Initially, I aimed to match the rink borders exactly. However, the tracking system
+    struggled near the edges. To improve accuracy, I expanded the boundaries slightly
+    to ensure all tracking objects within the rink were captured while excluding those
+    outside. The outcome, shown in (b), was the best I could get *(you could still
+    work better scenarios)* defined by these coordinates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bottom Left Corner: (-450, 710)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bottom Right Corner: (2030, 710)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Upper Left Corner: (352, 61)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Upper Right Corner: (948, 61)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, we will define two additional areas: the o**ffensive zones** for both
+    the White and Yellow teams *(where each team aims to score)*. This will enable
+    us to gather some basic positional statistics and pressure metrics for each team
+    within their opponent’s zone.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8ea5a739ce6098b9345c2d7cfe8b332.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 04: Offensive Zones ( Author’s own creation)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will set aside these coordinates for now and explain in the next step how
+    we’ll classify each team. Then, we’ll bring it all together into our original
+    tracking method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using Deep Learning for Team Prediction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Over 80 years have passed since the release of *“*[*A Logical Calculus of the
+    Ideas Immanent in Nervous Activity*](https://www.cs.cmu.edu/~./epxing/Class/10715/reading/McCulloch.and.Pitts.pdf)*”,*
+    the paper written by Warren McCulloch and Walter Pitts in 1943, which set the
+    solid ground for early neural network research. Later, in 1957, the mathematical
+    model of a simplified neuron *(receiving inputs, applying weights to these inputs,
+    summing them up, and outputting a binary result)* inspired [Frank Rosenblatt to
+    build the Mark I](https://news.cornell.edu/stories/2019/09/professors-perceptron-paved-way-ai-60-years-too-soon).
+    This was the first hardware implementation designed to demonstrate the concept
+    of a [perceptron](https://www.ling.upenn.edu/courses/cogs501/Rosenblatt1958.pdf),
+    a neural network model capable of learning from data to make binary classifications.
+    Since then, the quest to make computers think like us hasn’t slowed down. If this
+    is your first deep dive into Neural Networks, or if you want to refresh and strengthen
+    your knowledge, I recommend reading this [series of articles by Shreya Rao](https://medium.com/@shreya.rao/list/deep-learning-illustrated-ae6c27de1640)
+    as a great starting point for deep learning. Additionally, you can access my collection
+    of stories (different contributors) [that I’ve gathered here](https://medium.com/@raul.vizcarrach/list/neural-networks-098e9b594f19),
+    and which you might find useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Why choose a Convolutional Neural Network (CNN)?*** Honestly, it wasn’t
+    my first choice. Initially, I tried building a model with [LandingAI](https://landing.ai/),
+    a user-friendly platform for cloud deployment and [Python connection through APIs](https://landing.ai/blog/build-your-custom-computer-vision-app-with-python-library).
+    However, latency issues appeared *(over 1,000 frames to process online)*. Similar
+    latency problems occurred with pre-trained models in [Roboflow](https://universe.roboflow.com/),
+    despite their quality datasets and pre-trained models. Realizing the need to run
+    it locally, I tried an MSE-based method to classify jersey colors for team and
+    referee detection. While it sounded like the final solution, it showed low accuracy.
+    After days of trial and error, I switched to CNNs. Among different deep learning
+    approaches, CNNs are well-suited for object detection, unlike LSTM or RNN, which
+    are better fit for sequential data like language transcription or translation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before diving into the code, let’s cover some basic concepts about its architecture:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sample Dataset for learning:** The dataset has been classified into three
+    classes: **Referee**, **Team_Away** (White jersey players), and **Team_Home**
+    (Yellow jersey players). A sample of each class has been divided into two sets:
+    training data and validation data. The training data will be used by the CNN in
+    each iteration (Epoch) to “learn” patterns across multiple layers. The validation
+    data will be used at the end of each iteration to evaluate the model’s performance
+    and measure how well it generalizes to new data. Creating the sample dataset wasn’t
+    too hard; it took me around 30 to 40 minutes to crop sample images from each class
+    from the video and organize them into subdirectories. I managed to create a sample
+    dataset of approximately 90 images that you can find in the [project’s GitHub
+    repository](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**How does the model learn?:** Input data moves through each layer of the neural
+    network, which can have one or multiple layers linked together to make predictions.
+    Every layer uses an activation function that processes data to make predictions
+    or introduce changes to the data. Each connection between these layers has a weight,
+    which determines how much influence one layer’s output has on the next. The goal
+    is to find the right combination of these weights that minimize mistakes when
+    predicting outcomes. Through a process called backpropagation and a loss function,
+    the model adjusts these weights to reduce errors and improve accuracy. This process
+    repeats in what’s called an **Epoch (forward pass + backpropagation)**, with the
+    model getting better at making predictions in each cycle as it learns from its
+    mistakes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Activation Function:** As mentioned before, the activation function plays
+    an important role in the model’s learning process. I chose **ReLU (Rectified Linear
+    Unit)** because it is known for being computationally efficient and mitigating
+    what is called the vanishing gradient problem *(where networks with multiple layers
+    may stop learning effectively).* While ReLU works well, [other functions](https://www.v7labs.com/blog/neural-networks-activation-functions)
+    like **sigmoid**, **tanh**, or **swish** also have their uses depending on how
+    complex the network is.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Epochs:** Setting the right number of epochs involves experimentation. You
+    should take into account factors such as the complexity of the dataset, the architecture
+    of your CNN model, and computational resources. In most cases, it is best to monitor
+    the model’s performance in each iteration and stop training when improvements
+    become minimal to prevent overfitting. Given my small training dataset, **I decided
+    to start with 10 epochs as a baseline**. However, adjustments may be necessary
+    in other scenarios based on metric performance and validation results.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Adam (Adaptive Moment Estimation):** Ultimately, the goal is to reduce the
+    error between predicted and true outputs. As mentioned before, backpropagation
+    plays a key role here by adjusting and updating neural network weights to improve
+    predictions over time. While backpropagation handles weight updates based on gradients
+    from the loss function, the Adam algorithm enhances this process by dynamically
+    adjusting the learning rate to gradually minimize the error or loss function.
+    In other words, it fine-tunes how quickly the model learns.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'That said in order to run our CNN model we will need the following Python packages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Tip-02:** Ensure that PyTorch it’s installed properly. All my tools are set
+    up in an Anaconda environment, and when I installed PyTorch, at first, it seemed
+    that it was set up correctly. However, some issues appeared while running some
+    libraries. Initially, I thought it was the code, but after several revisions and
+    no success, I had to reinstall Anaconda and install PyTorch in a clean environment,
+    and with that, problem fixed!'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Next, we’ll specify our libraries and the path of our sample dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we will ensure each picture is equally sized (resize to 150x150 pixels),
+    then convert it to a format that the code can understand (in PyTorch, input data
+    is typically represented as Tensor objects). Finally, we will adjust the colors
+    to make them easier for the model to work with (normalize) and set up a procedure
+    to load the images. These steps together help prepare the pictures and organize
+    them so the model can effectively start learning from them, avoiding deviations
+    caused by data format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we’ll define our CNN’s architecture:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: You will notice that our CNN model has three layers (conv1, conv2, conv3). The
+    data begins in the convolutional layer (conv), where the activation function (ReLU)
+    is applied. This function enables the network to learn complex patterns and relationships
+    in the data. Following this, the pooling layer is activated. ***What is Max Pooling?***
+    It’s a technique that reduces the image size while retaining important features,
+    which helps in efficient training and optimizes memory resources. This process
+    repeats across conv1 to conv3\. Finally, the data passes through fully connected
+    layers (fc1, fc2) for final classification (or decision-making).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the next step, we initialize our model, configure categorical cross-entropy
+    as the loss function *(commonly used for classification tasks)*, and designate
+    Adam as our optimizer. As mentioned earlier, we’ll execute our model over a full
+    cycle of 10 epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: To track performance, we will add some code to follow the training progress,
+    print validation metrics, and plot them. Finally, we save the model as **hockey_team_classifier.pth**
+    in a designated path of your choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Additionally, alongside your “pth” file, after running through all the steps
+    described above *(you can find the complete code in* [*the project’s GitHub repository*](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch)*,
+    you should expect to see an output like the following (metrics may vary slightly)*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/91ff066093e4c561b0f5b20528f75f57.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 05: CNN model performance metrics'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: After finishing 10 epochs, the CNN model shows improvement in performance metrics.
+    Initially, in Epoch 1, the model starts with a training loss of 1.5346 and a validation
+    accuracy of 47.37%. ***How should we understand this initial point?***
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Accuracy** is one of the most common metrics for evaluating classification
+    performance. In our case, it represents the proportion of correctly predicted
+    classes out of the total. **However, high accuracy alone doesn’t guarantee overall
+    model performance**; you still can have poor predictions for specific classes
+    (as I experienced in early trials). Regarding **training loss**, it measures how
+    effectively the model learns to map input data to the correct labels. Since we’re
+    using a classification function, **Cross-Entropy Loss** quantifies the difference
+    between predicted class probabilities and actual labels. A starting value like
+    1.5346 indicates significant differences between predicted and actual classes;
+    ideally, this value should approach 0 as training progresses. As epochs progress,
+    we observe a significant drop in training loss and an increase in validation accuracy.
+    By the final epoch, the training and validation loss reach lows of 0.2509 and
+    0.2651, respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To test our CNN model, we can select a sample of player images and evaluate
+    its prediction capability. For testing, you can run the following code and utilize
+    the **validation_dataset folder** in the [project’s GitHub repository](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output should look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, the model shows quite good ability in identifying teams and
+    excluding the referee as a team player.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tip #03:** Something I learned during the CNN design process is that adding
+    complexity doesn’t always improve performance. Initially, I experimented with
+    deeper models (more convolutional layers) and color-based augmentation to enhance
+    players’ jersey recognition. However, in my small dataset, I encountered overfitting
+    rather than learning generalizable features (all images were predicted as white
+    team players or referees). Regularization techniques like dropout and batch normalization
+    are also important; they help impose constraints during training, ensuring the
+    model can generalize well to new data. Less can sometimes mean more in terms of
+    results😁.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**PUTING IT ALL TOGETHER**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Putting it all together will require some adjustments to our tracking mechanism
+    described earlier. Here’s a breakdown of the updated code step by step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we’ll set up the libraries and paths we need. Note that the paths for
+    our pickle file and the CNN model are specified now. **This time, if the pickle
+    file isn’t found in the path, the code will throw an error**. Use the previous
+    code to generate the pickle file if needed, and use this updated version to perform
+    the video analysis:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we will load the models, specify the rink coordinates, and initiate the
+    process of detecting objects in each frame in batches of 20, as we did before.
+    Note that for now, we will only use the rink boundaries to focus the analysis
+    on the rink. In the final steps of the article, when we include performance stats,
+    we’ll use the offensive zone coordinates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we’ll add the process to predict each player’s team:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As the next step, we’ll add the method described earlier to switch from bounding
+    boxes to ellipses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, it’s time to add the analyzer that includes reading the pickle file, narrowing
+    the analysis within the rink boundaries we defined earlier, and calling the CNN
+    model to identify each player’s team and add labels. Note that we include a feature
+    to label referees with a different color and change the color of their ellipses
+    as well. The code ends with writing processed frames to an output video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we add the CNN’s architecture (defined in the CNN design process)
+    and execute the Hockey analyzer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After running all the steps, your video output should look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/98890f2c70834d1f61d97b6135b3afe5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sample Clip 06: Tracking Players and Teams'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in this last update, object detections are only within the ice rink,
+    and teams are differentiated, as well as the referee. While the CNN model still
+    needs fine-tuning and occasionally loses stability with some players, it remains
+    mostly reliable and accurate throughout the video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SPEED, DISTANCE AND OFFENSIVE PRESSURE**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The ability to track teams and players opens up exciting possibilities for
+    measuring performance, such as generating heatmaps, analyzing speed and distance
+    covered, tracking movements like zone entries or exits, and diving into detailed
+    player metrics. In order we can have a taste of it, we’ll add three performance
+    metrics: **average speed per player**, skating **distance covered** by each team,
+    and o**ffensive pressure** *(measured as the percentage of distance covered by
+    each team spent in its opponent’s zone)*. I’ll leave more detailed statistics
+    up to you!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We begin adapting the coordinates of the ice rink from pixel-based measurements
+    to approximate meters. This adjustment allows us to read our data in meters rather
+    than pixels. The real-world dimensions of the ice rink seen in the video are approximately
+    15mx30m (15 meters in width and 30 meters in height). To facilitate this conversion,
+    we introduce a method to convert pixel coordinates to meters. By defining the
+    rink’s actual dimensions and using the pixel coordinates of its corners (from
+    left to right and top to bottom), we obtain conversion factors. These factors
+    will support our process of estimating distances in meters and speeds in meters
+    per second. *(Another interesting technique you can explore and apply is Perspective
+    Transformation)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are now ready to **add speed to each player measured in meters per second**.
+    To do this, we’ll need to make three modifications. First, initiate an empty dictionary
+    named **previous_positions** in the **HockeyAnalyzer class** to help us compare
+    the current and previous positions of players. Similarly, we’ll create a t**eam_stats**
+    structure to store stats from each team for further visualization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Next, we will add a **speed method** to estimate players’ speed in pixels per
+    second, and then use the conversion factor (explained earlier) to transform it
+    into meters per second. Finally, from the **analyze_video method**, we’ll call
+    our new speed method and add the speed to each tracked object (players and referee).
+    This is what the changes look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you have troubles adding this new lines of code, you can always visit [the
+    project’s GitHub repository](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch),
+    where you can find the complete integrated code. Your video output at this point
+    should look like this *(notice that the speed has been added to the label of each
+    player)*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/56fe2cf37374ce478a5baaa91c6c66a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sample Clip 07: Tracking Players and Speed'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, let’s add a stats board where we can track the average speed per player
+    for each team, along with other metrics such as distance covered and offensive
+    pressure in the opponent’s zone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve already defined the offensive zones and integrated them into our code.
+    Now, we need to track how often each player enters their opponent’s zone. To achieve
+    this, we’ll implement a method using the [**ray casting algorithm**](https://medium.com/@girishajmera/exploring-algorithms-to-determine-points-inside-or-outside-a-polygon-038952946f87).
+    This algorithm checks if a player’s position is inside the white or yellow team’s
+    offensive zone. It works by drawing an imaginary line from the player to the target
+    zone. If the line crosses one border, the player is inside, if it crosses more
+    (in our case, two out of four borders), the player is outside. The code then scans
+    the entire video to determine each tracked object’s zone status.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we’ll handle the performance metrics by adding a method that displays **average
+    player speed**, total **distance covered**, and **offensive pressure** (percentage
+    of time spent in the opponent’s zone) on a table format for each team. Using OpenCV,
+    we’ll format these metrics into a table overlaid on the video and we’ll incorporate
+    a dynamic update mechanism to maintain real-time statistics during gameplay.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In order the stats display in the video we’ll have to call the method in the
+    **analyze_video method,** so be sure to add this extra lines of code after the
+    speed label is defined and just before the output video is processed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The distance in meters covered by each player is calculated by dividing their
+    speed (measured in meters per second) by the frame rate (frames per second). This
+    calculation allows us to estimate how far each player moves between each frame
+    change in the video. If everything works well, your final video output should
+    look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a960baa2383b62cff2c4cf942ad002a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sample Clip 08: Final Output'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considerations and Future Work
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This model is a basic setup of what can be achieved using computer vision to
+    track players in an ice hockey game (or any team sport). However, there’s a lot
+    of fine-tuning that can be done to improve it and add new capabilities. Here are
+    a few ideas that I’m working on for a next 2.0 version that you might also consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***The challenge of following the puck:*** Depending on which direction your
+    camera is facing and the resolution, tracking the puck is challenging considering
+    its size compared to a soccer or basketball ball. But if you achieve this, interesting
+    possibilities open up to track performance, such as possession time metrics, goal
+    opportunities, or shots data. This also applies also to individual performances;
+    in ice hockey, players change significantly more often than in other team sports,
+    so tracking each player’s performance during one period presents a challenge.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Compute resources, Oh why compute!*** I ran all the code on a CPU arrangement
+    but faced issues *(sometimes resulting in blue screens 😥)* due to running out
+    of memory during the design process (consider using a CUDA setup). Our sample
+    video is about 40 seconds long and initially 5 MB in size, but after running the
+    model, the output increases to up to 34 MB. Imagine the size for a full 20-minute
+    game period. So, you should consider compute resources and storage when scaling
+    up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Don’t underestimate MLOps:*** To deploy and scale rapidly, we need Machine
+    Learning pipelines that are efficient, support frequent execution, and are reliable.
+    This involves considering a **Continuous Integration-Deployment-Training approach**.
+    Our use case has been built for a specific scenario, but what if conditions change,
+    such as the camera direction or jersey colors? To scale up, we must adopt a CI/CD/CT
+    mindset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you found this computer vision project interesting, you can access the
+    complete code in [this GitHub repository](https://github.com/rvizcarra15/IceHockey_ComputerVision_PyTorch).
+    And if you want to support the development of inline and ice hockey in the region,
+    follow the [APHL](https://www.instagram.com/aphl.pe/?igsh=MThvZWxhNThwdXpibA%3D%3D)
+    *(we are always in need of used equipment you’d like to donate for young players
+    and working on building our first official hockey rink)*, and worldwide, follow
+    and support the [Friendship League](https://friendshipleague.org/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Did I miss anything?*** Your suggestions are always welcome. Let’s keep
+    the conversation going!'
+  prefs: []
+  type: TYPE_NORMAL

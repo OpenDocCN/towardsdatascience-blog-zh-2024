@@ -1,0 +1,154 @@
+- en: Training Language Models on Google Colab
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/training-language-models-on-google-colab-6e145ff092bf?source=collection_archive---------6-----------------------#2024-12-04](https://towardsdatascience.com/training-language-models-on-google-colab-6e145ff092bf?source=collection_archive---------6-----------------------#2024-12-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A guide to iterative fine-tuning and serialisation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)[![John
+    Hawkins](../Images/4c36312a7b99f0b1b2575fd7184d60b5.png)](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------)
+    [John Hawkins](https://john-hawkins.medium.com/?source=post_page---byline--6e145ff092bf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6e145ff092bf--------------------------------)
+    ·5 min read·Dec 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/059f892fb6a9dc178619df35de9be181.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Shio Yang](https://unsplash.com/@shioyang?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, you recently discovered [Hugging Face](https://huggingface.co/) and the
+    host of open source models like BERT, Llama, BART and a whole host of generative
+    language models by [Mistral AI](https://mistral.ai/), [Facebook](http://facebook.com),
+    [Salesforce](https://www.salesforce.com/) and other companies. Now you want to
+    experiment with fine tuning some Large Language Models for your side projects.
+    Things start off great, but then you discover how computationally greedy they
+    are and you do not have a GPU processor handy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Google Colab](https://colab.google/) generously offers you a way to access
+    to free computation so you can solve this problem. The downside is, you need to
+    do it all inside a transitory browser based environment. To make matter worse,
+    the whole thing is time limited, so it seems like no matter what you do, you are
+    going to lose your precious fine tuned model and all the results when the kernel
+    is eventually shut down and the environment nuked.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Never fear. There is a way around this: make use of [Google Drive](https://drive.google.com)
+    to save any of your intermediate results or model parameters. This will allow
+    you to continue experimentation at a later stage, or take and use a trained model
+    for inference elsewhere.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this you will need a Google account that has sufficient Google Drive space
+    for both your training data and you model checkpoints. I will presume you have
+    created a folder called `data` in Google Drive containing your dataset. Then another
+    called `checkpoints` that is empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inside your Google Colab Notebook you then mount your Drive using the following
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You now list the contents of your data and checkpoints directories with the
+    following two commands in a new cell:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If these commands work then you now have access to these directories inside
+    your notebook. If the commands do not work then you might have missed the authorisation
+    step. The `drive.mount` command above should have spawned a pop up window which
+    requires you to click through and authorise access. You may have missed the pop
+    up, or not selected all of the required access rights. Try re-running the cell
+    and checking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you have that access sorted, you can then write your scripts such that
+    models and results are serialised into the Google Drive directories so they persist
+    over sessions. In an ideal world, you would code your training job so that any
+    script that takes too long to run can load partially trained models from the previous
+    session and continue training from that point.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A simple way for achieving that is creating a save and load function that gets
+    used by your training scripts. The training process should always check if there
+    is a partially trained model, before initialising a new one. Here is an example
+    save function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this instance we are saving the model state along with some meta-data (epochs
+    and loss) inside a dictionary structure. We include an option to overwrite a single
+    checkpoint file, or create a new file for every epoch. We are using the torch
+    save function, but in principle you could use other serialisation methods. The
+    key idea is that your program opens the file and determines how many epochs of
+    training were used for the existing file. This allows the program to decide whether
+    to continue training or move on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, in the load function we pass in a reference to a model we wish to
+    use. If there is already a serialised model we load the parameters into our model
+    and return the number of epochs it was trained for. This epoch value will determine
+    how many additional epochs are required. If there is no model then we get the
+    default value of zero epochs and we know the model still has the parameters it
+    was initialised with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: These two functions will need to be called inside your training loop, and you
+    need to ensure that the returned value for epochs value is used to update the
+    value of epochs in your training iterations. The result is you now have a training
+    process that can be re-started when a kernel dies, and it will pick up and continue
+    from where it left off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That core training loop might look something like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note: In this example I am experimenting with training multiple different model
+    setups (in a list called `experiments`), potentially using different training
+    datasets. The supporting functions `initialise_model_components` and `generate_data_loaders`
+    are taking care of ensuring that I get the correct model and data for each experiment.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core training loop above allows us to reuse the overall code structure that
+    trains and serialises these models, ensuring that each model gets to the desired
+    number of epochs of training. If we restart the process, it will iterate through
+    the experiment list again, but it will abandon any experiments that have already
+    reached the maximum number of epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hopefully you can use this boilerplate code to setup your own process for experimenting
+    with training some deep learning language models inside Google Colab. Please comment
+    and let me know what you are building and how you use this code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Massive thank you to [Aditya Pramar](https://medium.com/@adityapramar15) for
+    his initial scripts that prompted this piece of work.
+  prefs: []
+  type: TYPE_NORMAL

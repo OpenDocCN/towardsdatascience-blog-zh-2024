@@ -1,0 +1,699 @@
+- en: How to Build a Graph RAG App
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-build-a-graph-rag-app-b323fc33ba06?source=collection_archive---------0-----------------------#2024-12-30](https://towardsdatascience.com/how-to-build-a-graph-rag-app-b323fc33ba06?source=collection_archive---------0-----------------------#2024-12-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/9b638603daca1683e032a6df6bef86ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using knowledge graphs and AI to retrieve, filter, and summarize medical journal
+    articles
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://stevehedden.medium.com/?source=post_page---byline--b323fc33ba06--------------------------------)[![Steve
+    Hedden](../Images/af7bec4a191ab857eccd885dd89e88b4.png)](https://stevehedden.medium.com/?source=post_page---byline--b323fc33ba06--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b323fc33ba06--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b323fc33ba06--------------------------------)
+    [Steve Hedden](https://stevehedden.medium.com/?source=post_page---byline--b323fc33ba06--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b323fc33ba06--------------------------------)
+    ·25 min read·6 days ago
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The accompanying code for the app and notebook are* [*here.*](https://github.com/SteveHedden/kg_llm/tree/main/graphRAGapp)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Knowledge graphs (KGs) and Large Language Models (LLMs) are a match made in
+    heaven. My [previous](https://medium.com/towards-data-science/how-to-implement-knowledge-graphs-and-large-language-models-llms-together-at-the-enterprise-level-cf2835475c47)
+    [posts](https://medium.com/towards-data-science/how-to-implement-graph-rag-using-knowledge-graphs-and-vector-databases-60bb69a22759)
+    discuss the complementarities of these two technologies in more detail but the
+    short version is, “some of the main weaknesses of LLMs, that they are black-box
+    models and struggle with factual knowledge, are some of KGs’ greatest strengths.
+    KGs are, essentially, collections of facts, and they are fully interpretable.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is all about building a simple Graph RAG app. What is RAG? RAG,
+    or Retrieval-Augmented Generation, is about **retrieving** relevant information
+    to **augment** a prompt that is sent to an LLM, which **generates** a response.
+    Graph RAG is RAG that uses a knowledge graph as part of the retrieval portion.
+    If you’ve never heard of Graph RAG, or want a refresher, I’d watch [this video](https://www.youtube.com/watch?v=knDDGYHnnSI).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The basic idea is that, rather than sending your prompt directly to an LLM,
+    which was not trained on your data, you can supplement your prompt with the relevant
+    information needed for the LLM to answer your prompt accurately. The example I
+    use often is copying a job description and my resume into ChatGPT to write a cover
+    letter. The LLM is able to provide a much more relevant response to my prompt,
+    ‘write me a cover letter,’ if I give it my resume and the description of the job
+    I am applying for. Since knowledge graphs are built to store knowledge, they are
+    a perfect way to store internal data and supplement LLM prompts with additional
+    context, improving the accuracy and contextual understanding of the responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This technology has many, many, applications such [customer service bots](https://arxiv.org/pdf/2404.17723),
+    [drug](https://academic.oup.com/bioinformatics/article/40/6/btae353/7687047) [discovery](https://blog.biostrand.ai/integrating-knowledge-graphs-and-large-language-models-for-next-generation-drug-discovery),
+    [automated regulatory report generation in life sciences](https://www.weave.bio/),
+    [talent acquisition and management for HR](https://beamery.com/resources/news/beamery-announces-talentgpt-the-world-s-first-generative-ai-for-hr),
+    [legal research and writing](https://legal.thomsonreuters.com/blog/retrieval-augmented-generation-in-legal-tech/),
+    and [wealth advisor assistants](https://www.cnbc.com/amp/2023/03/14/morgan-stanley-testing-openai-powered-chatbot-for-its-financial-advisors.html).
+    Because of the wide applicability and the potential to improve the performance
+    of LLM tools, Graph RAG (that’s the term I’ll use here) has been blowing up in
+    popularity. Here is a graph showing interest over time based on Google searches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad71566165f3051525068ae4b36fe3b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: [https://trends.google.com/](https://trends.google.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph RAG has experienced a surge in search interest, even surpassing terms
+    like knowledge graphs and retrieval-augmented generation. Note that Google Trends
+    measures *relative* search interest, not absolute number of searches. The spike
+    in July 2024 for searches of Graph RAG coincides with the week Microsoft [announced](https://www.microsoft.com/en-us/research/blog/graphrag-new-tool-for-complex-data-discovery-now-on-github/)
+    that their GraphRAG application would be available on [GitHub](https://github.com/microsoft/graphrag).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The excitement around Graph RAG is broader than just Microsoft, however. Samsung
+    acquired RDFox, a knowledge graph company, in July of 2024\. The [article announcing
+    that acquisition](https://news.samsung.com/global/samsung-electronics-announces-acquisition-of-oxford-semantic-technologies-uk-based-knowledge-graph-startup)
+    did not mention Graph RAG explicitly, but in [this article in Forbes](https://www.forbes.com/sites/zakdoffman/2024/11/09/samsung-confirms-new-upgrade-choice-millions-of-galaxy-owners-must-now-decide/)
+    published in November 2024, a Samsung spokesperson stated, “We plan to develop
+    knowledge graph technology, one of the main technologies of personalized AI, and
+    organically connect with generated AI to support user-specific services.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: In October 2024, Ontotext, a leading graph database company, and Semantic Web
+    company, the maker of PoolParty, a knowledge graph curation platform, merged to
+    form [Graphwise](https://graphwise.ai/). According to [the press release](https://www.prnewswire.com/news-releases/semantic-web-company-and-ontotext-merge-to-create-knowledge-graph-and-ai-powerhouse-graphwise-302283427.html?utm_source=chatgpt.com),
+    the merger aims to “democratize the evolution of Graph RAG as a category.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: While some of the buzz around Graph RAG may come from the broader excitement
+    surrounding chatbots and generative AI, it reflects a genuine evolution in how
+    knowledge graphs are being applied to solve complex, real-world problems. One
+    example is that LinkedIn [applied Graph RAG](https://arxiv.org/pdf/2404.17723)
+    to improve their customer service technical support. Because the tool was able
+    to retrieve the relevant data (like previously solved similar tickets or questions)
+    to feed the LLM, the responses were more accurate and the mean resolution time
+    dropped from 40 hours to 15 hours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post will go through the construction of a pretty simple, but I think illustrative,
+    example of how Graph RAG can work in practice. The end result is an app that a
+    non-technical user can interact with. Like my last post, I will use a dataset
+    consisting of medical journal articles from PubMed. The idea is that this is an
+    app that someone in the medical field could use to do literature review. The same
+    principles can be applied to many use cases however, which is why Graph RAG is
+    so exciting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The structure of the app, along with this post is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step zero is preparing the data. I will explain the details below but the overall
+    goal is to vectorize the raw data and, separately, turn it into an RDF graph.
+    As long as we keep URIs tied to the articles before we vectorize, we can navigate
+    across a graph of articles and a vector space of articles. Then, we can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Search Articles:** use the power of the vector database to do an initial
+    search of relevant articles given a search term. I will use vector similarity
+    to retrieve articles with the most similar vectors to that of the search term.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Refine Terms:** explore the [Medical Subject Headings (MeSH) biomedical vocabulary](https://id.nlm.nih.gov/mesh/)
+    to select terms to use to filter the articles from step 1\. This controlled vocabulary
+    contains medical terms, alternative names, narrower concepts, and many other properties
+    and relationships.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Filter & Summarize:** use the MeSH terms to filter the articles to avoid
+    ‘context poisoning’. Then send the remaining articles to an LLM along with an
+    additional prompt like, “summarize in bullets.”'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Some notes on this app and tutorial before we get started:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This set-up uses knowledge graphs exclusively for metadata. This is only possible
+    because each article in my dataset has already been tagged with terms that are
+    part of a rich controlled vocabulary. I am using the graph for structure and semantics
+    and the vector database for similarity-based retrieval, ensuring each technology
+    is used for what it does best. Vector similarity can tell us “esophageal cancer”
+    is semantically similar to “mouth cancer”, but knowledge graphs can tell us the
+    details of the relationship between “esophageal cancer” and “mouth cancer.”
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The data I used for this app is a collection of medical journal articles from
+    PubMed (more on the data below). I chose this dataset because it is structured
+    (tabular) but also contains text in the form of abstracts for each article, and
+    because it is already tagged with topical terms that are aligned with a well-established
+    controlled vocabulary (MeSH). Because these are medical articles, I have called
+    this app ‘Graph RAG for Medicine.’ But this same structure can be applied to any
+    domain and is not specific to the medical field.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'What I hope this tutorial and app demonstrate is that you can improve the results
+    of your RAG application in terms of accuracy and explainability by incorporating
+    a knowledge graph into the retrieval step. I will show how KGs can improve the
+    accuracy of RAG applications in two ways: by giving the user a way of filtering
+    the context to ensure the LLM is only being fed the most relevant information;
+    and by using domain specific controlled vocabularies with dense relationships
+    that are maintained and curated by domain experts to do the filtering.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'What this tutorial and app don’t directly showcase are two other significant
+    ways KGs can enhance RAG applications: governance, access control, and regulatory
+    compliance; and efficiency and scalability. For governance, KGs can do more than
+    filter content for relevancy to improve accuracy — they can enforce data governance
+    policies. For instance, if a user lacks permission to access certain content,
+    that content can be excluded from their RAG pipeline. On the efficiency and scalability
+    side, KGs can help ensure RAG applications don’t die on the shelf. While it’s
+    easy to create an impressive one-off RAG app (that’s literally the purpose of
+    this tutorial), many companies struggle with a proliferation of disconnected POCs
+    that lack a cohesive framework, structure, or platform. That means many of those
+    apps are not going to survive long. A metadata layer powered by KGs can break
+    down data silos, providing the foundation needed to build, scale, and maintain
+    RAG applications effectively. Using a rich controlled vocabulary like MeSH for
+    the metadata tags on these articles is a way of ensuring this Graph RAG app can
+    be integrated with other systems and reducing the risk that it becomes a silo.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Step 0: Prepare the data'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*The code to prepare the data is in* [*this*](https://github.com/SteveHedden/kg_llm/blob/main/graphRAGapp/VectorVsKG_updated.ipynb)
+    *notebook.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As mentioned, I’ve again decided to use [this](https://www.kaggle.com/datasets/owaiskhan9654/pubmed-multilabel-text-classification)
+    dataset of 50,000 research articles from the PubMed repository (License [CC0:
+    Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)). This dataset
+    contains the title of the articles, their abstracts, as well as a field for metadata
+    tags. These tags are from the Medical Subject Headings (MeSH) controlled vocabulary
+    thesaurus. The PubMed articles are really just metadata on the articles — there
+    are abstracts for each article but we don’t have the full text. The data is already
+    in tabular format and tagged with MeSH terms.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can vectorize this tabular dataset directly. We could turn it into a graph
+    (RDF) before we vectorize, but I didn’t do that for this app and I don’t know
+    that it would help the final results for this kind of data. The most important
+    thing about vectorizing the raw data is that we add [Unique Resource Identifiers](https://en.wikipedia.org/wiki/Uniform_Resource_Identifier)
+    (URIs) to each article first. A URI is a unique ID for navigating RDF data and
+    it is necessary for us to go back and forth between vectors and entities in our
+    graph. Additionally, we will create a separate collection in our vector database
+    for the MeSH terms. This will allow the user to search for relevant terms without
+    having prior knowledge of this controlled vocabulary. Below is a diagram of what
+    we are doing to prepare our data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/13719b544747a36938663e2a3e3239fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have two collections in our vector database to query: articles and terms.
+    We also have the data represented as a graph in RDF format. Since MeSH has an
+    API, I am just going to query the API directly to get alternative names and narrower
+    concepts for terms.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vectorize data in Weaviate
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First import the required packages and set up the Weaviate client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Read in the PubMed journal articles. I am using [Databricks](https://www.databricks.com/)
+    to run this notebook so you may need to change this, depending on where you run
+    it. The goal here is just to get the data into a pandas DataFrame.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you’re running this locally, just do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then clean the data up a bit:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we need to create a URI for each article and add that in as a new column.
+    This is important because the URI is the way we can connect the vector representation
+    of an article with the knowledge graph representation of the article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also want to create a DataFrame of all of the MeSH terms that are used to
+    tag the articles. This will be helpful later when we want to search for similar
+    MeSH terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Vectorize the articles DataFrame:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now vectorize the MeSH terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can, at this point, run semantic search, similarity search, and RAG directly
+    against the vectorized dataset. I won’t go through all of that here but you can
+    look at the code in my [accompanying notebook](https://github.com/SteveHedden/kg_llm/tree/main/graphRAGapp)
+    to do that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turn data into a knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I am just using the same code we used in the [last post](https://medium.com/towards-data-science/how-to-implement-graph-rag-using-knowledge-graphs-and-vector-databases-60bb69a22759)
+    to do this. We are basically turning every row in the data into an “Article” entity
+    in our KG. Then we are giving each of these articles properties for title, abstract,
+    and MeSH terms. We are also turning every MeSH term into an entity as well. This
+    code also adds random dates to each article for a property called date published
+    and a random number between 1 and 10 to a property called access. We won’t use
+    those properties in this demo. Below is a visual representation of the graph we
+    are creating from the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2390e2c00105e19f3f794a8c78acaf7a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is how to iterate through the DataFrame and turn it into RDF data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: OK, so now we have a vectorized version of the data, and a graph (RDF) version
+    of the data. Each vector has a URI associated with it, which corresponds to an
+    entity in the KG, so we can go back and forth between the data formats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build an app
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I decided to use [Streamlit](https://streamlit.io/) to build the interface for
+    this graph RAG app. Similar to the last blog post, I have kept the user flow the
+    same.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Search Articles:** First, the user searches for articles using a search term.
+    This relies exclusively on the vector database. The user’s search term(s) is sent
+    to the vector database and the ten articles nearest the term in vector space are
+    returned.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Refine Terms:** Second, the user decides the MeSH terms to use to filter
+    the returned results. Since we also vectorized the MeSH terms, we can have the
+    user enter a natural language prompt to get the most relevant MeSH terms. Then,
+    we allow the user to expand these terms to see their alternative names and narrower
+    concepts. The user can select as many terms as they want for their filter criteria.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Filter & Summarize:** Third, the user applies the selected terms as filters
+    to the original ten journal articles. We can do this since the PubMed articles
+    are tagged with MeSH terms. Finally, we let the user enter an additional prompt
+    to send to the LLM along with the filtered journal articles. This is the generative
+    step of the RAG app.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Let’s go through these steps one at a time. You can see the full app and code
+    on my GitHub, but here is the structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Search Articles
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First, want to do is implement Weaviate’s [vector similarity search](https://weaviate.io/developers/weaviate/search/similarity).
+    Since our articles are vectorized, we can send a search term to the vector database
+    and get similar articles back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4a996d6b04a9058f4313cf481470501.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The main function that searches for relevant journal articles in the vector
+    database is in app.py:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This function uses the queries stored in weaviate_queries to establish the Weaviate
+    client (initialize_weaviate_client) and search for articles (query_weaviate_articles).
+    Then we display the returned articles in a table, along with their abstracts,
+    distance (how close they are to the search term), and the MeSH terms that they
+    are tagged with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The function to query Weaviate in weaviate_queries.py looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, I put a limit of ten results here just to make it simpler, but
+    you can change that. This is just using vector similarity search in Weaviate to
+    return relevant results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The end result in the app looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d18988b667f6edfe53393d752ef9b6c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a demo, I will search the term “treatments for mouth cancer”. As you can
+    see, 10 articles are returned, mostly relevant. This demonstrates both the strengths
+    and weaknesses of vector based retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The strength is that we can build a semantic search functionality on our data
+    with minimal effort. As you can see above, all we did was set up the client and
+    send the data to a vector database. Once our data has been vectorized, we can
+    do semantic searches, similarity searches, and even RAG. I have put some of that
+    in the notebook accompanying this post, but there’s a lot more in Weaviate’s [official
+    docs](https://weaviate.io/developers/weaviate).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The weakness of vector based retrieval, as I mentioned above are that they are
+    black-box and struggle with factual knowledge. In our example, it looks like most
+    of the articles are about some kind of treatment or therapy for some kind of cancer.
+    Some of the articles are about mouth cancer specifically, some are about a sub-type
+    of mouth cancer like gingival cancer (cancer of the gums), and palatal cancer
+    (cancer of the palate). But there are also articles about nasopharyngeal cancer
+    (cancer of the upper throat), mandibular cancer (cancer of the jaw), and esophageal
+    cancer (cancer of the esophagus). None of these (upper throat, jaw, or esophagus)
+    are considered mouth cancer. It is understandable why an article about a specific
+    cancer radiation therapy for nasopharyngeal neoplasms would be considered similar
+    to the prompt “treatments for mouth cancer” but it may not be relevant if you
+    are only looking for treatments for mouth cancer. If we were to plug these ten
+    articles directly into our prompt to the LLM and ask it to “summarize the different
+    treatment options,” we would be getting incorrect information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The purpose of RAG is to give an LLM a very specific set of additional information
+    to better answer your question — if that information is incorrect or irrelevant,
+    it can lead to misleading responses from the LLM. This is often referred to as
+    “context poisoning”. What is especially dangerous about context poisoning is that
+    the response isn’t necessarily factually inaccurate (the LLM may accurately summarize
+    the treatment options we feed it), and it isn’t necessarily based on an inaccurate
+    piece of data (presumably the journal articles themselves are accurate), it’s
+    just using the wrong data to answer your question. In this example, the user could
+    be reading about how to treat the wrong kind of cancer, which seems very bad.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Refine Terms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: KGs can help improve the accuracy of responses and reduce the likelihood of
+    context poisoning by refining the results from the vector database. The next step
+    is for selecting what MeSH terms we want to use to filter the articles. First,
+    we do another vector similarity search against the vector database but on the
+    Terms collection. This is because the user may not be familiar with the MeSH controlled
+    vocabulary. In our example above, I searched for, “therapies for mouth cancer”,
+    but “mouth cancer” is not a term in MeSH — they use “Mouth Neoplasms”. We want
+    the user to be able to start exploring the MeSH terms without having a prior understanding
+    of them — this is good practice regardless of the metadata used to tag the content.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e18e44bd8931abf6ec9b70a67d17cdad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The function to get relevant MeSH terms is nearly identical to the previous
+    Weaviate query. Just replace Article with term:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is what it looks like in the app:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b518eb952de2b3ad25305e1d144d2006.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, I searched for “mouth cancer” and the most similar terms were
+    returned. Mouth cancer was not returned, as that is not a term in MeSH, but Mouth
+    Neoplasms is on the list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to allow the user to expand the returned terms to see alternative
+    names and narrower concepts. This requires querying the [MeSH API](https://id.nlm.nih.gov/mesh/).
+    This was the trickiest part of this app for a number of reasons. The biggest problem
+    is that Streamlit requires that everything has a unique ID but MeSH terms can
+    repeat — if one of the returned concepts is a child of another, then when you
+    expand the parent you will have a duplicate of the child. I think I took care
+    of most of the big issues and the app should work, but there are probably bugs
+    to find at this stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The functions we rely on are found in rdf_queries.py. We need one to get the
+    alternative names for a term:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also need functions to get the narrower (child) concepts for a given term.
+    I have two functions that achieve this — one that gets the immediate children
+    of a term and one recursive function that returns all children of a given depth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The other important part of step 2 is to allow the user to select terms to
+    add to a list of “Selected Terms”. These will appear in the sidebar on the left
+    of the screen. There are a lot of things that can improve this step like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no way to clear all but you can clear the cache or refresh the browser
+    if needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is no way to ‘select all narrower concepts’ which would be helpful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is no option to add rules for filtering. Right now, we are just assuming
+    that the article must contain term A OR term B OR term C etc. The rankings at
+    the end are based on the number of terms the articles are tagged with.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here is what it looks like in the app:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92e6f9744b8b568b723112f82f41339b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: I can expand Mouth Neoplasms to see the alternative names, in this case, “Cancer
+    of Mouth”, along with all of the narrower concepts. As you can see, most of the
+    narrower concepts have their own children, which you can expand as well. For the
+    purposes of this demo, I am going to select all children of Mouth Neoplasms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/587f3974e8d7406677192e774d96824b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This step is important not just because it allows the user to filter the search
+    results, but also because it is a way for the user to explore the MeSH graph itself
+    and learn from it. For example, this would be the place for the user to learn
+    that nasopharyngeal neoplasms are not a subset of mouth neoplasms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Filter & Summarize
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that you’ve got your articles and your filter terms, you can apply the filter
+    and summarize the results. This is where we bring the original 10 articles returned
+    in step one together with the refined list of MeSH terms. We allow the user to
+    add additional context to the prompt before sending it to the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/755f10265aed07b0b49c8a86f6fe1d67.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The way we do this filtering is that we need to get the URIs for the 10 articles
+    from the original search. Then we can query our knowledge graph for which of those
+    articles have been tagged with the associated MeSH terms. Additionally, we save
+    the abstracts of these articles for use in the next step. This would be the place
+    where we could filter based on access control or other user-controlled parameters
+    like author, filetype, date published, etc. I didn’t include any of that in this
+    app but I did add in properties for access control and date published in case
+    we want to add that in this UI later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what the code looks like in app.py:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This uses the function query_rdf in the rdf_queries.py file. That function
+    looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, this function also converts the MeSH terms to URIs so we can
+    filter using the graph. Be careful in the way you convert terms to URIs and ensure
+    it aligns with the other functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what it looks like in the app:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/11971e4329e6ec965e8cf188e1aec1a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the two MeSH terms we selected from the previous step are here.
+    If I click “Filter Articles,” it will filter the original 10 articles using our
+    filter criteria in step 2\. The articles will be returned with their full abstracts,
+    along with their tagged MeSH terms (see image below).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5f45112e4ef1d0b014865f755e64ac2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are 5 articles returned. Two are tagged with “mouth neoplasms,” one with
+    “gingival neoplasms,” and two with “palatal neoplasms”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we have a refined list of articles we want to use to generate a response,
+    we can move to the final step. We want to send these articles to an LLM to generate
+    a response but we can also add in additional context to the prompt. I have a default
+    prompt that says, “Summarize the key information here in bullet points. Make it
+    understandable to someone without a medical degree.” For this demo, I am going
+    to adjust the prompt to reflect our original search term:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ebb1666b6c3ca891803cb3d817272f05.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The results are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e55ff463f58f5f79fd3a82d1d842be3a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The results look better to me, mostly because I know that the articles we are
+    summarizing are, presumably, about treatments for mouth cancer. The dataset doesn’t
+    contain the actual journal articles, just the abstracts. So these results are
+    just summaries of summaries. There may be some value to this, but if we were building
+    a real app and not just a demo, this is the step where we could incorporate the
+    full text of the articles. Alternatively, this is where the user/researcher would
+    go read these articles themselves, rather than relying exclusively on the LLM
+    for the summaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This tutorial demonstrates how combining vector databases and knowledge graphs
+    can significantly enhance RAG applications. By leveraging vector similarity for
+    initial searches and structured knowledge graph metadata for filtering and organization,
+    we can build a system that delivers accurate, explainable, and domain-specific
+    results. The integration of MeSH, a well-established controlled vocabulary, highlights
+    the power of domain expertise in curating metadata, which ensures that the retrieval
+    step aligns with the unique needs of the application while maintaining interoperability
+    with other systems. This approach is not limited to medicine — its principles
+    can be applied across domains wherever structured data and textual information
+    coexist.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This tutorial underscores the importance of leveraging each technology for what
+    it does best. Vector databases excel at similarity-based retrieval, while knowledge
+    graphs shine in providing context, structure, and semantics. Additionally, scaling
+    RAG applications demands a metadata layer to break down data silos and enforce
+    governance policies. Thoughtful design, rooted in domain-specific metadata and
+    robust governance, is the path to building RAG systems that are not only accurate
+    but also scalable.
+  prefs: []
+  type: TYPE_NORMAL

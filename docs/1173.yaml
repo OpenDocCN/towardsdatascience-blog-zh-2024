@@ -1,0 +1,300 @@
+- en: 'How to Create Your Own CV Dataset Using Satellite Imagery: Wildfires from Space'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-create-your-own-cv-dataset-using-satellite-imagery-wildfires-from-space-8295c0cca028?source=collection_archive---------6-----------------------#2024-05-09](https://towardsdatascience.com/how-to-create-your-own-cv-dataset-using-satellite-imagery-wildfires-from-space-8295c0cca028?source=collection_archive---------6-----------------------#2024-05-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Collecting images to train CNNs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@alexroz?source=post_page---byline--8295c0cca028--------------------------------)[![Aleksei
+    Rozanov](../Images/748b69bfaccf39c9aa568a9e6f41eec3.png)](https://medium.com/@alexroz?source=post_page---byline--8295c0cca028--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8295c0cca028--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8295c0cca028--------------------------------)
+    [Aleksei Rozanov](https://medium.com/@alexroz?source=post_page---byline--8295c0cca028--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8295c0cca028--------------------------------)
+    ·7 min read·May 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7564fed75522e3ccc78cac4ee167c346.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Unless otherwise noted, all images are by the [author](https://medium.com/@alexroz),
+    based on Sentinel-2 data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have you ever had this idea that a pet project on the application of ML to satellite
+    images might significantly strengthen your data science portfolio? Or have you
+    trained some models based on datasets developed by other people but not your own?
+    If the answer is yes, I have a good piece of news for you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article I’ll guide you through the process of creating a Computer Vision
+    (CV) dataset consisting of high-resolution satellite images, so you could use
+    a similar approach and build a solid pet project!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🔥**The problem:** wildfire detection (binary classification task).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**🛰️The instrument:** Sentinel 2 (10/20 m resolution).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**⏰The time range:** 2017/01/01–2024/01/01.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🇬🇧**The area of interest:** the UK.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**🐍The python code:** [GitHub](https://github.com/alexxxroz/Medium/blob/main/WF_Dataset.ipynb)***.***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I. Collecting information about the wildfires.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before acquiring any imagery, it’s vital to know where and when the wildfires
+    were happening. To get such data, we will use the NASA Fire Information for Resource
+    Management System ([FIRMS](https://firms.modaps.eosdis.nasa.gov/download/)) archive.
+    Based on your requirements, you can select there a source of data and the region
+    of interest, submit a request, and get your data in a matter of minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c4637b47fa2f85562f21fa2304bf8f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[FIRMS portal.](https://firms.modaps.eosdis.nasa.gov/download/create.php)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I decided to use MODIS-based data in the form of a csv file. It comprises many
+    different variables, but we are only interested in latitude, longitude, acquisition
+    time, **confidence** and **type**. The last two variables are of particular interest
+    to us. As you may guess, confidence is basically the probability that a wildfire
+    was actually happening. So to exclude “wrong alarms” I decided to filter out everything
+    lower than 70% confidence. The second important variable was type. Basically,
+    it’s a classification of wildfires. I was interested only in burning vegetation,
+    so only the class 0 is kept. The resulting dataset has **1087** cases of wildfires.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can overlay the hotspots with the shape of the UK.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/48ae964d29c1e7ee4fcecde1dacdf5ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by [author](https://medium.com/@alexroz).
+  prefs: []
+  type: TYPE_NORMAL
+- en: II. Collecting Sentinel-2 images for wildifre events.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The second stage of the work involves my favorite Google Earth Engine (GEE)
+    and its python version *ee* (you can check out my other articles illustrating
+    the capabilities of this service).
+  prefs: []
+  type: TYPE_NORMAL
+- en: At ideal conditions, Sentinel 2 derives images with a temporal resolution of
+    5 days and spatial resolution of 10 m for RGB bands and 20 m for SWIR bands (we
+    will discuss later what these are). However, it doesn’t mean that we have an image
+    of each location once in 5 days, since there are many factors influencing image
+    acquisition, including **clouds**. So there is no chance we get 1087 images; the
+    amount will be much lower.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s create a script, which would get for each point a Sentinel-2 image with
+    cloud percentage lower than 50%. For each pair of coordinates we create a buffer
+    and stretch it to a rectangle, which is cut off the bigger image later. All the
+    images are converted to multidimensional array and saved as *.npy* file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: What are these SWIR bands (in particular, bands 11 and 12)? SWIR stands for
+    Short-Wave Infrared. SWIR bands are a part of the electromagnetic spectrum that
+    covers wavelengths ranging from approximately 1.4 to 3 micrometers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SWIR bands are used in wildfire analysis for several reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Thermal Sensitivity:** SWIR bands are sensitive to temperature variations,
+    allowing them to detect heat sources associated with wildfires. So SWIR bands
+    can capture info about the location and intensity of the fire.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Penetration of Smoke:** Smoke generated by wildfires can obscure visibility
+    in RGB images (i.e. you simply can’t see “under” the clouds). SWIR radiation has
+    better penetration through smoke compared to visible range, allowing for more
+    reliable fire detection even in smoky conditions.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Discrimination of Burned Areas:** SWIR bands can help in identifying burned
+    areas by detecting changes in surface reflectance caused by fire-induced damage.
+    Burned vegetation and soil often exhibit distinct spectral signatures in SWIR
+    bands, enabling the delineation of the extent of the fire-affected area.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Nighttime Detection:** SWIR sensors can detect thermal emissions from fires
+    even during nighttime when visible and near-infrared sensors are ineffective due
+    to lack of sunlight. This enables continuous monitoring of wildfires round the
+    clock.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: So if we have a look at a random image from the collected data, we will be able
+    to see, that when based on RGB image it’s hard to say whether it’s smoke or cloud,
+    SWIR bands clearly demonstrate the presence of fire.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e39c7210118166b492979bce2748ff1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: III. Manual cleaning.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now is my least favorite part. It’s crucial to go through all of the pictures
+    and check if there is a wildfire on each image (remember, 70% confidence) and
+    the picture is generally correct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, images like these (no hotspots are present) were acquired and
+    automatically downloaded to the wildfire folder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/228a127fcaa5e3e07a7619a59b4119ee.png)![](../Images/1015b718c93b72f28c2fdbceb919fe93.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The total amount of images after cleaning: **228**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: IV. Getting no-wildfire images.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: And the last stage is getting images without hotspots for our dataset. Since
+    we are building a dataset for a classification task, we need to balance the two
+    classes, so we need to get at least 200 pictures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do that we will randomly sample points from the territory of the UK (I decided
+    to sample 300):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then applying the code written above, we acquire Sentinel-2 images and save
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: V. Manual cleaning again :((((
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Boring stage again. Now we need to be sure that among these point there are
+    no wildfires/disturbed or incorrect images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After doing that, I ended up with **242** images like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3eb8a69cc01f50dbf459faa89e212327.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**VI. Augmentation.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final stage is image augmentation. In simple words, the idea is to increase
+    the amount of images in the dataset using the ones we already have. In this dataset
+    we will simply rotate images on 180°, hence, getting a two-times greater amount
+    of pictures in the dataset!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ffa9254447febcb89a3247a09b7298c.png)![](../Images/d8cbbe2ebd24f7c72a5fe4bf4311bd26.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results.
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now it’s possible to randomly sample two classess of images and visualize them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'No-WF:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fed9cfa018dcfea460b3a8913cc8faad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'WF:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0e10bf99fe93822c4d7fa143f919e455.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: That’s it, we’re done! As you can see it’s not that hard to collect a lot of
+    remote sensing data if you use GEE. The dataset we created now can be used as
+    for training CNNs of different architectures and comparison of their performance.
+    On my opinion, it’s a perfect project to add in your data science portfolio, since
+    it solves non-trivial and important problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hopefully this article was informative and insightful for you!
+  prefs: []
+  type: TYPE_NORMAL
+- en: ===========================================
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***References:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: NASA Near Real-Time and MCD14DL MODIS Active Fire Detections (TXT/CSV format).
+    Dataset. Available online [[/learn/find-data/near-real-time/firms/active-fire-data](https://www.earthdata.nasa.gov/learn/find-data/near-real-time/firms/active-fire-data)]
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[FIRMS Data Policy.](https://www.earthdata.nasa.gov/learn/find-data/near-real-time/firms/mcd14dl-nrt)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Sentinel-2 Data License.](https://scihub.copernicus.eu/twiki/pub/SciHubWebPortal/TermsConditions/Sentinel_Data_Terms_and_Conditions.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Copernicus Sentinel data 2017–2024.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ===========================================
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***All my publications on Medium are free and open-access, that’s why I’d really
+    appreciate if you followed me here!***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: P.s. I’m extremely passionate about (Geo)Data Science, ML/AI and Climate Change.
+    So if you want to work together on some project pls contact me in [LinkedIn](https://www.linkedin.com/in/alexxxroz/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🛰️Follow for more🛰️
+  prefs: []
+  type: TYPE_NORMAL

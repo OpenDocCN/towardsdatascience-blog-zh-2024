@@ -1,0 +1,908 @@
+- en: Deploy Long-Running ETL Pipelines to ECS with Fargate
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03](https://towardsdatascience.com/deploy-long-running-etl-pipelines-to-ecs-with-fargate-01ab19c6d2a8?source=collection_archive---------4-----------------------#2024-03-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Building Backend Applications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To keep things simple and costs to a minimum
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Ida
+    Silfverskiöld](../Images/a2c0850bc0198688f70a5eca858cf8b5.png)](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)
+    [Ida Silfverskiöld](https://medium.com/@ilsilfverskiold?source=post_page---byline--01ab19c6d2a8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--01ab19c6d2a8--------------------------------)
+    ·17 min read·Mar 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/52f9ed67c372c5d6c4c962a6d7fc66e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ETL Pipeline | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: ETL stands for **Extract**, **Transform**, and **Load**. An ETL pipeline is
+    essentially just a data transformation process — extracting data from one place,
+    doing something with it, and then loading it back to the same or a different place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are working with natural language processing via APIs, which I’m guessing
+    most will start doing, you can easily hit the timeout threshold of AWS Lambda
+    when processing your data, especially if at least one function exceeds 15 minutes.
+    So, while Lambda is great because it’s quick and really cheap, the timeout can
+    be a bother.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The choice here is to deploy your code as a container** that has the option
+    of running as long as it needs to and run it on a schedule. So, instead of spinning
+    up a function as you do with Lambda, we can spin up a container to run in an ECS
+    cluster using Fargate.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d9dbc9be8b617e2240b774166b931f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can use EventBridge both for Lambda and ECS | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For clarification, Lambda, ECS and EventBridge are all AWS Services.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Just as with Lambda, the cost** of running **a container** for an hour or
+    two is **minimal**. However, it’s a bit **more complicated** than running a serverless
+    function. But if you’re reading this, then you’ve probably run into the same issues
+    and are wondering what the easiest way to transition is.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have created a very simple ETL template that uses *Google BigQuery* to extract
+    and load data. This [template](https://github.com/ilsilfverskiold/etl-pipeline-fargate)
+    will get you up and running within a few minutes if you follow along.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Using BigQuery is entirely optional but I usually store my long term data
+    there.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Instead of building something complex here, I will show you how to build something
+    minimal and keep it really lean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t need to process data in parallel, you shouldn’t need to include
+    something like Airflow. I’ve seen a few articles out there that unnecessarily
+    set up complex workflows, which aren’t strictly necessary for straightforward
+    data transformation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides, if you feel like you want to add on to this later, that option is yours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Workflow
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ll build our script in Python as we’re doing data transformation, then bundle
+    it up with Docker and push it to an ECR repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From here, we can create a task definition using AWS Fargate and run it on a
+    schedule in an ECS cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7af5c5507689fd2d1264de7a77474a3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: All the tools we use to deploy our code to AWS | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don’t worry if this feels foreign; you’ll understand all these services and
+    what they do as we go along.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Technology
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you are new to working with containers, then think of ECS (Elastic Container
+    Service) as something that helps us set up an environment where we can run one
+    or more containers simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fargate, on the other hand, helps us simplify the management and setup of the
+    containers themselves using Docker images — which are referred to as tasks in
+    AWS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6dccf5457f14e0ef24279dabbb9b75e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A very simplified graph — the infrastructure the tasks run on is managed by
+    Fargate | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is the option of using EC2 to set up your containers, but you would have
+    to do a lot more manual work. Fargate manages the underlying instances for us,
+    whereas with EC2, you are required to manage and deploy your own compute instances.
+    Hence, Fargate is often referred to as the ‘serverless’ option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I found a [thread](https://www.reddit.com/r/aws/comments/165wkns/ecs_fargate_vs_ec2/)
+    on Reddit discussing this, if you’re keen to read a bit about how users find using
+    EC2 versus Fargate. It can give you an idea of how people compare EC2 and Fargate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not that I’m saying Reddit is the source of truth, but it’s useful for getting
+    a sense of user perspectives.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Costs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The primary concern I usually have is to keep the code running efficiently while
+    also managing the total cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we’re only running the container when we need to, we only pay for the amount
+    of resources we use. The price we pay is determined by several factors, such as
+    the number of tasks running, the execution duration of each task, the number of
+    virtual CPUs (vCPUs) used for the task, and memory usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But to give you a rough idea, on a high level, the total [cost](https://aws.amazon.com/fargate/pricing/)
+    for running one task is around $0.01384 per hour for the EU region, depending
+    on the resources you’ve provisioned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d258be4174b91c3966914d2a34913aa1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fargate & ECS pricing per hour for the EU region | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we were to compare this price with **AWS Glue** we can get a bit of perspective
+    if it is good or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If an ETL job requires 4 DPUs (the default number for an AWS Glue job) and runs
+    for an hour, it would cost 4 DPUs * $0.44 = $1.76\. This cost is for only one
+    hour and is significantly higher than running a simple container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is, of course, a simplified calculation, and the actual number of DPUs
+    can vary depending on the job. You can check out AWS Glue pricing in more detail
+    on their pricing [page](https://aws.amazon.com/glue/pricing/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Getting Started
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To follow this article, I’ve created a simple [ETL template](https://github.com/ilsilfverskiold/etl-pipeline-fargate)
+    to help you get up and running quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This template uses **BigQuery** to extract and load data. It will extract a
+    few rows, do something simple and then load it back to BigQuery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When I run my pipelines I have other things that transform data — I use APIs
+    for natural language processing that runs for a few hours in the morning — but
+    that is up to you to add on later. **This is just to give you a template that
+    will be easy to work with.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To follow along this tutorial, the main steps will be as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up your local code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Setting up an **IAM user** & the **AWS CLI**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Build & push Docker image** to AWS.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create an **ECS task definition**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Create an **ECS cluster**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Schedule** to your tasks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In total it shouldn’t take you longer than 20 minutes to get through this, using
+    the code I’ll provide you with. This assumes you have an AWS account ready, and
+    if not, add on 5 to 10 minutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: First create a new folder locally and locate into it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Make sure you have python installed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If not, [install it](https://www.python.org/downloads/) locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’re ready, you can go ahead and clone the template I have already set
+    up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: When it has finished fetching the code, open it up in your code editor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First check the ***main.py*** file to look how I’ve structured the code to understand
+    what it does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/63327e5f4b603b37a1228e14e85fe8c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The main.py code in your root folder | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Essentially, it will fetch all names with **“Doe”** in it from a table in BigQuery
+    that **you specify,** transform these names and then insert them back into the
+    same data table as new rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can go into each helper function to see how we set up the SQL Query job,
+    transform the data and then insert it back to the BigQuery table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea is of course that you set up something more complex but this is a simple
+    test run to make it easy to tweak the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Up BigQuery
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you want to continue with the code I’ve prepared you will need to set up
+    a few things in BigQuery. Otherwise you can skip this part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the things you will need:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **BigQuery table** with a field of **‘name’ as a string.**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A **few rows** in the data table **with the name “Doe” in it**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A **service account** that will have access to this dataset.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To get a service account you will need to navigate to IAM in the Google Cloud
+    Console and then to Service Accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once there, create a new service account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once it has been created, you will need to give your service account **BigQuery
+    User** access globally via IAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8fb3f1783c18352ce18d73aea0b28f4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Granting access to your service account in IAM | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: You will also have to give this service account access to the dataset itself
+    which you do in BigQuery directly via the dataset’s **Share** button and then
+    by pressing **Add Principal**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b9cb1463a9b5ae89f4777af1c796efc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding permission to the dataset in BigQuery for the service account | Image
+    by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: After you’ve given the user the appropriate permissions, make sure you go back
+    to the Service Accounts and then download a key. This will give you a json file
+    that you need to put in your root folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e6f873e95ca6e39f87bbd00517f0ddd4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Getting a key for the service account to authenticate with | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, the most important part is making sure the code has access to the google
+    credentials and is using the correct data table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You’ll want the json file you’ve downloaded with the Google credentials in your
+    root folder as *google_credentials.json* and then you want to specify the correct
+    table ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2cb5c008b9902b48e0d803ec65159ddd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Change the table id and service account key json file in your code | Image by
+    author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now you might argue that you do not want to store your credentials locally which
+    is only right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can add in the option of storing your json file in AWS Secrets Manager later.
+    However, to start, this will be easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run ETL Pipeline Locally
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ll run this code locally first, just so we can see that it works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, set up a Python virtual environment and activate it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then install dependencies. We only have g*oogle-cloud-bigquery* in there but
+    ideally you will have more dependencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run the main script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This should log *‘New rows have been added’* in your terminal. This will then
+    confirm that the code works as we’ve intended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Docker Image
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now to push this code to ECS we will have to bundle it up into a Docker image
+    which means that you will need Docker installed locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you do not have Docker installed, you can download it [here](https://www.docker.com/get-started/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Docker helps us package an application and its dependencies into an image, which
+    can be easily recognized and run on any system. Using ECS, it’s required of us
+    to bundle our code into Docker images, which are then referenced by a task definition
+    to run as containers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have already set up a **Dockerfile** in your folder. You should be able to
+    look into it there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you see, I’ve kept this really lean as we’re not connecting web traffic to
+    any ports here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’re specifying AMD64 which you may not need if you are not on a Mac with an
+    M1 chip but it shouldn’t hurt. This will specify to AWS the architecture of the
+    docker image so we don’t run into compatibility issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create an IAM User
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When working with AWS, access will need to be specified. Most of the issues
+    you’ll run into are permission issues. We’ll be working with the CLI locally,
+    and for this to work we’ll have to create an IAM user that will need quite broad
+    permissions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the [AWS console](https://aws.amazon.com/) and then navigate to IAM. Create
+    a new user, add permissions and then create a new policy to attach to it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have specified the permissions needed in your code in the ***aws_iam_user.json***
+    file. You’ll see a short snippet below of what this json file looks like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: You’ll need to go into this file to get **all** the permissions you will need
+    to set, this is just a short snippet. I’ve set it to quite a few, which you may
+    want to tweak to your own preferences later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’ve created the IAM user and you’ve added the correct permissions to
+    it, you will need to generate an access key. Choose *‘Command Line Interface (CLI)’*
+    when asked about your use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download the credentials. We’ll use these to authenticate in a bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set up the AWS CLI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we’ll connect our terminal to our AWS account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t have the CLI set up yet you can follow the instructions [here.](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html#getting-started-install-instructions)
+    It is really easy to set this up.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’ve installed the AWS CLI you’ll need to authenticate with the IAM user
+    we just created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Use the credentials we downloaded from the IAM user in the previous step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create an ECR Repository
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, we can get started with the DevOps of it all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll first need to create a repository in Elastic Container Registry. ECR is
+    where we can store and manage our docker images. We’ll be able to reference these
+    images from ECR when we set up our task definitions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a new ECR repository run this command in your terminal. This will
+    create a repository called *bigquery-etl-pipeline*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note the repository URI you get back.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From here we have to build the docker image and then push this image to this
+    repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this you can technically go into the AWS console and find the ECR repository
+    we just created. Here AWS will let us see the entire push commands we need to
+    run to authenticate, build and push our docker image to this ECR repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/638fe2916b5fd5a8136c36a78884b8b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Find the push commands directly in ECR | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, if you are on a Mac I would advice you to specify the architecture
+    when building the docker image or you may run into issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are following along with me, then start with authenticating your docker
+    client like so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Be sure to change the values, region and account ID where applicable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build the docker image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*This is where I have tweaked the command to specify the linux/amd64 architecture.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tag the docker image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Push the docker image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: If everything worked as planned you’ll see something like this in your terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have pushed the docker image to an ECR repository, we can use it
+    to set up our task definition using Fargate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If you run into EOF issues here it is most likely related to IAM permissions.
+    Be sure to give it everything it needs, in this case full access to ECR to tag
+    and push the image.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Roles & Log Groups
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Remember what I told you before, the biggest issues you’ll run into in AWS pertains
+    to roles between different services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this to flow neatly we’ll have to make sure we set up a few things before
+    we start setting up a task definition and an ECS cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, we first have to create a task role — this role is the role that
+    will need access to services in the AWS ecosystem from our container — and then
+    the execution role — so the container will be able to pull the docker image from
+    ECR.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have specified a json file called *ecs-tasks-trust-policy.json* in your folder
+    locally that it will use to create these roles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the script that we are pushing, it won’t need to have permission to access
+    other AWS services so for now **there is no need to attach policies to the task
+    role.** Nevertheless, you may want to do this later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, for the **execution role** though we will need to give it ECR access
+    to pull the docker image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To attach the policy *AmazonECSTaskExecutionRolePolicy* to the execution role
+    run this command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also create one last role while we’re at it, a service role. You don’t need
+    to create this one if you already have one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you don’t create the service role at all you may end up with an errors such
+    as *‘Unable to assume the service linked role. Please verify that the ECS service
+    linked role exists’* when you try to run a task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last thing we create a log group. Creating a log group is essential for
+    capturing and accessing logs generated by your container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a log group you can run this command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once you’ve created the execution role, the task role, the service role and
+    then the log group we can continue to set up the ECS task definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create an ECS Task Definition
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A task definition is a blueprint for your tasks, specifying what container image
+    to use, how much CPU and memory is needed, and other configurations. We use this
+    blueprint to run tasks in our ECS cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have already set up the task definition in your code at *task-definition.json*.
+    However, you need to set your account id as well as region in there to make sure
+    it runs as it should.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember the URI we got back when we created the ECR repository? This is where
+    we’ll use it. Remember the execution role, the task role and the log group? We’ll
+    use it there as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’ve named the ECR repository along with the roles and log group exactly
+    what I named mine then you can simply change the account ID and Region in this
+    json otherwise make sure the URI is the correct one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also set CPU and memory here for what you’ll need to run your task —
+    i.e. your code. I’ve set .25 vCPU and 512 mb as memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’re satisfied you can register the task definition in your terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now you should be able to go into [**Amazon Elastic Container Service**](https://eu-north-1.console.aws.amazon.com/ecs/v2/getStarted?region=eu-north-1)and
+    then find the task we’ve created under **Task Definitions**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/738b981ded54f053375efbd240cd32cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Finding your created task definition in ECS | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This task — i.e. blueprint — won’t run on it’s own, we need to invoke it later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Create an ECS Cluster**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An ECS Cluster serves as a logical grouping of tasks or services. You specify
+    this cluster when running tasks or creating services.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a cluster via the CLI run this command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once you run this command, you’ll be able to see this cluster in ECS in your
+    AWS console if you look there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll attach the **Task Definition** we just created to this cluster when we
+    run it for the next part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run Task
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we can run the task we need to get ahold of the subnets that are available
+    to us along with a security group id.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can do this directly in the terminal via the CLI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run this command in the terminal to get the available subnets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: You’ll get back an array of objects here, and you’re looking for the *SubnetId*
+    for each object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you run into issues here, make sure your IAM has the appropriate permissions.
+    See the aws_iam_user.json file in your root folder for the permissions the IAM
+    user connected to the CLI will need. I will stress this, because it’s the main
+    issues that I always run into.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To get the security group ID you can run this command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: You are looking for *GroupId* here in the terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you got at least one *SubnetId* and then a *GroupId* for a security group,
+    we are ready to run the task to test that the blueprint — i.e. task definition
+    — works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Do remember to change the names if you’ve named your cluster and task definition
+    differently. Remember to also set your subnet ID and security group ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now you can navigate to the AWS console to see the task running.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c900f958079df0c32a1f170e3568613b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Looking into the running task in your ECS cluster | Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are having issues you can look into the logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If successful, you should see a few transformed rows added to BigQuery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: EventBridge Schedule
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, we’ve managed to set up the task to run in an ECS cluster. But what we’re
+    interested in is to make it run on a schedule. This is where EventBridge comes
+    in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: EventBridge will set up our scheduled events, and we can set this up using the
+    CLI as well. However, before we set up the schedule we first need to create a
+    new role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is life when working with AWS, everything needs to have permission to interact
+    with each other.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In this case, EventBridge will need permission to call the ECS cluster on our
+    behalf.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the repository you have a file called *trust-policy-for-eventbridge.json*
+    that I have already put there, we’ll use this file to create this EventBridge
+    role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Paste this into the terminal and run it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then have to attach a policy to this role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: We need it to at least be able to have ***ecs:RunTask*** but we’ve given it
+    full access. If you prefer to limit the permissions, you can create a custom policy
+    with just the necessary permissions instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s set up the rule to schedule the task to run with the task definition
+    every day at 5 am UTC. This is usually the time I’d like for it to process data
+    for me so if it fails I can look into it after breakfast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should receive back an object with a field called *RuleArn* here. This is
+    just to confirm that it worked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next step is now to associate the rule with the ECS task definition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Remember to set your own values here for region, account number, subnet and
+    security group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Use the subnets and security group that we got earlier. You can set multiple
+    subnets.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once you’ve run the command the task is scheduled for 5 am every day and you’ll
+    find it under Scheduled Tasks in the AWS Console.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also just set up your scheduled tasks directly in the console, this
+    is easier as the subnet ids and security group is already set for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AWS Secrets Manager (Optional)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So keeping your Google credentials in the root folder isn’t ideal, even if you’ve
+    limited access to your datasets for the Google service account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we can add on the option of moving these credentials to another AWS service
+    and then accessing it from our container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this to work you’ll have to move the credentials file to Secrets Manager,
+    tweak the code so it can fetch it to authenticate and make sure that the task
+    role has permissions to access AWS Secrets Manager on your behalf.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you’re done you can simply push the updated docker image to your ECR repo
+    you set up before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The End Result
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now you’ve got a very simple ETL pipeline running in a container on AWS on a
+    schedule. The idea is that you add to it to do your own data transformations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hopefully this was a useful piece for anyone that is transitioning to setting
+    up their long-running data transformation scripts on ECS in a simple, cost effective
+    and straightforward way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let me know if you run into any issues in case there is something I missed to
+    include.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ❤
+  prefs: []
+  type: TYPE_NORMAL

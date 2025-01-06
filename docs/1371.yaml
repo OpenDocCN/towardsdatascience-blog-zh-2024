@@ -1,0 +1,401 @@
+- en: Orchestrating a Dynamic Time-Series Pipeline in Azure
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231?source=collection_archive---------9-----------------------#2024-05-31](https://towardsdatascience.com/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231?source=collection_archive---------9-----------------------#2024-05-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Explore how to build, trigger, and parameterize a time-series data pipeline
+    with Azure Data Factory (ADF) and Databricks, accompanied by a step-by-step tutorial
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)[![John
+    Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------)
+    [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--810819608231--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--810819608231--------------------------------)
+    ·8 min read·May 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous story](https://medium.com/towards-data-science/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287),
+    we went through the potential of PySpark on Databricks for time-series data. I
+    encourage you to catch up [here](https://medium.com/towards-data-science/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287)
+    to know more. Without configuring a standalone Spark instance, we can ingest static
+    and streaming data, perform transformation, extract useful time-related features,
+    and build visualization using PySpark on Databricks. Its scalability and performance
+    are particularly advantageous when handling complex transformations of enterprise-level
+    data, up to petabytes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the feature engineering tasks were successfully performed within a single
+    Databricks notebook. However, this is only a part of the data engineering story
+    when building a data-centric system. The core part of the data pipeline lies in
+    data orchestration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data orchestration generally refers to have the centralized control over data
+    flows so that we can automate, manage, and monitor the entire data pipeline.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/2a39ebad8db26cfd20e2a647df768903.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Julio Rionaldo](https://unsplash.com/@juliorionaldo?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Azure Data Factory (ADF) with Azure Databricks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To satisfy these needs, one of the most popular solutions in the industry is
+    to run [Azure Databricks](https://azure.microsoft.com/en-gb/products/databricks/#content-card-list-oc803c)
+    notebooks from an [ADF](https://azure.microsoft.com/en-us/products/data-factory#features)
+    platform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ADF is a cloud-based, serverless, and fully managed data integration service.
+    Though [Databricks Workflow](https://docs.databricks.com/en/workflows/index.html)
+    gives a good alternative that covers some ADF features, there are still several
+    key benefits to choosing ADF. For example, ADF is a mature tool for integrating
+    with diverse data stores using connectors, including SaaS applications like Salesforce,
+    and Big Data sources like Amazon Redshift, and Google BigQuery. Therefore, it
+    works well for ingestion and integration, especially if the current system has
+    complex dependencies with data systems outside of Databricks. Besides, ADF simplifies
+    and facilitates the quick building of basic pipelines using a drag-and-drop and
+    low-code interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**In this hands-on journey, we will dive deeper into the data engineering project
+    and explore how ADF helps build a dynamic, skeletal data pipeline for time-series
+    data.** I will demonstrate how to mount cloud storage on Azure Databricks, transform
+    data by embedding Notebook on Azure Databricks, and dynamically orchestrate data
+    through custom settings in ADF. Let’s get started!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The initial setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are several cloud components and services in the first place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#1 Create an Azure resource group**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This container is used to hold and group the resources for an Azure solution.
+    We will place our necessary cloud service components in this logical group for
+    easier building or deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0b3a948d5cc07b62727ff956da16e18d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Azure resource group (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#2 Create an Azure Data Lake Gen 2 storage account**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can choose a suitable storage account based on the requirements of performance
+    and replication. In the advanced tab, we enable the Hierarchical Namespace to
+    set up the [Data Lake Storage Gen 2](https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction).
+    This allows for storing both structured and unstructured data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1a6a8f5c3ba036f8056555f2f1328079.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Storage account (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#3 Set up Azure Databricks service**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you have used Databricks before, Azure Databricks service is largely the
+    same. Besides, it is natively integrated with other Azure services and provides
+    a unified billing platform. There are two [tiers](https://azure.microsoft.com/en-us/pricing/details/databricks/):
+    (1) Standard — sufficient for our proof-of-concept here; and (2) Premium — the
+    features of the Standard tier, with additionally the [Unity Catalog](https://learn.microsoft.com/en-us/azure/databricks/data-governance/unity-catalog/)
+    and the advanced networking features that may be necessary for a large enterprise
+    with multiple Databricks workspaces.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/508e7c988c5787278492f29a7cb7c45b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Azure Databricks workspace (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#4 Register an application**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This service will help mount Azure storage to Databricks, so make sure you note
+    the application ID and tenant ID, and most importantly the app secret value, which
+    cannot be viewed when you revisit it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71347d79943224942a4c8b3849793827.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: App registration — Setting (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/899152e47dc2eb94104d5fbe94d58e6e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: App registration — Info (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/39029473003e288a43c854dd3933028b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: App registration — Client secret (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Afterward, grant the app service access rights to the app service. This is achieved
+    by assigning the “Storage Blob Data Contributor” role to the app we just registered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4307ac970035d3de1b0ff44f080fcd4d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Storage account — Grant access right (1/3) (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9e803eab9aa056940edad8db00b91982.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Storage account — Grant access right (2/3) (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8a7941f7932f3f085535d7aa5b247c1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Storage account — Grant access right (3/3) (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#5 Create Azure SQL Database**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To store a transformed data frame, we search for Azure SQL resources and pick
+    a “Single database” as the resource type. There are choices of SQL database servers
+    with different computing hardware, maximum data size, and more. You can instantly
+    get the estimated cost summary while adjusting the server specifications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d1f6640b38d66f1ecf3bc1e31089c0c4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Create SQL Database (1/2) (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bf6eaa445f2dbef9ff9a3aef44dd5ef3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Create SQL Database (2/2) (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After all the initial setups, you are ready to explore how these services are
+    linked together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prepare for data orchestrating pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**#1 Ingest data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first upload the electric power consumption data to Azure Data Lake Gen2\.
+    This [dataset](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data)
+    [with license as [Database: Open Database, Contents: Database Contents](https://opendatacommons.org/licenses/dbcl/1-0/)],
+    obtained from Kaggle, is sampled at a one-minute rate from December 2006 to November
+    2010.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da8e38c40f958471e0fecc8f8f2c5ea3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Upload input data (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we create a Notebook on the Azure Databricks workspace and mount storage
+    by defining the parameters using previously stored ID values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To verify file access, we can run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**#2 Embed Notebook on Azure Databricks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the source codes in this section build upon my [previous story](/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287).
+    The idea is to perform data cleansing, transformation, and feature engineering
+    (create time-related and moving averaging features). The transformed data is ultimately
+    written to the Azure database table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can check the complete code below to see the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**#3 Build a basic pipeline in ADF**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In ADF, we add a “Notebook” activity to the pipeline environment, then configure
+    it to reference the desired Notebook in the Databricks folder. Set up the Databricks
+    linked service, then validate and publish the entire activity pipeline in ADF.
+    You can then run the pipeline in “Debug” mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77f80f4bd8dac29b014997ad560cb4d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The success status of pipeline run (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The activity status shows “Succeeded”, meaning the data should be migrated and
+    inserted into the Azure SQL Database table. We can view the results for verification
+    using the query editor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9a3cbd5c05477cfd6c63700ff13670f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Query result of the Azure SQL database (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#4 Automate the pipeline**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ADF offers functionalities that are far beyond the above simple implementation.
+    For example, we can automate the pipeline by creating a [storage-based event trigger](https://learn.microsoft.com/en-us/azure/data-factory/how-to-create-event-trigger?tabs=data-factory).
+    Make sure that `Microsoft.EventGrid` is registered as one of the resource providers
+    in your account subscription, then set up the trigger: Whenever a new dataset
+    is uploaded to the storage account, the pipeline will automatically execute.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cd7dbcf9ffdcf90150c136a408b6bf58.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Set a new trigger in ADF (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This type of trigger has various use cases in the industries, such as monitoring
+    the inventory level to replenish orders for the supply chain or tracking customer
+    interactions for personalized recommendations in digital marketing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#5 Parameterize the Notebook variables**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To take a further step to build a more dynamic data pipeline, we can make variables
+    more parametric. For example, during feature engineering on time-series data,
+    the window size of data features may not be optimized initially. The window sizes
+    may need to be adjusted to capture seasonal patterns or based on downstream model
+    fine-tuning. For this scenario, we can amend with the below settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c3140b421b91d991eb48967cfdc610b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Set up parameters for pipeline run (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the Notebook, add the code below to create a widget that can get the parameters
+    input from the ADF pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: After adjusting the settings and the Notebook codes, we can run the pipeline
+    by providing the window size parameter values, such as 30 and 60.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77ce6fbed57e233a919818d647fdfc8b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Input window size value for pipeline run (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we can monitor the pipeline status again using ADF or Databricks workspace.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping it up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In our hands-on exploration, we mainly used ADF with Azure Databricks to orchestrate
+    a dynamic time-series data pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setup the cloud resources for the compute, analytics, and storage
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Build the skeleton of the data pipeline from data ingestion to storage
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bring flexibilities to the pipeline by creating triggers and parameterizing
+    variables
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At the enterprise level, more [complex cloud architectures](https://medium.com/@johnleungTJ/how-to-design-the-ai-architectures-in-azure-for-the-new-era-9531229cfd33)
+    may be implemented to satisfy evolving needs, such as streaming data, model monitoring,
+    and multi-model pipelines. It thus becomes essential to strive for a delicate
+    balance between performance, reliability, and cost-efficiency through team collaboration
+    on governance policies and spending management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you go
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you enjoy this reading, I invite you tofollow my [Medium page](https://medium.com/@johnleungTJ)
+    and [LinkedIn page](https://www.linkedin.com/in/john-leung-639800115/). By doing
+    so, you can stay updated with exciting content related to data science side projects
+    and Machine Learning Operations (MLOps) demonstration methodologies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----810819608231--------------------------------)
+    [## Performing Customer Analytics with LangChain and LLMs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discover the potentials and constraints of LangChain for customer analytics,
+    accompanied by practical implementation…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----810819608231--------------------------------)
+    [](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----810819608231--------------------------------)
+    [## Managing the Technical Debts of Machine Learning Systems
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explore the practices with implementation codes for sustainably mitigating the
+    cost of speedy delivery
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----810819608231--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

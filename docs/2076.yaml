@@ -1,0 +1,371 @@
+- en: How Can We Continually Adapt Vision-Language Models?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-can-we-continually-adapt-vision-language-models-3e7bfa19b34e?source=collection_archive---------6-----------------------#2024-08-26](https://towardsdatascience.com/how-can-we-continually-adapt-vision-language-models-3e7bfa19b34e?source=collection_archive---------6-----------------------#2024-08-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Exploring continual learning strategies for CLIP
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[![Alicja
+    Dobrzeniecka](../Images/b731eb2bb8fde56e84273af8050b59e4.png)](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)
+    [Alicja Dobrzeniecka](https://alicjadobrzeniecka.medium.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3e7bfa19b34e--------------------------------)
+    ·8 min read·Aug 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/50e5d7820bf844fb40605562495b7cb7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author created in Midjourney
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is currently a growing interest in the study and application of Large
+    Language Models. However, these models can only process textual data, which limits
+    their usefulness for some applications. Humans are capable of processing information
+    across multiple modalities, such as written and spoken language, and visual understanding
+    of the reality around us. We would expect models to be capable of similar processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vision-Language models** can address both textual and visual data, which
+    has a wide range of use cases such as image analysis (e.g. medical images), object
+    recognition and better scene understanding (e.g. for self-driving cars), generating
+    captions for the images, responding to the visual questions, chatting about images,
+    and more…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, multi-modal models face the same challenges as unimodal ones.
+    Once trained, they can become outdated over time as new data samples arrive or
+    the data distribution changes.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In my [last article](https://medium.com/towards-data-science/ai-models-have-expiry-date-9a6e2c9c0a9f)
+    I introduced the **Continual Learning (CL)** approach to AI models in general.
+    Continual Learning tries to find ways to continually train models, which may be
+    a more sustainable solution for the future. In this article, I want to explore
+    the possibilities of **applying CL to Vision-Language models (VLMs)** — specifically
+    the Contrastive Language-Image Pretraining (CLIP) model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what is CLIP?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Contrastive Language-Image Pretraining (CLIP) was introduced by the OpenAI in
+    2021 in the *Learning Transferable Visual Models From Natural Language Supervision*
+    paper [1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of the CLIP model is to **understand the relation between text and
+    an image**. If you input it a piece of text it should return the most relevant
+    image in a given set of images for it. Likewise if you put in the model an image
+    it should give you the most fitting text from a set of available texts.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: CLIP was trained on a large dataset of text-image pairs. Contrastive learning
+    was used to bring matching text-image pairs closer together in the embedding space
+    and to move non-matching pairs away from each other. This learned shared embedding
+    space is then used during inference to understand the relationship between text
+    and images. If you want to know more about CLIP, I recommend the [following article](https://medium.com/towards-data-science/clip-intuitively-and-exhaustively-explained-1d02c07dbf40),
+    which describes it in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why do we need Continual Learning for Vision-Language models?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Large foundation models can become obsolete over time due to shifts in distribution
+    or the arrival of new data samples. Re-training such models is expensive and time
+    consuming. The authors of the TiC-CLIP paper [7] show that current evaluation
+    practices often fail to capture the difference in performance when considering
+    time-evolving data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figure 1 you can see that if we compare OpenAI models trained before 2020
+    and OpenCLIP models trained before 2022, although there is not much difference
+    between their robustness on Imagenet (left image), there is a performance gap
+    when compared on retrieval tasks from 2014–2016 and 2021–2022 (right image), indicating
+    that OpenAI models have less zero-shot robustness with time-evolving data [7].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ce1610a9e1bdb4c9f10f04d6a784a443.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Fig. 1\. Image from the paper TiC-CLIP: Continual Training of Clip Models [7].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, Continual Learning may be a natural choice for some use cases such
+    as Online Lifelong Learning (OLL) [8] where data comes from continuous and non-stationary
+    data streams and evolves with time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, as pointed out in [4], CLIP shows remarkable zero-shot capabilities,
+    but for some domains it may struggle to achieve good performance due to insufficient
+    data for some categories during pre-training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Challenges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As some of the current state-of-the-art Vision-Language models require more
+    and more computational time and resources, finding a way to continually adapt
+    them without re-training seems to be crucial. However, there are some challenges
+    in continually adapting such models:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**catastrophic forgetting —** learning new tasks can damage the performance
+    on the old tasks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**losing zero-shot capability —** pre-trained models can display zero-shot
+    behaviour meaning that they can perform a task for which they have not received
+    training data, i.e. classify a class of images without seeing them during training.
+    This ability can be lost when training continually.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**misalignment between text and image representations —** as noted by the authors
+    of [12], during Continual Learning for CLIP, there may be a deterioration in the
+    alignment of the multimodal representation space, which can lead to performance
+    degradation in the long run.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Continual Learning Methods for CLIP
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'There is an ongoing research on improving the continual aspect of multi-modal
+    models. Below are some of the existing strategies and use cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Mixture of Experts (MoE)**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To continually train the CLIP, the authors of [2] propose **MoE** approach using
+    task-specific adapters. They build a dynamic extension architecture on top of
+    a frozen CLIP model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The idea here is to add new adapters as new tasks are trained. At the same time,
+    the Distribution Discriminative Auto-Selector is trained so that later, during
+    the inference phase, the model can automatically choose whether the test data
+    should go to the MoE adapters or to the pre-trained CLIP for zero-shot detection.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 2\. **CoLeCLIP**
+  prefs: []
+  type: TYPE_NORMAL
+- en: The authors of [4] focus on the problem of Continual Learning for Vision-Language
+    models in open domains — where we may have datasets from diverse seen and unseen
+    domains with novel classes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Addressing open domain challenges is particularly important for use cases such
+    as **AI assistants, autonomous driving systems and robotics,** asthese models
+    operate in complex and changing environments [4].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**CoLeCLIP** is based on CLIP but adjusted for open-domain problems.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In CoLeCLIP an external laernable Parameter-Efficient Fine-Tuning (PEFT) module
+    per task is attached to the frozen text encoder of CLIP to learn the text embeddings
+    of the classes [4].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3\. **Continual Language Learning (CLL)**
+  prefs: []
+  type: TYPE_NORMAL
+- en: The authors of [3] noted that current pre-trained Vision-Language models often
+    only support English. At the same time popular methods for creating multilingual
+    models are expensive and require large amounts of data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In their paper, they propose to extend language capability by using **CLL**,
+    where linguistic knowledge is updated incrementally.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**CLL-CLIP** uses an expandable embedding layer to store linguistic differences.
+    It trains only token embeddings and is optimised for learning alignment between
+    images and multilingual text [3].'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The authors also propose a novel approach to ensure that the distribution of
+    all token embeddings is identical during initialisation and later regularised
+    during training. You can see a visualisation of this process in Figure 2 from
+    their paper.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/532d655751f4c0832b09042cda678768.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig. 2\. Image from the paper Embracing Language Inclusivity and Diversity in
+    CLIP through Continual Language Learning [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. **Symmetric Image-Text tuning strategy (SIT)**
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [8] the authors observe that there occurs asymetry between text and image
+    during Parameter-Efficient Tuning (PET) for their Online Lifelong Learning scenario
+    which may lead to catastrophic forgetting.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They propose to use the SIT strategy to mitigate this problem. This approach
+    matches images and class labels within the current batch only during online learning.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The goal is to preserve the generalisation ability of CLIP while improving its
+    performance on a specific downstream task or dataset, without introducing asymmetry
+    between the encoders.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Evaluation of the Continual Learning models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The evaluation standards for CL appear to be still a work in progress. Many
+    of the existing benchmarks for evaluating the effectiveness of CL models do not
+    take the time factor into account when constructing data sets. As mentioned by
+    [7], the performance gap may sometimes only become visible when we recreate the
+    time-evolving setup for the test data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, many of the existing benchmarks for Vision-Language models focus
+    only on the single-image input, without measuring multi-image understanding, which
+    may be critical in some applications. The authors of [5] develop a benchmark for
+    multi-image evaluation that allows a more fine-grained assessment of the limitations
+    and capabilities of current state-of-the-art models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Continual Learning does not solve all the problems…
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Visual-Language models like CLIP have their shortcomings. In [6], the authors
+    explored the gap between CLIP’s visual embedding space and purely visual self-supervised
+    learning. They investigated false matches in the embedding space, where images
+    have similar encoding when they should not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From their results it can be concluded that if a pre-trained model has a weakness,
+    it can be propagated when the model is adapted. Learning visual representations
+    remains an open challenge, and vision models may become a bottleneck in multimodal
+    systems, as scaling alone does not solve the built-in limitations of models such
+    as CLIP. [6]
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Conclusion**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This article explores the opportunities and challenges of applying Continual
+    Learning to Vision-Language models, focusing on the CLIP model. Hopefully this
+    article has given you a first impression of what is possible, and that while Continual
+    Learning seems to be a good direction for the future of AI models, there is still
+    a lot of work to be done to make it fully usable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**If you have any questions or comments, please feel free to share them in
+    the comments section.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Until next time!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1fca5a8264874543865ae3508b2a7c78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the author generated in Midjourney.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Radford, A., Kim, J., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry,
+    G., Askell, A., Mishkin, P., Clark, J., Krueger, G., & Sutskever, I. (2021). Learning
+    Transferable Visual Models From Natural Language Supervision. In *Proceedings
+    of the 38th International Conference on Machine Learning* (pp. 8748–8763). PMLR.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Jiazuo Yu, Yunzhi Zhuge, Lu Zhang, Ping Hu, Dong Wang, Huchuan Lu, & You
+    He. (2024). Boosting Continual Learning of Vision-Language Models via Mixture-of-Experts
+    Adapters.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Bang Yang, Yong Dai, Xuxin Cheng, Yaowei Li, Asif Raza, & Yuexian Zou.
+    (2024). Embracing Language Inclusivity and Diversity in CLIP through Continual
+    Language Learning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Yukun Li, Guansong Pang, Wei Suo, Chenchen Jing, Yuling Xi, Lingqiao Liu,
+    Hao Chen, Guoqiang Liang, & Peng Wang. (2024). CoLeCLIP: Open-Domain Continual
+    Learning via Joint Task Prompt and Vocabulary Learning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Bingchen Zhao, Yongshuo Zong, Letian Zhang, & Timothy Hospedales. (2024).
+    Benchmarking Multi-Image Understanding in Vision and Language Models: Perception,
+    Knowledge, Reasoning, and Multi-Hop Reasoning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Shengbang Tong, Zhuang Liu, Yuexiang Zhai, Yi Ma, Yann LeCun, & Saining
+    Xie. (2024). Eyes Wide Shut? Exploring the Visual Shortcomings of Multimodal LLMs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Saurabh Garg, Hadi Pour Ansari, Mehrdad Farajtabar, Sachin Mehta, Raviteja
+    Vemulapalli, Oncel Tuzel, Vaishaal Shankar, & Fartash Faghri (2023). TiC-CLIP:
+    Continual Training of CLIP Models. In *NeurIPS Workshop*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Leyuan Wang, Liuyu Xiang, Yujie Wei, Yunlong Wang, & Zhaofeng He. (2024).
+    CLIP model is an Efficient Online Lifelong Learner.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] Vishal Thengane, Salman Khan, Munawar Hayat, & Fahad Khan. (2023). CLIP
+    model is an Efficient Continual Learner.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10] Yuxuan Ding, Lingqiao Liu, Chunna Tian, Jingyuan Yang, & Haoxuan Ding.
+    (2022). Don’t Stop Learning: Towards Continual Learning for the CLIP Model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11] Akash Ghosh, Arkadeep Acharya, Sriparna Saha, Vinĳa Jain, & Aman Chadha.
+    (2024). Exploring the Frontier of Vision-Language Models: A Survey of Current
+    Methodologies and Future Directions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[12] Ni, Z., Wei, L., Tang, S., Zhuang, Y., & Tian, Q. (2023). Continual vision-language
+    representation learning with off-diagonal information. In *Proceedings of the
+    40th International Conference on Machine Learning*. JMLR.org.'
+  prefs: []
+  type: TYPE_NORMAL

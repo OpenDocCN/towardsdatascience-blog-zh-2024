@@ -1,0 +1,740 @@
+- en: Enforcing JSON Outputs in Commercial LLMs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28](https://towardsdatascience.com/enforcing-json-outputs-in-commercial-llms-3db590b9b3c8?source=collection_archive---------2-----------------------#2024-08-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A comprehensive guide
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[![Daniel
+    Kharitonov](../Images/7d81129c1f88e4a0700462a342137227.png)](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)
+    [Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--3db590b9b3c8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3db590b9b3c8--------------------------------)
+    ·9 min read·Aug 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**TL;DR**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We tested the structured output capabilities of Google Gemini Pro, Anthropic
+    Claude, and OpenAI GPT. In their best-performing configurations, all three models
+    can generate structured outputs on a scale of thousands of JSON objects. However,
+    the API capabilities vary significantly in the effort required to prompt the models
+    to produce JSONs and in ability to adhere to the data models.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: More specifically, the only commercial vendor offering consistent structured
+    outputs right out of the box appears to be OpenAI, with their latest [Structured
+    Outputs API](https://openai.com/index/introducing-structured-outputs-in-the-api/)
+    released on August 6th, 2024\. OpenAI’s GPT-4o can directly integrate with Pydantic
+    data models, formatting JSONs based on the required fields and field descriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anthropic’s Claude Sonnet 3.5 takes second place because it requires a ‘tool
+    call’ trick to reliably produce JSONs. While Claude can interpret field descriptions,
+    it does not directly support Pydantic models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, Google Gemini 1.5 Pro ranks third due to its cumbersome API, which
+    requires the use of the poorly documented *genai.protos.Schema* class as a model
+    for reliable JSON production. Additionally, there appears to be no straightforward
+    way to guide Gemini’s output using field descriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the test results in a summary table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2eb322369cc005af5499424b8f71545e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Approximate rates of structured output errors (data source: author’s Jupyter
+    notebook below)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is the link to the testbed notebook:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction to the problem**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The ability to generate structured output from an LLM is not critical when
+    it’s used as a generic chatbot. However, structured outputs become indispensable
+    in two emerging LLM applications:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: • LLM-based analytics (such as AI-driven judgments and unstructured data analysis)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: • Building LLM agents
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In both cases, it’s crucial that the communication from an LLM adheres to a
+    well-defined format. Without this consistency, downstream applications risk receiving
+    inconsistent inputs, leading to potential errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, while most modern LLMs offer methods designed to produce structured
+    outputs (such as JSON), these methods often encounter two significant issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. They periodically fail to produce a valid structured object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. They generate a valid object but cannot adhere to the requested data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following text, we document our findings on the structured output capabilities
+    of the latest offerings from Anthropic Claude, Google Gemini, and OpenAI’s GPT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Anthropic Claude Sonnet 3.5**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At first glance, Anthropic Claude’s API looks straightforward because it features
+    a section titled ‘[Increasing JSON Output Consistency](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency#example-daily-sales-report),’
+    which opens with an example of a moderately complex structured output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'However, if we actually run this code a few times, we will notice that conversion
+    to JSON fails because the LLM prepends JSON object with an unwanted text prefix:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This issue affects approximately 14–20% of requests, making reliance on Claude’s
+    ‘structured prompt’ feature questionable. The problem is evidently well-known
+    to Anthropic, as their documentation provides two more recommendations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Provide inline examples of valid output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Coerce the LLM to begin its response with a valid preamble.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second solution is somewhat inelegant, as it requires pre-filling the response
+    and then recombining it with the generated output afterward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s an example of code that implements both techniques and evaluates the
+    validity of a resulting JSON string. This prompt was tested across 50 different
+    dialogs by [Karlsruhe Institute of Technology](https://radar.kit.edu/radar/en/dataset/FdJmclKpjHzLfExE.ExpBot%2B-%2BA%2Bdataset%2Bof%2B79%2Bdialogs%2Bwith%2Ban%2Bexperimental%2Bcustomer%2Bservice%2Bchatbot)
+    using Iterative’s [DataChain library](https://github.com/iterative/datachain):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results have improved, but they are still not perfect. Approximately one
+    out of every 50 calls returns an error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: This implies that the Sonnet 3.5 model may fail to follow the instructions and
+    hallucinate unwanted continuations of the dialogue. As a result, the model is
+    still not consistently adhering to desired outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Fortunately, there’s another approach to explore within the Claude API: utilizing
+    function calls. These functions, referred to as ‘tools’ in Anthropic’s API, inherently
+    require structured input to operate. To leverage this option, we can create a
+    mock function and configure the call signature identical with our desired JSON
+    object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After running this code 50 times, we encountered one erratic response, which
+    looked like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this instance, the model became confused and failed to execute the function
+    call, instead only returning a text block and stopping prematurely (with stop_reason
+    = ‘end_turn’). Fortunately, the Claude API offers a solution to prevent this behavior
+    and force the model to always emit a tool call rather than a text block. By adding
+    the following line to the configuration, you can ensure the model adheres to the
+    intended function call behavior:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After forcing the tool choice, Claude Sonnet 3.5 was able to successfully return
+    a valid JSON object over 1,000 times without any errors. And if you’re not interested
+    in building this function call yourself, [LangChain](https://www.langchain.com)
+    provides an Anthropic wrapper that simplifies the process with an easy-to-use
+    call format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: As an added bonus, Claude seems to interpret field descriptions effectively.
+    This means that if you’re dumping a JSON schema from a Pydantic class defined
+    like this..
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: …then you might actually receive an object that follows your desired description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading the field descriptions for a data model is a very useful thing because
+    it allows us to specify the nuances of the desired response without touching the
+    model prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Google Gemini Pro 1.5**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Google’s documentation [clearly states that prompt-based methods for generating
+    JSON are unreliable](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)
+    and restricts more advanced configurations — such as using an OpenAPI schema —
+    to the flagship Gemini Pro model family. Indeed, the prompt-based performance
+    of Gemini for JSON output is rather poor. When simply asked for a JSON, the model
+    routinely wraps the output in a Markdown preamble:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]json'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"sentiment": "negative",'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"key_issues": ['
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Bot misunderstood user confirmation.",'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"Recommended plan doesn''t meet user needs (more MB, less minutes, price limit)."'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '],'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"action_items": ['
+  prefs: []
+  type: TYPE_NORMAL
+- en: '{'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"team": "Engineering",'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"task": "Investigate why bot didn''t understand ''correct'' and ''yes it is''
+    confirmations."'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '},'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '{'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"team": "Product",'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"task": "Review and improve plan matching logic to prioritize user needs and
+    constraints."'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '}'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: ']'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'generation_config={"response_mime_type": "application/json"}'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'class ActionItem(BaseModel):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'team: str'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'task: str'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'class EvalResponse(BaseModel):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'sentiment: str = Field(description="dialog sentiment (positive/negative/neutral)")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'key_issues: list[str] = Field(description="list of 3 problems discovered in
+    the dialog")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'action_items: list[ActionItem] = Field(description="list of dicts with ''team''
+    and ''task''")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: g_str = genai.protos.Schema(type=genai.protos.Type.STRING)
+  prefs: []
+  type: TYPE_NORMAL
+- en: g_action_item = genai.protos.Schema(
+  prefs: []
+  type: TYPE_NORMAL
+- en: type=genai.protos.Type.OBJECT,
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: properties={
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''team'':genai.protos.Schema(type=genai.protos.Type.STRING),'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''task'':genai.protos.Schema(type=genai.protos.Type.STRING)'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '},'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: required=['team','task']
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: )
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: g_evaluation=genai.protos.Schema(
+  prefs: []
+  type: TYPE_NORMAL
+- en: type=genai.protos.Type.OBJECT,
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: properties={
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''sentiment'':genai.protos.Schema(type=genai.protos.Type.STRING),'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''key_issues'':genai.protos.Schema(type=genai.protos.Type.ARRAY, items=g_str),'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '''action_items'':genai.protos.Schema(type=genai.protos.Type.ARRAY, items=g_action_item)'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '},'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: required=['sentiment','key_issues', 'action_items']
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: )
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'def gemini_setup():'
+  prefs: []
+  type: TYPE_NORMAL
+- en: genai.configure(api_key=google_api_key)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: return genai.GenerativeModel(model_name='gemini-1.5-pro-latest',
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: system_instruction=PROMPT,
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'generation_config={"response_mime_type": "application/json",'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '"response_schema": g_evaluation,'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '}'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: )
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'class Suggestion(BaseModel):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'suggestion: str = Field(description="Suggestion to improve the bot, starting
+    with letter K")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'class Evaluation(BaseModel):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'outcome: str = Field(description="whether a dialog was successful, either Yes
+    or No")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'explanation: str = Field(description="rationale behind the decision on outcome")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'suggestions: list[Suggestion] = Field(description="Six ways to improve a bot")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '@field_validator("outcome")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'def check_literal(cls, value):'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'if not (value in ["Yes", "No"]):'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'print(f"Literal Yes/No not followed: {value}")'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: return value
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '@field_validator("suggestions")'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'def count_suggestions(cls, value):'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'if len(value) != 6:'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'print(f"Array length of 6 not followed: {value}")'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: count = sum(1 for item in value if item.suggestion.startswith('K'))
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'if len(value) != count:'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: print(f"{len(value)-count} suggestions don't start with K")
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: return value
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'def eval_dialogue(client, file: File) -> Evaluation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: completion = client.beta.chat.completions.parse(
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: model="gpt-4o-2024-08-06",
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: messages=[
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '{"role": "system", "content": prompt},'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '{"role": "user", "content": file.read()},'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '],'
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: response_format=Evaluation,
+  prefs:
+  - PREF_IND
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: )
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '```'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In terms of robustness, OpenAI documentation references a graph comparing the
+    success rates of their ‘Structured Outputs’ API versus prompt-based solutions,
+    with the former [achieving a success rate very close to 100%](https://openai.com/index/introducing-structured-outputs-in-the-api/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the devil is in the details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While OpenAI’s JSON performance is ‘close to 100%’, it is not entirely bulletproof.
+    Even with a perfectly configured request, we found that a broken JSON still occurs
+    in about one out of every few thousand calls — especially if the prompt is not
+    carefully crafted, and would warrant a retry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite this limitation, it is fair to say that, as of now, OpenAI offers the
+    best solution for structured LLM output applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: the author is not affiliated with OpenAI, Anthropic or Google, but actively
+    contributes to open-source development of LLM orchestration and evaluation tools.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Links**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Test Jupyter notebook:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[JSON-outputs.ipynb](https://github.com/iterative/datachain-examples/blob/main/formats/JSON-outputs.ipynb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)
+    [## datachain-examples/llm/llm_brute_force.ipynb at main · iterative/datachain-examples'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM, CV, multimodal at scale. Contribute to iterative/datachain-examples development
+    by creating an account on GitHub.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/iterative/datachain-examples/blob/main/llm/llm_brute_force.ipynb?source=post_page-----3db590b9b3c8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Anthropic JSON API:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency](https://docs.anthropic.com/en/docs/test-and-evaluate/strengthen-guardrails/increase-consistency)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Anthropic function calling:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use](https://docs.anthropic.com/en/docs/build-with-claude/tool-use#forcing-tool-use)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LangChain Structured Output API:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/](https://python.langchain.com/v0.1/docs/modules/model_io/chat/structured_output/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Google Gemini JSON API:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://ai.google.dev/gemini-api/docs/json-mode?lang=python](https://ai.google.dev/gemini-api/docs/json-mode?lang=python)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Google genai.protos.Schema examples:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access](https://ai.google.dev/gemini-api/docs/function-calling/tutorial?lang=python#optional_low_level_access)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**OpenAI “Structured Outputs” announcement:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://openai.com/index/introducing-structured-outputs-in-the-api/](https://openai.com/index/introducing-structured-outputs-in-the-api/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**OpenAI’s Structured Outputs API:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://platform.openai.com/docs/guides/structured-outputs/introduction](https://platform.openai.com/docs/guides/structured-outputs/introduction)'
+  prefs: []
+  type: TYPE_NORMAL

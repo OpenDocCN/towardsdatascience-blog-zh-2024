@@ -1,0 +1,400 @@
+- en: PyTorch and MLX for Apple Silicon
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/pytorch-and-mlx-for-apple-silicon-4f35b9f60e39?source=collection_archive---------0-----------------------#2024-03-08](https://towardsdatascience.com/pytorch-and-mlx-for-apple-silicon-4f35b9f60e39?source=collection_archive---------0-----------------------#2024-03-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A side-by-side CNN implementation and comparison
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[![Mike
+    Cvet](../Images/93545a0c873515a599ba094ad51ee915.png)](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)
+    [Mike Cvet](https://mikecvet.medium.com/?source=post_page---byline--4f35b9f60e39--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4f35b9f60e39--------------------------------)
+    ·9 min read·Mar 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8ca713060459ca7ca5b77df6b814fd81.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: All images by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: A few months ago, [Apple quietly released](https://www.theverge.com/2023/12/6/23990678/apple-foundation-models-generative-ai-mlx)
+    the first public version of its [MLX framework](https://ml-explore.github.io/mlx/build/html/index.html),
+    which fills a space in between [PyTorch](https://pytorch.org), [NumPy](https://numpy.org/doc/stable/index.html)
+    and [Jax](https://github.com/google/jax), but optimized for Apple Silicon. Much
+    like those libraries, MLX is a Python-fronted API whose underlying operations
+    are largely implemented in C++.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below are some observations of the similarities and differences between MLX
+    and PyTorch. I implemented a bespoke convolutional neural network using PyTorch
+    and its Apple Silicon GPU hardware support, and tested it on a few different datasets.
+    In particular, the [MNIST dataset](http://yann.lecun.com/exdb/mnist/), and the
+    [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html) and [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)
+    datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the code discussed below can be [found here](https://github.com/mikecvet/cnn/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Approach](#c37c)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Notes on MLX](#7afa)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Performance](#8947)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Final Thoughts](#755f)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Approach
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I implemented the model with PyTorch first, since I’m more familiar with the
+    framework. The model has a series of convolutional and pooling layers, followed
+    by a few linear layers with dropout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This architecture is overkill for MNIST dataset classification, but I wanted
+    something with some complexity to compare the two frameworks. I tested this against
+    the CIFAR datasets, which approached around 40% accuracy; not amazing, but I suppose
+    decent for something that isn’t a [ResNet](https://en.wikipedia.org/wiki/Residual_neural_network).
+  prefs: []
+  type: TYPE_NORMAL
+- en: After finishing this implementation, I wrote a parallel implementation leveraging
+    MLX. I happily discovered that *most* of the PyTorch implementation could be directly
+    re-used, after importing the necessary MLX modules and replacing the PyTorch ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the MLX version of the above code is [here](https://github.com/mikecvet/cnn/blob/main/src/python/mlx/model.py#L42);
+    it's identical aside from a couple of differences in named parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notes on MLX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: MLX has some interesting properties worth calling out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Array
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: MLX’s `[array](https://ml-explore.github.io/mlx/build/html/python/array.html)`
+    class takes the place of `[Tensor](https://pytorch.org/docs/stable/tensors.html)`;
+    much of the documentation compares it to NumPy’s `[ndarray](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray)`,
+    however it is also the datatype used and returned by the various [neural network
+    layers](https://ml-explore.github.io/mlx/build/html/python/nn.html) available
+    in the framework.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`array` works mostly as you’d expect, though I did have a bit of trouble converting
+    back and forth between deeply-nested `np.ndarrays` and `mlx.arrays` necessitating
+    some [list type shuffling](https://github.com/mikecvet/cnn/blob/main/src/python/imagedata.py#L107)
+    to make things work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lazy Computation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Operations](https://ml-explore.github.io/mlx/build/html/python/ops.html) in
+    MLX are [lazily evaluated](https://ml-explore.github.io/mlx/build/html/usage/lazy_evaluation.html);
+    meaning that the only computation executed in the lazily-built compute graph is
+    that which generates outputs *actually used* by the program.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two ways to force evaluation of the results of operations (such as
+    inference):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calling `mlx.eval()` on the output
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Referencing the value of a variable for any reason; for example when logging
+    or within conditional statements
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This can be a little tricky when trying to manage the performance of the code,
+    since a reference (even an incidental one) to any value triggers an evaluation
+    of that variable as well as all intermediate variables within the graph. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This behavior also makes a little difficult to build one-to-one benchmarks between
+    PyTorch and MLX-based models. Since training loops may not evaluate outputs within
+    the loop itself, its computation needs to be forced in order to track the time
+    of the actual operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: There’s a tradeoff between accumulating a large implicit computation graph,
+    and regularly forcing the evaluation of that graph during training. For example,
+    I was able to lazily run through all of this model’s training epochs over the
+    dataset in just a few seconds. However, the eventual evaluation of that (presumably
+    enormous) implicit graph took roughly the same amount of time as `eval`’ing after
+    each batch. This is probably not always the case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compilation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: MLX provides the ability to optimize the execution of pure functions through
+    [compilation](https://ml-explore.github.io/mlx/build/html/usage/compile.html).
+    These can be either a direct call to `mlx.compile()` or an annotation (`@mlx.compile`)
+    on a pure function (without side effects).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are a few gotchas related to state mutation when using compiled functions;
+    these are discussed [in the docs](https://ml-explore.github.io/mlx/build/html/usage/compile.html#pure-functions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[It seems like](https://ml-explore.github.io/mlx/build/html/dev/extensions.html)
+    this results in a compilation of logic into [Metal Shader Language](https://developer.apple.com/documentation/metal)
+    to be run on the GPU (I explored MSL earlier [here](/programming-apple-gpus-through-go-and-metal-shading-language-a0e7a60a3dba)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: API Compatibility and Code Conventions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As mentioned above, it was pretty easy to convert much of my PyTorch code into
+    MLX-based equivalents. A few differences though:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of the neural network layers discretely expect different configurations
+    of inputs. For example, `[mlx.nn.Conv2d](https://ml-explore.github.io/mlx/build/html/python/nn/_autosummary/mlx.nn.Conv2d.html#mlx.nn.Conv2d)`
+    expects input images in `NHWC` format (with `C` representing the channels dimensionality),
+    while `[torch.nn.Conv2d](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)`
+    expects `NCHW` ; there are a few other examples of this. This required some [conditional
+    tensor/array shuffling](https://github.com/mikecvet/cnn/blob/main/src/python/imagedata.py#L62).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is unfortunately no analog to the relative *joy* that are PyTorch [Datasets
+    and DataLoaders](https://pytorch.org/tutorials/beginner/basics/data_tutorial.html)
+    being currently provided by MLX; instead I had to craft [something resembling
+    them](https://github.com/mikecvet/cnn/blob/main/src/python/mlx/dataset.py) by
+    hand.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Model implementations, deriving from `nn.Module`, aren’t expected to override
+    `forward()` but rather `__call__()` for inference
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'I assume because of the potential for function compilation, as well as the
+    lazy evaluation support mentioned above, the process of training using MLX optimizers
+    is a bit different than with a typical PyTorch model. Working with the latter,
+    one is used to the standard format of something like:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'MLX encourages, and seems to expect, a format resembling the following, taken
+    from [the docs](https://ml-explore.github.io/mlx/build/html/examples/mlp.html)
+    and [one of the repository examples](https://github.com/ml-explore/mlx-examples/blob/main/mnist/main.py):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Which is fine, but a bit more involved than I was expecting. Otherwise, everything
+    felt very familiar.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Note that all results below are from my MacBook Air M2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This CNN has three configurations: `PyTorch CPU`, `PyTorch GPU`, and `MLX GPU`.
+    As a sanity check, over 30 epochs, here’s how the three compare in terms of accuracy
+    and loss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dfbc12d31193594274e89c2795303e3c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Accuracy and Loss over 30 epochs; visualization code available in the linked
+    repository
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results here are all in the same ballpark, though it’s interesting that
+    the MLX-based model appears to converge more quickly than the PyTorch-based ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, it seems like the accuracy of the MLX model is consistently slightly
+    below that of the PyTorch-based models. I’m not sure what accounts for that discrepancy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In terms of runtime performance, I had other interesting results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9602a40fc15378305f4337bb63c9f5bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training epoch runtime variance across the three model configurations
+  prefs: []
+  type: TYPE_NORMAL
+- en: When training the model, the PyTorch-based model on the CPU unsurprisingly took
+    the most time, from a minimum of 36 to a maximum of 45 seconds per epoch. The
+    MLX-based model, running on the GPU, had a range of about 21–27 seconds per epoch.
+    PyTorch running on the GPU, via the `MPS device` , was the clear winner in this
+    regard, with epochs ranging from 10–14 seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classification over the test dataset of ten thousand images tells a different
+    story.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f823d919de4e496efd43687e2ee17212.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Total time taken by each model variant to classify all 10k images in the test
+    dataset; batches of 512
+  prefs: []
+  type: TYPE_NORMAL
+- en: While it took the CPU-based model around 1700ms to classify all 10k images in
+    batches of 512, the GPU-based models completed this task in 1100ms for MLX and
+    850ms for PyTorch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, when classifying the images individually rather than in batches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eedcde9e07e536cdae2ad04d5d076ef9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Total time taken by each model variant to classify all 10k images in the test
+    dataset; single images at a time over ten thousand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Apple Silicon uses a [unified memory model](https://www.apple.com/newsroom/2021/10/introducing-m1-pro-and-m1-max-the-most-powerful-chips-apple-has-ever-built/),
+    which means that when setting the data and model GPU device to `mps` in PyTorch
+    via something like `.to(torch.device(“mps”))` , [there is no actual movement of
+    data](https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html) to
+    physical GPU-specific memory. So it seems like the overhead associated with PyTorch’s
+    initialization of Apple Silicon GPUs for code execution is fairly heavy. As seen
+    further above, it works great during parallel batch workloads. But for individual
+    record classification after training, it was far outperformed by whatever MLX
+    is doing under the hood to spin up GPU execution more quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Profiling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Taking a quick look at some `cProfile` output for the MLX-based model, ordered
+    by cumulative execution time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We some time spent here in a few layer functions, with the bulk of time spent
+    in `mlx.core.eval()`, which makes sense since it’s at this point in the graph
+    that things are actually being computed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using `[asitop](https://github.com/tlkh/asitop)` to visualize the underlying
+    timeseries `powertools` data from MacOS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5a312cd1ca69b90f989e437fbd571f67.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: asitop power history — MLX model run
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see that the GPU is fully saturated during the training of this model,
+    at its [maximum clock speed of 1398 MHz](https://www.notebookcheck.net/Apple-MacBook-Air-M2-review-The-faster-10-core-GPU-isn-t-worth-it.640427.0.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now compare to the PyTorch GPU variant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Interestingly, the top function appears to be `Tensor.item()`, which is called
+    in various places in the code to calculate loss and accuracy, and possibly also
+    within some of the layers referenced lower in the stack. Removing the tracking
+    of loss and accuracy during training would probably have a noticeable improvement
+    on overall training performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fc384f2bf49b488781ec37aa290cc236.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: asitop power history — PyTorch GPU model run
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compared to the MLX model, the PyTorch variant doesn’t seem to have saturated
+    the GPU during training (I didn’t see it breach 95%), and has a higher balance
+    of usage on the CPU’s [E cores and P cores](https://developer.apple.com/news/?id=vk3m204o).
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s interesting that the MLX model makes heavier use of the GPU, but trains
+    considerably more slowly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neither model (CPU or GPU-based) appears to have engaged the ANE ([Apple Neural
+    Engine](https://github.com/hollance/neural-engine)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: MLX was easy to pick up, and that should be the case for anyone with experience
+    using PyTorch and NumPy. Though some of the [developer documentation](https://ml-explore.github.io/mlx/build/html/usage/quick_start.html)
+    is a bit thin, given the intent to provide tools compatible with those frameworks’
+    APIs, it’s easy enough to fill in any gaps with the corresponding PyTorch or NumPy
+    docs (for example, SGD [[1](https://ml-explore.github.io/mlx/build/html/python/optimizers/_autosummary/mlx.optimizers.SGD.html)]
+    [[2](https://pytorch.org/docs/stable/generated/torch.optim.SGD.html)]).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The overall performance of the MLX model was pretty good; I wasn’t sure whether
+    I was expecting it to consistently outperform PyTorch’s `mps` device support,
+    or not. While it seemed like training was considerably faster through PyTorch
+    on the GPU, single-item prediction, particularly at scale, was much faster through
+    MLX for this model. Whether that’s an effect of of my MLX configuration, or just
+    the properties of the framework, its hard to say (and if its the former — feel
+    free to leave an issue on GitHub!)
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,776 @@
+- en: 'The Tournament of Reinforcement Learning: DDPG, SAC, PPO, I2A, Decision Transformer'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-tournament-of-reinforcement-learning-ddpg-sac-ppo-i2a-decision-transformer-6c1e42f394f0?source=collection_archive---------6-----------------------#2024-08-23](https://towardsdatascience.com/the-tournament-of-reinforcement-learning-ddpg-sac-ppo-i2a-decision-transformer-6c1e42f394f0?source=collection_archive---------6-----------------------#2024-08-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Training simulated humanoid robots to fight using five new Reinforcement Learning
+    papers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@almond.maj?source=post_page---byline--6c1e42f394f0--------------------------------)[![Anand
+    Majmudar](../Images/4840cb28e81326221cebef9f540c8e12.png)](https://medium.com/@almond.maj?source=post_page---byline--6c1e42f394f0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c1e42f394f0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c1e42f394f0--------------------------------)
+    [Anand Majmudar](https://medium.com/@almond.maj?source=post_page---byline--6c1e42f394f0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c1e42f394f0--------------------------------)
+    ·13 min read·Aug 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2543b4652d2b4021438fd08240435f9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated with GPT-4
+  prefs: []
+  type: TYPE_NORMAL
+- en: I remembered the old TV show Battlebots recently and wanted to put my own spin
+    on it. So I trained simulated humanoid robots to fight using five new Reinforcement
+    Learning papers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By reading below, you’ll learn the theory and math of how these five Reinforcement
+    Learning algorithms work, see me implement them, and see them go head to head
+    to determine the champion!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deep Deterministic Policy Gradient (DDPG)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Decision Transformer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Soft Actor-Critic (SAC)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Imagination-Augmented Agents (I2A) with Proximal Policy Optimization (PPO)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Setting up the Simulation Environment:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I used the Unity machine learning agents simulator and built each robotic body
+    with 21 actuators on 9 joints, 10 by 10 RGB vision through a virtual camera in
+    their head, and a sword and shield. I then wrote the C# code defining their rewards
+    and physics interactions. Agents can earn rewards in three main ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Touching the sword to the opponent (‘Defeating’ their opponent)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Keeping the y-position of their head above their body (to incentivize them to
+    stand up)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Going closer to their opponent than they were previously (to encourage agents
+    to converge and fight)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Agents get reset after 1000 timesteps, and I parallelized the environment massively
+    for training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/384f5e631a16dd1220b37f6485276dc9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Massively parallelized training environment, my screenshot
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then it was time to write the algorithms. To understand the algorithms I used,
+    it’s critical to understand what Q-Learning is, so let’s find out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q Learning** *(skip ahead if you’re familiar)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Reinforcement Learning, we let an agent take actions to explore its environment,
+    and reward it positively or negatively based on how close it is to the goal. How
+    does the agent adjust its decision-making criteria to account for receiving better
+    rewards?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q Learning offers a solution. In Q Learning, we track Q-function Q(s,a), which
+    tracks the expected return after action a_t from state s_t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q(s, a) = R(s, a) + γ * E[Q(s_t + 1, a_t + 1)] + γ² * E[Q(s_t + 2, a_t + 2)
+    + …]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where R(s,a) is the reward for the current state and action, y is the discount
+    factor (a hyperparameter), and E[] is expected value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we properly learn this Q function, we can simply choose the action which
+    returns the highest Q-value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we learn this Q function?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Starting from the end of the episode, where we know the true Q value for certain
+    (just our current reward), we can use recursion to fill in the previous Q values
+    using the following update equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q(s,a) ← (1 — α) Q(s,a) + α * [r + γ * max_a’ Q(s’,a’)]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where α is the learning rate, r is the immediate reward, γ is the discount factor
+    (weight parameter), s’ is the next state, and max_a’ Q(s’,a’) is the maximum Q-value
+    for the next state over all possible actions
+  prefs: []
+  type: TYPE_NORMAL
+- en: Essentially, our new Q value becomes old Q value plus small percentage of the
+    difference between the current reward + the next largest Q value and the old Q
+    value. Now, when our agent wants to choose an action, they can select the action
+    which yields the greatest Q value (expected reward)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might notice a potential issue though: we are evaluating the Q function
+    on every possible action at every timestep. This is fine if we have a limited
+    number of possible actions in a discrete space, but this paradigm breaks down
+    in continuous actions spaces, where it is no longer possible to efficiently evaluate
+    the Q function over the infinite number of possible actions. This brings us to
+    our first competing algorithm: (DDPG)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Deep Deterministic Policy Gradient (DDPG)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DDPG tries to use Q Networks in continuous action spaces in a novel way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 1: Actor and Critic*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can’t use the Q network to make our decisions directly, but we can use it
+    to train another separate decision-making function. This is the actor-critic setup:
+    the Actor is the policy decides actions, and the Critic determines future expected
+    rewards based on these actions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Target Critic: Q_target(s,a) = r + γ * Q’(s’, μ’(s’))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Where r is the immediate reward, γ is the discount factor, s’ is the next state,
+    μ’(s’) is the target policy network’s action for the next state, Q’ is the target
+    critic network, Target Actor: Gradient of expected return wrt policy ≈ 1/N * Σ
+    ∇a Q(s, a)|a=μ(s) * ∇θ_μ μ(s)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Essentially, over N samples, how does Q value of action chosen by policy (wrt
+    policy changes, which change wrt policy params
+  prefs: []
+  type: TYPE_NORMAL
+- en: To update both, we use a Stochastic Gradient Ascent update with lr * gradient
+    on MSE loss of current Q and target Q. Note that both actor and critic are implemented
+    as neural networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 2: Deterministic Action Policy*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our policy can either be deterministic (guaranteed action for each state) or
+    stochastic (sample action for each state according to a probability distribution).
+    The deterministic action policy for efficient evaluation of Q function (singular
+    recursive evaluations since only one action for each state).
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we explore with a deterministic policy, though? Won’t we be stuck running
+    the same actions over and over again? This would be the case, however, we can
+    increase the agent’s exploration by adding randomly generated noise to encourage
+    exploration (a bit like how mutation benefits evolution by allowing it to explore
+    unique genetic possibilities)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 3: Batch Learning in interactive environments*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also want to get more bang for our buck with each timestep observed (which
+    consists of state action reward next state): so we can store previous tuples of
+    timestep data and use it for training in the future'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This allows us to use batch learning offline (which means using previously collected
+    data instead of interaction through an environment), plus lets us parallelize
+    to increase training speed with a GPU. We also now have independent identically
+    distributed data as opposed to the biased sequential data we get regularly (where
+    the value of a datapoint depends on previous datapoints)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 4: Target Networks*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually Q Learning with NNs is too unstable and doesn’t converge to an optimal
+    solution as easily because updates are too sensitive/powerful
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, we use target actor and critic networks, which interact with the environment
+    and change to be partially but not fully closer to the real actor and critic during
+    training ((large factor)target + (small factor)new)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Algorithm Runthrough and Code*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initialize critic, actor, target critic and actor, replay buffer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For the vision I use a CNN before any other layers (so the most important features
+    of the vision are used by the algorithm)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For each episode
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Observe state, select and execute action mu + noise
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Get reward, next state
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Store (s_t,a_t,r_t, s_(t+1)) in replay buffer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: sample rendom minibatch from buffer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update y_i = reward_i + gamma Q(s given theta)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Evaluate recursively
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update critic to minimize L = y_i — Q(s,a|theta)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update actor using policy gradient J expected recursive Q given policy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update targets to be large factor * targets + (1 — large factor) * actual
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/DDPG/DDPG.py?source=post_page-----6c1e42f394f0--------------------------------)
+    [## Knights-of-Papers/src/DDPG/DDPG.py at main · AlmondGod/Knights-of-Papers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DDPG, Decision Transformer, I2A with PPO, and SAC self-play on simulated combat
+    humanoids …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/DDPG/DDPG.py?source=post_page-----6c1e42f394f0--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Soft Actor-Critic (SAC)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'DDPG does have a few issues. Namely, Critic updates include bellman equation:
+    Q(s,a) = r + max Q(s’a’), but NN as Q network approximators yield lot of noise,
+    and max of noise means we overestimate, thus we become too optimistic about our
+    policy and reward mediocre actions. Notoriously, DPPG also requires extensive
+    hyperparameter tuning (including noise added) and doesn’t guarantee convergence
+    to an optimal solution unless its hyperparameters are within a narrow range.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 1: Maximum Entropy Reinforcement Learning*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of the actor trying to purely maximize reward, the actor now maximizes
+    reward + entropy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why use entropy?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Entropy is essentially how uncertain are we of a certain outcome (ex coin max
+    entropy biased coined less entropy coin always heads has 0 entropy: show formula).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By including entropy as a maximization factor, we incentivize wide exploration
+    and thus improves sensitivity to local optima, by allowing for more consistent
+    and stable exploration of high dimensional spaces (why is this better than random
+    noise). Alpha: param that weights how much to prioritize entropy, automatically
+    tuned (how?)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 2: Two Q functions*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This change aims to solve the Bellman overestimation bias of the Q function
+    by training two Q networks independently and using the minimum of the two in policy
+    improvement step,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Algorithm Runthrough and Code*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initialize actor, 2 Q functions, 2 target Q functions, replay buffer, alpha
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Repeat until convergence:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For each environment step:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sample action from policy, observe next state and reward
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Store (s_t, a_t, r_t, s_t+1) in replay buffer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For each update step:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sample batch
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Update Qs:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Compute target y = reward plus minimum Q of policy + alpha entropy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Minimize Q prediction — y
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update policy to maximize Q of policy + alpha reward
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update alpha to meet target entropy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update target Q networks (soft update targets to be large factor * targets +
+    (1 — large factor) * actual)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/SAC/SAC.py?source=post_page-----6c1e42f394f0--------------------------------)
+    [## Knights-of-Papers/src/SAC/SAC.py at main · AlmondGod/Knights-of-Papers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DDPG, Decision Transformer, I2A with PPO, and SAC self-play on simulated combat
+    humanoids …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/SAC/SAC.py?source=post_page-----6c1e42f394f0--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**I2A with PPO**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two algorithms here (bonus alg layer works on top of any algorithm)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Proximal Policy Optimization (PPO)**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a different approach to that of DDPG and SAC, our goal is a scalable,
+    data-efficient, robust convergence algorithm (not sensitive to definition of hyperparameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 1: Surrogate Objective Function*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The surrogate objective allows off-policy training so we can use a much wider
+    variety of data (especially advantageous to real-world scenarios where vast pre-existing
+    datasets exist).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we discuss surrogate objective, the concept of Advantage is critical
+    to understand. Advantage is the:difference between expected reward at s after
+    taking s and expected reward at s. Essentially, it quantifies to what degree an
+    action a better or worse than the ‘average’ action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We estimate it as A = Q(a,s) — V(a) where Q is action-value (expected return
+    after action a) and V is state-value (expected return from current state), and
+    both are learned
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, the surrogate objective:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: J(θ) = Ê_t [ r_t(θ) Â_t ]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: J(θ) is the surrogate objective
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Ê_t […] denotes the empirical average over a finite batch of samples
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: r_t(θ) = π_θ(a_t|s_t) / π_θ_old(a_t|s_t) is likelihood of action in new policy
+    / likelihood in old policy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Â_t is the estimated advantage at timestep t
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is equivalent to quantifying how well the new policy improves the likelihood
+    of higher return actions and decreases likelihood of lower return actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 2: Clipped Objective Function*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is another way to solve the oversized policy update issue towards more
+    stable learning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: L_CLIP(θ) = E[ min( r(θ) * A, clip(r(θ), 1-ε, 1+ε) * A ) ]
+  prefs: []
+  type: TYPE_NORMAL
+- en: The clipped objective is minimum of the real surrogate and the surrogate where
+    the ratio is clipped between 1 — epsilon and 1 + epsilon (basically trust region
+    of unmodified ratio). Epsilon is usually ~0.1/0.2
+  prefs: []
+  type: TYPE_NORMAL
+- en: It essentially chooses more conservative of clipped and normal ratio.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The actual PPO objective:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: L^{PPO}(θ) = Ê_t [ L^{CLIP}(θ) — c_1 * L^{VF}(θ) + c_2 * Sπ_θ ]
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: L^{VF}(θ) = (V_θ(s_t) — V^{target}_t)²
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Sπ_θ is the entropy of the policy π_θ for state s_t
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Essentially we’re prioritizing higher entropy, lower value function, and higher
+    clipped Advantage
+  prefs: []
+  type: TYPE_NORMAL
+- en: PPO also uses minibatching and alternates data training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Algorithm Runthrough and Code*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each iteration
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For each of N actors
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Run policy for T timesteps
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Compute advantages
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Optimize surrogate function with respect to policy for K epochs and minibatch
+    size M < NT
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Update policy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/I2A-PPO/gpuI2APPO.py?source=post_page-----6c1e42f394f0--------------------------------)
+    [## Knights-of-Papers/src/I2A-PPO/gpuI2APPO.py at main · AlmondGod/Knights-of-Papers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DDPG, Decision Transformer, I2A with PPO, and SAC self-play on simulated combat
+    humanoids …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/I2A-PPO/gpuI2APPO.py?source=post_page-----6c1e42f394f0--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Imagination-Augmented Agents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our goal here is to create an extra embedding vector input to any other algorithm
+    to give key valuable information and act as a ‘mental model’ of the environment
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation: Imagination Vector*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Imagination vector allows us to add an extra embedding vector to our agent’s
+    observations to encode multiple ‘imagined future runs’ of actions and evaluations
+    of their rewards (goal is to “see the future” and “think before acting”).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How do we calculate it? We use a learned environment approximation function,
+    which tries to simulate the environment (this is called model-based learning because
+    were attempting to learn a model of the environment). We pair this with a rollout
+    policy, which is very simple and fast-executing policy (usually random) to decide
+    on actions by which to “explore the future”. By running the environment approximator
+    on the rollout policy, we can explore future actions and their rewars, then find
+    a way to represent all these imagined future actions and rewards in one vector.
+    A notable drawback to note: as you’d expect, it adds a lot of training and makes
+    large amounts of data more necessary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Combined I2A-PPO Algorithm Runthrough and Code*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Every time we collect observations for PPO:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Initialize environment model and rollout pollicy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For multiple ‘imagined runs’:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: run environment model starting from current state and deciding with rollout
+    policy until a horizon to yield an imagination trajectory (s, a, r sequence)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Imagination encoder: turns multiple of these imagined trajectories into a single
+    input embedding for the actual decision making network'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Decision Transformer**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our goal here is to use the advantage of transformer architecture for reinforcement
+    learning. With Decision Transformer, we can identify important rewards among sparse/distracting
+    rewards, enjoy a wider distribution modeling for greater generalization and knowledge
+    transfer, and learn from pre-obtained suboptimal limited data (called offline
+    learning).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For Decision Transformers, we essentially cast Reinforcement Learning as sequence
+    modeling problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Innovation 1: Transformers*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you want to truly understand transformers, I recommend the karpathy building
+    GP2 from scratch video. Here’s a quick Transformers review as it applies to DT:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have sequences of tokens representing states, actions, returns to go (the
+    sum of future rewards expected to be received), and timesteps. Our goal is now
+    to take in a sequence of tokens and predict the next action: this will act as
+    our policy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These tokens all have keys, values, and queries that we combine using intricate
+    networks to express relationships between each element. We then combine these
+    relationships into an ‘embedding’ vector which encodes the relationships between
+    the inputs. This process is known as Attention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that a ‘causal self-attention mask’ ensures embeddings can only relate
+    to embeddings that came before them in the sequence, so we can’t use the future
+    to predict the future, use the past information to predict the future (since our
+    goal is to predict next action).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once we have this embedding vector, we pass it through neural network layers
+    (the analogy Karpathy uses is that here, we ‘reason about relationships’ between
+    the tokens).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These two combined (find relationships between tokens with Attention, reason
+    about relationships with our NN layers) are one head of Transformers, which we
+    stack on itself many times. At the end of these heads, we use a learned neural
+    network layer to convert the output to our action space size and requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*By the way, at inference time, we predefine returns to go as our desired total
+    reward at the end.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Algorithm Runthrough and Code*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For (R,s,a,t) in dataloader
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Predict action
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Model converts obs, vision (with convnet layer), rtg, and timestep to unique
+    embeddings and adds timestep embedding to the others
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: All three used as input to the transformer layers, at the end use action embedding
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: compute MSEloss (a_pred-a)**2
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Perform SGD on the decision transformer model with the gradient of params wrt
+    this loss
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/Decision-Transformer/DecisionTransformer.py?source=post_page-----6c1e42f394f0--------------------------------)
+    [## Knights-of-Papers/src/Decision-Transformer/DecisionTransformer.py at main
+    ·…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DDPG, Decision Transformer, I2A with PPO, and SAC self-play on simulated combat
+    humanoids …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/AlmondGod/Knights-of-Papers/blob/main/src/Decision-Transformer/DecisionTransformer.py?source=post_page-----6c1e42f394f0--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To train these models, I ran the algorithms on an NVIDIA RTX 4090 to take advantage
+    of these algorithms GPU acceleration innovations. Thank you [vast.ai](http://vast.ai)!
+    Here are the loss curves:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*DDPG Loss (2000 Episodes)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dac56145748bf3104d9f46fef457ddc0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Matplotlib Loss Chart, me
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*I2APPO Loss (3500 Episodes)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e3551e86cfeb767b73048b843d6f103e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Matplotlib Loss Chart, me
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*SAC Loss (5000 Episodes)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb81f1216c1bbde245f0a961454a3976.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Matplotlib Loss Chart, me
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Decision Transformer Loss (1600 Episodes, loss recorded every 40)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2f1780c8ad215f4e2521a1f752613ae9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Matplotlib Loss Chart, me
+  prefs: []
+  type: TYPE_NORMAL
+- en: By comparing the algorithms’ results (subjectively and weighted by time taken
+    to train), I found Decision Transformer to perform the best! This makes sense
+    considering DT is built specifically to take advantage of GPUs. Watch the [video](https://www.youtube.com/watch?v=kpDfXqX7h1U)
+    I made to see the algorithms’ actual performance. The models learned to crawl
+    and stop falling over but still had a ways to go before they would be expert fighters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Areas of Improvement:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I learned just how hard training a humanoid is. We’re operating in both a high-dimensional
+    input space (both visual RGB and actuator positions/velocities) combined with
+    an incredibly high-dimensional output space (27-dimensional continuous space).
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the beginning, the best I was hoping for was that they crawl to each other
+    and touch swords, though even this was a challenge. Most of the training runs
+    didn’t even get to experience the high reward of touching ones sword to the opponent,
+    since walking alone was too hard.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main dimension for improvement is simply increasing the time to train and
+    amount of compute used. As we’ve seen in the modern AI revolution, these increased
+    compute and data trends seem to have no upper limit!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most importantly, I learned a lot! For next time, I would use NVIDIA’s skill
+    embeddings or Lifelong Learning to allow the robots to learn to walk before they
+    learn to fight!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see the video I made walking through the process of creating this project,
+    and see the robots fight, see this video below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I tried to make simulated robots fight using new reinforcement learning papers,
+    me
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for making it to the end! Find me on Twitter [@AlmondGodd](https://x.com/Almondgodd)
+    if you’re interested in more!
+  prefs: []
+  type: TYPE_NORMAL

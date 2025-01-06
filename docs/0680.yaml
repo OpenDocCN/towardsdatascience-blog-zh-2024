@@ -1,0 +1,346 @@
+- en: Building an Explainable Reinforcement Learning Framework
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-an-explainable-reinforcement-learning-framework-084ef2d23d01?source=collection_archive---------9-----------------------#2024-03-13](https://towardsdatascience.com/building-an-explainable-reinforcement-learning-framework-084ef2d23d01?source=collection_archive---------9-----------------------#2024-03-13)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/7b8e8fae19e2beff62bb005375135544.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Explainable Results Through Symbolic Policy Discovery
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Symbolic genetic algorithms, action potentials, and equation trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)[![Dani
+    Lisle](../Images/2933bbbca26cf198e7964547a91b2751.png)](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------)
+    [Dani Lisle](https://medium.com/@Dani_Lisle?source=post_page---byline--084ef2d23d01--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--084ef2d23d01--------------------------------)
+    ·9 min read·Mar 13, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ve learned to train models that can beat world champions at a games like
+    Chess and Go, with one major limitation: explainability. Many methods exist to
+    create a black-box model that knows how to play a game or system better than any
+    human, but creating a model with a human-readable closed-form strategy is another
+    problem altogether.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The potential upsides of being better at this problem are plentiful. Strategies
+    that humans can quickly understand don’t stay in a codebase — they enter the scientific
+    literature, and perhaps even popular awareness. They could contribute a reality
+    of augmented cognition between human and computer, and reduce siloing between
+    our knowledge as a species and the knowledge hidden, and effectively encrypted
+    deep in a massive high-dimensional tensors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But if we had more algorithms to provide us with such explainable results from
+    training, how would we encode them in a human-readable way?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One of the most viable options is the use of differential equations (or difference
+    equations in the discrete case). These equations, characterized by their definition
+    of derivatives, or rates of change of quantities, give us an efficient way to
+    communicate and intuitively understand the dynamics of almost any system. Here’s
+    a famous example that relates the time and space derivatives of heat in a system:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/88ee96e7f8c15f63480837e562b8be1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Heat Equation in ‘n’ Dimensions ([Wikipedia: “Heat Equation”](https://en.wikipedia.org/wiki/Heat_equation))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In fact, work has been done in the way of algorithms that operate to evolve
+    such equations directly, rather than trying to extract them (as knowledge) from
+    tensors. Last year I authored a paper which detailed a framework for game theoretic
+    simulations using dynamics equation which evolve symbol-wise via genetic algorithms.
+    Another paper by Chen et al. presented work on a symbolic genetic algorithm for
+    discovering partial differential equations which, like the heat equation, describe
+    the dynamics of a physical system. This group was able to mine such equations
+    from generated datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But consider again the game of Chess. What if our capabilities in the computational
+    learning of these equations were not limited to mere predictive applications?
+    What if we could use these evolutionary techniques to learn optimal strategies
+    for socioeconomic games in the real world?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a time where new human and human-machine relationships, and complex strategies,
+    are entering play more quickly than ever, computational methods to find intuitive
+    and transferable strategic insight have never been more valuable. The opportunities
+    and potential threats are both compelling and overwhelming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s Begin
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*All Python code discussed in this article are accessible in my running GitHub
+    repo for the project:* [*https://github.com/dreamchef/abm-dynamics-viz*](https://github.com/dreamchef/abm-dynamics-viz)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a recent article I wrote about simulating dynamically-behaving agents in
+    a theoretic game. As much as I’d like to approach such multi-agent games using
+    symbolic evolution, it’s wise to work atomically, expand our scope, and take advantage
+    of some previous work. Behind the achievements of groups like DeepMind in creating
+    models with world-class skill at competitive board games is a sub-discipline of
+    ML: reinforcement learning. In this paradigm, agents have an observation space
+    (variables in their environment which they can measure and use as values), an
+    action space (ways to interact with or move/change in the environment), and a
+    reward system. Over time through experimentation, the reward dynamics allow them
+    to build a strategy, or policy, which maximizes reward.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can apply our symbolic genetic algorithms to some classic reinforcement learning
+    problems in order to explore and fine tune them. The Gymnasium library provides
+    a collection of games and tasks perfect for reinforcement learning experiments.
+    One such game which I determined to be well-suited to our goals is “Lunar Lander”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c4f6127527a81d09e1da5ca69df3b78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Lunar Lander (Credit: Gymnasium)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The game is specified as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Observation space (8): x,y position, x, y velocity, angle, angular velocity,
+    left, right foot touching ground. Continuous.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Action space (4): no engine, bottom, left, right engine firing. Discrete.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Learning Symbolic Policies for the Lander Task
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You might have noticed that while the variables like velocity and angle are
+    continuous, action space is discrete. So how do we define a function that takes
+    continuous inputs and outputs, effectively, a classification? In fact this is
+    a well-known problem and the common approach is using an Action Potential function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Action Potential Equation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Named after the neurological mechanism, which operates as a threshold, a typical
+    Action Potential function calculates a continuous value from the inputs, and outputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: True output if the continuous value is at or above a threshold.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: False is the output is below.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In our problem, we actually need to get a discrete output in 4 possible values.
+    We could carefully consider the dynamics of the task in devising this system,
+    but I chose a naive approach, as a semi-adversarial effort to put more pressure
+    on our SGA algorithm to ultimately shine through. It uses the general intuition
+    that near the target probably means we shouldn’t use the side thrusters as much:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this figured out, let’s make a roadmap for the rest of our journey. Our
+    main tasks will be:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evolutionary structure in which families and generations of equations can exist
+    and compete.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Data structure to store equations (which facilitates their genetic modification).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Symbolic mutation algorithm— how and what will we mutate?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Selection method — which and how many candidates will we bring to the next round?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Evaluation method — how will we measure the fitness of an equation?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Evolutionary Structure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We start by writing out the code on a high-level and leaving some of the algorithm
+    implementations for successive steps. This mostly takes the form of an array where
+    we can store the population of equations and a main loop that evolves them for
+    the specified number of generations while calling the mutation, selection/culling,
+    and testing algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also define a set of parameters for the evolutionary model including
+    number of generations, and specifying how many mutations to create and select
+    from each parent policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following code
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally it selects the best-performing policies, and validates them using another
+    round of testing (against Lunar Lander simulation rounds):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Data Structure to Store Equations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We start by choosing a set of binary and unary operators and operands (from
+    the observation space) which we represent and mutate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we borrow from Chen et al. the idea of encoding equations int the form
+    of trees. This will allow us to iterate through the equations and mutate the symbols
+    as individual objects. Specifically I chose to do using nested arrays the time
+    being. This example encodes *x*y + dx*dy:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each equation includes both the tree defining its form, and a score object which
+    will store its evaluated score in the Lander task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Symbolic Mutation Algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We could approach the mutation of algorithms in a variety of ways, depending
+    on our desired probability distribution for modifying different symbols in the
+    equations. I used a recursive approach where at each level of the tree, the algorithm
+    randomly chooses a symbol, and in the case of a binary operator, moves down to
+    the next level to choose again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following main mutation function accepts a source policy and outputs an
+    array including the unchanged source and mutated policies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This helper function contains recursive algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Selection Method
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Selecting the best policies will involve testing them to get a score and then
+    deciding on a way to let them compete and progress to further stages of evolution.
+    Here I used an evolutionary family tree structure in which each successive generation
+    in a family, or batch (e.g. the two on the lower left), contains children with
+    one mutation that differentiates them from the parent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After scoring of the equations, each batch of equations is ranked and the best
+    N are kept in the running, while the rest are discarded:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Scoring Methods Through Simulation Episodes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To decide which equations encode the best policies, we use the Gymnasium framework
+    for the Lunar Lander task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The main loop for scoring runs the number of episodes (simulation runs) specified,
+    and in each episode we see the fundamental reinforcement learning paradigm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a starting observation, the information is used to compute an action via
+    our method, the action interacts with the environment, and the observation for
+    the next step is obtained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since we store the equations as trees, we need a separate method to compute
+    the potential from this form. The following function uses recursion to obtain
+    a result from the encoded equation, given the observation values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The code above goes through each level of the tree, checks if the current symbol
+    is an operand or operator, and according either computes the right/left side recursively
+    or returns back in the recursive stack to do the appropriate operator computations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next Steps
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This concluded the implementation. In the next article in this series, I’ll
+    be explaining the results of training, motivating changes in the experimental
+    regime, and exploring pathways to expand the training framework by improving the
+    mutation and selection algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the meantime, you can access [here](https://publish.obsidian.md/danilisle/2024+SIAM+Front+Range+Student+Conference+-+GENETIC+REINFORCEMENT+LEARNING+OF+OPTIMAL+STRATEGY+DYNAMICS+IN+SYMBOLIC+FORM)
+    the slides for a recent talk I gave at the 2024 SIAM Front Range Student Conference
+    at University of Colorado Denver which discussed preliminary training results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All code for this project is on my repo: [https://github.com/dreamchef/abm-dynamics-viz](https://github.com/dreamchef/abm-dynamics-viz).
+    I’d love to hear what else you may find, or your thoughts on my work, in the comments!
+    Feel free to reach out to me on [Twitter](https://twitter.com/dani_lisle) and
+    [LinkedIn](https://www.linkedin.com/in/danilisle/) as well.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images were created by the author except where otherwise noted.*'
+  prefs: []
+  type: TYPE_NORMAL

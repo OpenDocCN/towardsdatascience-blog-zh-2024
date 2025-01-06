@@ -1,0 +1,299 @@
+- en: 'Efficient Document Chunking Using LLMs: Unlocking Knowledge One Block at a
+    Time'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21](https://towardsdatascience.com/efficient-document-chunking-using-llms-unlocking-knowledge-one-block-at-a-time-355717a88c5c?source=collection_archive---------0-----------------------#2024-10-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[![Carlo
+    Peron](../Images/e6db9521113aa6a2dd43b0b2aa6687b5.png)](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)
+    [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--355717a88c5c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--355717a88c5c--------------------------------)
+    ·8 min read·Oct 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8d39f802c75bb432d069186938148b8c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The process of splitting two blocks — Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article explains how to use an LLM (Large Language Model) to perform the
+    chunking of a document based on concept of “idea”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I use OpenAI’s gpt-4o model for this example, but the same approach can be applied
+    with any other LLM, such as those from Hugging Face, Mistral, and others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Everyone can access this [article](https://medium.com/@peronc79/355717a88c5c?sk=1cc4e46c40708d5057d54da391035cfa)
+    for free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Considerations on Document Chunking**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In cognitive psychology, a chunk represents a “unit of information.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This concept can be applied to computing as well: using an LLM, we can analyze
+    a document and produce a set of chunks, typically of variable length, with each
+    chunk expressing a complete “idea.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that the system divides a document into “pieces of text” such that
+    each expresses a unified concept, without mixing different ideas in the same chunk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal is to create a knowledge base composed of independent elements that
+    can be related to one another without overlapping different concepts within the
+    same chunk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, during analysis and division, there may be multiple chunks expressing
+    the same idea if that idea is repeated in different sections or expressed differently
+    within the same document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Getting Started**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is identifying a document that will be part of our knowledge
+    base.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is typically a PDF or Word document, read either page by page or by paragraphs
+    and converted into text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For simplicity, let’s assume we already have a list of text paragraphs like
+    the following, extracted from ***Around the World in Eighty Days***:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s also assume we are using an LLM that accepts a limited number of tokens
+    for input and output, which we’ll call *input_token_nr* and *output_token_nr*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this example, we’ll set *input_token_nr* = 300 and *output_token_nr* = 250.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that for successful splitting, the number of tokens for both the
+    prompt and the document to be analyzed must be less than 300, while the result
+    produced by the LLM must consume no more than 250 tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the [tokenizer](https://platform.openai.com/tokenizer) provided by OpenAI
+    we see that our knowledge base documents is composed of 254 tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, analyzing the entire document at once isn’t possible, as even though
+    the input can be processed in a single call, it can’t fit in the output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, as a preparatory step, we need to divide the original document into blocks
+    no larger than 250 tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These blocks will then be passed to the LLM, which will further split them into
+    chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be cautious, let’s set the maximum block size to 200 tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Generating Blocks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The process of generating blocks is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the first paragraph in the knowledge base (KB), determine the number
+    of tokens it requires, and if it’s less than 200, it becomes the first element
+    of the block.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Analyze the size of the next paragraph, and if the combined size with the current
+    block is less than 200 tokens, add it to the block and continue with the remaining
+    paragraphs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A block reaches its maximum size when attempting to add another paragraph causes
+    the block size to exceed the limit.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Repeat from step one until all paragraphs have been processed.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The blocks generation process assumes, for simplicity, that each paragraph is
+    smaller than the maximum allowed size (otherwise, the paragraph itself must be
+    split into smaller elements).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To perform this task, we use the *llm_chunkizer.split_document_into_blocks*
+    function from the LLMChunkizerLib/chunkizer.py library, which can be found in
+    the following repository — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visually, the result looks like Figure 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/366d6fb7dc3c658b31fa9d0481492dca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Split document into blocks of maximum size of 200 tokens — Image
+    by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: When generating blocks, the only rule to follow is not to exceed the maximum
+    allowed size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No analysis or assumptions are made about the meaning of the text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Generating Chunks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to split the block into chunks that each express the same idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this task, we use the *llm_chunkizer.chunk_text_with_llm* function from
+    the *LLMChunkizerLib/chunkizer.py* library, also found in the same repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The result can be seen in Figure 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d38ce011f33c722eaeb5e5dea015397a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Split block into chunks — Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This process works linearly, allowing the LLM to freely decide how to form the
+    chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Handling the Overlap Between Two Blocks**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As previously mentioned, during block splitting, only the length limit is considered,
+    with no regard for whether adjacent paragraphs expressing the same idea are split
+    across different blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is evident in Figure 1, where the concept “bla bla bla” (representing a
+    unified idea) is split between two adjacent blocks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see In Figure 2, the chunkizer processes only one block at a time,
+    meaning the LLM cannot correlate this information with the following block (it
+    doesn’t even know a next block exists), and thus, places it in the last split
+    chunk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This problem occurs frequently during ingestion, particularly when importing
+    a long document whose text cannot all fit within a single LLM prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To address it, *llm_chunkizer.chunk_text_with_llm* works as shown in Figure
+    3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The last chunk (or the last N chunks) produced from the previous block is removed
+    from the “valid” chunks list, and its content is added to the next block to be
+    split.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The *New Block2* is passed to the chunking function again.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/17201eb773dba1ba31362002dc138ad4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Handling the overlap — Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As shown in Figure 3, the content of chunk M is split more effectively into
+    two chunks, keeping the concept “bla bla bla” together
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea behind this solution is that the last N chunks of the previous block
+    represent independent ideas, not just unrelated paragraphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, adding them to the new block allows the LLM to generate similar chunks
+    while also creating a new chunk that unites paragraphs that were previously split
+    without regard for their meaning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Result of Chunking**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the end, the system produces the following 6 chunks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Considerations on Block Size**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s see what happens when the original document is split into larger blocks
+    with a maximum size of 1000 tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With larger block sizes, the system generates 4 chunks instead of 6.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This behavior is expected because the LLM could analyzed a larger portion of
+    content at once and was able to use more text to represent a single concept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the chunks in this case:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Conclusions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s important to attempt multiple chunking runs, varying the block size passed
+    to the chunkizer each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After each attempt, the results should be reviewed to determine which approach
+    best fits the desired outcome.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Coming Up**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next article, I will show how to use an LLM to retrieve chunks — [LLMRetriever](https://github.com/peronc/LLMRetriever)
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: You could find all the code and more example in my repository — [LLMChunkizer](https://github.com/peronc/LLMChunkizer/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’d like to discuss this further, feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/carlo-peron)
+  prefs: []
+  type: TYPE_NORMAL

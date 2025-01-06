@@ -1,0 +1,385 @@
+- en: Build a Document AI Pipeline for Any Type of PDF with Gemini
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=collection_archive---------0-----------------------#2024-12-15](https://towardsdatascience.com/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=collection_archive---------0-----------------------#2024-12-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Tables, Images, figures or equations are not problem anymore! Full Code provided.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)[![Youness
+    Mansar](../Images/b68fe2cbbe219ab0231922c7165f2b6a.png)](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------)
+    [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--9221c8e143db--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9221c8e143db--------------------------------)
+    ·10 min read·Dec 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04f5f0506207581622a222ae56c38208.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Matt Noble](https://unsplash.com/@mcnoble?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automated document processing is one of the biggest winners of the ChatGPT revolution,
+    as LLMs are able to tackle a wide range of subjects and tasks in a zero-shot setting,
+    meaning without in-domain labeled training data. This has made building AI-powered
+    applications to process, parse, and automatically understand arbitrary documents
+    much easier. Though naive approaches using LLMs are still hindered by non-text
+    context, such as figures, images, and tables, this is what we will try to address
+    in this blog post, with a special focus on PDFs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At a basic level, PDFs are just a collection of characters, images, and lines
+    along with their exact coordinates. They have no inherent “text” structure and
+    were not built to be processed as text but only to be viewed as is. This is what
+    makes working with them difficult, as text-only approaches fail to capture all
+    the layout and visual elements in these types of documents, resulting in a significant
+    loss of context and information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to bypass this “text-only” limitation is to do heavy pre-processing
+    of the document by detecting tables, images, and layout before feeding them to
+    the LLM. Tables can be parsed to Markdown or JSON, images and figures can be represented
+    by their captions, and the text can be fed as is. However, this approach requires
+    custom models and will still result in some loss of information, so can we do
+    better?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multimodal LLMs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Most recent large models are now multi-modal, meaning they can process multiple
+    modalities like text, code, and images. This opens the way to a simpler solution
+    to our problem where one model does everything at once. So, instead of captioning
+    images and parsing tables, we can just feed the page as an image and process it
+    as is. Our pipeline will be able to load the PDF, extract each page as an image,
+    split it into chunks (using the LLM), and index each chunk. If a chunk is retrieved,
+    then the full page is included in the LLM context to perform the task. In what
+    follows, we will detail how this can be implemented in practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The pipeline we are implementing is a two-step process. First, we segment each
+    page into significant chunks and summarize each of them. Second, we index chunks
+    once then search the chunks each time we get a request and include the full context
+    with each retrieved chunk in the LLM context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Page Segmentation and Summarization'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We extract the pages as images and pass each of them to the multi-modal LLM
+    to segment them. Models like Gemini can understand and process page layout easily:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tables** are identified as one chunk.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Figures** form another chunk.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Text blocks** are segmented into individual chunks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: …
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For each element, the LLM generates a summary than can be embedded and indexed
+    into a vector database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Embedding and Contextual Retrieval'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this tutorial we will use text embedding only for simplicity but one improvement
+    would be to use vision embeddings directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each entry in the database includes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The summary of the chunk.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The page number where it was found.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A link to the image representation of the full page for added context.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This schema allows for **local level searches** (at the chunk level) while keeping
+    **track of the context** (by linking back to the full page). For example, if a
+    search query retrieves an item, the Agent can include the entire page image to
+    provide full layout and extra context to the LLM in order to maximize response
+    quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By providing the full image, all the visual cues and important layout information
+    (like images, titles, bullet points… ) and neighboring items (tables, paragraph,
+    …) are available to the LLM at the time of generating a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We will implement each step as a separate, re-usable agent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first agent is for parsing, chunking, and summarization. This involves the
+    segmentation of the document into significant chunks, followed by the generation
+    of summaries for each of them. This agent only needs to be run once per PDF to
+    preprocess the document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second agent manages indexing, search, and retrieval. This includes inserting
+    the embedding of chunks into the vector database for efficient search. Indexing
+    is performed once per document, while searches can be repeated as many times as
+    needed for different queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For both agents, we use **Gemini**, a multimodal LLM with strong vision understanding
+    abilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing and Chunking Agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The first agent is in charge of segmenting each page into meaningful chunks
+    and summarizing each of them, following these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1: Extracting PDF Pages as Images**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use the `pdf2image` library. The images are then encoded in Base64 format
+    to simplify adding them to the LLM request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`extract_images_from_pdf`: Extracts each page of the PDF as a PIL image.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`pil_image_to_base64_jpeg`: Converts the image into a Base64-encoded JPEG format.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2: Chunking and Summarization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each image is then sent to the LLM for segmentation and summarization. We use
+    structured outputs to ensure we get the predictions in the format we expect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `LayoutElements` schema defines the structure of the output, with each layout
+    item type (Table, Figure, … ) and its summary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3: Parallel Processing of Pages**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pages are processed in parallel for speed. The following method creates a list
+    of tasks to handle all the page image at once since the processing is io-bound:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each page is sent to the `find_layout_items` function as an independent task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Full workflow**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The agent’s workflow is built using a `StateGraph`, linking the image extraction
+    and layout detection steps into a unified pipeline ->
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To run the agent on a sample PDF we do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This results in a parsed, segmented, and summarized representation of the PDF,
+    which is the input of the second agent we will build next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAG Agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This second agent handles the indexing and retrieval part. It saves the documents
+    of the previous agent into a vector database and uses the result for retrieval.
+    This can be split into two seprate steps, indexing and retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1: Indexing the Split Document**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the summaries generated, we vectorize them and save them in a ChromaDB
+    database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `index_documents` method embeds the chunk summaries into the vector store.
+    We keep metadata such as the document path and page number for later use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2: Handling Questions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a user asks a question, the agent searches for the most relevant chunks
+    in the vector store. It retrieves the summaries and corresponding page images
+    for contextual understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The retriever queries the vector store to find the chunks most relevant to the
+    user’s question. We then build the context for the LLM (Gemini), which combines
+    text chunks and images in order to generate a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The full agent Workflow**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The agent workflow has two stages, an indexing stage and a question answering
+    stage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Example run**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this implementation, the pipeline is complete for document processing,
+    retrieval, and question answering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Using the Document AI Pipeline'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s walk through a practical example using the document [LLM & Adaptation.pdf](https://github.com/SharifiZarchi/Introduction_to_Machine_Learning/blob/main/Slides/Chapter_05_Natural_Language_Processing/04-LLM%26Adaptation/LLM%20%26%20Adaptation.pdf)
+    , a set of 39 slides containing text, equations, and figures (CC BY 4.0).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Parsing and summarizing the Document (Agent 1)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Execution Time**: Parsing the 39-page document took **29 seconds**.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Result**: Agent 1 produces an indexed document consisting of chunk summaries
+    and base64-encoded JPEG images of each page.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Step 2: Questioning the Document (Agent 2)'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We ask the following question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**“**Explain LoRA, give the relevant equations**”**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Result:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Retrieved pages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a96c96db2579443f470a142aa9c9d1a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: [LLM & Adaptation.pdf](https://github.com/SharifiZarchi/Introduction_to_Machine_Learning/blob/main/Slides/Chapter_05_Natural_Language_Processing/04-LLM%26Adaptation/LLM%20%26%20Adaptation.pdf)
+    License CC-BY'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Response from the LLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/4af2dc191f5a778641c7a0e0c0b2fcb8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The LLM was able to include equations and figures into its response by taking
+    advantage of the visual context in generating a coherent and correct response
+    based on the document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this quick tutorial, we saw how you can take your document AI processing
+    pipeline a step further by leveraging the multi-modality of recent LLMs and using
+    the full visual context available in each document, hopefully improving the quality
+    of outputs that you are able to get from either your information extraction or
+    RAG pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We built a stronger document segmentation step that is able to detect the important
+    items like paragraphs, tables, and figures and summarize them, then used the result
+    of this first step to query the collection of items and pages to give relevant
+    and precise answers using Gemini. As a next step, you can try it on your use case
+    and document, try to use a scalable vector database, and deploy these agents as
+    part of your AI app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Full code and example are available here : [https://github.com/CVxTz/document_ai_agents](https://github.com/CVxTz/document_ai_agents)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading ! 😃
+  prefs: []
+  type: TYPE_NORMAL

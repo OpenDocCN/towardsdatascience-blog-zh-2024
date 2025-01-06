@@ -1,0 +1,753 @@
+- en: Exploring Public Storage Traces
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-public-storage-traces-16ef7ac9e038?source=collection_archive---------6-----------------------#2024-01-26](https://towardsdatascience.com/exploring-public-storage-traces-16ef7ac9e038?source=collection_archive---------6-----------------------#2024-01-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What are they, where are they, and are they right for you?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)[![Raluca
+    Diaconu](../Images/b7034d375d86616420c15a85b167af26.png)](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------)
+    [Raluca Diaconu](https://medium.com/@raluca.diaconu?source=post_page---byline--16ef7ac9e038--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16ef7ac9e038--------------------------------)
+    ·15 min read·Jan 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c421b769fc389b95546b6a888076c27d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Hongwei FAN](https://unsplash.com/@yokonoito0512?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Input and output (I/O) operations refer to the transfer of data between a computer’s
+    main memory and various peripherals. Storage peripherals such as HDDs and SSDs
+    have particular performance characteristics in terms of latency, throughput, and
+    rate which can influence the performance of the computer system they power. Extrapolating,
+    [the performance and design of distributed and cloud based Data Storage depends
+    on that of the medium](https://static.googleusercontent.com/media/research.google.com/en//pubs/archive/44830.pdf).
+    This article is intended to be a bridge between Data Science and Storage Systems:
+    1/ I am sharing a few datasets of various sources and sizes which I hope will
+    be novel for Data Scientists and 2/ I am bringing up the potential for advanced
+    analytics in Distributed Systems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intro
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Storage access traces are “[a treasure trove of information for optimizing cloud
+    workloads](https://www.ibm.com/blog/object-storage-traces/).” They're crucial
+    for capacity planning, data placement, or system design and evaluation, suited
+    for modern applications. Diverse and up-to-date datasets are particularly needed
+    in academic research to study novel and unintuitive access patterns, help the
+    design of new hardware architectures, new caching algorithms, or hardware simulations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Storage traces are notoriously difficult to find. The [SNIA website](http://iotta.snia.org)
+    is the best known “repository for storage-related I/O trace files, associated
+    tools, and other related information” but many traces don't comply with their
+    licensing or upload format. Finding traces becomes a tedious process of scanning
+    the academic literature or attempting to generate one's own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Popular traces](http://iotta.snia.org/traces/block-io/388) which are easier
+    to find tend to be outdated and overused. Traces older than 10 years should not
+    be used in modern research and development due to changes in application workloads
+    and hardware capabilities. Also, an over-use of specific traces can bias the understanding
+    of real workloads so it''s recommended to use traces from multiple independent
+    sources when possible.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post is an organized collection of recent public traces I found and used.
+    In the first part I categorize them by the level of abstraction they represent
+    in the IO stack. In the second part I list and discuss some relevant datasets.
+    The last part is a summary of all with a personal view on the gaps in storage
+    tracing datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Type of traces
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I distinguish between three types of traces based on data representation and
+    access model. Let me explain. A user, at the application layer, sees data stored
+    in files or objects which are accessed by a large range of abstract operations
+    such as *open* or *append*. Closer to the media, the data is stored in a continuous
+    memory address space and accessed as blocks of fixed size which may only be *read*
+    or *written*. At a higher abstraction level, within the application layer, we
+    may also have a data presentation layer which may log access to *data presentation
+    units*, which may be, for example, rows composing tables and databases, or articles
+    and paragraphs composing news feeds. The access may be *create table*, or *post
+    article*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While traces can be taken anywhere in the IO stack and contain information from
+    multiple layers, I am choosing to structure the following classification based
+    on the [Linux IO stack](https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram)
+    depicted below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9bdecfc908b6feecf8151cb0cd072337.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I/O Stack Diagram (adapted from [[1]](https://www.mimuw.edu.pl/~lichota/09-10/Optymalizacja-open-source/Materialy/10%20-%20Dysk/gelato_ICE06apr_blktrace_brunelle_hp.pdf),
+    [[2]](https://www.thomas-krenn.com/en/wiki/Linux_Storage_Stack_Diagram) and [[3]](https://www.researchgate.net/publication/317952281_Host_managed_contention_avoidance_storage_solutions_for_Big_Data))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Block storage traces**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The data in these traces is representative of the operations at the block layer.
+    In Linux, this data is typically collected with [blktrace](https://linux.die.net/man/8/blktrace)
+    (and rendered readable with [blkparse](https://linux.die.net/man/1/blkparse)),
+    [iostat](https://www.man7.org/linux/man-pages/man1/iostat.1.html), or [dtrace](https://dtrace.org/about/).
+    The traces contain information about the operation, the device, CPU, process,
+    and storage location accessed. The first trace listed is an example of blktrace
+    output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The typical information generated by tracing programs may be too detailed for
+    analysis and publication purposes and it is often simplified. Typical public traces
+    contain *operation*, *offset*, *size*, and sometimes *timing*. At this layer the
+    *operations* are only read and write. Each operation accesses the address starting
+    at *offset* and is applied to *a continuous size* of memory specified in number
+    of blocks (4KiB NTFS). For example, a trace entry for a read operation contains
+    the address where the read starts (offset), and the number of blocks read (size).
+    The timing information may contain the time the request was issued (*start time*),
+    the time it was completed (*end time*), the processing in between (*latency*),
+    and the time the request waited (*queuing time*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Available traces sport different features, have wildly different sizes, and
+    are the output of a variety of workloads. Selecting the right one will depend
+    on what one’s looking for. For example, trace replay only needs the order of operations
+    and their size; For performance analysis timing information is needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/864226aa3ebb3c6213b5fec32e9ef286.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Disk access visualization with iowatcher ([source](https://www.heise.de/hintergrund/Kernel-Log-Nvidia-aktualisiert-Grafiktreiber-1677800.html?seite=2))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Object storage traces**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At the application layer, data is located in files and objects which may be
+    created, opened, appended, or closed, and then discovered via a tree structure.
+    From an user's point of view, the storage media is decoupled, hiding fragmentation,
+    and allowing random byte access.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll group together file and object traces despite a subtle difference between
+    the two. Files follow the file system’s naming convention which is structured
+    (typically hierarchical). Often the extension suggests the content type and usage
+    of the file. On the other hand, objects are used in large scale storage systems
+    dealing with vast amounts of diverse data. In object storage systems the structure
+    is not intrinsic, instead it is defined externally, by the user, with specific
+    metadata files managed by their workload.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Being generated within the application space, typically the result of an application
+    logging mechanism, object traces are more diverse in terms of format and content.
+    The information recorded may be more specific, for example, *operations* can also
+    be *delete*, *copy*, or *append*. Objects typically have variable *size* and even
+    the same object’s size may vary in time after appends and overwrites. The *object
+    identifier* can be a string of variable size. It may encode extra information,
+    for example, an extension that tells the content type. Other *meta-information*
+    may come from the range accessed, which may tell us, for example, whether the
+    header, the footer or the body of an image, parquet, or CSV file was accessed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Object storage traces are better suited for understanding user access patterns.
+    In terms of block access, a video stream and a sequential read of an entire file
+    generate the same pattern: multiple sequential IOs at regular time intervals.
+    But these trace entries should be treated differently if we are to replay them.
+    Accessing video streaming blocks needs to be done with the same time delta between
+    them, regardless of the latency of each individual block, while reading the entire
+    file should be asap.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Access traces**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Specific to each application, data may be abstracted further. Data units may
+    be instances of a class, records in a database, or ranges in a file. A single
+    data access may not even generate a file open or a disk IO if caching is involved.
+    I choose to include such traces because they may be used to understand and optimize
+    storage access, and in particular cloud storage. For example, the access traces
+    from Twitter’s Memcache are useful in understanding popularity distributions and
+    therefore may be useful for data formatting and placement decisions. Often they're
+    not storage traces per se, but they can be useful in the context of cache simulation,
+    IO reduction, or data layout (indexing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data format in these traces can be even more diverse due to a new layer of abstraction,
+    for example, by tweet identifiers in Memcached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Examples of traces
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let's look at a few traces in each of the categories above. The list details
+    some of the newer traces — no older than 10 years — and it is by no means exhaustive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Block traces**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**YCSB RocksDB SSD 2020**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are SSD traces collected on a 28-core, 128 GB host with *two 512 GB NVMe
+    SSD Drives*, running Ubuntu. The dataset is a result of running the [YCSB-0.15.0
+    benchmark](https://en.wikipedia.org/wiki/YCSB) with [RocksDB](https://rocksdb.org/docs/support/faq.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first SSD stores all blktrace output, while the second hosts YCSB and RocksDB.
+    YCSB Workload A consists of 50% reads and 50% updates of 1B operations on 250M
+    records. Runtime is 9.7 hours, which generates over 352M block I/O requests at
+    the file system level writing a total of 6.8 TB to the disk, with a read throughput
+    of 90 MBps and a write throughput of 196 MBps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset is small compared to all others in the list, and limited in terms
+    of workload, but a great place to start due to its manageable size. Another benefit
+    is reproducibility: it uses open source tracing tools and benchmarking beds atop
+    a relatively inexpensive hardware setup.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Format:** These are SSD traces taken with `blktrace` and have the typical
+    format after parsing with `blkparse`: `[Device Major Number,Device Minor Number]
+    [CPU Core ID] [Record ID] [Timestamp (in nanoseconds)] [ProcessID] [Trace Action]
+    [OperationType] [SectorNumber + I/O Size] [ProcessName]`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Where to find it:** [http://iotta.snia.org/traces/block-io/28568](http://iotta.snia.org/traces/block-io/28568)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [SNIA Trace Data Files Download License](http://iotta.snia.org/repository/download_license)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Alibaba Block Traces 2020**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dataset consists of "block-level I/O requests collected from 1,000 volumes,
+    where each has a raw capacity from 40 GiB to 5 TiB. The workloads span diverse
+    types of cloud applications. Each collected I/O request specifies the volume number,
+    request type, request offset, request size, and timestamp."
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Limitations** (from the [academic paper](http://www.cse.cuhk.edu.hk/~pclee/www/pubs/iiswc20.pdf))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the traces do not record the response times of the I/O requests, making them
+    unsuitable for latency analysis of I/O requests.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the specific applications running atop are not mentioned, so they cannot be
+    used to extract application workloads and their I/O patterns.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the traces capture the access to virtual devices, so they are not representative
+    of performance and reliability (e.g., data placement and failure statistics) for
+    physical block storage devices.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A drawback of this dataset is its size. When uncompressed it results in a 751GB
+    file which is difficult to store and manage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Format:** `device_id,opcode,offset,length,timestamp`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`device_id`ID of the virtual disk, `uint32`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`opcode`Either of ''R'' or ''W'', indicating this operation is read or write'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`offset`Offset of this operation, in bytes, `uint64`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`length`Length of this operation, in bytes, `uint32`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`timestamp`Timestamp of this operation received by server, in microseconds,
+    `uint64`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally, there is an extra file containing each virtual device's id `device_id`
+    with its total capacity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Where to find it:** [https://github.com/alibaba/block-traces](https://github.com/alibaba/block-traces)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [CC-4.0](https://creativecommons.org/licenses/by/4.0/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tencent Block Storage 2018**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This dataset consists of "216 I/O traces from a warehouse (also called a failure
+    domain) of a production cloud block storage system (CBS). The traces are I/O requests
+    from 5584 cloud virtual volumes (CVVs) for ten days (from Oct. 1st to Oct. 10th,
+    2018). The I/O requests from the CVVs are mapped and redirected to a storage cluster
+    consisting of 40 storage nodes (i.e., disks)."
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Timestamps are in seconds, a granularity too little for determining the order
+    of operations. As a consequence many requests appear as if issued at the same
+    time. This trace is therefore unsuitable for queuing analysis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is no latency information about the duration of each operation, making
+    the trace unsuitable for latency performance, queuing analytics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: No extra information about each volume such as total size.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Format:** `Timestamp,Offset,Size,IOType,VolumeID`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Timestamp` is the Unix time the I/O was issued in seconds.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Offset` is the starting offset of the I/O in sectors from the start of the
+    logical virtual volume. 1 sector = 512 bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Size` is the transfer size of the I/O request in sectors.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`IOType` is “Read(0)”, “Write(1)”.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`VolumeID` is the ID number of a CVV.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Where to find it:** [http://iotta.snia.org/traces/parallel/27917](http://iotta.snia.org/traces/parallel/27917)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [NIA Trace Data Files Download License](http://iotta.snia.org/repository/download_license)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**K5cloud Traces 2018**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This dataset contains traces from virtual cloud storage from the FUJITSU K5
+    cloud service. The data is gathered during a week, but not continuously because
+    “ one day’s IO access logs often consumed the storage capacity of the capture
+    system.” There are 24 billion records from 3088 virtual storage nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data is captured in the TCP/IP network between servers running on hypervisor
+    and storage systems in a K5 data center in Japan. The data is split between three
+    datasets by each virtual storage volume id. Each virtual storage volume id is
+    unique in the same dataset, while each virtual storage volume id is not unique
+    between the different datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no latency information, so the traces cannot be used for performance
+    analysis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The total node size is missing, but it can be approximated from the maximum
+    offset accessed in the traces.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Some applications may require a complete dataset, which makes this one unsuitable
+    due to missing data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The fields in the IO access log are: `ID,Timestamp,Type,Offset,Length`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`ID` is the virtual storage volume id.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Timestamp` is the time elapsed from the first IO request of all IO access
+    logs in seconds, but with a microsecond granularity.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Type` is R(Read) or (W)Write.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Offset` is the starting offset of the IO access in bytes from the start of
+    the virtual storage.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Length` is the transfer size of the IO request in bytes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Where to find it:** [http://iotta.snia.org/traces/parallel/27917](http://iotta.snia.org/traces/parallel/26663)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [CC-4.0](https://creativecommons.org/licenses/by/4.0/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Object traces**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Server-side I/O request arrival traces 2019**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This repository contains two datasets for IO block traces with additional file
+    identifiers: 1/ parallel file systems (PFS) and 2/ I/O nodes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Notes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The access patterns are resulting from [MPI-IO test benchmark](https://www.intel.com/content/www/us/en/developer/articles/technical/intel-mpi-benchmarks.html)
+    ran atop of [Grid5000](https://www.grid5000.fr/w/Grid5000:Home), a large scale
+    test bed for parallel and High Performance Computing (HPC). These traces are not
+    representative of general user or cloud workloads but instead specific to HPC
+    and parallel computing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The setup for the PFS scenario uses [Orange FS](https://orangefs.org/) as file
+    system and for the IO nodes I/O Forwarding Scalability Layer([IOFSL](https://www.anl.gov/mcs/iofsl-io-forwarding-scalability-layer)).
+    In both cases the scheduler was set to AGIOS I/O scheduling library. This setup
+    is perhaps too specific for most use cases targeted by this article and has been
+    designed to reflect some proposed solutions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The hardware setup for PFS consists of our server nodes with 600 GB HDDs each
+    and 64 client nodes. For IO nodes, it has four server nodes with similar disk
+    configuration in a cluster, and 32 clients in a different cluster.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Format:** The format is slightly different for the two datasets, an artifact
+    of different file systems. For IO nodes, it consists of multiple files, each with
+    tab-separated values `Timestamp FileHandle RequestType Offset Size`. A peculiarity
+    is that reads and writes are in separate files named accordingly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Timestamp` is a number representing the internal timestamp in nanoseconds.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`FileHandle` is the file handle in hexadecimal of size 64.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`RequestType` is the type of the request, inverted, “W” for reads and “R” for
+    writes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Offset` is a number giving the request offset in bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Size` is the size of the request in bytes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The PFS scenario has two concurrent applications, “app1” and “app2”, and its
+    traces are inside a folder named accordingly. Each row entry has the following
+    format: `[<Timestamp>] REQ SCHED SCHEDULING, handle:<FileHandle>, queue_element:
+    <QueueElement>, type: <RequestType>, offset: <Offset>, len: <Size>` Different
+    from the above are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`RequestType` is 0 for reads and 1 for writes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`QueueElement` is never used and I believe it is an artifact of the tracing
+    tool.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Where to find it:** [https://zenodo.org/records/3340631#.XUNa-uhKg2x](https://zenodo.org/records/3340631#.XUNa-uhKg2x)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [CC-4.0](https://creativecommons.org/licenses/by/4.0/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**IBM Cloud Object Store 2019**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These are anonymized traces from the IBM Cloud Object Storage service collected
+    with the primary goal to study data flows to the object store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dataset is composed of 98 traces containing around 1.6 Billion requests
+    for 342 Million unique objects. The traces themselves are about 88 GB in size.
+    Each trace contains the REST operations issued against a single bucket in IBM
+    Cloud Object Storage during a single week in 2019\. Each trace contains between
+    22,000 to 187,000,000 object requests. All the traces were collected during the
+    same week in 2019\. The traces contain all data access requests issued over a
+    week by a single tenant of the service. Object names are anonymized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some characteristics of the workload have been [published in this paper](https://www.usenix.org/system/files/hotstorage20_paper_eytan.pdf),
+    although the dataset used was larger:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The authors were "able to identify some of the workloads as SQL queries, Deep
+    Learning workloads, Natural Language Processing (NLP), Apache Spark data analytic,
+    and document and media servers. But many of the workloads’ types remain unknown."
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '"A vast majority of the objects (85%) in the traces are smaller'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: than a megabyte, Yet these objects only account for 3% of the
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: of the stored capacity." This made the data suitable for a cache analysis.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Format:** `<time stamp of request> <request type> <object ID> <optional:
+    size of object> <optional: beginning offset> <optional: ending offset>` The timestamp
+    is the number of milliseconds from the point where we began collecting the traces.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Where to find it:** [http://iotta.snia.org/traces/key-value/36305](http://iotta.snia.org/traces/key-value/36305)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [SNIA Trace Data Files Download License](http://iotta.snia.org/repository/download_license)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Access traces**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Wiki Analytics Datasets 2019**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The wiki dataset contains data for 1/ upload (image) web requests of Wikimedia
+    and 2/ text (HTML pageview) web requests from one CDN cache server of Wikipedia.
+    The mos recent dataset, from 2019 contains 21 upload data files and 21 text data
+    files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Format**: Each upload data file, denoted `cache-u`, contains exactly 24 hours
+    of consecutive data. These files are each roughly 1.5GB in size and hold roughly
+    4GB of decompressed data each.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This dataset is the result of a single type of workload, which may limit the
+    applicability, but it is large and complete, which makes a good testbed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each decompressed upload data file has the following format: `relative_unix
+    hashed_path_query image_type response_size time_firstbyte`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`relative_unix`: Seconds since start timestamp of dataset, int'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`hashed_path_query`: Salted hash of path and query of request, bigint'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`image_type`: Image type from Content-Type header of response, string'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`response_size`: Response size in bytes, int'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`time_firstbyte`: Seconds to first byte, double'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each text data file, denoted `cache-t`, contains exactly 24 hours of consecutive
+    data. These files are each roughly 100MB in size and hold roughly 300MB of decompressed
+    data each.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each decompressed upload data file has the following format: `relative_unix
+    hashed_host_path_query response_size time_firstbyte`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Where to find it:** [https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Caching](https://wikitech.wikimedia.org/wiki/Analytics/Data_Lake/Traffic/Caching)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**License:** [CC-4.0](https://creativecommons.org/licenses/by/4.0/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memcached 2020
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This dataset contains one-week-long traces from Twitter’s in-memory caching
+    ([Twemcache](https://github.com/twitter/twemcache) / [Pelikan](https://github.com/twitter/pelikan))
+    clusters. The data comes from 54 largest clusters in Mar 2020, Anonymized Cache
+    Request Traces from Twitter Production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Format:** Each trace file is a csv with the format: `timestamp,anonymized
+    key,key size,value size,client id,operation,TTL`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`timestamp`: the time when the cache receives the request, in sec'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`anonymized key`: the original key with anonymization where namespaces are
+    preserved; for example, if the anonymized key is `nz:u:eeW511W3dcH3de3d15ec`,
+    the first two fields `nz` and `u` are namespaces, note that the namespaces are
+    not necessarily delimited by `:`, different workloads use different delimiters
+    with different number of namespaces.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`key size`: the size of key in bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`value size`: the size of value in bytes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`client id`: the anonymized clients (frontend service) who sends the request'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`operation`: one of get/gets/set/add/replace/cas/append/prepend/delete/incr/decr'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TTL`: the time-to-live (TTL) of the object set by the client, it is 0 when
+    the request is not a write request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**License:** [CC-4.0](https://creativecommons.org/licenses/by/4.0/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you’re still here and haven’t gone diving into one of the traces linked
+    above it may be because you haven’t found what you’re looking for. There are a
+    few gaps that current storage traces have yet to fill:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Multi-tenant Cloud Storage**: Large cloud storage providers store some of
+    the most rich datasets out there. Their workload reflects a large scale systems’
+    architecture and is the result of a diverse set of applications. Storage providers
+    are also extra cautious when it comes to sharing this data. There is little or
+    no financial incentive to share data with the public and a fear of [unintended
+    customer data leaks](https://arxiv.org/abs/cs/0610105).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Full stack**. Each layer in the stack offers a different view on access patterns,
+    none alone being enough to understand cause-and-effect relationships in storage
+    systems. Optimizing a system to suit modern workloads requires a holistic view
+    of the data access which are not publicly available.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Distributed tracing**. Most data is nowadays accessed remotely and managed
+    in large scale distributed systems. Many components and layers (such as indexes
+    or caching) will alter the access patterns. In such an environment, end-to-end
+    means tracing a request across several components in a complex architecture. This
+    data can be truly valuable for designing large scale systems but, at the same
+    time, may be too specific to the system inspected which, again, limits the incentive
+    to publish it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Data quality**. The traces above have limitations due to the level of detail
+    they represent. As we have seen, some have missing data, some have large granularity
+    time stamps, others are inconveniently large to use. Cleaning data is a tedious
+    process which limits the dataset publishing nowadays.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

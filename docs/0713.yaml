@@ -1,0 +1,507 @@
+- en: 'Mamba: SSM, Theory, and Implementation in Keras and TensorFlow'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/mamba-ssm-theory-and-implementation-in-keras-and-tensorflow-32d6d4b32546?source=collection_archive---------0-----------------------#2024-03-17](https://towardsdatascience.com/mamba-ssm-theory-and-implementation-in-keras-and-tensorflow-32d6d4b32546?source=collection_archive---------0-----------------------#2024-03-17)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding how SSMs and Mamba work, along with how to get started with implementing
+    it in Keras and TensorFlow.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vedantjumle?source=post_page---byline--32d6d4b32546--------------------------------)[![Vedant
+    Jumle](../Images/363dbdf8564c35060b3e57cbc6e55f16.png)](https://medium.com/@vedantjumle?source=post_page---byline--32d6d4b32546--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--32d6d4b32546--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--32d6d4b32546--------------------------------)
+    [Vedant Jumle](https://medium.com/@vedantjumle?source=post_page---byline--32d6d4b32546--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--32d6d4b32546--------------------------------)
+    ·13 min read·Mar 17, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2eef43d26c512f0bea0c67ca675348ef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: AI Generate (SDXL)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Submitted on 1st December, 2023 on arXiv, the paper titled [“Mamba: Linear-Time
+    Sequence Modeling with Selective State Spaces”](https://arxiv.org/abs/2312.00752)
+    proposed an interesting approach to sequence modeling. The authors — [Albert Gu](https://arxiv.org/search/cs?searchtype=author&query=Gu%2C+A),
+    [Tri Dao](https://arxiv.org/search/cs?searchtype=author&query=Dao%2C+T) — introduced,
+    ‘Mamba’ that utilized ‘selective’ [state space models (SSM)](https://en.wikipedia.org/wiki/State-space_representation)
+    to achieve results that compete with the performance of the, now ubiquitous, Transformer
+    model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s so unique about Mamba?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Transformers have seen recent popularity with the rise of Large Language Models
+    (LLMs) like LLaMa-2, GPT-4, Claude, Gemini, etc., but it suffers from the problem
+    of context window. The issue with transformers lies in it’s core, the multi head-attention
+    mechanism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The main issue with multi-head attention sprouts from the fact that for input
+    sequence length n, the time complexity and space complexity scales by O(n²). This
+    limits the length of the context window of an LLM. Because, to increase it by
+    10x, we need to scale the hardware requirement (most notably GPU VRAM) by 100x.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mamba, on the other hand, scales by ***O(n)!, i.e., Linearly****.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b097aae23543115f103cea34510def5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot taken from the Mamba paper comparing FlashAttention and Mamba approach
+    (indicated by scan(ours) in the legends)[1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: This linear scaling is what has taken wind for researchers to speculate that
+    Mamba might be the future of sequence modeling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The backbone of Mamba: State Space Models'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The core of the Mamba model comes from the concept of State Space Models. ***State
+    Space Models, like Transformers and RNN, process sequences of information, like
+    text, audio signals, video frames, DNA sequences, etc.***
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'State Space Models come from an idea of describing a physical system as a set
+    of input, outputs, and variables. These variables are: *A, B, C, D.* The process
+    of SSM involves calculation of an *internal state vector h(t), given an input
+    x(t).* Then, we do a weighted sum of *h(t)* and *x(t)* where the weights are *A,
+    B, C, & D*. In the simplest form (continuous time-invariant), the process formulation
+    looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ebbbac8cb1eb8abaa8dbb62853c93240.png)![](../Images/047a1d371405fee92bb7ea7c58305c58.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'source: wikipedia[6]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*h(t)* is often called the ‘hidden’ or the ‘latent’ state, I will be sticking
+    to calling it the ‘hidden’ state for better clarity. **It is important to note
+    that A, B, C, and D are learnt parameters in SSM.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are the variables?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**The variables, A, B, C & D, are learnt parameters,** and they can be described
+    as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A: How much should the previous hidden state (h) be considered to calculate
+    the new hidden state'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'B: How much should the input (x) be consider to calculate the new hidden state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'C: How much should the new hidden state be considered in calculating the output
+    (y).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'D: How much should the input (x) be consider in calculating the output (y).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: D comes in the end of the computations and does not affect how the hidden state
+    is calculated. Hence, it is usually considered outside of ssm, and can be thought
+    of as a skip connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Going from continuous spaces to discrete spaces
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The above formulation applies to a system where the input and output belong
+    to a continuous space. But in cases, like language modeling, where the input and
+    output belong to discrete spaces (token values in a vocabulary). Also, finding
+    *h(t)* is analytically challenging. This can be achieved by performing a ***Zero-order
+    hold***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a zero-order hold, every time an input is received, the model holds its value
+    till the next input is received. This leads to a continuous input space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/236f0dcd1ee1294b2e8064560a582f29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How Zero order hold works
+  prefs: []
+  type: TYPE_NORMAL
+- en: This length of ‘hold’ is determined by a new parameter called, *step size* ***∆.
+    It can be thought of as the resolution of the input.*** Ideally, ∆ should be infinitesimal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mathematically, Zero-order hold can be described as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f6f0258965a22d4970d1e76a3cf457a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Finally, we can create a discrete SSM, as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc4b655375a46584a07aed40155d829d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Since, D is used with a skip connection outside of SSM, the output can be reduced
+    to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/de141e5ed6870e82fe9f71fe77beb074.png)![](../Images/71c4d16a62a57ecd5732def8f4b79143.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Involvement of DX(t) is considered as a skip connection, hence is goes from
+    outside of SSM
+  prefs: []
+  type: TYPE_NORMAL
+- en: SSM and recurrence
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In SSMs, the hidden state is carried over to when the next input is received.
+    This is similar to how Recurrent Neural Networks function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/96f22333a7a3f5bd2ba29b117eef421f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison of RNN and SSM
+  prefs: []
+  type: TYPE_NORMAL
+- en: This recurrent format of SSM can be unwrapped, just like RNNs. But unlike RNNs,
+    which are iterative and slow, SSM can process the input sequence in parallel (just
+    like transformers) and this makes the training processes faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/22282dee4daeabed27c4669ba7ea486f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Unrolled form of SSM
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that ‘D’ is used in a skip connection, which is outside of SSM.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The key insight in how SSM make training fast is to use the variables *A, B,
+    C* in a pre-computed convolutional kernel. [Maarten Grootendorst](https://maartengrootendorst.substack.com/i/141228095/the-convolution-representation)
+    wrote a really good explanation on how this canonical ‘convolutional’ kernel is
+    constructed. But here’s a simple mathematical explanation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the output *y.* For a sequence length of *k*, the output for *y(k)*
+    will be represented ***(assuming h0 = zero)***:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/16c7dd559c5978d453467fe139274186.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Similarly, y3 can be represented as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b90cee1adec4657a3ffa7f67760b3abb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Extrapolating the pattern, yk can be represented as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9f7775b6a3bce55150dd393d1d9e44da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This formulation can be further reduced to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9d85bda2ef8d6da968ed73b8e48ace03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The funny looking multiplication symbol represents a convolution operation,
+    where the convolution kernel is K. Notice that K is not dependent on *x,* hence
+    K can be pre-computed into a convolutional kernel, which makes the process faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mamba and ‘Selective’ SSM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As good as the computational capacity of SSM sounds, it turns out to be pretty
+    *meh* in metrics like accuracy compared to Transformers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0e7755efdbec8214342ce450c6900185.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The core issue lies with the variables, ∆, A, B, & C. Turns out that since we
+    apply the same matrices to every input, they cannot really process the context
+    of the sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SSMs are inflexible in the way they process data[4]
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So what’s so special about Mamba? In mamba, we use a process called ‘selective’
+    SSM, where the variables, ∆, B, & C, are computed based on the input. 🤔. We do
+    this by passing the current input through Linear layers, and take the output to
+    be the ∆, B, & C.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d789181938ab7269cbd528b6982e3263.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: But then this makes ∆, B, & C input dependent, hence meaning that they cannot
+    be pre-computed 😢, fast convolution isn’t going to work here. But, the authors
+    discuss a method, which is based on *parallel associative scan.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parallel Associative Scan
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Parallel associative scan is a powerful technique used in parallel computing
+    to perform a prefix sum operation, which is a cumulative operation on a sequence
+    of numbers. This operation is “associative”, meaning the way numbers are grouped
+    in the operation doesn’t change the result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dbbd700bf44fb468c40690bafbc4c22c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Parallel prefix sum is an example of associative scanning. (source: Nvidia)[7]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the context of the Mamba model, by defining an associative operator, elements
+    and associative operators for a parallel associative scan operation are obtained.
+    This allows for solving problems on the whole time interval in parallel, resulting
+    in logarithmic time complexity in the number of sub-intervals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hardware aware algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Along with associative scan, the authors also propose a hardware aware algorithm,
+    where they use the quirks within Nvidia GPUs related to the speed of HBM and SRAM.
+    They argue that the computation of SSM states can be sped up by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: keeping the hidden state and A in the faster but less capacity ***SRAM*,**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: while computing ∆, B, & C, in the slower but larger capacity ***HBM***.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: They then transfer ∆, B, & C to the ***SRAM***, compute the new hidden state
+    within ***SRAM***.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And then write ∆, B & C back to ***HBM***.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/daa8208bf094ec66ab66110f20dd51a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustration taken from the Mamba paper, it shows how the hardware aware algorithm
+    works[1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the implementation section, I will not be discussing on how to work with
+    the hardware aware algorithm, rather I will be only using parallel associative
+    scan.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Final Mamba architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With all of this in mind, let’s explore and implement the Mamba architecture
+    using Keras and TensorFlow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Mamba architecture, after reading the paper and analysis of the code, can
+    be broken into a few key components which are connected as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e663ed4dbf34650f50802a442192d16d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Breakdown of a mamba block
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Mamba architecture consists of multiple stacked layers of ‘Mamba blocks’.
+    Which, judging from the above illustration, consists of quite a few components.
+    Another important thing to note is that the authors add the output from Selective
+    SSM to the original input and then apply a *normalization* layer to it. This normalization
+    can be either a Layer normalization or an [RMS normalization](https://arxiv.org/abs/1910.07467).
+  prefs: []
+  type: TYPE_NORMAL
+- en: TensorFlow and Keras implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Lets start with coding part of Mamba. We will using the following dependencies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Imports:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: To make the modeling argument processing easier, let’s create a simple *ModelArgs*
+    dataclass as a config class. This allows us to just pass the dataclass variable
+    in the arguments when we are initializing the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Load the *bert-base-uncased* tokenizer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Before we implement our Mamba and SSM classes, we need to implement the parallel
+    associative scan, the code looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this, we can implement the MambaBlock:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, a residual block to implement the external skip connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this, we can initialize our model. In this example, I will be demonstrating
+    how to use the Mamba block to create a simple classification model, but it can
+    be easily modified to become a language model. Let’s load the *IMDB reviews dataset*
+    for a simple sentiment classifier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: First we create a function that will take the model args and return a model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can initialize our model, and summarize it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For easier processing, lets pre-tokenize our data into a *numpy arrays*, then
+    convert them into tf.data.Dataset objects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now the model can be trained:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can play around with the inference algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This model can be converted into a language model and algorithms like *beam
+    search, top-k sampling, greedy sampling, etc.* can be used to generate language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This code can be found on my [Github](https://github.com/maxDeCoder/Mamba-tf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A lot of the code is inspired from the mamba’s official implementation[2] and
+    another pytorch implementation called ‘mamba-tiny’[3]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are made by me.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'References:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Mamba paper.](https://arxiv.org/abs/2312.00752)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Mamba original repository](https://github.com/state-spaces/mamba)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[A simpler Torch implementation of Mamba: mamba-tiny](https://github.com/PeaBrane/mamba-tiny)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[A simple explanation by Letitia on YouTube.](https://youtu.be/vrF3MtGwD0Y?si=st2Oipq3fli9tGhl)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Maarten Grootendorst’s article on SSMs and Mamba](https://maartengrootendorst.substack.com/p/a-visual-guide-to-mamba-and-state)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[SSMs on wikipedia](https://en.wikipedia.org/wiki/SSM)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Nvidia’s tutorial on Parallel associative scan](https://developer.nvidia.com/gpugems/gpugems3/part-vi-gpu-computing/chapter-39-parallel-prefix-sum-scan-cuda)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Want to connect? Please write to me at [vedantjumle@gmail.com](mailto:vedantjumle@gmail.com)
+  prefs: []
+  type: TYPE_NORMAL

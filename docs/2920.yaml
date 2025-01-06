@@ -1,0 +1,475 @@
+- en: 'PostgreSQL: Query Optimization for Mere Humans'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/query-optimization-for-mere-humans-in-postgresql-875ab864390a?source=collection_archive---------4-----------------------#2024-12-03](https://towardsdatascience.com/query-optimization-for-mere-humans-in-postgresql-875ab864390a?source=collection_archive---------4-----------------------#2024-12-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Understanding a PostgreSQL execution plan with practical examples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)[![Eyal
+    Trabelsi](../Images/60562caa76b824eac9e21f1c0a2933fc.png)](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------)
+    [Eyal Trabelsi](https://medium.com/@Eyaltra?source=post_page---byline--875ab864390a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--875ab864390a--------------------------------)
+    ·8 min read·Dec 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f384f53a80ad0fe12427dcc5b83524a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Greg Rakozy](https://unsplash.com/@grakozy?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/silhouette-photography-of-person-oMpAz-DN-9I?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today, users have high expectations for the programs they use. Users expect
+    programs to have amazing features, to be fast, and to consume a reasonable amount
+    of resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As developers, we should thrive to give our users the best experience possible.
+    It’s pretty common that the database becomes the bottleneck, and optimizing queries
+    and eliminating the bottlenecks is not an easy task. Unfortunately, as programs
+    become more and more complex, and as the data become bigger, it becomes harder
+    to write flawless SQL queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today, I am going to focus on a technique to find those bottlenecks, using the
+    *Explain* clause. My goal today is to show you that finding and eliminating those
+    bottlenecks is not rocket science. Everyone can find their bottlenecks without
+    breaking a sweat.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code for this article can be found on [GitHub](https://github.com/eyaltrabelsi/my-notebooks/blob/master/Lectures/query_optimization_for_mere_humans/Query%20Optimization%20for%20Mere%20Humans.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: All images, unless otherwise noted, are by the author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s explain Explain 📜
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Interactions with databases are done using declarative languages, where SQL
+    is the most common one. The database decides how and what to do behind the scenes
+    and the only glimpse it provides is the execution plan.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This limitation makes implementing proper debugging tools, and profilers almost
+    impossible in practice. **So we are kind of stuck with execution plans.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Buzzword alert 🐝!! my goal is to democratize execution plans.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In PostgreSQL in order to get the execution plan one should use *Explain*/*Explain
+    analyze* clauses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*EXPLAIN* shows what the planner planned to do.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*EXPLAIN ANALYZE* what the planner plans to do, **execute the query,** and
+    also show how it did it.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Pro Tip #1**💃: go over an execution plan at least once in your career. It''s
+    similar across databases, and it is a rare skill in companies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pro Tip #2** 💃: prefer *EXPLAIN ANALYZE* as it holds more information for
+    most cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Warning #1** ⚠️ don’t use *EXPLAIN ANALYZE* on destructive operations like
+    *DELETE/UPDATE, EXPLAIN* will suffice and it doesn’t run the query.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Warning #2** ⚠️ don’t use *EXPLAIN ANALYZE* when resources are scarce like
+    production monitoring, and when a query never finishes*, EXPLAIN* will suffice
+    and it doesn’t run the query.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Explain* is an awesome tool as it can imply reasons why a query was slow including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Missing/Overused indices/partitions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Unoptimized database configurations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Redundant Operations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stale statistics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Too much I/O.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For the more thorough people you can see the *Explain* clause syntax in the
+    next figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/61acb4497b1c5ad8f1db4fcd7a3597b8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: PostgreSQL Explain Clause Syntax
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding Explain Anatomy🫀
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We will use it as an example of a simple query: we want to count the number
+    of users that don’t have Twitter handles.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9a8f28ed38a9fe982ff8f92ce75497f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see the execution plan returned from the EXPLAIN ANALYZE clause
+  prefs: []
+  type: TYPE_NORMAL
+- en: It looks cryptic at first, and It’s even longer than our query, and that on
+    a small example of real-world execution plans can be overwhelming if you don't
+    focus 😭.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**But it does provide useful information.** We can see that the query execution
+    took 1.27 seconds, while the query planning took only 0.4 milli-seconds (negligible
+    time).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d5e57f45b5c3501eb7d865b1efe9c8d4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see the time the query planning and execution took
+  prefs: []
+  type: TYPE_NORMAL
+- en: The execution plan is structured as an inverse tree. In the next figure, you
+    can see the execution plan is divided into different nodes each one of which represents
+    a different operation whether it's an *Aggregation* or a *Scan.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6a7ccef3d946eef093a5bca9a3c0c39d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see the time the query planning and execution took
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many kinds of nodes operations, from Scan related (*‘Seq Scan’, ‘Index
+    Only Scan’, etc…*), Join related( *‘Hash Join’, ’Nested Loop’, etc…),* Aggregation
+    related *(‘GroupAggregate’, ’Aggregate’, etc…)* and others *( ‘Limit’, ‘Sort’,
+    ‘materialize’, etc..).* **Fortunately you need to remember any of this.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pro Tip #3** 💃: Focus is key, look only on nodes that are problematic.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pro Tip #4** 💃: Cheat ! on the problematic nodes search what they mean in
+    the [explain glossary](https://www.pgmustard.com/docs/explain).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let's drill down into how we know which node is the problematic one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5765a24e17bb9ae9361b2481951954f0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: There is a lot of information we can see on each node
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's drill down to what those metrics actually mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Actual Loops**: the number of loops the same node executed is 1\. To get
+    the total time and rows, the actual time and rows need to be multiplied by loops
+    values.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Actual Rows**: the actual number of produced rows of the *Aggregate* node
+    is 1 (per-loop average and we have loops is 1).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Plan Rows**: the estimated number of produced rows of the *Aggregate* node
+    is 1\. The estimated number of rows can be off depending on statistics.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Actual Startup Time**: the time it took to return the first row in milliseconds
+    of the *Aggregate* node is 1271.157 (aggregated and includes previous operations).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Startup Cost**: arbitrary units that represent the estimated time to return
+    the first row of the *Aggregate* node is 845110(aggregated and includes previous
+    operations).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Actual Total Time**: the time it took to return all the rows in ms of the
+    *Aggregate* node is 1271.158 (per-loop average and we have loops is 1 and aggregated
+    and include previous operations).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Total Cost**: arbitrary units that represent the estimated time to return
+    all the rows of *Aggregate* node is 845110 (aggregated).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Plan Width**: the estimated average size of rows of the *Aggregate* node
+    is 8 bytes.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Pro Tip #5** 💃: be wary of loops, remember to multiply loops when you care
+    about *Actual Rows* and *Actual Total Time.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will drill in the next section on a practical example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example: Performance Optimization🐆'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will use the same query as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c9d940c226ab0b75dc4f477da4b96027.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We will focus on the Seq Scan node which has the longest actual time
+  prefs: []
+  type: TYPE_NORMAL
+- en: We focus on the longest operation which is the [sequential scan](https://www.pgmustard.com/docs/explain/sequential-scan)
+    on the users' table. The scan filters out 2,487,813 rows and takes us 1.27 seconds
+    out of 1.271.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**But we are mere humans that don’t tell us anything.** Let''s google it (you
+    can use ChatGPT as well) !!!.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e202c10e9f78a7914c4ec6e1224da7c4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Googling how to make seq scan faster in PostgreSQL
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2dbebcdb3d427e75d385fb1194604613.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We are doing much better, but the Scan node is still the longest in terms of
+    actual time
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that now we perform an [index only scan](https://www.pgmustard.com/docs/explain/index-only-scan)
+    on the users' table. It takes us 0.29 seconds instead of 1.27 seconds, which is
+    awesome but not enough for us.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pro Tip #6**💃: optimize your queries one baby step at a time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand how much data is passed to the scan. We could use the buffers
+    parameter as you can see down below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pro Tip #7**💃: When comparing execution plans, look at several metrics.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/93d19daed446727c8e7c2a33d3a8c6c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see quite a lot of information about how much data hit the cache or disk
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have 51,854 pages to read all from the cache (400 MB), so improving configurations
+    probably won’t change things drastically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, we are not out of options. Since the scan filters out 2,487,813 rows, we
+    can change the index into a partial index but it doesn’t come for free. It will
+    cause writes to take longer, and it will take additional storage, which is quite
+    impactful on systems that scale vertically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pro Tip #8** 💃: there is no free lunch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Good optimization options🤞🏻
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I won’t delve into too many details as this blog is already quite long. These
+    are the first things one might want to tackle when he has slow queries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Picking the right scan method.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Picking the right join method.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Picking the right join order.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Push Filters as soon as possible.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reducing disk IO operations when needed.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In order to manually check specific optimization one can enable/disable settings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Warning #3** ⚠️: enable/disable settings only after you tried the most basic
+    optimizations as most of the time, PostgreSQL knows what it is doing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Aren’t there easier ways?!🙏
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Unfortunately, *Explain* is not perfect and there are reasons why it’s not
+    in every developer toolbox:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**You don’t have a history of all the execution plans in production.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can overcome the lack of history by using tools like [auto_explain](https://www.postgresql.org/docs/current/auto-explain.html)
+    and [pg_stat_plans](https://github.com/2ndQuadrant/pg_stat_plans) to record the
+    execution plans on certain conditions such that they won’t have a major effect
+    on production. Another way is to record what queries run at what time and try
+    to reproduce it, but it’s more complicated than it looks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tuning complex queries is not a trivial task with “bare execution plans”**,
+    as they tend to be long and challenging to read. Moreover, they often fail to
+    provide insights into why a particular optimization is not being utilized or offer
+    guidance on how to effectively rewrite the queries for better performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, this challenge can be addressed by adopting a highly opinionated structure
+    and metadata using specialized tools. **These help you/the LLM focus on what matter**
+    (whether its schema, whats the bottlenecks and so on). Some of the most prominent
+    tools are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[eversql](https://www.eversql.com/) — a mature solution that aims to suggest
+    changes to your *PostgreSQL* queries.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[metis](https://www.metisdata.io/) — aims to suggest changes as a guarding
+    mechanism as part of your development and CI/CD processes for *PostgreSQL* databases.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[QueryFlow](https://github.com/eyaltrabelsi/query-flow) — an open-source tool
+    that allows identifying bugs and performance tuning multiple queries (as the hardest
+    queries to debug behave nicely in isolation).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Pro Tip #9** 💃: use tools to make your life easy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will give you a taste of how convenient it is to use tools like QueryFlow
+    (For more details you can read the following).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b7368c085df0fdc6607ce2201a3a0b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: QueryFlow visualization of execution plan focusing on duration
+  prefs: []
+  type: TYPE_NORMAL
+- en: It should be extremely easy to see that the *Index Only Scan* width is much
+    bigger than the aggregation and indicate this is where we should focus. On multiple
+    complex queries, other tools tend to lack
+  prefs: []
+  type: TYPE_NORMAL
+- en: Last words
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we reviewed some of the most common reasons that can cause
+    otherwise perfectly good SQL to be too slow for any time-sensitive applications,
+    and **walk through a mythological way to identify those and avoid them**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to the extent of the topic, there are many optimizations I haven’t covered.
+    For this reason, I have added additional resources in the end if you want to go
+    the extra mile.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I am optimistic about the future. I believe these kinds of tools will be as
+    easy as [*opening files in python*](https://www.w3schools.com/python/python_file_open.asp),
+    either by integrating into IDEs, and clients, or providing SAS solutions. This
+    will enable us to become proactive instead of reactive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope I was able to share my enthusiasm for this fascinating topic and that
+    you find it useful, and as always I am open to any kind of constructive feedback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional Resources 📚
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Deeper Understanding of PostgreSQL Execution Plan (video)](https://www.youtube.com/watch?v=Ls-uE1V31lE&list=WL&index=5&ab_channel=PostgresConference)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[EXPLAIN Explained (video)](https://www.youtube.com/watch?v=mCwwFAl1pBU&ab_channel=SouthernCaliforniaLinuxExpo)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Understanding Explain](https://public.dalibo.com/exports/conferences/_archives/_2012/201211_explain/understanding_explain.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

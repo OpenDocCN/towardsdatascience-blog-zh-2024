@@ -1,0 +1,1419 @@
+- en: A Winding Road to Parameter Efficiency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-winding-road-to-parameter-efficiency-12448e64524d?source=collection_archive---------5-----------------------#2024-01-04](https://towardsdatascience.com/a-winding-road-to-parameter-efficiency-12448e64524d?source=collection_archive---------5-----------------------#2024-01-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Deliberately Exploring Design Decisions for Parameter Efficient Finetuning (PEFT)
+    with LoRA
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mkamp?source=post_page---byline--12448e64524d--------------------------------)[![Mariano
+    Kamp](../Images/d58d3321564409fba27c7c644fe5d813.png)](https://medium.com/@mkamp?source=post_page---byline--12448e64524d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--12448e64524d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--12448e64524d--------------------------------)
+    [Mariano Kamp](https://medium.com/@mkamp?source=post_page---byline--12448e64524d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--12448e64524d--------------------------------)
+    ·31 min read·Jan 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Good news: Using LoRA for Parameter Efficient Finetuning (PEFT) can be straightforward.
+    With a simple strategy of adapting all linear modules and some light tuning of
+    the learning rate, you can achieve good performance. You could stop reading here!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**But what if you want more? What if you’re seeking a deeper understanding
+    of which modules to tune, and how to optimize your model for performance, GPU
+    memory utilization or training speed? If you’re looking for a more nuanced understanding
+    and control over these aspects, then you’re in the right place.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Join me on this journey as we navigate the winding road to parameter efficiency.
+    We’ll delve into the deliberate design decisions that can help you to get the
+    most out of LoRA while offering you more control and a better understanding of
+    your model’s performance. Let’s embark on this exciting exploration together.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You would get the most out of this article if you already have at least a basic
+    understanding of LoRA, like what we covered in the [previous article](/dive-into-lora-adapters-38f4da488ede).
+    Furthermore we are optimizing a RoBERTa model [1], which uses the [transformer
+    architecture](https://d2l.ai/chapter_attention-mechanisms-and-transformers/transformer.html).
+    A general understanding of the basic components helps, but is not absolutely necessary
+    to follow along on the main subject.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/34023f17536a99018f7eac09e3637f2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (Generated using [Clipdrop](https://clipdrop.co/))
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous article](/dive-into-lora-adapters-38f4da488ede), we explored
+    how to apply LoRA to train adapters that only require a fraction of the parameters
+    needed for a full finetuning. We also saw how such an implementation might look
+    like in code. However, our focus was primarily on the mechanical aspects. We did
+    not address **which modules to adapt**, nor how to size the adapters for **efficiency**
+    and **performance**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today, this is our focus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We **zoom out** and recognize that there are a lot of **algorithmic design decisions**
+    that we have to make, many of which influence each other. These are often expressed
+    as hyperparameters by the original algorithm creators. To handle the sheer number
+    of possible combinations of hyperparameters and their values we’ll use a systematic
+    approach to learn about the relative impact; of these design decisions. Our aim
+    is not only to eventually achieve **good performance** for our model at hand,
+    but we also want to run experiments to gather empirical feedback to **strengthen
+    our intuitive understanding** of the model and its **design**. This will not only
+    serve us well for today’s model, task, and dataset, but much of what we learn
+    will be transferable. It will give us greater confidence moving forward as we
+    work on variations of the model, new tasks, and datasets in the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execution of Experiments:**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**I will be using Amazon SageMaker Automatic Model Tuning (AMT)** to run the
+    experiments throughout this article. With AMT I will either deliberately **explore
+    and analyze the search space,** or, automatically **find a good combination of
+    hyperparameter values**.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As a side note, ‘**tuning**’ is a term that serves two purposes in this article.
+    On one hand, we use ‘**hyperparameter tuning**’ to refer to the adjustment of
+    **hyperparameter** values in model training, a process automated by SageMaker’s
+    Automatic Model Tuning. On the other hand, we use ‘**tuning**’ to describe the
+    process of starting with a pre-trained model and then **finetuning** its **parameters**
+    (not the hyperparameters) for our specific downstream task.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To maintain focus, I will keep the implementation details in this article brief.
+    However, you will find all the experiments with all their details in the [linked
+    notebooks](https://github.com/marianokamp/peft_lora).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'I also encourage you to learn more background about using AMT, the differences
+    between the search strategies Random Search and Bayesian Optimization, the concept
+    of warm starting tuning jobs and about **visualizing/analyzing the results.**
+    All of which, are discussed in [this article](https://aws.amazon.com/blogs/machine-learning/explore-advanced-techniques-for-hyperparameter-optimization-with-amazon-sagemaker-automatic-model-tuning/):'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://aws.amazon.com/blogs/machine-learning/explore-advanced-techniques-for-hyperparameter-optimization-with-amazon-sagemaker-automatic-model-tuning/?source=post_page-----12448e64524d--------------------------------)
+    [## Explore advanced techniques for hyperparameter optimization with Amazon SageMaker
+    Automatic Model…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating high-performance machine learning (ML) solutions relies on exploring
+    and optimizing training parameters, also…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: aws.amazon.com](https://aws.amazon.com/blogs/machine-learning/explore-advanced-techniques-for-hyperparameter-optimization-with-amazon-sagemaker-automatic-model-tuning/?source=post_page-----12448e64524d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Baselines: What to compare to?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We will focus on architectural decisions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Which modules should we adapt?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On what layers? All of them? Some? Just the middle layers?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How large should the module adapters be? What should `r`, the rank of the LoRA
+    matrices, be?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However, before we start experimenting, how can we ensure that we are on the
+    right track and that our changes have a positive impact? Let’s define some baselines
+    to compare our progress to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If finding baselines for comparison does not appeal to you, feel free to skip
+    ahead to the next section “*[*What to tune?*](#168f)*”.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over time, we hope to observe that our training runs are producing better results.
+    But when are we done and can stop experimenting?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Seeing no further improvements after a while could indicate that we have achieved
+    the optimum. However, it could also mean that we have ran out of ideas to try
+    out, even though more was possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Performance Expectations and Reproducibility** In order to interpret the
+    results of our experiments, we need to establish clear performance expectations
+    for our model. This includes an understanding of the ideal performance as an upper
+    bound, as well as the minimum performance we expect to see.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deep learning is inherently noisy, meaning that no two runs will produce the
+    exact same result. This raises important questions about the results we observe.
+    Is the performance we’re seeing reproducible using the hyperparameter values we
+    tested with, or did we just get lucky with this particular run? To answer these
+    questions, we need to validate a set of hyperparameter values that we’ve found
+    to perform well. In this article I’ll do this by running the same hyperparameter
+    values five times to calculate the mean performance and its variance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Expected performance — Full Finetuning:** In our case reasoning about the
+    expected performance is easy. We are finetuning a sentiment analysis task on the
+    [sst-2 dataset](https://huggingface.co/datasets/sst2) using the RoBERTa base model,
+    as was done in the RoBERTa paper [1].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, we can directly use the numbers reported by the authors as a **sanity
+    check**. We will align our setup and the hyperparameters used with those in the
+    paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We still run the training ourselves, so that we have a verified setup and training
+    procedure before we apply LoRA to it. Consequently, we can perform a sanity check
+    to ensure that the numbers we observe roughly match those from the paper. If we
+    cannot match the numbers, we would need to check our setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The RoBERTa paper [1] reported an accuracy of `94.8`in table 8\. This serves
+    as our benchmark for expected performance during full fine-tuning. After checking
+    that we are in the ball park of that number, we will use our own setup and the
+    results as a baseline for comparing all the following experiments, which are derived
+    from our setup.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Expected performance — LoRA Finetuning:** This is easy as well. The promise
+    of LoRA is to almost match the full finetuning performance, but with only a fraction
+    of the parameters of a full finetuning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, we will compare to our results from the full finetuning performance as
+    described in the preceding section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Expected minimum performance:** One possible baseline would be random performance.
+    For our task with two classes that would be `0.5`. But we are not building a model
+    from scratch and from the papers we already know that the LoRA approach is working
+    very well, so random performance would not be an informative baseline.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, let’s use a baseline where we only train the classifier and keep the
+    embeddings and transformer layers frozen, in the state they came from the pre-training.
+    This should result in a much lower performance than a full finetuning, but much
+    better than random, though. Importantly, it should also serve as a comparison
+    point to reason about non-functional aspects like parameter efficiency, memory
+    usage, and training throughput.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c2813e93d6f1362a2f2c616924aa01f.png)![](../Images/3503d6d1dfa3658317ab7f75b004448a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparing the baselines. The black bars in the “Model Performance” panel show
+    standard deviation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All scenarios above have been run five times, and the mean performance is shown
+    in the diagram. You can also deduce that we are in the ballpark of the performance
+    from the RoBERTa paper with the scenarios “Full Finetuning”. As we hoped for,
+    “LoRA Base” (adapting all linear modules) matches that performance, but uses fewer
+    parameters. The scenario “Classifier Only” performs much worse, as expected, but
+    is cheaper in terms of parameters and trains faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving forward, we will now take our numbers as baselines to compare future
+    experiments to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find more details in the [accompanying notebook](https://github.com/marianokamp/peft_lora/blob/main/2a_lora_tuning_baselines.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execution of Experiments:**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: First, for each baseline, we search for an optimal `*learning rate*` parameter
+    value. We use Bayesian Optimization to efficiently explore and then exploit the
+    search space.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Second, the best hyperparameter values we found for a scenario may or may not
+    necessarily reproduce good results. It could be that the hyperparameter values
+    we identified are only the best relative to the other values we explored. Maybe
+    the values we found were not relevant at all, e.g. the model was not sensitive
+    in this value range? To estimate how good the findings hold up, for each scenario,
+    we run the best combination of hyperparameter values again five times and report
+    the observed standard deviation on the objective metric.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**LoRA Base Scenario — First Result:** It’s encouraging to see that the LoRA
+    finetuning approach, scenario “LoRA Base”, is already performing on par with “Full
+    Finetuning”, despite it just using ~1% of the parameters. Furthermore, in this
+    approach we are **adapting all linear modules** with the same adapter size (`r=8)`.
+    This is a simple starting point that apparently produces good performance despite
+    its simplicity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Secondary Hyperparameters:** As a point of note,we primarily search for good
+    values for the hyperparameter `r` and the modules we want to adapt. To keep things
+    simple, we only tune very few additional hyperparameters. For the baselines it
+    is just the `learning rate` and the number of `epochs`. We use Bayesian Optimization
+    as the search strategy using Amazon SageMaker Automatic Model Tuning (AMT).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We follow guidance from the referenced papers on setting other hyperparameters,
+    such as `weight decay` and `dropout`. We keep those hyperparameters fixed throughout
+    the article, so that we can isolate the impact of the hyperparameters that define
+    the LoRA architecture, making it easier to see how our main hyperparameters influence
+    performance.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do you, dear reader, plan to repeat the steps from this article? Are you aiming
+    to find the best hyperparameters for your own model, task, and dataset that you
+    intend to use in production? If so, it would make sense to also include the secondary
+    hyperparameters. Ideally, you should do this towards the end of your exploration
+    and tuning effort — when you have already significantly narrowed the search scope
+    — and then aim to further improve performance, even if just slightly.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Hyperparameters: What to tune?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s get started with our main activity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The design decisions left for us in the model architecture are typically expressed
+    as hyperparameters. For LoRA specifically, we can define **which** modules to
+    adapt and **how large** `r` should be for each module’s adapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the last article we only suggested selecting these modules based on our **understanding
+    of the task and the architecture**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we’ll dive deeper. Where should we apply finetuning at all?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9776cac5e9b41faf6af1b9e40c89cfb6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Where to finetune? Classifier at the top, transformer layers and at the bottom
+    the embeddings. Left: possible modules to adapt, right: Example selection.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the illustration above, you can see all the potential modules that we could
+    finetune–including the classifier and the embeddings–on the left. On the right,
+    I’ve made a sample selection for the illustration . But how do we arrive at an
+    actual selection?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s look at our options from a high level:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Classifier** It is clear that we absolutely need to train the classifier.
+    This is because **it has not been trained during pre-training** and, hence, for
+    our finetuning, it is randomly initialized. Furthermore, its central position
+    makes it highly impactful on the model performance, as all information must flow
+    through it. It also has the most immediate impact on the loss calculation as it
+    starts at the classifier. Lastly, it has few parameters, therefore, it is efficient
+    to train.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In conclusion, we always finetune the classifier, but do not adapt it (with
+    LoRA).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Embeddings** The embeddings reside at the bottom–close to the inputs–and
+    carry the semantic meaning of the tokens. This is important for our downstream
+    task. However, it’s not “empty”. **Even without finetuning, we would get all of
+    what was learned during pre-training**. At this point, we are considering whether
+    finetuning the embeddings directly would give us additional abilities and if our
+    downstream task would benefit from a refined understanding of the token meanings?'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s reflect. If this were the case, could this additional knowledge not also
+    be learned in one of the layers above the embeddings, perhaps even more efficiently?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Finally, the embeddings typically have lots of parameters, so we would have
+    to adapt them before finetuning.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: Taking both aspects together, we decided to pass on this option and not make
+    the embeddings trainable (and consequently not apply LoRA to them).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Transformer Layers'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finetuning all parameters** in the transformer layers would be **inefficient**.
+    Therefore, we need to at least adapt them with LoRA to become parameter-efficient.
+    This leads us to consider whether we should train all layers, and all components
+    within each layer? Or should we train some layers, some components, or specific
+    combinations of both?
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: There is no general answer here. We’ll adapt these layers and their modules
+    and explore the details further in this article.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'In the illustration above, on the right, you can see an exemplary selection
+    of modules to finetune on the right. This is just one combination, but many other
+    combinations are possible. Keep in mind as well that the illustration only shows
+    five layers, while your model likely has more. For instance, the RoBERTa base
+    model–used in our example–has **12** layers, a number that is considered small
+    by today’s standards. Each layer also has **6** components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Attention: Query, Key, Value, Output'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Feed Forward: Up, Down'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Even if we disregard that we also want to tune `r` and — for now — just focus
+    on the binary decision of which modules to include, this will leave us with 64
+    (2**6) combinations per layer. Given this only looks at the combinations of one
+    layer, but that we have 12 layers that can be combined, we end up with more than
+    a [sextillion](https://en.wikipedia.org/wiki/Orders_of_magnitude_(numbers)#1021)
+    combinations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s easy to see that we **can’t** exhaustively compute all combinations, let
+    alone to explore the space manually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Typically in computer science, we turn to the dice when we want to explore a
+    space that is too large to fully investigate. But in this case, we could sample
+    from that space, but how would we interpret the results? We would get back a number
+    of arbitrary combination of layers and components (at least 12*6=72 following
+    the small example of above). How would we generalize from these details to find
+    higher-level rules that align with our natural understanding of the problem space?
+    We need to align these details with our conceptual understanding on a more abstract
+    level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, we need to consider **groups** of modules and look for structures or
+    patterns that we can use in our experiments, rather than operating on a collection
+    of individual components or layers. We need to develop an intuition about how
+    things should work, and then formulate and test hypotheses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Question: Does it help to experiment on defined groups of parameters in isolation?
+    The answer is yes. These isolated groups of parameters can lead the way even though
+    we may need to combine some of them later to achieve the best results. Testing
+    in isolation allows us to see patterns of impact more clearly.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there is a risk. When these patterns are used in combination, their
+    impact may change. That’s not perfect, but let’s not be so negative about it :)
+    We need to start somewhere, and then refine our approach if needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ready? Let’s try this out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tuning Vertically / Layer-wise**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I suspect that the upper layers, closer to the classification head, will be
+    more impactful than the lower layers. Here is my thinking: Our task is sentiment
+    analysis. It would make sense, wouldn’t it, that most of the specific decisions
+    have to be made either in the classification head or close to it? Like recognizing
+    certain phrases (“I needed that like a hole in my head”) or composed constructs
+    (“The check-in experience negated the otherwise wonderful service”). This would
+    suggest that it is crucial to finetune the parameters of our network that define
+    how different tokens are used together–in context–to create a sentiment as opposed
+    to changing the meaning of words (in the embeddings) compared to their meaning
+    during the pre-training.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even if that’s not always the case, adapting the upper layers still provides
+    the opportunity to override or refine decisions from the lower layers and the
+    embeddings. On the other hand, this suggests that finetuning the lower layers
+    is less important.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That *sounds* like a solid hypothesis to try out *(Oops. Message from future
+    Mariano: Don’t stop reading here).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an aside, we are not reflecting on the general necessity of the embeddings
+    or any of the transformer layers. That decision has already been made: all of
+    them were part of the pre-training and will be part of our finetuned model. What
+    we’re considering at this point is how we can best help the model learn about
+    our downstream task, which is sentiment analysis. The question we’re asking is:
+    which weights should we finetune for impact and to achieve parameter efficiency?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let’s put this to the test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cf45d4bfba5b074a727b2319a365e068.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Left: Finetuning the upper half layers. Right: The lower half. Right: Evenly
+    spread out.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To clearly see the effect of our hypothesis, what do we test it against? Let’s
+    design experiments that should exaggerate the effect:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our first experiment we finetune and adapt all components of the **upper**
+    half of the model, namely layers 7–12 in our example. This is our hypothesis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In contrast, we run another experiment where we only finetune the layers in
+    the **lower** half of the model. Specifically, we train layers 1–6 with all components.
+    That’s the opposite of our hypothesis.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s consider another contrastive hypothesis as well: that a light touch to
+    all layers is more beneficial than just tuning the top layers. So, let’s also
+    include a third scenario where we finetune half of the layers but spread them
+    out **evenly**.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s also include an experiment where we tune **all** layers (not depicted
+    in the illustration above). This is not a fair performance comparison as we train
+    twice as many parameters as in the first three experiments. However, for that
+    reason, it highlights how much performance we potentially lose in the previous
+    scenarios where we were tuning only half the number of parameters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In summary, we have 3+1 scenarios that we want to run as experiments. Here
+    are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7977910b1bcc416f529421ae36e0ef45.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overview of all 3+1 scenarios. All scenarios are run 7 times. Some trials deliver
+    the exact same results and are therefore not distinguishable on the left side
+    of the diagram, but are included in the density plots on the right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b4b03077b773211fb1aaf2fa49bbd92e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Lower** (orange, ~0.937) and **Upper** (red, ~0.941) are roughly the same
+    (look at the peaks to see the mean in the density plot at the right). **Even**
+    (blue, ~0.945) is an ~0.04/~0.08 improvement over **Lower**/**Upper**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/400c135c3814b3357afc1f879f6901bc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Using **all** layers (teal colored, ~0.949) showed the best performance on average.
+    However, it’s just a point of comparison, clocking in with twice the cost of the
+    other scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execution of Experiments:**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We start by using the already tuned `*learning rate*`, `epochs`. Then, we run
+    trials (training runs) with different values for the scenario settings, such as
+    `lower`, `upper`, `even`, `all`. Within AMT, we run these experiments as a **Grid
+    Search**.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Question: Grid Search is known to be simple, but inefficient in finding the
+    best solution. So why are we using it?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let’s take a step back. If we were to run a few trials with Bayesian Search,
+    we’d quickly learn about hyperparameter values that are performing well. This
+    would bias the subsequent trials to focus on these values, i.e., pre-dominantly
+    stay closer to known good values. While increasingly exploiting what we learn
+    about the search space is a good strategy to find the best values, its bias makes
+    it difficult to understand the explored space, as we under-sample in areas that
+    showed low performance early on.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: With Grid Search, we can precisely define which parameter values to explore,
+    making the results easier to interpret.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In fact, if you were to look at the provided code, you’d see that AMT would
+    reject sampling the same values more than once. But we want that, hence, we introduce
+    a dummy variable with values from 0 to the number of trials we want to conduct.
+    This is helpful, allowing us to repeat the trials with the same hyperparameter
+    values to estimate the standard deviation of this combination.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: While we used 5 trials each for an already tuned baseline scenario above to
+    see how well we can reproduce a chosen combination of hyperparameter values, here
+    we use 7 trials per combination to get a slightly more precise understanding of
+    this combination’s variance to see tiny differences.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The same principles are applied to the following two scenarios in this article
+    and will not be mentioned again henceforth.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Let’s get the easy thing out of the way first: As expected, tuning all layers
+    and consequently using double the number of parameters, improves performance the
+    most. This improvement is evident in the bottom figure.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, the peaks of all scenarios, as shown in the density plots on the right
+    of the individual figures, are relatively close. When comparing these peaks, which
+    represent the most frequently observed performance, we only see an improvement
+    of ~0.08 in validation accuracy between the worst and best scenario. That’s not
+    much. Therefore, we consider it a wash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Regardless, let’s still examine our original hypothesis: We (me, really) expected
+    that finetuning the upper six layers would yield better performance than finetuning
+    the lower six layers. However, the data disagrees. For this task it makes no difference.
+    Hence, I need to update my understanding.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have two potential takeaways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spreading the layers evenly is a little better than focusing on the top or bottom
+    layers. That said, the improvement is so small that this insight may be brittle
+    and might not generalize well, not event to new runs of the same model. Hence,
+    we will discard our “discovery”.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Tuning all layers, with double the cost, produces marginally better results.
+    This outcome, however, is not surprising anyone. Still good to see confirmed though,
+    as we otherwise would have found an opportunity to save trainable parameters,
+    i.e., cost.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overall, good to know all of that, but as we do not consider it actionable,
+    we are moving on. If you are interested, you can find more details in this [notebook](https://github.com/marianokamp/peft_lora/blob/main/2b_lora_tuning_experiments_vertical_horizontal_r.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tuning Horizontally / Component-wise
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Within each transformer layer, we have four learned projections used for attention
+    that can be adapted during finetuning:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q — Query, 768 -> 768
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: K — Key, 768 -> 768
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: V — Value, 768 -> 768
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: O — Output, 768 -> 768
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In addition to these, we use two linear modules in each position-wise feedforward
+    layer that live within the same transformer layer as the projections from above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Up — Up projection, 768 -> 3072
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Down — Down projection, 3072 -> 768
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can already see from the numbers above that the feedforward layers (ff) are
+    **four times** as large as the QKVO projections we previously discussed. Hence
+    the ff components will have a potentially larger impact and certainly higher cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides this, what other expectations could we have? It’s hard to say. We know
+    from Multi-Query Attention [3] that the query projection is particularly important,
+    but does this importance hold when **finetuning** **with an adapter** on our task
+    (as opposed to, for example, pre-training)? Instead, let’s try out what the impact
+    of the individual components is and proceed based on those results. We will be
+    able to see which components are the strongest and maybe this will allow us to
+    just pick those for tuning going forward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s run these experiments and inspect the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2b92bcc9396d2c63579a8df316ba5adb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A bit more distinct. But we are also mixing 1x parameters (att_*) with 4x parameters
+    (ff_*). Let’s drill down.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d37a191dfbc6137c70acc9e93961bc76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Within the attention projections (1x) **q** (red, ~0.933) and **k** (blue, ~0.931)are
+    not as good as expected, **o** (orange, ~0.939) and **v** (teal, ~0.937) look
+    a bit better. However, between worst and best just lie ~0.08 again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/246caf878a36671c83c7ec3156ca5bc3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Again, more parameters resulted in better performance: The feed-forward **up**
+    and **down** projection are both clocking in at around ~0.943.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As was to be expected, the ff layers use their four-times size advantage to
+    outperform the attention projections. Still, we can see that there are differences
+    within these two groups. These differences are relatively minor, and if you want
+    to leverage them, it’s necessary to validate their applicability for your specific
+    task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important observation is that **by merely tuning one of the ff layers (~0.943),
+    we could almost achieve the performance of tuning all modules** **from the “LoRA
+    Base” scenario (~0.946)**. Consequently, if we’re looking to balance between overall
+    performance and the parameter count, this could be a good strategy. We’ll keep
+    this in mind for the final comparison.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the attention projections (middle figure) it turns out that the query
+    projection did not prove as impactful as expected. Contrarily, the output and
+    value projections proved more useful. However, on their own, they were not that
+    impressive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So far, we have looked at the individual contributions of the components. Let’s
+    also check if their impact overlaps or if combining components can improve the
+    results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60020e9ba43da4285dc952250c193cf4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Exemplary combination of query and output projection in **each** layer, along
+    with the up projections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s run some of the possible combinations and see if this is informative.
+    Here are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92c8ce3c8a45fddda74cb0c63acba45f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Overview of a few select combinations of attention projections and the ff up
+    projection. Let’s take a closer look at the strongest candidate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e5ce2caf5436a554f92bbb213d3d8282.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With a performance of ~0.948 this combination slightly exceeds the “LoRA Base”
+    scenario’s performance, but at a lower cost (parameter count).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the numbers charted above the first takeaway is that we have no performance
+    regressions. Given that we added more parameters and combined existing combinations,
+    that’s how it should be. Nevertheless, there is always the chance that when combining
+    design decisions their combined performance is worse than their individual performance.
+    Not here though, good!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We should not over-interpret the results, but it is interesting to recognize
+    that when we testing our hypothesis individually the output projection’s performance
+    was slightly ahead of the performance of the value projection. Here now, in combination
+    with the position-wise feed forward up projection this relationship is reversed
+    (now: o+up ~0.945, v+up ~0.948).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll also recognize in the previous experiment, that the up projection was
+    already performing almost on that level on its own. Therefore, we keep our enthusiasm
+    in check, but include this scenario in our final comparison. If only, because
+    we get a performance that is slightly better than when tuning and adapting all
+    components in all layers, “LoRA Base”, but with much fewer parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find more details in this [notebook](https://github.com/marianokamp/peft_lora/blob/main/2b_lora_tuning_experiments_vertical_horizontal_r.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tuning `r`
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We know from the literature [2] that it is recommended to use a small `r` value,
+    meaning that `r` is only a fraction of the minimum dimension of the original module,
+    e.g. to use `8` instead of `768`. However, let’s validate this for ourselves and
+    get some empirical feedback. Could it be worth investigating using a larger value
+    for `r`, despite the conventional wisdom?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the previous trials, we used `r=8` and invested more time to tune `learning-rate`
+    and the number of `epochs` to train for this value. Now trying different values
+    for `r` will significantly alter the capacity of the linear modules. Ideally,
+    we would re-tune the `learning-rate` for each value of `r`, but we aim to be frugal.
+    Consequently, for now, we stick to the same `learning-rate`. However, as farther
+    we go away from our tuned `r=8`value as stronger the need to retune the other
+    hyperparameters mentioned above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A consideration we need to remember when reviewing the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5d6ad8256f087244b3d77edcf4efea22.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can already see that we may need to also tune the learning rate if we change
+    capacity so drastically. Also, the good values are pretty close (review the peaks
+    on the right). They are around ~0.945, r=16 (green) is a bit higher with ~0.947.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/486c5b17f8a231260236e74add53ad6c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Excursion: We can see that with r=32 (highlighted on all panels) we are too
+    far from the tuned hyperparameters values. Upper right: The model is much bigger.
+    Lower left: Training loss goes down and the extra capacity leads to the best training
+    loss. Lower right: But valid loss goes up.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the first figure, we see that the model performance is not particularly sensitive
+    to additional capacity with good performances at `r=4` and `r=8`. `r=16`was a
+    tiny bit better, but is also more expensive in terms of parameter count. So let’s
+    keep `r=4` and `r=8` in mind for our final comparison.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To see the effect of `r` on the parameter count, we will also include `r=1`
+    in the final comparison.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One odd thing to observe in the figures above is that the performance is falling
+    off sharply at `r=32`. Providing a model, that uses residual connections, more
+    capacity should yield the same or better performance than with a lower capacity.
+    This is clearly not the case here. But as we tuned the learning-rate for `r=8`
+    and we now have many more learnable parameters with `r=32` (see the upper right
+    panel in preceding figure) we should also reduce the `learning-rate`, or ideally,
+    re-tune the `learning-rate` and number of `epochs` to adapt to the much larger
+    capacity. Looking at the lower right panel in the previous figure we should then
+    also consider adding more regularization to deal with the more pronounced overfitting
+    we see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite the general potential for improvement when providing the model with
+    more capacity, the other values of `r` we observed did not indicate that more
+    capacity would improve performance without also markedly increasing the number
+    of parameters. Therefore, we’ll skip chasing an even larger `r`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More details in this [notebook](https://github.com/marianokamp/peft_lora/blob/main/2b_lora_tuning_experiments_vertical_horizontal_r.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Comparison
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Throughout this long article, we have gathered numerous analytical results.
+    To consolidate these findings, let’s explore and compare several interesting combinations
+    of hyperparameter values in one place. For our purposes, a result is considered
+    interesting if it either improves the overall performance of the model or gives
+    us additional insights about how the model works to ultimately strengthen our
+    intuitive understanding
+  prefs: []
+  type: TYPE_NORMAL
+- en: All experiments finetune the sst2 task on RoBERTa base as seen in the RoBERTa
+    paper [1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a3fe54a9b1e3c36513e42157f2a24a2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Tabular overview of our three baselines scenarios (top of the list) and five
+    experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a91472fd1d0d95ee094baedf76bd5df4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Graphical representation of the tabular results from above. Black bars in the
+    “Model Performance” panel reports standard deviation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execution of Experiments:** As before, when I show the results of a scenario
+    (reported as the “target_tuner_name” column in the table above, and as labels
+    on the y-axis in the graph), it’s based on executing the **same combination of
+    hyperparameter** values five times. This allows me to report the mean and standard
+    deviation of the objective metric.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Now, let’s discuss some observations from the scenarios depicted in the graph
+    above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Classifier Only**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c21ddc19535158277d49a7b2f913eec3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This baseline—where we only train the classifier head—has the lowest cost. Refer
+    to `parameters_relative`, which indicates the percentage of parameters needed,
+    compared to a full finetuning. This is illustrated in the second panel, showing
+    that ~0.5% is the lowest parameter count of all scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This has a beneficial impact on the “GPU Memory” panel (where lower is better)
+    and markedly in the “Train Speed” panel (where higher is better). The latter indicates
+    that this scenario is the fastest to train, because of the lower parameter count,
+    and also because there are fewer modules to handle, as we do not add additional
+    modules in this scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This serves as an informative bare-bones **baseline to see relative improvements
+    in training speed and GPU memory** **use**, but also highlights a tradeoff: the
+    model performance (first panel) is the lowest by a wide margin.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, this scenario reveals that 0.48% of the full fine-tuning parameters
+    represent the minimum parameter count. We allocate that fraction of the parameters
+    exclusively for the classifier. Additionally, as all other scenarios tune the
+    classifier, we consistently include that 0.48% in addition to whatever parameters
+    are further tuned in those scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LoRA Base**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c3b645a2ce843a7c25ee515691280ba.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This scenario serves as the foundation for all experiments beyond the baselines.
+    We use`r=8` and adapt and finetune **all** **linear modules across all layers**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can observe that the **model performance matches the full finetuning performance**.
+    We might have been lucky in this case, but the literature suggest that we can
+    expect to nearly match the full finetuning performance with just about 1% of the
+    parameters. We can see evidence of this here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, because of adapting all linear modules, we see that the **train
+    speed is the lowest of all experiments** and the GPU memory utilization is amongst
+    the highest, but in line with most of the other scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LoRA all, r={1,4,8}**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c6b4fd843d518eacc0e78b933ed9713.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (Unfortunately in the graph I show the bars in the order r=4, 8, 1, but it would
+    be easier to read if it were 1, 4, 8)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Overall, these scenarios are variations of “LoRA Base” but with different values
+    of `r`. There is **only a small difference in the performance.** However, as expected,
+    there is a positive correlation between `r` and the parameter count and a slightly
+    positive correlation between `r` and GPU memory utilization. Despite the latter,
+    the value of `r` remains so low that this does not have a substantial impact on
+    the bottom line, specifically the GPU memory usage. This confirms what we explored
+    in the original experiments, component-wise, as discussed above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When reviewing `r=1`, however, we see that this is a special case. With 0.61%
+    for the relative parameter count, we are just a smidgen above the 0.48% of the
+    “Classifier Only” scenario. But we see a validation accuracy of ~0.94 with `r=1`,
+    compared to ~0.82 with “Classifier Only”. With just 0.13% of the total parameters,
+    adapted solely in the transformer layers, we can elevate the model’s validation
+    accuracy by ~0.12\. Bam! This is impressive, and hence, if we are interested in
+    a low parameter count, this could be our winner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regarding GPU memory utilization, we’ll review this a bit later. But briefly,
+    besides allocating memory for each parameter in the model, the optimizer, and
+    the gradients, we also need to keep the activations around to calculate the gradients
+    during backpropagation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, larger models will show a bigger impact of choosing a small value
+    for `r`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For what it’s worth, the scenario “LoRA all, r=8” used identical hyperparameter
+    values to “LoRA Base”, but was executed independently. To make it easier to compare
+    r=1, r=4 and r=8, this scenario was still evaluated.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LoRA ff_u**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6baf6131a9e541de6df53722bb20c7ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this scenario we are tuning only the position-wise feed forward up projections,
+    across all layers. This leads to a reduction in both the number of parameters
+    and the number of modules to adapt. Consequently, the data shows an **improvement
+    in training speed and a reduction in GPU memory utilization.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: But we also see a small performance hit. For “LoRA Base” we saw ~0.946, while
+    in this scenario we only see ~0.942, a drop of ~0.04.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details on the comparisons in this [notebook](https://github.com/marianokamp/peft_lora/blob/main/2e_lora_tuning_experiments_reproduction_summary.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Sidestep: GPU Memory / Gradient Checkpointing'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When looking at the GPU memory panel above, two things become obvious:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**One — LoRA, on its own, does not dramatically reduce the memory footprint**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is especially true when **we adapt small models like RoBERTa** **base**
+    with its 125M parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [previous article’s](/dive-into-lora-adapters-38f4da488ede) section on
+    intrinsic dimensionality, we learned that for current generation models (e.g.,
+    with 7B parameters), the absolute value of `r` can be even smaller than for smaller
+    capacity models. Hence, the **memory-saving effect will become more pronounced
+    with larger models**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally using **LoRA makes using quantization easier and more efficient
+    -** a perfect match. With LoRA, only a small percentage of parameters need to
+    be processed with high precision: This is because we update the parameters of
+    the adapters, not the weights of the original modules. Hence, the majority of
+    the model weights can be quantized and used at much lower precision.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, we typically use AdamW as our optimizer. Unlike SGD, which tracks
+    only a single global learning rate, AdamW tracks moving averages of both the gradients
+    and the squares of the gradients for each parameter. This implies that for each
+    **trainable** parameter, we need to keep track of two values, which could potentially
+    be in FP32\. This process can be quite costly. However, as described in the previous
+    paragraph, when using LoRA, we only have a few parameters that are trainable.
+    This can significantly reduce the cost, so that we can use the typically parameter-intensive
+    AdamW, even with large `r` values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We may look into these aspects in part four of our article series, given enough
+    interest of you, dear reader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Two–GPU memory utilization is only indirectly correlated with parameter count**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wouldn’t it be great if there was a direct linear relationship between the parameter
+    count and the needed GPU memory? Unfortunately there are several findings in the
+    diagrams above that illustrate that it is not that easy. Let’s find out why.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we need to allocate memory for the model itself, i.e., storing **all**
+    parameters. Then, for the **trainable parameters,** we also need to store the
+    optimizer state and gradients (for each trainable parameter individually). In
+    addition we need to consider memory for the activations, which not only depends
+    on the parameters and layers of the model, but also on the input sequence length.
+    Plus, it’s crucial to remember that we need to maintain those activations from
+    the forward pass in order to apply the chain rule during the backward pass to
+    do [backpropagation](https://ml-cheatsheet.readthedocs.io/en/latest/backpropagation.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If, during backpropagation, we were to re-calculate the activations for each
+    layer when calculating the gradients for that layer, we would not maintain the
+    activations for so long and could save memory at the cost of increased computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This approach is known as [gradient checkpointing](https://aman.ai/primers/ai/grad-accum-checkpoint/).
+    The amount of memory that can be saved depends on how much additional memory for
+    activations needs to be retained. It’s important to remember that backpropagation
+    involves repeatedly applying the chain rule, step by step, layer by layer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Recap — Chain Rule during Back Propagation**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: During backpropagation, we calculate the error at the top of the network (in
+    the classifier) and then propagate the error back to all **trainable parameters**
+    that were involved. These parameters are adjusted based on their contributions
+    to the error, to do better in the future. We calculate the parameters’ contributions
+    by repeatedly applying the chain rule, start at the top and traversing the computation
+    graph towards the inputs. This is necessary because any change in a parameter
+    on a lower layer can potentially impact the parameters in all the layers above.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To calculate the local gradients (for each step), we may need the values of
+    the activations for all the steps between the respective trainable parameter and
+    the top (the loss function which is applied at the classification head). Thus,
+    if we have a **parameter in one of the top layers (close to the head), we need
+    to maintain fewer activations** compared to when training a parameter in the lower
+    layers. For those lower layer parameters, we need to traverse a much longer graph
+    to reach the classification head and, hence, need to maintain more memory to keep
+    the activations around.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In our specific model and task, you can see the effect illustrated below. We
+    train an individual model for each layer, in which only that particular layer
+    undergoes training. This way, we can isolate the effect of the layer’s relative
+    position. We then plot the amount of GPU memory required for each model, and therefore
+    for each layer, during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the graph below (see left panel) you can see that if we are **closer to the
+    bottom of the model (i.e., low layer number) the GPU memory requirement is lower**
+    than if we are close to the top of the model (i.e., high layer number) where the
+    loss originates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With gradient checkpointing enabled (see right panel), we no longer can recognize
+    this effect. Instead of saving the activations until backprop we re-calculate
+    them when needed. Hence, the difference in memory usage between the left and right
+    panel are the activations that we maintain for the backward pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e71a4539b0b07ae36a7ace0635742c45.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The need for GPU memory goes down when getting farther away from the inputs
+    (before layer 1) and closer to the classification head (after layer 12). Until
+    we use gradient checkpointing (right). Then the position of the layer does not
+    matter as we are no longer maintaining the activations for backpropagation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execution of Experiments:**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As with previous experiments, I used AMT with **Grid Search** to provide unbiased
+    results.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It is important to remember, that recalculating the activations during backpropagation
+    is slow, so **we are trading of computational speed with memory usage.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: More details on the testing can be found in this [notebook](https://github.com/marianokamp/peft_lora/blob/main/2d_lora_tuning_experiments_layers.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We may revisit the topic of memory in part four of this article series, although
+    it’s not strictly a LoRA topic. If you’re interested, please let me know in the
+    comments below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'That was quite a lot to absorb. Thank you for sticking with me this far. I
+    hope you found it worthwhile and were able, at a high level, to confirm for yourself
+    that **LoRA works**: It matches the performance of a full finetuning while only
+    using ~1% of the parameters of a full finetuning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But now, let’s dive into the details: What specific **design decisions** should
+    we consider when exploring the hyperparameter values that we want to use with
+    **our** model and **our** task when applying LoRA?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Our approach**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We formulated several hypotheses about how our model is likely to behave and
+    then **collected empirical feedback to validate or invalidate these hypotheses**.
+    We chose this approach because we wanted to use our prior knowledge to guide the
+    scope our experiments, rather than haphazardly testing random configurations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This approach proved beneficial, given that the solution space was extensive
+    and impossible to explore exhaustively. Even with the experiments scoped using
+    our prior knowledge, interpreting the results was challenging. Had we just had
+    randomly sampled in this vast space, it would have likely led to wasted computation
+    and unstructured results. Such an approach would have prevented us from drawing
+    generalizable conclusions to make intentional decisions for our model, which would
+    have been frustrating.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We learned several things, like the relative impact of `r`, the nuances in its
+    effect on parameter count, GPU memory and training speed. We also observed that
+    the **count of trainable parameters alone is not a predictor for** **GPU memory**
+    **usage**.Interestingly, the location of these parameters in the network architecture
+    plays a crucial role. Moreover, we found that when using the same number of parameters,
+    the training speed is slower with multiple LoRA modules compared to using just
+    a single module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Adapt all linear modules — A practical choice**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding more about how LoRA works was just one of two goals. We were also
+    aiming for a good set of hyperparameter values for our training. Regarding this,
+    we discovered that **adapting all linear modules** with a low value of `r` is
+    an **effective strategy**. This approach is attractive as it results in good performance,
+    moderate costs, and **very low complexity**; making it a practical choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, attention should still be paid to `learning-rate` and `batch-size`,
+    as with any other training of a neural network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We are all examining different aspects of the topic, but considering the overlap
+    at the core, the above guidance aligns closely with Sebastian Raschka’s findings
+    from [this](https://lightning.ai/pages/community/lora-insights) and [that](https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms)
+    excellent article on the topic, as well as Tim Dettmers’s findings from the QLoRA
+    paper [3]. These are valuable resources for learning about more facets of using
+    LoRA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://lightning.ai/pages/community/lora-insights/?source=post_page-----12448e64524d--------------------------------)
+    [## Finetuning LLMs with LoRA and QLoRA: Insights from Hundreds of Experiments
+    - Lightning AI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LoRA is one of the most widely used, parameter-efficient finetuning techniques
+    for training custom LLMs. From saving…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: lightning.ai](https://lightning.ai/pages/community/lora-insights/?source=post_page-----12448e64524d--------------------------------)
+    [](https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms?source=post_page-----12448e64524d--------------------------------)
+    [## Practical Tips for Finetuning LLMs Using LoRA (Low-Rank Adaptation)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Things I Learned From Hundreds of Experiments
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: magazine.sebastianraschka.com](https://magazine.sebastianraschka.com/p/practical-tips-for-finetuning-llms?source=post_page-----12448e64524d--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Carefully select a subset of modules–Better performance at lower cost**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, if you do want to invest more time, you could achieve slightly
+    better performance, as well as **lower training time and memory usage**. When
+    it comes to selecting the modules to adapt, we found that it’s possible to match
+    the performance of adapting all modules by actually adapting fewer modules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, we discovered that spreading the LoRA modules evenly across all layers
+    is apparently a good choice for model performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For our specific example we got the best performance and a relatively low cost
+    from tuning the feed-forward up projections and the attention value projections
+    across all layers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/894afa5a40e3f8beb39b556149e3329a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: However, for a different task, I may want to re-evaluate this finding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, when analyzing a future task I will be on the lookout if just adapting
+    the upper layers results in good performance? This did not work out for our task
+    in this article, but we saw earlier, that it would reduce GPU memory utilization
+    significantly otherwise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing to remember is that training neural networks is inherently a noisy
+    process, and investing time into gaining more and more certainty about the best
+    hyperparameters can compete with efforts to improve other potential areas. Maybe
+    this extra time would be better invested into data curation or enhancing the overall
+    feedback loop. I hope that this article has demonstrated a common-sense approach
+    that strikes **a** **balance between the cost of exploration and the potential
+    reward**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please also keep in mind not to overfit on the specific model and findings we
+    discussed here. This is merely a toy example, not a use cases requested by a business
+    department. Nobody needs to train the sst-2 task on RoBERTa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, please do share your experience with your models; including where you
+    felt led astray by this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One last thought to conclude the topic. Moving forward I would always start
+    with a low value of `r` in general. Then consider how big the differences between
+    the pre-training task and the finetuning task(s) are. The bigger the necessary
+    adaptations during finetuning are, the larger `r` should be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, if I can identify where the adaptations need to occur— specifically,
+    which layers or components would be most impacted — I would use that knowledge
+    to select the right modules to adapt and their relative `r`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have our tuned model, let’s move on to deploying it. In the following
+    article, we will explore how using adapters naturally leads to the ability of
+    creating multi-task endpoints with vastly improved non-functional properties over
+    creating one dedicated endpoint for each task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks to [Valerio Perrone](https://www.linkedin.com/in/valerio-perrone/), [Ümit
+    Yoldas](https://www.linkedin.com/in/%C3%BCmit-yoldas-23a908177/), [Andreas Gleixner](https://www.linkedin.com/in/andreas-gleixner-1343902a2/),
+    [André Liebscher](https://www.linkedin.com/in/andre-liebscher/), [Karsten Schroer](https://www.linkedin.com/in/karstenschroer/)
+    and [Vladimir Palkhouski](https://www.linkedin.com/in/uladzimirpalkhouski/) for
+    providing invaluable feedback during the writing of this article. Also, thanks
+    to [Sourab Mangrulkar](https://www.linkedin.com/in/sourab-m/) for [helping me](https://github.com/huggingface/transformers/issues/26221)
+    understand how to use gradient checkpointing using the HF Trainer API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The header image was created using [Clipdrop](https://clipdrop.co/). All other
+    images are by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] [Yinhan Liu, Myle Ott, Naman Goyal, Jingfei Du, Mandar Joshi, Danqi Chen,
+    Omer Levy, Mike Lewis, Luke Zettlemoyer, Veselin Stoyanov. RoBERTa: A Robustly
+    Optimized BERT Pretraining Approach, 2019](https://arxiv.org/abs/1907.11692)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li,
+    Shean Wang, Lu Wang, Weizhu Chen. LoRA: Low-Rank Adaptation of Large Language
+    Models, 2021](https://arxiv.org/abs/2106.09685)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [Noam Shazeer, Fast Transformer Decoding: One Write-Head is All You Need,
+    2019](https://arxiv.org/abs/1911.02150)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [Tim Dettmers, Artidoro Pagnoni, Ari Holtzmann, Luke Zettlemoyer: QLORA:
+    Efficient Finetuning of Quantized LLMs, 2023](https://arxiv.org/abs/2305.14314)'
+  prefs: []
+  type: TYPE_NORMAL

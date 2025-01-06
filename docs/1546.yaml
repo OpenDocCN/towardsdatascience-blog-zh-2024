@@ -1,0 +1,287 @@
+- en: Optimizing Sigma Rules in Spark with the Aho-Corasick Algorithm
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/optimizing-sigma-rules-in-spark-with-the-aho-corasick-algorithm-52ebd5d8105e?source=collection_archive---------9-----------------------#2024-06-20](https://towardsdatascience.com/optimizing-sigma-rules-in-spark-with-the-aho-corasick-algorithm-52ebd5d8105e?source=collection_archive---------9-----------------------#2024-06-20)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Extending Spark for improved performance in handling multiple search terms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)[![Jean-Claude
+    Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)
+    [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--52ebd5d8105e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--52ebd5d8105e--------------------------------)
+    ·8 min read·Jun 20, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/98074b60c52576606b11663ca7212313.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by Aditya Chinchure on Unsplash
+  prefs: []
+  type: TYPE_NORMAL
+- en: During the process of deploying our intrusion detection system into production
+    at [CCCS](https://www.cyber.gc.ca/en), we observed that many of the SigmaHQ rules
+    use very sizable lists of search patterns. These lists are used to test if a `CommandLine`contains
+    a given string or if the `CommandLine`starts-with or ends-with a given substring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We were particularly interested in investigating the rules involving “contains”
+    conditions, as we suspected that these conditions might be time-consuming for
+    Spark to evaluate. Here is an example of a typical Sigma rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The complete Suspicious Program Names rule can be found here
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_progname.yml](https://github.com/SigmaHQ/sigma/blob/master/rules/windows/process_creation/proc_creation_win_susp_progname.yml)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rule illustrates the use of `CommandLine|contains` and of `Image|endswith`.
+    Some Sigma rules have hundreds of search terms under a `<field>|contains`condition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applying Sigma Rules with Spark SQL
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At [CCCS](https://www.cyber.gc.ca/en), we translate Sigma rules into executable
+    Spark SQL statements. To do so we have extended the SQL Sigma compiler with a
+    custom backend. It translates the above rule into a statement like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We run the above statement in a Spark Structured streaming job. In a single
+    pass over the events Spark evaluates multiple (hundreds) of Sigma rules. The `sigma_rules_map`
+    column holds the evaluation results of all these rules. Using this map we can
+    determine which rule is a hit and which one is not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see, the rules often involve comparing event’s attribute, such as
+    `CommandLine`, to multiple string patterns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some of these tests are exact matches, such as `CommandLine = ‘something’`.
+    Others use `startswith`and are rendered as `Imagepath LIKE ‘%\\poc.exe’`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`Equals`, `startswith`, and `endswith` are executed very rapidly since these
+    conditions are all anchored at a particular position in the event’s attribute.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, tests like `contains` are rendered as `CommandLine LIKE ‘%hound.ps1%’`
+    which requires Spark to scan the entire attribute to find a possible starting
+    position for the letter ‘h’ and then check if it is followed by the letter ‘o’,
+    ‘u’ etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Internally, Spark uses a `UTF8String` which grabs the first character, scans
+    the buffer, and if it finds a match, goes on to compare the remaining bytes using
+    the `matchAt` function. Here is the implementation of the `UTF8String.contains`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `equals`, `startswith`, and `endswith` conditions also use the `matchAt`
+    function but contrary to `contains` these conditions know where to start the comparison
+    and thus execute very rapidly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To validate our assumption that `contains` condition is costly to execute we
+    conducted a quick and simple experiment. We removed all the `contains` conditions
+    for the Sigma rules to see how it would impact the overall execution time. The
+    difference was significant and encouraged us to pursue the idea of implementing
+    a custom Spark Catalyst function to handle `contains` operations involving large
+    number of search terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Aho-Corasick Algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A bit of research led us to the [Aho-Corasick algorithm](https://en.wikipedia.org/wiki/Aho%E2%80%93Corasick_algorithm)
+    which seemed to be a good fit for this use case. The Aho-Corasick algorithm builds
+    a prefix tree (a trie) and can evaluate many `contains` expressions in a single
+    pass over the text to be tested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is how to use the Aho-Corasick Java implementation from Robert Bor available
+    on github here [https://github.com/robert-bor/aho-corasick](https://github.com/robert-bor/aho-corasick)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Designing a `aho_corasick_in` Spark Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Our function will need two things: the column to be tested and the search patterns
+    to look for. We will implement a function with the following signature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We modified our CCCS Sigma compiler to produce SQL statements which use the
+    `aho_corasick_in`function rather than producing multiple ORed LIKE predicates.
+    In the output below, you will notice the use of the `aho_corasick_in` function.
+    We pass in the field to be tested and an array of strings to search for. Here
+    is the output of our custom compiler handling multiple `contains` conditions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notice how the `aho_corasick_in` function receives two arguments: the first
+    is a column, and the second is a string array. Let’s now actually implement the
+    `aho_corasick_in`function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing the Catalyst Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We did not find much documentation on how to implement Catalyst functions, so
+    instead, we used the source code of existing functions as a reference. We took
+    the [regexp(str, regexp)](https://spark.apache.org/docs/3.3.1/api/sql/index.html#regexp)
+    function as an example because it pre-compiles it’s regexp pattern and then uses
+    it when processing rows. This is similar to pre-building a Aho-Corasick trie and
+    then applying it to every row.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our custom catalyst expression takes two arguments. It’s thus a `BinaryExpression`
+    which has two fields which Spark named `left` and `right`. Our AhoCorasickIn constructor
+    assigns the `text` column argument to `left` field and the `searches` string array
+    to `right` field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other thing we do during the initialization of AhoCorasickIn is to evaluate
+    the `cacheTrie` field. The evaluation tests if the `searches` argument is a foldable
+    expression, i.e., a constant expression. If so, it evaluates it and expects it
+    to be a string array, which it uses to call `createTrie(searches)`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `createTrie` function iterates over the searches and adds them to the `trieBuilder`
+    and finally builds an Aho-Corasick Trie.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `nullSafeEval` method is the heart of the AhoCorasickIn. Spark calls the
+    eval function for every row in the dataset. In `nullSafeEval`, we retrieve the
+    `cacheTrie` and use it to test the `text` string argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating the Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To compare the performance of the `aho_corasick_in` function we wrote a small
+    benchmarking script. We compared the performance of doing multiple `LIKE` operations
+    versus a single `aho_corasick_in` call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Same experiment using `aho_corasick_in`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We ran these two experiments (like vs aho_corasick_in) with a `text` column
+    of 200 characters and varied the number of search terms. Here is a logarithmic
+    plot comparing both queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/94880875e041e434766c3b0228141742.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This plot shows how performance degrades as we add more search terms to the
+    “LIKE” query, while the query using `aho_corasick_in` function remains relatively
+    constant as the number of search terms increases. At 100 search terms, the `aho_corasick_in`
+    function runs five times faster than multiple LIKE statements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We find that using Aho-Corasick is only beneficial past 20 searches. This can
+    be explained by the initial cost of building the trie. However, as the number
+    of search terms increases, that up-front cost pays off. This contrasts with the
+    LIKE expressions, where the more LIKE expressions we add, the more costly the
+    query becomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we set the number of search terms to 20 and varied the length of the `text`
+    string. We observed that both the LIKE and `aho_corasick_in` function take about
+    the same time across various string lengths. In both experiments the execution
+    time is dependent on the length of the `text` string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0b7c3144a9b0768d338cb65b0bdfaf48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s important to note that the cost incurred to build the trie will depend
+    on the number of Spark tasks in the query execution plan. Spark instantiates expressions
+    (i.e.: instantiates new AhoCorasickIn objects) for every task in the execution
+    plan. In other words, if your query uses 200 tasks, the AhoCorasickIn constructor
+    will be called 200 times.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To summarize, the strategy to use will depend on the number of terms. We built
+    this optimization into our Sigma compiler. Under a given threshold (say 20 terms)
+    it renders LIKE statements and above this threshold it renders a query that uses
+    the `aho_corasick_in` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course this threshold will be dependent on your actual data and on the number
+    of tasks in your Spark execution plan.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our initial results, conducted on production data and real SigmaHQ rules, show
+    that applying the `aho_corasick_in` function increases our processing rate (events
+    per second) by a factor of 1.4x.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1a337aa4c3759b640b8597dfd7a047af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this article, we demonstrated how to implement a native Spark function. This
+    Catalyst expression leverages the Aho-Corasick algorithm, which can test many
+    search terms simultaneously. However, as with any approach, there are trade-offs.
+    Using Aho-Corasick requires building a trie (prefix tree), which can degrade performance
+    when only a few search terms are used. Our compiler uses a threshold (number of
+    search terms) to choose the optimal strategy, ensuring the most efficient query
+    execution.
+  prefs: []
+  type: TYPE_NORMAL

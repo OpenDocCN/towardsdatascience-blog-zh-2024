@@ -1,0 +1,256 @@
+- en: Measuring Cross-Product Adoption Using dbt_set_similarity
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/measuring-cross-product-adoption-using-dbt-set-similarity-fdf7c1f88bc2?source=collection_archive---------1-----------------------#2024-12-28](https://towardsdatascience.com/measuring-cross-product-adoption-using-dbt-set-similarity-fdf7c1f88bc2?source=collection_archive---------1-----------------------#2024-12-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Enhancing cross-product insights within dbt workflows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)[![Matthew
+    Senick](../Images/8415150b912990541bf3b53c112c7cef.png)](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------)
+    [Matthew Senick](https://medium.com/@senick.matthew?source=post_page---byline--fdf7c1f88bc2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdf7c1f88bc2--------------------------------)
+    ·5 min read·Dec 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For multi-product companies, one critical metric is often what is called “cross-product
+    adoption”. (i.e. understanding how users engage with multiple offerings in a given
+    product portfolio)
+  prefs: []
+  type: TYPE_NORMAL
+- en: One measure suggested to calculate cross-product or cross-feature usage in the
+    popular book *Hacking Growth* [1] is the **Jaccard Index**. Traditionally used
+    to measure the similarity between two sets, the Jaccard Index can also serve as
+    a powerful tool for assessing product adoption patterns. It does this by quantifying
+    the overlap in users between products, from which one can identify cross-product
+    synergies and growth opportunities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dbt package **dbt_set_similarity** is designed to simplify the calculation
+    of set similarity metrics directly within an analytics workflow. This package
+    provides a method to calculate the Jaccard Indices within SQL transformational
+    layers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To import this package into your dbt project, add the following to the `packages.yml`
+    file. We will also need dbt_utils for the purposes of this articles example. Run
+    a `dbt deps` command within your project to install the package.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Jaccard Index
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Jaccard Index, also known as the Jaccard Similarity Coefficient, is a metric
+    used to measure the similarity between two sets. It is defined as the size of
+    the intersection of the sets divided by the size of their union.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mathematically, it can be expressed as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b852489e4adafbcf4e5142059b2563f2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Jaccard Index represents the “Intersection” over the “Union” of two sets
+    (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*A* and *B* are two sets (ex. users of product A and product B)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The numerator represents the number of elements in both sets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The denominator represents the total number of distinct elements across both
+    sets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/a162cf1562e9ce0ccb3f78452c055ad4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Jaccard Index is particularly useful in the context of cross-product adoption
+    because:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It focuses on the overlap between two sets, making it ideal for understanding
+    shared user bases
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It accounts for differences in the total size of the sets, ensuring that results
+    are proportional and not skewed by outliers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If 100 users adopt Product A and 50 adopt Product B, with 25 users adopting
+    both, the Jaccard Index is 25 / (100 + 50 — 25) = 0.2, indicating a 20% overlap
+    between the two user bases by the Jaccard Index.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Example Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The example dataset we will be using is a fictional SaaS company which offers
+    storage space as a product for consumers. This company provides two distinct storage
+    products: document storage (*doc_storage*) and photo storage (*photo_storage*).
+    These are either true, indicating the product has been adopted, or false, indicating
+    the product has not been adopted.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, the demographics (*user_category*) that this company serves are
+    either tech enthusiasts or homeowners.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the sake of this example, we will read this csv file in as a “seed” model
+    named `seed_example` within the dbt project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Cross-Product Adoption
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now, let’s say we want to calculate the jaccard index (cross-adoption) between
+    our document storage and photo storage products. First, we need to create an array
+    (list) of the users who have the document storage product, alongside an array
+    of the users who have the photo storage product. In the second cte, we apply the
+    `jaccard_coef` function from the `dbt_set_similarity` package to help us easily
+    compute the jaccard coefficient between the two arrays of user id’s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/529e9b291bf1faf07a77a46845db4c94.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output from the above dbt model (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we can interpret, **it seems that just over half (60%) of users who have
+    adopted either of products, have adopted both.** We can graphically verify our
+    result by placing the user id sets into a Venn diagram, where we see three users
+    have adopted both products, amongst five total users: 3/5 = 0.6.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c4bc717a8204033fd7e53e5b3fac24b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What the collection of user id’s and product adoption would look like, verifying
+    our result (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Segmented Cross-Product Adoption
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Using the `dbt_set_similarity` package, creating segmented jaccard indices for
+    our different user categories should be fairly natural. We will follow the same
+    pattern as before, however, we will simply group our aggregations on the user
+    category.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/17ee449e92cd117d800aa2f482a6bba5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output from the above dbt model (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the output, cross-product adoption is higher amongst homeowners, when considering
+    jaccard indices. As shown above, all homeowners who have adopted one of the product,
+    have adopted both. Meanwhile, only one-third of the tech enthusiasts who have
+    adopted one product have adopted both products. Thus, in our very small dataset,
+    cross-product adoption is higher amongst homeowners as opposed to tech enthusiasts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can graphically verify the output by again creating Venn diagram:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/19568107b9ad9d3a3154ca096d7158ff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Venn diagrams split by the two segments (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**dbt_set_similarity** provides a straightforward and efficient way to calculate
+    cross-product adoption metrics such as the Jaccard Index directly within a dbt
+    workflow. By applying this method, **multi-product companies can gain valuable
+    insights into user behavior and adoption patterns across their product portfolio**.
+    In our example, we demonstrated the calculation of overall cross-product adoption
+    as well as segmented adoption for distinct user categories.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using the package for cross-product adoption is simply one straightforward
+    application. In reality, there exists countless other potential applications of
+    this technique, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feature usage analysis
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Marketing campaign impact analysis
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Support analysis
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additionally, **this style of analysis is certainly not limited to just SaaS**,
+    but can apply to virtually any industry. Happy Jaccard-ing!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Sean Ellis and Morgan Brown, [Hacking Growth](https://www.amazon.ca/Hacking-Growth-Fastest-Growing-Companies-Breakout/dp/045149721X)
+    (2017)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[dbt package hub](https://hub.getdbt.com/Matts52/dbt_set_similarity/latest/)'
+  prefs: []
+  type: TYPE_NORMAL

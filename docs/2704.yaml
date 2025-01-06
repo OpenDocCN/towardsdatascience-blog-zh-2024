@@ -1,0 +1,756 @@
+- en: 'An Introduction to VLMs: The Future of Computer Vision Models'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/an-introduction-to-vlms-the-future-of-computer-vision-models-5f5aeaafb282?source=collection_archive---------1-----------------------#2024-11-06](https://towardsdatascience.com/an-introduction-to-vlms-the-future-of-computer-vision-models-5f5aeaafb282?source=collection_archive---------1-----------------------#2024-11-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Building a 28% more accurate multimodal image search engine with VLMs.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ro.isachenko?source=post_page---byline--5f5aeaafb282--------------------------------)[![Ro
+    Isachenko](../Images/c2f1e41a389378cec8801e6eb8d8060c.png)](https://medium.com/@ro.isachenko?source=post_page---byline--5f5aeaafb282--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5f5aeaafb282--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5f5aeaafb282--------------------------------)
+    [Ro Isachenko](https://medium.com/@ro.isachenko?source=post_page---byline--5f5aeaafb282--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5f5aeaafb282--------------------------------)
+    ·12 min read·Nov 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Until recently, AI models were narrow in scope and limited to understanding
+    either language or specific images, but rarely both.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this respect, general language models like GPTs were a HUGE leap since we
+    went from specialized models to general yet much more powerful models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But even as language models progressed, they remained separate from computer
+    vision аreas, each domain advancing in silos without bridging the gap. Imagine
+    what would happen if you could only listen but not see, or vice versa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My name is Roman Isachenko, and I’m part of the Computer Vision team at Yandex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I’ll discuss visual language models (VLMs), which I believe
+    are the future of compound AI systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll explain the basics and training process for developing a multimodal neural
+    network for image search and explore the design principles, challenges, and architecture
+    that make it all possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Towards the end, I’ll also show you how we used an AI-powered search product
+    to handle images and text and what changed with the introduction of a VLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s begin!
+  prefs: []
+  type: TYPE_NORMAL
+- en: What Are VLMs?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLMs with billions or even hundreds of billions of parameters are no longer
+    a novelty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We see them everywhere!
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next key focus in LLM research has been more inclined towards developing
+    multimodal models (omni-models) — models that can understand and process multiple
+    data types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e484761b3bcc1d96fbd1fbc82463d8a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multimodal models (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the name suggests, these models can handle more than just text. They can
+    also analyze images, video, and audio.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But why are we doing this?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Jack of all trades, master of none, oftentimes better than master of one.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In recent years, we’ve seen a trend where general approaches dominate narrow
+    ones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Think about it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today’s language-driven ML models have become relatively advanced and general-purpose.
+    One model can translate, summarize, identify speech tags, and much more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b35063c0d265ee30383b449d2567afa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: General NLP model (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: But earlier, these models used to be task-specific (we have them now as well,
+    but fewer than before).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A dedicated model for translating.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A dedicated model for summarizing, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In other words, today’s NLP models (LLMs, specifically) can serve multiple purposes
+    that previously required developing highly specific solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second, this approach allows us to exponentially scale the data available for
+    model training, which is crucial given the finite amount of text data. Earlier,
+    however, one would need task-specific data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A dedicated translation labeled dataset.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A dedicated summarization dataset, etc.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Third, we believe that training a multimodal model can enhance the performance
+    of each data type, just like it does for humans.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this article, we’ll simplify the “black box” concept to a scenario where
+    the model receives an image and some text (which we call the “instruct”) as input
+    and outputs only text (the response).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a result, we end up with a much simpler process as shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ab10af2ac1a9743ce6deba3b47a7279a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simplified multimodal model (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll discuss image-discriminative models that analyze and interpret what an
+    image depicts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before delving into the technical details, consider the problems these models
+    can solve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A few examples are shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6fa1a099ca302aa03dd704fbda095c2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Examples of tasks (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Top left image: We ask the model to describe the image. This is specified with
+    text.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Top mid image: We ask the model to interpret the image.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Top right image: We ask the model to interpret the image and tell us what would
+    happen if we followed the sign.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bottom image: This is the most complicated example. We give the model some
+    math problems. From these examples, you can see that the range of tasks is vast
+    and diverse.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: VLMs are a new frontier in computer vision that can solve various [fundamental
+    CV-related tasks](https://arxiv.org/abs/2405.18415) (classification, detection,
+    description) in zero-shot and one-shot modes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While VLMs may not excel in every standard task yet, they are advancing quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s understand how they work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: VLM Architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'These models typically have three main components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b96ccc97b7f95acfec256feef7397cbc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Simplified representation of VLM (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM — a text model (YandexGPT, in our case) that doesn’t understand images.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Image encoder — an image model (CNN or Vision Transformer) that doesn’t understand
+    text.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Adapter — a model that acts as a mediator to ensure that the LLM and image encoder
+    get along well.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The pipeline is pretty straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feed an image into the image encoder.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transform the output of the image encoder into some representation using the
+    adapter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Integrate the adapter’s output into the LLM (more on that below).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While the image is processed, convert the text instruct into a sequence of tokens
+    and feed them into the LLM.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More Information About Adapters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The adapter is the most exciting and important part of the model, as it precisely
+    facilitates the communication/interaction between the LLM and the image encoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two types of adapters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prompt-based adapters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cross-attention-based adapters
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Prompt-based adapters were first proposed in [BLIP-2](https://arxiv.org/abs/2301.12597)
+    and [LLaVa](https://arxiv.org/abs/2304.08485) models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea is simple and intuitive, as evident from the name itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We take the output of the image encoder (a vector, a sequence of vectors, or
+    a tensor — depending on the architecture) and transform it into a sequence of
+    vectors (tokens), which we feed into the LLM. You could take a simple MLP model
+    with a couple of layers and use it as an adapter, and the results will likely
+    be pretty good.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross-attention-based adapters are a bit more sophisticated in this respect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They were used in recent papers on [Llama 3.2](https://arxiv.org/abs/2407.21783)
+    and [NVLM](https://arxiv.org/abs/2409.11402).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These adapters aim to transform the image encoder’s output to be used in the
+    LLM’s cross-attention block as key/value matrices. Examples of such adapters include
+    transformer architectures like [perceiver resampler](https://arxiv.org/abs/2204.14198)
+    or [Q‑former](https://arxiv.org/abs/2301.12597).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0f4c28f4f6442ec22375f6141c9c62c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Prompt-based adapters (left) and Cross-attention-based adapters (right) (Image
+    by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prompt-based adapters (left) and Cross-attention-based adapters (right)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both approaches have pros and cons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, prompt-based adapters [deliver better results](https://arxiv.org/abs/2409.11402)
+    but take away a large chunk of the LLM’s input context, which is important since
+    LLMs have limited context length (for now).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross-attention-based adapters don’t take away from the LLM’s context but require
+    a large number of parameters to achieve good quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: VLM Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With the architecture sorted out, let’s dive into training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Firstly, note that VLMs aren’t trained from scratch (although we think it’s
+    only a matter of time) but are built on pre-trained LLMs and image encoders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using these pre-trained models, we fine-tune our VLM in multimodal text and
+    image data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This process involves two steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-training
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alignment: SFT + RL (optional)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/7ea2b804900e8b6219c18579ac3fc28a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training procedure of VLMs (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how these stages resemble LLM training?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is because the two processes are similar in concept. Let’s take a brief
+    look at these stages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: VLM Pre-training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here’s what we want to achieve at this stage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Link the text and image modalities together (remember that our model includes
+    an adapter we haven’t trained before).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Load world knowledge into our model (the images have a lot of specifics, for
+    one, OCR skills).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There are three types of data used in pre-training VLMs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Interleaved Pre-training**: This mirrors the LLM pre-training phase, where
+    we teach the model to perform the next token prediction task by feeding it web
+    documents. With VLM pre-training, we pick web documents with images and train
+    the model to predict text. The key difference here is that a VLM considers both
+    the text and the images on the page. Such data is easy to come by, so this type
+    of pre-training isn’t hard to scale up. However, the data quality isn’t great,
+    and boosting it proves to be a tough job.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/a9640b861d6f47a20c1846f5e1cabe28.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Interleaved Pre-training dataset (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Image-Text Pairs Pre-training**: We train the model to perform one specific
+    task: captioning images. You need a large corpus of images with relevant descriptions
+    to do that. This approach is more popular because many such corpora are used to
+    train other models (text-to-image generation, image-to-text retrieval).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eda08149f9e808bb81b4be9dac331113.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image-Text Pairs Pre-training dataset (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Instruct-Based Pre-training**: During inference, we’ll feed the model images
+    and text. Why not train the model this way from the start? This is precisely what
+    instruct-based pre-training does: It trains the model on a massive dataset of
+    image-instruct-answer triplets, even if the data isn’t always perfect.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c5885ad9b34e987c993aabbdfe139b97.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Instruct-Based Pre-training dataset (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: How much data is needed to train a VLM model properly is a complex question.
+    At this stage, the required dataset size can vary from a few million to several
+    billion (thankfully, not a trillion!) samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our team used instruct-based pre-training with a few million samples. However,
+    we believe interleaved pre-training has great potential, and we’re actively working
+    in that direction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: VLM Alignment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once pre-training is complete, it’s time to start on alignment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It comprises SFT training and an optional RL stage. Since we only have the SFT
+    stage, I’ll focus on that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Still, recent papers (like [this](https://arxiv.org/abs/2405.17220) and [this](https://arxiv.org/abs/2407.21783))
+    often include an RL stage on top of VLM, which uses the same methods as for LLMs
+    (DPO and various modifications differing by the first letter in the method name).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anyway, back to SFT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Strictly speaking, this stage is similar to instruct-based pre-training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The distinction lies in our focus on high-quality data with proper response
+    structure, formatting, and strong reasoning capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This means that the model must be able to understand the image and make inferences
+    about it. Ideally, it should respond equally well to text instructs without images,
+    so we’ll also add high-quality text-only data to the mix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ultimately, this stage’s data typically ranges between hundreds of thousands
+    to a few million examples. In our case, the number is somewhere in the six digits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quality Evaluation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s discuss the methods for evaluating the quality of VLMs. We use two approaches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Calculate metrics on open-source benchmarks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compare the models using side-by-side (SBS) evaluations, where an assessor compares
+    two model responses and chooses the better one.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The first method allows us to measure surrogate metrics (like accuracy in classification
+    tasks) on specific subsets of data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, since most benchmarks are in English, they can’t be used to compare
+    models trained in other languages, like German, French, Russian, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While translation can be used, the errors introduced by translation models make
+    the results unreliable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second approach allows for a more in-depth analysis of the model but requires
+    meticulous (and expensive) manual data annotation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our model is bilingual and can respond in both English and Russian. Thus, we
+    can use English open-source benchmarks and run side-by-side comparisons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We trust this method and invest a lot in it. Here’s what we ask our assessors
+    to evaluate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Grammar
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Readability
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Comprehensiveness
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Relevance to the instruct
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Errors (logical and factual)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hallucinations
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We strive to evaluate a complete and diverse subset of our model’s skills.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following pie chart illustrates the distribution of tasks in our SbS evaluation
+    bucket.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/608427413661c3c7cc8a8694a629a64b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Distribution of tasks for quality evaluation (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This summarizes the overview of VLM fundamentals and how one can train a model
+    and evaluate its quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pipeline Architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This spring, we added multimodality to Neuro, an AI-powered search product,
+    allowing users to ask questions using text and images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Until recently, its underlying technology wasn’t truly multimodal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s what this pipeline looked like before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5d139ed87d58cc9543ac873ac974c51e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Pipeline architecture (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This diagram seems complex, but it’s straightforward once you break it down
+    into steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s what the process used to look like
+  prefs: []
+  type: TYPE_NORMAL
+- en: The user submits an image and a text query.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We send the image to our visual search еngine, which would return a wealth of
+    information about the image (tags, recognized text, information card).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We formulate a text query using a rephraser (a fine-tuned LLM) with this information
+    and the original query.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With the rephrased text query, we use Yandex Search to retrieve relevant documents
+    (or excerpts, which we call infocontext).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Finally, with all this information (original query, visual search information,
+    rephrased text query, and info context), we generate the final response using
+    a generator model (another fine-tuned LLM).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Done!
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, we used to rely on two unimodal LLMs and our visual search engine.
+    This solution worked well on a small sample of queries but had limitations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is an example (albeit slightly exaggerated) of how things could go wrong.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2d65efa3148887ebeeb8f1a47fac7994.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The problem with two unimodal LLMs (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, the rephraser receives the output of the visual search service and simply
+    doesn’t understand the user’s original intent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In turn, the LLM model, which knows nothing about the image, generates an incorrect
+    search query, getting tags about the pug and the apple simultaneously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To improve the quality of our multimodal response and allow users to ask more
+    complex questions, we introduced a VLM into our architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More specifically, we made two major modifications:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We replaced the LLM rephraser with a VLM rephraser. Essentially, we started
+    feeding the original image to the rephraser’s input on top of the text from the
+    visual search engine.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We added a separate VLM captioner to the pipeline. This model provides an image
+    description, which we use as info context for the final generator.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You might wonder
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why not make the generator itself VLM-based?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: That’s a good idea!
+  prefs: []
+  type: TYPE_NORMAL
+- en: But there’s a catch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our generator training inherits from Neuro’s text model, which is frequently
+    updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To update the pipeline faster and more conveniently, it was much easier for
+    us to introduce a separate VLM block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Plus, this setup works just as well, which is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a122d37d30387dcc9720cbaae7ffc16d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Using VLM in AI-powered search (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training VLM rephraser and VLM captioner are two separate tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this, we use mentioned earlierse VLM, as mentioned e for thise-tuned it
+    for these specific tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fine-tuning these models required collecting separate training datasets comprising
+    tens of thousands of samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also had to make significant changes to our infrastructure to make the pipeline
+    computationally efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Gauging the Quality
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now for the grand question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Did introducing a VLM to a fairly complex pipeline improve things?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In short, yes, it did!
+  prefs: []
+  type: TYPE_NORMAL
+- en: We ran side-by-side tests to measure the new pipeline’s performance and compared
+    our previous LLM framework with the new VLM one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This evaluation is similar to the one discussed earlier for the core technology.
+    However, in this case, we use a different set of images and queries more aligned
+    with what users might ask.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is the approximate distribution of clusters in this bucket.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/29abfb15a93da3ac9445af9b1a49ada7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cluster distribution (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our offline side-by-side evaluation shows that we’ve substantially improved
+    the quality of the final response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The VLM pipeline noticeably increases the response quality and covers more user
+    scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a70b5dbf5bb31451cad96af55767ae4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Accuracy of VLM vs LLM in Neuro (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also wanted to test the results on a live audience to see if our users would
+    notice the technical changes that we believe would improve the product experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, we conducted an online split test, comparing our LLM pipeline to the new
+    VLM pipeline. The preliminary results show the following change:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The number of instructs that include an image increased by 17%.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The number of sessions (the user entering multiple queries in a row) saw an
+    uptick of 4.5%.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To reiterate what was said above, we firmly believe that VLMs are the future
+    of computer vision models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: VLMs are already capable of solving many out-of-the-box problems. With a bit
+    of fine-tuning, they can absolutely deliver state-of-the-art quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL

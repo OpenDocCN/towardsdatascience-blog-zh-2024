@@ -1,0 +1,718 @@
+- en: 'From Prototype to Production: Enhancing LLM Accuracy'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/from-prototype-to-production-enhancing-llm-accuracy-791d79b0af9b?source=collection_archive---------0-----------------------#2024-12-19](https://towardsdatascience.com/from-prototype-to-production-enhancing-llm-accuracy-791d79b0af9b?source=collection_archive---------0-----------------------#2024-12-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implementing evaluation frameworks to optimize accuracy in real-world applications
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://miptgirl.medium.com/?source=post_page---byline--791d79b0af9b--------------------------------)[![Mariya
+    Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--791d79b0af9b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--791d79b0af9b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--791d79b0af9b--------------------------------)
+    [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--791d79b0af9b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--791d79b0af9b--------------------------------)
+    ·20 min read·Dec 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5398f4ac2eeb0542c8deeb07151f9e87.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by DALL-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a prototype for an LLM application is surprisingly straightforward.
+    You can often create a functional first version within just a few hours. This
+    initial prototype will likely provide results that look legitimate and be a good
+    tool to demonstrate your approach. However, this is usually not enough for production
+    use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs are probabilistic by nature, as they generate tokens based on the distribution
+    of likely continuations. This means that in many cases, we get the answer close
+    to the “correct” one from the distribution. Sometimes, this is acceptable — for
+    example, it doesn’t matter whether the app says “Hello, John!” or “Hi, John!”.
+    In other cases, the difference is critical, such as between “The revenue in 2024
+    was 20M USD” and “The revenue in 2024 was 20M GBP”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In many real-world business scenarios, precision is crucial, and “almost right”
+    isn’t good enough. For example, when your LLM application needs to execute API
+    calls, or you’re doing a summary of financial reports. From my experience, ensuring
+    the accuracy and consistency of results is far more complex and time-consuming
+    than building the initial prototype.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will discuss how to approach measuring and improving accuracy.
+    We’ll build an SQL Agent where precision is vital for ensuring that queries are
+    executable. Starting with a basic prototype, we’ll explore methods to measure
+    accuracy and test various techniques to enhance it, such as self-reflection and
+    retrieval-augmented generation (RAG).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As usual, let’s begin with the setup. The core components of our SQL agent solution
+    are the LLM model, which generates queries, and the SQL database, which executes
+    them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLM model — Llama
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For this project, we will use an open-source Llama model released by Meta. I’ve
+    chosen [Llama 3.1 8B](https://ollama.com/library/llama3.1:8b) because it is lightweight
+    enough to run on my laptop while still being quite powerful (refer to the [documentation](https://ai.meta.com/blog/meta-llama-3-1/)
+    for details).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you haven’t installed it yet, you can find guides [here](https://www.llama.com/docs/llama-everywhere).
+    I use it locally on MacOS via [Ollama](https://ollama.com/). Using the following
+    command, we can download the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will use Ollama with [LangChain](https://python.langchain.com/docs/how_to/local_llms/),
+    so let’s start by installing the required package.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can run the Llama model and see the first results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We would like to pass a system message alongside customer questions. So, following
+    [the Llama 3.1 model documentation](https://www.llama.com/docs/model-cards-and-prompt-formats/llama3_1),
+    let’s put together a helper function to construct a prompt and test this function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The new system prompt has changed the answer significantly, so it works. With
+    this, our local LLM setup is ready to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Database — ClickHouse
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I will use an open-source database [ClickHouse](https://clickhouse.com/). I’ve
+    chosen ClickHouse because it has a specific SQL dialect. LLMs have likely encountered
+    fewer examples of this dialect during training, making the task a bit more challenging.
+    However, you can choose any other database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installing ClickHouse is pretty straightforward — just follow the instructions
+    provided in [the documentation](https://clickhouse.com/docs/en/getting-started/quick-start).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We will be working with two tables: `ecommerce.users` and `ecommerce.sessions`.
+    These tables contain fictional data, including customer personal information and
+    their session activity on the e-commerce website.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8e953baae8a4221a6e942633e8368b9.png)![](../Images/26d6e8347db23de82055050ce6574c00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can find the code for generating synthetic data and uploading it on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/analyst_agent/generate_synthetic_data_for_sql.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: With that, the setup is complete, and we’re ready to move on to building the
+    basic prototype.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first prototype
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As discussed, our goal is to build an SQL Agent — an application that generates
+    SQL queries to answer customer questions. In the future, we can add another layer
+    to this system: executing the SQL query, passing both the initial question and
+    the database results back to the LLM, and asking it to generate a human-friendly
+    answer. However, for this article, we’ll focus on the first step.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best practice with LLM applications (similar to any other complex tasks)
+    is to start simple and then iterate. The most straightforward implementation is
+    to do one LLM call and share all the necessary information (such as schema description)
+    in the system prompt. So, the first step is to put together the prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: I’ve included the example values for each field in the prompt to ensure that
+    LLM understands the data format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that’s it! With this, we have our first functional prototype for the SQL
+    Agent. Now, it’s time to put it to the test.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]sql'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SELECT COUNT(DISTINCT u.user_id)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: FROM ecommerce.sessions s
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: JOIN ecommerce.users u ON s.user_id = u.user_id
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: WHERE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: EXTRACT(YEAR FROM s.action_date) = 2024
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: AND EXTRACT(MONTH FROM s.action_date) = 12
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: AND revenue > 0;
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE6]sql'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: SELECT COUNT(DISTINCT u.user_id)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: FROM ecommerce.sessions s
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: JOIN ecommerce.users u ON s.user_id = u.user_id
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: WHERE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: EXTRACT(YEAR FROM s.action_date) = 2024
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: AND EXTRACT(MONTH FROM s.action_date) = 12
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: AND revenue > 0;
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: format TabSeparatedWithNames;
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs:
+  - PREF_H1
+  type: TYPE_PRE
+- en: The agent produced a fairly decent result, but there’s one issue — the LLM returned
+    not only the SQL query but also some commentary. Since we plan to execute SQL
+    queries later, this format is not suitable for our task. Let’s work on fixing
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fortunately, this problem has already been solved, and we don’t need to parse
+    the SQL queries from the text manually. We can use the chat model [ChatOllama](https://python.langchain.com/docs/integrations/chat/ollama/).
+    Unfortunately, it doesn’t support structured output, but we can leverage tool
+    calling to achieve the same result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, we will define a dummy tool to execute the query and instruct the
+    model in the system prompt always to call this tool. I’ve kept the `comments`
+    in the output to give the model some space for reasoning, following the chain-of-thought
+    pattern.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With the tool calling, we can now get the SQL query directly from the model.
+    That’s an excellent result. However, the generated query is not entirely accurate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It includes a filter for `is_active = 1`, even though we didn’t specify the
+    need to filter out inactive customers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The LLM missed specifying the format despite our explicit request in the system
+    prompt.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Clearly, we need to focus on improving the model’s accuracy. But as Peter Drucker
+    famously said, *“You can’t improve what you don’t measure.”* So, the next logical
+    step is to build a system for evaluating the model’s quality. This system will
+    be a cornerstone for performance improvement iterations. Without it, we’d essentially
+    be navigating in the dark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating the accuracy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Evaluation basics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To ensure we’re improving, we need a robust way to measure accuracy. The most
+    common approach is to create a “golden” evaluation set with questions and correct
+    answers. Then, we can compare the model’s output with these “golden” answers and
+    calculate the share of correct ones. While this approach sounds simple, there
+    are a few nuances worth discussing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, you might feel overwhelmed at the thought of creating a comprehensive
+    set of questions and answers. Building such a dataset can seem like a daunting
+    task, potentially requiring weeks or months. However, we can start small by creating
+    an initial set of 20–50 examples and iterating on it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As always, quality is more important than quantity. Our goal is to create a
+    representative and diverse dataset. Ideally, this should include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Common questions.** In most real-life cases, we can take the history of actual
+    questions and use it as our initial evaluation set.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Challenging edge cases.** It’s worth adding examples where the model tends
+    to hallucinate. You can find such cases either while experimenting yourself or
+    by gathering feedback from the first prototype.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Once the dataset is ready, the next challenge is how to score the generated
+    results. We can consider several approaches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Comparing SQL queries.** The first idea is to compare the generated SQL query
+    with the one in the evaluation set. However, it might be tricky. Similarly-looking
+    queries can yield completely different results. At the same time, queries that
+    look different can lead to the same conclusions. Additionally, simply comparing
+    SQL queries doesn’t verify whether the generated query is actually executable.
+    Given these challenges, I wouldn’t consider this approach the most reliable solution
+    for our case.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Exact matches.** We can use old-school exact matching when answers in our
+    evaluation set are deterministic. For example, if the question is, “How many customers
+    are there?” and the answer is “592800”, the model’s response must match precisely.
+    However, this approach has its limitations. Consider the example above, and the
+    model responds, *“There are 592,800 customers”*. While the answer is absolutely
+    correct, an exact match approach would flag it as invalid.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Using LLMs for scoring.** A more robust and flexible approach is to leverage
+    LLMs for evaluation. Instead of focusing on query structure, we can ask the LLM
+    to compare the results of SQL executions. This method is particularly effective
+    in cases where the query might differ but still yields correct outputs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s worth keeping in mind that evaluation isn’t a one-time task; it’s a continuous
+    process. To push our model’s performance further, we need to expand the dataset
+    with examples causing the model’s hallucinations. In production mode, we can create
+    a feedback loop. By gathering input from users, we can identify cases where the
+    model fails and include them in our evaluation set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our example, we will be assessing only whether the result of execution is
+    valid (SQL query can be executed) and correct. Still, you can look at other parameters
+    as well. For example, if you care about efficiency, you can compare the execution
+    times of generated queries against those in the golden set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluation set and validation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now that we’ve covered the basics, we’re ready to put them into practice. I
+    spent about 20 minutes putting together a set of 10 examples. While small, this
+    set is sufficient for our toy task. It consists of a list of questions paired
+    with their corresponding SQL queries, like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can find the full list on GitHub — [link](https://github.com/miptgirl/miptgirl_medium/blob/main/sql_agent_accuracy/golden_set.json).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can load the dataset into a DataFrame, making it ready for use in the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, let’s generate the SQL queries for each question in the evaluation set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before moving on to the LLM-based scoring of query outputs, it’s important to
+    first ensure that the SQL query is valid. To do this, we need to execute the queries
+    and examine the database output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ve created a function that runs a query in ClickHouse. It also ensures that
+    the output format is correctly specified, as this may be critical in business
+    applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next step is to execute both the generated and golden queries and then save
+    their outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, let’s check the output to see whether the SQL query is valid or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we can evaluate the SQL validity for both the golden and generated sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f08fffac61b75163a4cd0b3d5895a561.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The initial results are not very promising; the LLM was unable to generate even
+    a single valid query. Looking at the errors, it’s clear that the model failed
+    to specify the right format despite it being explicitly defined in the system
+    prompt. So, we definitely need to work more on the accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Checking the correctness
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: However, validity alone is not enough. It’s crucial that we not only generate
+    valid SQL queries but also produce the correct results. Although we already know
+    that all our queries are invalid, let’s now incorporate output evaluation into
+    our process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As discussed, we will use LLMs to compare the outputs of the SQL queries. I
+    typically prefer using more powerful model for evaluation, following the day-to-day
+    logic where a senior team member reviews the work. For this task, I’ve chosen
+    [OpenAI GPT 4o-mini](https://python.langchain.com/docs/integrations/chat/openai/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to our generation flow, I’ve set up all the building blocks necessary
+    for accuracy assessment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, it’s time to test the accuracy assessment process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Fantastic! It looks like everything is working as expected. Let’s now encapsulate
+    this into a function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting the evaluation approach together
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we discussed, building an LLM application is an iterative process, so we’ll
+    need to run our accuracy assessment multiple times. It will be helpful to have
+    all this logic encapsulated in a single function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The function will take two arguments as input:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`generate_query_func`: a function that generates an SQL query for a given question.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`golden_df`: an evaluation dataset with questions and correct answers in the
+    form of a pandas DataFrame.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As output, the function will return a DataFrame with all evaluation results
+    and a couple of charts displaying the main KPIs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: With that, we’ve completed the evaluation setup and can now move on to the core
+    task of improving the model’s accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Improving accuracy: Self-reflection'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s do a quick recap. We’ve built and tested the first version of SQL Agent.
+    Unfortunately, all generated queries were invalid because they were missing the
+    output format. Let’s address this issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One potential solution is self-reflection. We can make an additional call to
+    the LLM, sharing the error and asking it to correct the bug. Let’s create a function
+    to handle generation with self-reflection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, let’s use our evaluation function to check whether the quality has improved.
+    Assessing the next iteration has become effortless.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Wonderful! We’ve achieved better results — 50% of the queries are now valid,
+    and all format issues have been resolved. So, self-reflection is pretty effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/63565d380cffadf15d0a96cc68e4012c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: However, self-reflection has its limitations. When we examine the accuracy,
+    we see that the model returns the correct answer for only one question. So, our
+    journey is not over yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f0d6c215fce6284d676ef0d3d13ae6a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Improving accuracy: RAG'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Another approach to improving accuracy is using RAG (retrieval-augmented generation).
+    The idea is to identify question-and-answer pairs similar to the customer query
+    and include them in the system prompt, enabling the LLM to generate a more accurate
+    response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'RAG consists of the following stages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Loading documents:** importing data from available sources.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Splitting documents:** creating smaller chunks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Storage:** using vector stores to process and store data efficiently.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Retrieval:** extracting documents that are relevant to the query.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Generation:** passing a question and relevant documents to LLM to generate
+    the final answer**.**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/c31e55cce3e7ee98abf62bc796f10882.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'If you’d like a refresher on RAG, you can check out my previous article, [“RAG:
+    How to Talk to Your Data.”](https://medium.com/towards-data-science/rag-how-to-talk-to-your-data-eaf5469b83b0)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We will use the Chroma database as a local vector storage — to store and retrieve
+    embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Vector stores are using embeddings to find chunks that are similar to the query.
+    For this purpose, we will use OpenAI embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we can’t use examples from our evaluation set (as they are already being
+    used to assess quality), I’ve created a separate set of question-and-answer pairs
+    for RAG. You can find it on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/sql_agent_accuracy/rag_set.json).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s load the set and create a list of pairs in the following format:
+    `Question: %s; Answer: %s`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, I used LangChain’s text splitter by character to create chunks, with each
+    question-and-answer pair as a separate chunk. Since we are splitting the text
+    semantically, no overlap is necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: The final step is to load the chunks into our vector storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can test the retrieval to see the results. They look quite similar to
+    the customer question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s adjust the system prompt to include the examples we retrieved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once again, let’s create the generate query function with RAG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: As usual, let’s use our evaluation function to test the new approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see a significant improvement, increasing from 1 to 6 correct answers
+    out of 10\. It’s still not ideal, but we’re moving in the right direction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f30d73b1e415ab57414572251435a6f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can also experiment with combining two approaches: RAG and self-reflection.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can see another slight improvement: we’ve completely eliminated invalid
+    SQL queries (thanks to self-reflection) and increased the number of correct answers
+    to 7 out of 10.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d989bf6f8488b48e7e17811ea05b6b4b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: That’s it. It’s been quite a journey. We started with 0 valid SQL queries and
+    have now achieved 70% accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the complete code on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/sql_agent_accuracy/sql_agent_poc.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we explored the iterative process of improving accuracy for
+    LLM applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We built an evaluation set and the scoring criteria that allowed us to compare
+    different iterations and understand whether we were moving in the right direction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We leveraged self-reflection to allow the LLM to correct its mistakes and significantly
+    reduce the number of invalid SQL queries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Additionally, we implemented Retrieval-Augmented Generation (RAG) to further
+    enhance the quality, achieving an accuracy rate of 60–70%.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While this is a solid result, it still falls short of the 90%+ accuracy threshold
+    typically expected for production applications. To achieve such a high bar, we
+    need to use fine-tuning, which will be the topic of the next article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot for reading this article. I hope this article was insightful
+    for you. If you have any follow-up questions or comments, please leave them in
+    the comments section.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*All the images are produced by the author unless otherwise stated.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is inspired by the [“Improving Accuracy of LLM Applications”](https://www.deeplearning.ai/short-courses/improving-accuracy-of-llm-applications/)
+    short course from DeepLearning.AI.
+  prefs: []
+  type: TYPE_NORMAL

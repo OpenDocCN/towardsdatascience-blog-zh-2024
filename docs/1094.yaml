@@ -1,0 +1,399 @@
+- en: Understand SQL Window Functions Once and For All
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understand-sql-window-functions-once-and-for-all-4447824c1cb4?source=collection_archive---------1-----------------------#2024-05-01](https://towardsdatascience.com/understand-sql-window-functions-once-and-for-all-4447824c1cb4?source=collection_archive---------1-----------------------#2024-05-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step guide to understanding window functions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mtrentz?source=post_page---byline--4447824c1cb4--------------------------------)[![Mateus
+    Trentz](../Images/8c50ef2bc9726b11094d6fa630015554.png)](https://medium.com/@mtrentz?source=post_page---byline--4447824c1cb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4447824c1cb4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4447824c1cb4--------------------------------)
+    [Mateus Trentz](https://medium.com/@mtrentz?source=post_page---byline--4447824c1cb4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4447824c1cb4--------------------------------)
+    ·9 min read·May 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d7e65d387759934b9acf4a61ec24a33.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Yasmina H](https://unsplash.com/@yasmina?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Window functions are key to writing SQL code that is both efficient and easy
+    to understand. Knowing how they work and when to use them will unlock new ways
+    of solving your reporting problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The objective of this article is to explain window functions in SQL step by
+    step in an understandable way so that you don’t need to rely on only memorizing
+    the syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is what we will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An explanation on how you should view window functions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Go over many examples in increasing difficulty
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Look at one specific real-case scenario to put our learnings into practice
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Review what we’ve learned
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our dataset is simple, **six rows of revenue data for two regions in the year
+    2023.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0877edc3106b19906797d85e6cf07f76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Window Functions Are Sub Groups
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If we took this dataset and ran a `GROUP BY` sum on the revenue of each region,
+    it would be clear what happens, right? It would result in only two remaining rows,
+    one for each region, and then the sum of the revenues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1dea1a92f4f1781cd737b55d004a47a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The way I want you to view window functions is very similar to this but, **instead
+    of reducing the number of rows, the aggregation will run “in the background” and
+    the values will be added to our existing rows.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b3b315c4d15c66605f50167b857ebd3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Notice that we don’t have any `GROUP BY` and our dataset is left intact. And
+    yet we were able to get the sum of all revenues. Before we go more in depth in
+    how this worked let’s just quickly talk about the full syntax before we start
+    building up our knowledge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Window Function Syntax
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The syntax goes like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Picking apart each section, this is what we have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'An aggregation or window function: `SUM`, `AVG`, `MAX`, `RANK`, `FIRST_VALUE`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `OVER` keyword which says this is a window function
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `PARTITION BY` section, which defines the **groups**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `ORDER BY` section which defines if it’s a running function (we will cover
+    this later on)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Don’t stress over what each of these means yet, as it will become clear when
+    we go over the examples. **For now just know that to define a window function
+    we will use the** `**OVER**` **keyword. And as we saw in the first example, that’s
+    the only requirement.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building Our Understanding Step By Step
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Moving to something actually useful, we will now apply a group in our function.
+    The initial calculation will be kept to show you that **we can run more than one
+    window function at once**, which means we can do different aggregations at once
+    in the same query, without requiring sub-queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/da5c8b809276353b2e95145598e95273.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'As said, **we use the** `**PARTITION BY**` **to define our groups (windows)
+    that are used by our aggregation function!** So, keeping our dataset intact we’ve
+    got:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The total revenue for each region
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The total revenue for the whole dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We’re also not restrained to a single group. Similar to `GROUP BY` we can partition
+    our data on Region and Quarter, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8c855d938e778d5a711584e25f15e7f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**In the image we see that the only two data points for the same region and
+    quarter got grouped together!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point I hope it’s clear how we can view this as doing a `GROUP BY` but
+    in-place, without reducing the number of rows in our dataset. Of course, we don’t
+    always want that, but it’s not that uncommon to see queries where someone groups
+    data and then joins it back in the original dataset, complicating what could be
+    a single window function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving on to the `ORDER BY` keyword. This one defines a running window function.
+    You’ve probably heard of a Running Sum once in your life, but if not, we should
+    start with an example to make everything clear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d1441cd881f2d0e95c2b54bb00aea05f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What happens here is that we’ve went, row by row, summing the revenue with all
+    previous values. This was done following the order of the `id` column, but it
+    could’ve been any other column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This specific example is not particularly useful because we’re summing across
+    random months and two regions, but using what we’ve learned we can now find **the
+    cumulative revenue per region.** We do that by applying the running sum within
+    each group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/444b91883903ba7ecabf49479a7c948c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Take the time to make sure you understand what happened here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each region we’re walking up month by month and summing the revenue
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once it’s done for that region we move to the next one, starting from scratch
+    and again moving up the months!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s quite interesting to notice here that when we’re writing these running
+    functions we have the “context” of other rows. What I mean is that to get the
+    running sum at one point, we must know the previous values for the previous rows.
+    This becomes more obvious when we learn that we can manually chose how many rows
+    before/after we want to aggregate on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5b08b522955119bafaa3e6ece4fcdd07.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For this query we specified that for each row we wanted to look at one row behind
+    and two rows ahead, so that means we get the sum of that range! Depending on the
+    problem you’re solving this can be extremely powerful as it gives you complete
+    control on how you’re grouping your data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, one last function I want to mention before we move into a harder example
+    is the `RANK` function. This gets asked a lot in interviews and the logic behind
+    it is the same as everything we’ve learned so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1a0f2adb51728b3f8640fb02ed75ac6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Just as before, we used `ORDER BY` to specify the order which we will walk,
+    row by row, and `PARTITION BY` to specify our sub-groups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first column ranks each row within each region, meaning that we will have
+    multiple “rank one’s” in the dataset. The second calculation is the rank across
+    all rows in the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forward Filling Missing Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is a problem that shows up every now and then and to solve it on SQL it
+    takes heavy usage of window functions. To explain this concept we will use a different
+    dataset containing timestamps and temperature measurements. **Our goal is to fill
+    in the rows missing temperature measurements with the last measured value.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/264bdecb551419927c9cebfe06e1eef4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here is what we expect to have at the end:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1999c3e305edc1c1fbdfadf83226c99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Before we start I just want to mention that if you’re using Pandas you can solve
+    this problem simply by running `df.ffill()` but if you’re on SQL the problem gets
+    a bit more tricky.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step to solve this is to, somehow, group the NULLs with the previous
+    non-null value. It might not be clear how we do this but I hope it’s clear that
+    this will require a **running function**. Meaning that it’s a function that will
+    “walk row by row”, knowing when we hit a null value and when we hit a non-null
+    value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution is to use `COUNT` and, more specifically, count the values of temperature
+    measurements. In the following query I run both a normal running count and also
+    a count over the temperature values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/93ed3b3f16f72d91b45c04007f370907.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the first calculation we simply counted up each row increasingly
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On the second one we counted every value of temperature we saw, not counting
+    when it was NULL
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `normal_count` column is useless for us, I just wanted to show what a running
+    `COUNT` looked like. **Our second calculation though, the** `**group_count**`
+    **moves us closer to solving our problem!**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that this way of counting makes sure that the first value, just before
+    the NULLs start, is counted and then, every time the function sees a null, nothing
+    happens. This makes sure that we’re “tagging” every subsequent null with the same
+    count we had when we stopped having measurements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving on, we now need to copy over the first value that got tagged into all
+    the other rows within that same group. Meaning that for the group `2` needs to
+    all be filled with the value `15.0`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can you think of a function now that we can use here? There is more than one
+    answer for this, but, again, I hope that at least it’s clear that now we’re looking
+    at a simple window aggregation with `PARTITION BY` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/188d89d977ccdb549772bfd3700cd8f0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can use both `FIRST_VALUE` or `MAX` to achieve what we want. The only goal
+    is that we get the first non-null value. Since we know that each group contains
+    one non-null value and a bunch of null values, both of these functions work!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This example is a great way to practice window functions. If you want a similar
+    challenge try to add two sensors and then forward fill the values with the previous
+    reading of that sensor. Something similar to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/abff0d3e5b1c57b048d6bb0e6fed0e84.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Could you do it? It doesn’t use anything that we haven’t learned here so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By now we know everything that we need about how window functions work in SQL,
+    so let’s just do a quick recap!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recap Time
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This is what we’ve learned:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We use the `OVER` keyword to write window functions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We use `PARTITION BY` to specify our sub-groups (windows)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If we provide only the `OVER()` keyword our window is the whole dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We use `ORDER BY` when we want to have a running function, meaning that our
+    calculation walks row by row
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Window functions are useful when we want to group data to run an aggregation
+    but we want to keep our dataset as is
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I hope this helped you understand how window functions work and helps you apply
+    it in the problems you need to solve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images by the author unless stated otherwise*'
+  prefs: []
+  type: TYPE_NORMAL

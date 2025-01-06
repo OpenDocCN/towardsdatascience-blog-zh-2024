@@ -1,0 +1,306 @@
+- en: Building an Interactive UI for Llamaindex Workflows
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-an-interactive-ui-for-llamaindex-workflows-842dd7abedde?source=collection_archive---------3-----------------------#2024-09-24](https://towardsdatascience.com/building-an-interactive-ui-for-llamaindex-workflows-842dd7abedde?source=collection_archive---------3-----------------------#2024-09-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A guide to integrating human-in-the-loop interactions using Llamaindex, FastAPI,
+    and Streamlit
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)[![Lingzhen
+    Chen](../Images/9014cbac032238d8a5c9f4708ba6ffcb.png)](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------)
+    [Lingzhen Chen](https://medium.com/@lzchen.cs?source=post_page---byline--842dd7abedde--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--842dd7abedde--------------------------------)
+    ·10 min read·Sep 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In my last article, I demonstrated how I use LlamaIndex workflows to streamline
+    my research and presentation process. I built a workflow that takes a research
+    topic, finds related articles on arxiv.org, creates summaries for the papers,
+    and generates a PowerPoint slide deck to present the papers. You can read the
+    full walk-through here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=post_page-----842dd7abedde--------------------------------)
+    [## How I Streamline My Research and Presentation with LlamaIndex Workflows'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of orchestrating AI workflow with robustness, flexibility and controllability
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/how-i-streamline-my-research-and-presentation-with-llamaindex-workflows-3d75a9a10564?source=post_page-----842dd7abedde--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To continue building on the workflow and make it more user-friendly, I implemented
+    a UI with Streamlit to enhance the user experience. The UI displays progress updates
+    of the workflow execution, integrates user input, enables real-time user feedback,
+    and renders the final generated slide deck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/943a490d724acbf5ce0f3ce0d5b7e379.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Streamlit UI (Screen recording by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can check out the full code on my [Github](https://github.com/lz-chen/research-agent).
+    In this article, I will walk through some key points on the UI implementation
+    and the integration between the frontend and the backend:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Backend enhancements:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Update the workflow to support sending streaming event
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Update the workflow to pause execution and wait for user inputs
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Host several endpoints using FastAPI for running workflow, accepting user inputs,
+    and downloading files, enabling async processes and streaming messages
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Frontend UI features:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Send requests to the backend and display event data streamed from the backend
+    in an expander
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Display related information in a container and collect user input, if user input
+    is required
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Render the final generated slide deck
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Provide a button for the user to download the final file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Putting it all together:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Separate frontend and backend dependencies and build by using distinct `pyproject.toml`
+    and `Dockerfile`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use `docker-compose` to build launch all services
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When starting the workflow from the terminal, it is straightforward to see which
+    step it is executing and the logging we put in those steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/20ff5b34a307eada9bf3fc5771f5eab0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Terminal log for the workflow execution (Screenshot by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also enable the human-in-the-loop interaction by simply using `user_feedback
+    = input()`in the workflow. This will pause the workflow and wait for the user
+    input (See the human-in-the-loop example in this official Llamaindex [notebook](https://docs.llamaindex.ai/en/stable/examples/workflow/human_in_the_loop_story_crafting/)).
+    However, to be able to achieve the same functionality in a user-friendly interface,
+    we need additional modifications to the original workflow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sending streaming events from the workflow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Workflow can take a long time to execute, so for a better user experience,
+    Llamaindex provided a way to send streaming events to indicate the progress of
+    the workflow, as shown in the notebook [here](https://docs.llamaindex.ai/en/stable/understanding/workflows/stream/).
+    In my workflow, I define a `WorkflowStreamingEvent` class to include useful information
+    about the event message, such as the type of the event, and from which step it
+    is sent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To enable sending streaming events, the workflow step needs to have access
+    to the shared context, which is done by adding `@step(pass_context=True)` decorator
+    to the step definition. Then in the step definition, we can send event messages
+    about the progress through the context. For example, in the `tavily_query()` step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this example, we set the `event_type` to be `“server_message”` . It means
+    that it is an update message and no user action is required. We have another type
+    of event `"request_user_input"` that indicates a user input is needed. For example,
+    in the `gather_feedback_outline()` step in the workflow, after generating the
+    slide text outlines from the original paper summary, a message is sent to prompt
+    the user to provide approval and feedback on the outline text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: These events are handled differently in the backend API and the frontend logic,
+    which I will describe in detail in the later sections of this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pausing the workflow to wait for user input
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/e95ddc55fad1afe523da3672c85e3168.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Workflow steps that requires user feedback (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: When sending a `"request_user_input"` event to the user, we only want to proceed
+    to the next step **after** we have received the user input. As shown in the workflow
+    diagram above, it either proceeds to the `outlines_with_layout()`step if the user
+    approves the outline, or to the `summary2outline()` step again if the user does
+    not approve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is achieved using the `Future()` object from Python’s `asyncio` library.
+    In the `SlideGenerationWorkflow` class, we set an attribute `self.user_input_future
+    = asyncio.Future()` that can be waited on in the `gather_feedback_outline()` step.
+    The subsequent execution of the workflow is conditioned on the content of the
+    user feedback:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The FastAPI backend
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We set up the backend using fastAPI, expose a POST endpoint to handle requests,
+    and initiate the workflow run. The asynchronous function `run_workflow_endpoint()`
+    takes `ResearchTopic` as input. In the function, an asynchronous generator `event_generator()`
+    is defined, which creates a task to run the workflow and streams the events to
+    the client as the workflow progresses. When the workflow finishes, it will also
+    stream the final file results to the client.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In addition to this endpoint, there are endpoints for receiving user input from
+    the client and handling file download requests. Since each workflow is assigned
+    a unique workflow ID, we can map the user input received from the client to the
+    correct workflow. By call the `set_result()` on the awaiting `Future`, the pending
+    workflow can resume execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The download endpoint also identifies where the final file is located based
+    on the workflow ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Streamlit frontend
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the frontend page, after the user submits the research topic through `st.text_input()`,
+    a long-running process is started in a background thread in a new event loop for
+    receiving the streamed events from the backend, without interfering with the rest
+    of the page:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The event data streamed from the backend is fetched by `httpx.AsyncClient` and
+    put into a message queue for further processing. Different information is extracted
+    depending on the event types. For event type `“request_user_input”`, the thread
+    is also paused until the user input is provided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We store the messages in the `st.session_state` and use a `st.expander()` to
+    display and update these streamed data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To ensure the UI remains responsive and displays the event messages when they
+    are being processed in a background thread, we use a customed [autorefresh](https://github.com/kmcgrady/streamlit-autorefresh)
+    component to refresh the page at a set interval:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'When the streamed event is of type `“request_user_input”`, we will display
+    related information in a separate container and gather user feedback. As there
+    can be multiple events that require user input from one workflow run, we put them
+    in a message queue and make sure to assign a unique key to the `st.feedback()`,
+    `st.text_area()` and `st.button()` that are linked to each event to ensure the
+    widgets don’t interfere with each other:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In the end, when the workflow run finally finishes, the frontend client will
+    get a response that contains the path to the final generated files (same slide
+    deck in pdf format for rendering in the UI and pptx format for downloading as
+    the final result). We display the pdf file and create a button for downloading
+    the pptx file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting everything together with `docker-compose`
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will create a multi-service Docker application with `docker-compose` to run
+    the frontend and backend apps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s it! Just run `docker-compose up`, and we now have an app that can run
+    a research workflow based on the user’s input query, prompt the user for feedback
+    during the execution, and display the final result to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading! Check out my [GitHub](https://github.com/lz-chen/research-agent)
+    for the complete implementation. I look forward to hearing your thoughts, input,
+    and feedbacks. I work as a Data Science Consultant at [Inmeta](https://inmeta.no/),
+    part of [Crayon Group](https://www.crayon.com/no/). Feel free to connect with
+    me on [LinkedIn](https://www.linkedin.com/in/lingzhen-chen-76720680/).😊
+  prefs: []
+  type: TYPE_NORMAL

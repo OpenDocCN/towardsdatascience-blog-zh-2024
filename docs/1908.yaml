@@ -1,0 +1,460 @@
+- en: 'Segment Anything 2: What Is the Secret Sauce? (A Deep Learner’s Guide)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/segment-anything-2-what-is-the-secret-sauce-a-deep-learners-guide-1c43dd07a6f8?source=collection_archive---------2-----------------------#2024-08-06](https://towardsdatascience.com/segment-anything-2-what-is-the-secret-sauce-a-deep-learners-guide-1c43dd07a6f8?source=collection_archive---------2-----------------------#2024-08-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Foundation + Promptable + Interactive + Video. How?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@neural.avb?source=post_page---byline--1c43dd07a6f8--------------------------------)[![Avishek
+    Biswas](../Images/6feb591069f354aa096f6108f1a70ea7.png)](https://medium.com/@neural.avb?source=post_page---byline--1c43dd07a6f8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1c43dd07a6f8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1c43dd07a6f8--------------------------------)
+    [Avishek Biswas](https://medium.com/@neural.avb?source=post_page---byline--1c43dd07a6f8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1c43dd07a6f8--------------------------------)
+    ·10 min read·Aug 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/903c3e88dd79d171b8844c61bba59c13.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Segment Anything 2 Pipeline (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Meta just released the Segment Anything 2 model or SAM 2 — a neural network
+    that can segment not just images, but entire videos as well. SAM 2 is a promptable
+    interactive foundation segmentation model. Being **promptable** means you can
+    click or drag bounding boxes on one or more objects you want to segment, and SAM2
+    will be able to predict a mask singling out the object and track it across the
+    input clip. Being **interactive** means you can edit the prompts on the fly, like
+    adding new prompts in different frames — and the segments will adjust accordingly!
+    Lastly, being a **foundation** segmentation model means that it is trained on
+    a massive corpus of data and can be applied for a large variety of use-cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note that this article is a “Deep Learning Guide”, so we will primarily be
+    focusing on the network architecture behind SAM-2\.** [**If you are a visual learner,
+    you might want to check out the YouTube video that this article is based on.**](https://youtu.be/wMGb97EZkVU)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Promptable Visual Segmentation (PVS)**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: SAM-2 focuses on the PVS or Prompt-able Visual Segmentation task. Given an input
+    video and a user prompt — like point clicks, boxes, or masks — the network must
+    predict a masklet, which is another term for a spatio-temporal mask. Once a masklet
+    is predicted, it can be iteratively refined by providing more prompts in additional
+    frames — through positive or negative clicks — to interactively update the segmented
+    mask.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Original Segment Anything Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: SAM-2 builds up on the original SAM architecture which was an image segmentation
+    model. Let’s do a quick recap about the basic architecture of the original SAM
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7b60f389aac038f79e037627b14323f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SAM-1 architecture — The Image Encoder encodes the input image. The Prompt Encoder
+    encodes the input prompt, and the Mask Decoder contextualizes the prompt and image
+    embeddings together to predict the segmentation mask of the queried object. Mask
+    Decoder also outputs IOU Scores, which are not shown above for simplicity. (Illustration
+    by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Image Encoder** processes the input image to create general image embeddings.
+    These embeddings are unconditional on the prompts.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**The Prompt Encoder** processes the user input prompts to create prompt embeddings.
+    Prompt embeddings are unconditional on the input image.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**The Mask Decoder** inputs the unconditional image and prompt embeddings and
+    applies cross-attention and self-attention blocks to contextualize them with each
+    other. From the resulting contextual embeddings, multiple segmentation masks are
+    generated'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Multiple Output Segmentation Masks** are predicted by the Mask Decoder. These
+    masks often represent the whole, part, or subpart of the queried object and help
+    resolve ambiguity that might arise due to user prompts (image below).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Intersection-Over-Union** **scores** are predicted for each output segmentation
+    mask. These IoU scores denote the confidence score SAM has for each predicted
+    mask to be “correct”. Meaning if SAM predicts a high IoU score for Mask 1, then
+    Mask 1 is probably the right mask.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/bd73d4e972661b0b50d755bf9a604df8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'SAM predicts 3 segmentation masks often denoting the “whole”, “part”, and “subpart”
+    of the queried object. For each predicted mask SAM predicts an IOU score as well
+    to estimate the amount of overlap the generated mask will have with the object
+    of interest (Source: Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So what does SAM-2 does differently to adopt the above architecture for videos?
+    Let’s discuss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Frame Encoder**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The input video is first divided into multiple frames, and each of the frames
+    is independently encoded using a Vision Transformer-based Masked Auto-encoder
+    computer vision model, called the [Heira architecture](https://arxiv.org/abs/2306.00989).
+    We will worry about the exact architecture of this transformer later, for now
+    just imagine it as a black box that inputs a single frame as an image and outputs
+    a multi-channel feature map of shape 256x64x64\. All the frames of the video are
+    similarly processed using the encoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a49f79e9bdba6c49fafeb11ad150f185.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The frames from the input video are embedded using a pretrained Vision Transformer
+    (Image by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that these embeddings do not consider the video sequence — they are just
+    independent frame embeddings, meaning they don’t have access to other frames in
+    the video. Secondly, just like SAM-1 they do not consider the input prompt at
+    all — meaning that the resultant output is treated as a universal representation
+    of the input frame and completely unconditional on the input prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The advantage of this is that if the user adds new prompts in future frames,
+    we do not need to run the frames through the image encoder again. The image encoder
+    runs just once for each frame, and the results are cached and reused for all types
+    of input prompts. This design decision makes SAM-2 run at interactive speeds —
+    because the heavy work of encoding images only needs to happen once per video
+    input.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Quick notes about the Heira Architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The exact nature of the Image encoder is an implementation detail — as long
+    as the encoder is good enough and trained on a huge corpus of images it is fine.
+    The Heira architecture is a hierarchical vision transformer, meaning that spatial
+    resolution is reduced and the feature dimensions are increased as the network
+    deepens. These models are trained on the task of Mask Autoencoding where the image
+    inputted into the network is divided into multiple patches and some patches are
+    randomly grayed out — and then the Heira model learns to reconstruct the original
+    image back from the remaining patches that it can see.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5906b22e25bd869ec70282798dabd8e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The Heira Model returns general purpose image embeddings that can be used for
+    a variety of downstream computer vision tasks! (Source: [here](https://arxiv.org/abs/2306.00989))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because mask auto-encoding is self-supervised, meaning all the labels are generated
+    from the source image itself, we can easily train these large encoders on massive
+    image datasets without needing to manually label them. Mask Autoencoders tend
+    to learn general embeddings about images that can be used for a bunch of downstream
+    tasks. It’s general-purpose embedding capabilities make it the choice architecture
+    for SAM’s frame encoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prompt Encoder**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Just like the original SAM model, input prompts can come from point clicks,
+    boxes, and segmentation masks. The prompt encoder’s job is to encode these prompts
+    by converting them into a representative vector representation. Here’s a video
+    of the original SAM architecture that goes into the details about how prompt encoders
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The original Segment Anything Paper Explanation (Video by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Prompt Encoder takes converts it into a shape of N_tokens x 256\. For example,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**To encode a click** — The positional encoding of the x and y coordinate of
+    the click is used as one of the tokens in the prompt sequence. The “type” of click
+    (foreground/positive or background/negative) is also included in the representation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**To encode a bounding box** — The positional encoding for the top-left and
+    bottom-right points is used.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/1f213877f686559e3908dc264a96c792.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Encoding Prompts (Illustration by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A note on Dense Prompt Encodings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Point clicks and Bounding boxes are **sparse prompt encodings**, but we can
+    also input entire segmentation masks as well, which is a form of **dense prompt
+    encodings**. The dense prompt encodings are rarely used during inference — but
+    during training, they are used to iteratively train the SAM model. The training
+    methods of SAM are beyond the scope of this article, but for those curious here
+    is my attempt to explain an entire article in one paragraph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SAM is trained using iterative segmentation. During training, when SAM outputs
+    a segmentation mask, we input it back into SAM as a dense prompt along with refinement
+    clicks (sparse prompts) simulated from the ground-truth and prediction. The mask
+    decoder uses the sparse and dense prompts and learns to output a new refined segmentation
+    mask. During inference, only sparse prompts are used, and segmentation masks are
+    predicted in one-pass (without feeding back the dense mask.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Maybe one day I’ll write an article about iterative segmentation training, but
+    for now, let’s move on with our exploration of SAM’s network architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prompt encodings have largely remained the same in SAM-2\. The only difference
+    is that they must run separately for all frames that the user prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mask Decoder (Teaser)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Umm… before we get into mask decoders, let’s talk about the concept of *Memory*
+    in SAM-2\. For now, let’s just assume that the Mask Decoder inputs a bunch of
+    *things* (trust me we will talk about what these things are in a minute) and outputs
+    segmentation masks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Memory Encoder and Memory Bank**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**After the mask decoder generates output masks the output mask is passed through
+    a memory encoder to obtain a memory embedding.** A new memory is created after
+    each frame is processed. These memory embeddings are appended to a **Memory Bank**
+    which is a first-in-first-out (FIFO) queue of the latest memories generated during
+    video decoding.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68fcfff8b576d705204230c7bef185d0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'For each frame, the Memory Encoder inputs the output of the Mask Decoder Output
+    Mask and converts it into a memory. This memory is then inserted into a FIFO queue
+    called the Memory Bank. Note that this image does not show the Memory Attention
+    module — we will talk about it later in the article (Source: Image by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory Encoder
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The output masks are first downsampled using a convolutional layer, and the
+    unconditional image encoding is added to this output, passed through light-weight
+    convolution layers to fuse the information, and the resulting spatial feature
+    map is called the memory. You can imagine the memory to be a representation of
+    the original input frame and the generated mask from a given time frame in the
+    video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6c09fd1398bf2decbcd19132e6ef00a5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Memory Encoder (Image by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory Bank
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The memory bank contains the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most recent N memories are stored in a queue
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The last M prompts inputed by the user to keep track of multiple previous prompts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The mask decoder output tokens for each frame are also stored — which are like
+    object pointers that capture high-level semantic information about the object
+    to segment.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/4b3bb6a345a4066cb18a4130b6156ec3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Memory Bank (Image by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Memory Attention
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We now have a way to save historical information in a Memory Bank. Now we need
+    to use this information while generating segmentation masks for future frames.
+    This is achieved using **Memory Attention**. The role of memory attention is to
+    condition the current frame features on the Memory Bank features before it is
+    inputted into the Mask Decoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/903c3e88dd79d171b8844c61bba59c13.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Memory Attention block contextualizes the image encodings with the memory
+    bank. These contextualized image embeddings are then inputted into the mask decoder
+    to generate segmentation masks. (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Memory attention block first performs self-attention with the frame embeddings
+    and then performs cross-attention between the image embeddings and the contents
+    of the memory bank. The unconditional image embeddings therefore get contextualized
+    with the previous output masks, previous input prompts, and object pointers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1c865a12ddbd6da4bdc6efba6d6280a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Memory Attention Block (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: During the self-attention and cross-attention layers, in addition to the usual
+    sinusoidal position embeddings, 2D rotary positional embeddings are also used.
+    Without getting into extra details — rotary positional embeddings allow to capture
+    of relative relationships between the frames, and 2D rotary positional embeddings
+    work well for images because they help to model the spatial relationship between
+    the frames both horizontally and vertically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mask Decoder (For real this time)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Mask Decoder inputs the memory-contextualized image encodings output by
+    the Memory Attention block, plus the prompt encodings and outputs the segmentation
+    masks, IOU scores, and (the brand new) occlusion scores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/75323ed13ac8d94dd234ad70a184ec0d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'SAM-2 Mask Decoder (Source: SAM-2 Paper [here](https://arxiv.org/abs/2408.00714))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Mask-Decoder uses self-attention and cross attention mechanisms to contextualize
+    the prompt tokens with the (memory-conditioned) image embeddings. This allows
+    the image and prompts to be “married” together into one context-aware sequence.
+    These embeddings are then used to produce segmentation masks, IOU scores, and
+    the occlusion score. Basically, during the video, the queried object can get occluded
+    because it got blocked by another object in the scene — the occlusion score predicts
+    if the queried object is present in the current frame. The occlusion scores are
+    a new addition to SAM-2 which predicts if the queried object is at-all present
+    in the current scene or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To recap, just like the IOU scores, SAM generates an occlusion score for each
+    of the three predicted masks. The three IOU scores tell us how confident SAM is
+    for each of the three predicted masks — and the three occlusion scores tell us
+    how likely SAM thinks that the corresponding object is present in the scene.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c8151a6a0bd269c1550c5470e9d5258d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The outputs from SAM-2 Mask Decoders (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Video on SAM-2 by the Auth
+  prefs: []
+  type: TYPE_NORMAL
+- en: So… that was an outline of the network architecture behind SAM-2\. For the extracted
+    frames from a video (often at 6 FPS), the frames are encoded using the Frame/Image
+    encoder, memory attention contextualizes the image encodings, prompts are encoded
+    if present, the Mask Decoder then combines the image and prompt embeddings, produces
+    output masks, IOU scores, and occlusion scores, Memory is generated using memory
+    encoder, appended into the memory bank, and the whole process repeats.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b4500639eff2ecec696df16741e614e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The SAM-2 Algorithm (Image by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are still many things to discuss about SAM-2 like how it trains interactively
+    to be a promptable model, and how their data engine works to create training data.
+    I hope to cover these topics in a separate article! You can watch the SAM-2 video
+    on my YouTube channel above for more information and a visual tour of the systems
+    that empower SAM-2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Thanks for reading! Throw a clap and a follow!***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References / Where to go next
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Author’s Youtube Channel](https://www.youtube.com/@avb_fj)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[My video explanation of SAM](https://youtu.be/OhxJkqD1vuE)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[My video explanation of SAM-2](https://youtu.be/wMGb97EZkVU)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can play with the Segment Anything 2 Model on [Meta’s website](https://ai.meta.com/blog/segment-anything-2/).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[OG SAM Paper](https://arxiv.org/abs/2304.02643)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[SAM-2 Paper](https://arxiv.org/pdf/2408.00714)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

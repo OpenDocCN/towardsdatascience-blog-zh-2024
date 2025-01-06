@@ -1,0 +1,475 @@
+- en: How to Tune the Perfect Smoother
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-tune-the-perfect-smoother-bcc5a67660b1?source=collection_archive---------6-----------------------#2024-02-28](https://towardsdatascience.com/how-to-tune-the-perfect-smoother-bcc5a67660b1?source=collection_archive---------6-----------------------#2024-02-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Get the most out of your data with Whittaker-Eilers smoothing and leave-one-out
+    cross validation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@anbowell?source=post_page---byline--bcc5a67660b1--------------------------------)[![Andrew
+    Bowell](../Images/a23bade2986dd9ce01f9056d0a9b108f.png)](https://medium.com/@anbowell?source=post_page---byline--bcc5a67660b1--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bcc5a67660b1--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bcc5a67660b1--------------------------------)
+    [Andrew Bowell](https://medium.com/@anbowell?source=post_page---byline--bcc5a67660b1--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bcc5a67660b1--------------------------------)
+    ·12 min read·Feb 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a previous article I introduced the Whittaker-Eilers smoother¹ as [The Perfect
+    Way to Smooth Your Noisy Data](/the-perfect-way-to-smooth-your-noisy-data-4f3fe6b44440).
+    In a few lines of code, the method provides quick and reliable smoothing with
+    inbuilt interpolation that can handle large stretches of missing data. Furthermore,
+    just a single parameter, λ (lambda), controls how smooth your data becomes. You’ll
+    find that any smoother will have such parameters and tuning them can be tremendously
+    tedious. So, let me show you just how painless it can be with the right method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whittaker-Eilers Smoothing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When smoothing data, it’s likely there’s no ground truth you’re aiming towards;
+    just some noise in your measurements that hamper attempts to analyse it. Using
+    the Whittaker smoother, we can vary λ to alter the level of noise removed from
+    our data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/880cdb8fb79fc97e30aff2e4312bd11e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1) [Optical output of a galaxy](https://dr10.sdss.org/spectrumDetail?plateid=1939&mjd=53389&fiber=138)
+    smoothed for three different λs using the Whittaker-Eilers smoother².
+  prefs: []
+  type: TYPE_NORMAL
+- en: With λ ranging from 10 to 10,000,000 in Figure 1, how do we know what value
+    would be most suitable for our data?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Leave-one-out cross validation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To get an idea of how effective the smoothing is at any given λ, we need a metric
+    we can calculate from each smoothed series. As we’re unable to rely on having
+    a ground truth, we’re going to estimate the standard *predictive squared error*
+    (PSE) using *leave-one-out cross validation* (LOOCV). It’s a special case of k-fold
+    cross validation where the number of folds, *k*, is equal to the length of your
+    dataset, *n*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The calculation is straightforward; we remove a measurement, smooth the series,
+    and calculate the squared residual between our smoothed curve and the removed
+    measurement. Repeat this for every measurement in the data, take an average and
+    voila*,* we’ve calculated the *leave-one-out cross validation error* (CVE) — our
+    estimation of the predictive squared error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d98dcaf31d97b30924b4f13fec9bf12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In the equation above, our function *f* is the smoother and the *-i* notation
+    denotes that we’ve smoothed our data leaving out the *ith* measurement. From here
+    on, I’ll also utilise the root cross validation error (RCVE) which is just the
+    square root of our cross validation error.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can now smooth the optical spectra again, calculating the cross validation
+    error for a variety of λs. Then we can select the λ that produces the lowest cross
+    validation error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d7c56a3f4055a3c354661d70f67368d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2) [Optical spectra](https://dr10.sdss.org/spectrumDetail?plateid=1939&mjd=53389&fiber=138)
+    smoothed with the optimal λ as chosen by the minimum cross validation error².
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figure 2 you can see the root cross validation error plotted against λ. For
+    this specific data series a λ of ~10³ results in the optimal configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Within the whittaker-eilers [Python](https://pypi.org/project/whittaker-eilers/)
+    and [Rust](https://crates.io/crates/whittaker-eilers) packages I’ve implemented
+    this as a single function which performs a search of λ and returns the optimally
+    smoothed series alongside all of the λs and cross validation errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Python****:* [*pip install whittaker-eilers*](https://pypi.org/project/whittaker-eilers/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '***Rust****:* [*cargo add whittaker-eilers*](https://crates.io/crates/whittaker-eilers)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Has cross validation produced a good result?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With a little domain knowledge, we can double check our smoothed result from
+    cross validation. On the left of Figure 2, at a wavelength of around 4000 Ångströms,
+    there’s two dips which align with the absorption lines for Potassium and Hydrogen,
+    alongside a Hydrogen emission line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/013ff087a77f41bcd59f1c246b90c38a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3) Close up of the optical spectra with the emission and absorption lines
+    overlaid from the [SDSS website](https://dr10.sdss.org/spectrumDetail?plateid=1939&mjd=53389&fiber=138)².
+  prefs: []
+  type: TYPE_NORMAL
+- en: Over-smoothing results in these dips being merged and under-smoothing leaves
+    the dips separate but very noisy. Leave-one-out cross validation has done an excellent
+    job of selecting a λ which removes the vast majority of the noise while preserving
+    the underlying signal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: More examples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s take a look at more data smoothed with the optimal λ as selected by leave-one-out
+    cross validation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a6339a9a5cc9d36549c9afcd136c6f1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4) Optimally smoothed [change in mineral bone density](https://hastie.su.domains/ElemStatLearn/)
+    and root cross validation error for the λs tested³. This is an example of how
+    the Whittaker can be used to smooth a scatter plot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/173d3a3dd3d2436a181bc9a11120dcb1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5) Optimally smoothed [absolute humidity for an Italian town](https://archive.ics.uci.edu/dataset/360/air+quality)
+    and root cross validation error for the λs tested⁴.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first of the two datasets is rather noisy and therefore small values of
+    λ have generated the largest cross validation errors. Conversely, the second dataset
+    isn’t very noisy at all and has resulted in larger λs being penalised much more
+    than smaller λs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth noting that λ can vary across datasets not only due to noise, but
+    also due to the sampling rate of the measurements.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**The Achilles heel of cross validation**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Serially correlated data — when data is correlated with the lagged version of
+    itself — causes a significant problem when using leave-one-out cross validation.
+    Cross validation requires measurement error to be independent (like most statistical
+    techniques) but, in serially correlated data measurement errors are likely dependent
+    on the previous one. In practicality this leads to data barely being smoothed
+    as only at that scale are the errors independent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eilers presents a quick solution to this whereby you sample the data series
+    at every 5th (or 10th or 20th) point effectively removing the serial correlation
+    from your data¹. In the previous code snippets you can see I’ve implemented this
+    by exposing a Boolean option named *“break_serial_correlation”.* This was left
+    off to smooth the optical spectra in Figure 3 as no serial correlation is present
+    but turned on for smoothing the humidity data Figure 5\. It makes for a good solution,
+    but not a perfect one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As good as a ground truth?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Generally when you want to assess how well a model fits your data, you’ll use
+    a metric such as *root mean squared error* (RMSE)to calculate the difference in
+    your model’s estimations against a ground truth. So let’s generate a few data
+    series with varying levels of noise and compare how the RMSE reacts in comparison
+    to our leave-one-out cross validation error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/213407d0c8cdf6009cca8ac18e2673fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6) Cosine function between 0 and 2**π** with varying levels of Gaussian
+    noise added and then smoothed using the optimally tuned Whittaker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/df30f83983e9242458d89babae9a2a9e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7) The root cross validation error (RCVE) and the root mean squared error
+    (RMSE) plotted against λ on the same graph with separately scaled axes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As is expected, when the error added to the measurements gets larger the optimal
+    λ selected is larger too, inducing more smoothing on the series. An approximately
+    linear relationship between the RCVE and RMSE can be seen with the two offset
+    by some constant. This aligns with what is expected from the literature⁵ as CVE
+    is our estimate of *predictive squared error* (PSE) which is related to mean squared
+    error by,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da4e0a2775e7c8798aead8ad089509e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where σ is the standard deviation of the residuals. What we’ve proved here is
+    that in the case of actually random*,* independent errors, leave-one-out cross
+    validation offers a good estimation of the predictive squared error and in turn,
+    the overall quality of the smoothed fit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross validation is slow. Let’s speed it up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Earlier in this article, I provided the formula to compute cross validation
+    error. Following it exactly would require you to smooth a data series of *n-1*
+    length *n* times which, even with a quick method, is not ideal. Luckily for us
+    the Whittaker is a *constant preserving linear smoother* which enables us to derive
+    an amazing relationship between the ordinary residuals and the leave-one-out cross
+    validation residuals⁵. The result of this relationship? **Only having to smooth
+    the data once to compute the cross validation error.** Let’s dive right in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[I’ve previously demonstrated the linear algebra behind the Whittaker smoother](https://medium.com/towards-data-science/the-perfect-way-to-smooth-your-noisy-data-4f3fe6b44440#:~:text=of%20pre%2Dprocessing!-,The%20Mathematics,-Now%20we%E2%80%99ve%20covered)
+    and how; by calculating the ordinary residuals between your smoothed series **z**
+    and your original series **y,**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ce682b350b10e89e8cc03365c8036fe8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and then balancing them with a measure of smoothness — the sum of squared differences
+    between adjacent points in the smoothed series,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/08f3d2018814c3e3c2fe63844c58b77d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: you end up with equation 3, where **λ** is a used to scale the scale the smoothness
+    of your data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/035ce655ca1104315ce733750db31758.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Minimising **Q** then results in the optimally smoothed series for any given
+    **λ**, which can be boiled down to a least squares problem resulting in the following
+    linear equation,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9a26dc37854174e779cecdde83fbb192.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where **y** is a vector of raw points, **z** a vector of smoothed points, and
+    **A** a matrix containing some information about your smoothing constant **λ.**
+    We can shuffle this about,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/77a02a4a506e737664e1a5de64de03a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and arrive at a generic equation that describes a *linear smoother*. **H** throughout
+    regression and smoothing literature is called the *smoother matrix* or *hat matrix
+    —* which makes a lot of sense as multiplying our series **y** by **H** results
+    in a smoothed series **z (**and in some notations **ŷ** instead, hence hat matrix)¹.
+    The smoother matrix is important as it forms the basis of the relationship between
+    our ordinary residuals and the leave-one-out cross validation residuals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s revisit the statement I made at the start of the section. The Whittaker
+    smoother is *constant preserving*; meaning that the smoother isn’t adding a bias
+    to the underlying signal. Due to this, we can assume each row in the smoother
+    matrix sums to 1\. If it didn’t, when you multiplied it with your raw points,
+    it would shift the smoothed series away from the underlying signal in the data.
+    Relating this back to how we calculate the cross validated smoothed series gives
+    us a starting point for the derivation. When we remove a point from our series,
+    we have to remove a column from **H.** A row therefore contains one fewer element
+    and needs to be re-normalised to sum to 1\. We can formalise this as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f96ebb8c5412d315942c1ca2b2b122bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where **h** is an element of our smoother matrix **H**, and we’re really just
+    describing a matrix multiplication which skips a column⁵. The *-i* notation here
+    is the same as in the CVE equation from earlier — it’s the predicted value for
+    *ith* element where *y*ᵢ hasn’t been used to calculate the fit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now want to try and find a relationship between the ordinary residuals (computed
+    between the smoothed series and raw series) and the leave-one-out cross validation
+    residuals (computed between the smoothed series produced with an input point missing
+    and the raw series). Let’s first expand and rearrange to get rid of the ugly notation
+    in the summation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/925015a6c58193ee951551ab45b8fdf6.png)![](../Images/518b8db938b48f5f34a8eb9cfe5963e7.png)![](../Images/7889d68a89fcf7c57bb35d1dc6aa1ad9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The summation is now taking into account all elements and becomes the equation
+    that produces our standard smoothed value **z**,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ffb1b8bf039306bd456688d243b2a3f9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: which can then be substituted in,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/322dd392de1380822f5b242ea9166987.png)![](../Images/661011418518fbbb172e1a95a4f2c685.png)![](../Images/ba41782c2eb9f1c5e40003e03b601b98.png)![](../Images/e66e4835b09003db3483a9008165daa0.png)![](../Images/0e6711bd2125da2a8d96d444756f1249.png)![](../Images/eb665e7045e28e1d8d161d70daad9774.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: eventually resulting in a direct relationship between the leave-one-out cross
+    validation residuals and the ordinary residuals via the diagonal of the smoother
+    matrix. Pretty neat. We can now take our original equation for CVE and plug in
+    our new relationship,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6a9b84f8a607543c721f5743a727f868.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: and as you can see, we now don’t need to smooth the series each time! We just
+    access an element of our smoother matrix diagonal⁵. This leads neatly onto the
+    equation for *generalised cross validation* where, instead of dividing by each
+    diagonal element of **H**,we calculate the mean of the diagonal and divide by
+    that instead³.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fb4ec457ddd82f0c46164b520a1bbc8d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Why this is still too slow**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In calculating the smoother matrix we need to invert a sparse matrix — which
+    unfortunately results in a dense matrix. As our data length grows, the dense smoother
+    matrix will grow by *n².* While calculating this is still quicker than smoothing
+    our series *n* times, it’s not as fast as it could be.Eilers observes that the
+    diagonal of **H** plots a similar shape for a series of any length, it just needs
+    to be scaled accordingly by the ratio of the lengths¹. What we’re essentially
+    doing is creating a sample from **H** we’ll use to get our average of the full
+    **H**’s diagonal. Implementing this for a sample size of 100 enables us to have
+    consistently quick way of calculating the cross validation error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28b52efb81d448e8d8ea3a23215f77a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8) The time taken to smooth a series of ***n*** *length using the optimised
+    smoother matrix method and by simply smoothing the data series of* ***n-1*** *length*
+    ***n*** *times****.***
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Figure 8 we can see that if we were to use the original equation for CVE,
+    smoothing our data series *n* times, the time complexity increases with *n² —*
+    as does when we’re calculating the the smoother matrix up to a length of 100\.
+    Kicking sampling in after *n=100* enables us to increase the length of the series
+    for little additional cost. This sampling is likely responsible for the small
+    differences between RCVE and the RMSE in Figure 7.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concluding thoughts and further reading
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Whittaker-Eilers method is an amazing tool for both smoothing and interpolating
+    noisy data. Implementing it with sparse matrices results in an incredibly quick
+    and memory efficient method allowing for fast cross validation which, in the absence
+    of a ground truth, is an effective measure of the smoother’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the case of serially correlated data, cross validation can still be a good
+    method when slightly tweaked. Ultimately, more complex methods such as L- and
+    V-curve optimisation are better suited to parameter selection on this sort of
+    data. Maybe some time soon I’ll get round to implementing them in the whittaker-eilers
+    package.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of the code which has been used to generate these results is available within
+    the [whittaker-eilers](https://github.com/AnBowell/whittaker-eilers) GitHub repository
+    where both the Python and Rust packages reside. I’ve also included Eilers original
+    MATLAB scripts used to implement the Whittaker and cross validation¹.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks again for reading! Be sure to check out my [personal site](https://www.anbowell.com/)
+    and medium for more.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images within this article have been produced by the author with data
+    referenced accordingly.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Eilers, Paul H. C., *A Perfect Smoother*, Analytical Chemistry **2003**
+    *75* (14), 3631–3636, DOI: [10.1021/ac034173t](https://doi.org/10.1021/ac034173t)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Kollmeier et al, *SDSS-V Pioneering Panoptic Spectroscopy,* Bulletin of
+    the American Astronomical Society, **2019** 51 (7), 274, Bibcode: [2019BAAS…51g.274K](https://ui.adsabs.harvard.edu/abs/2019BAAS...51g.274K/abstract)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Hastie T, Tibshirani T, Friedman J, *The Elements of Statistical Learning,*
+    Springer, **2009,** URL: [https://hastie.su.domains/ElemStatLearn/](https://hastie.su.domains/ElemStatLearn/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Vito, Saverio, *Air Quality,* UCI Machine Learning Repository, **2016,**
+    DOI: [10.24432/C59K5F](https://doi.org/10.24432/C59K5F) Licence: *Creative Commons
+    Attribution 4.0 International*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Geyer, Charles J., *5601 Notes: Smoothing*, University Of Minnesota, **2013,**
+    URL**:** [https://www.stat.umn.edu/geyer/5601/notes/smoo.pdf](https://www.stat.umn.edu/geyer/5601/notes/smoo.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Data acknowledgement for SDSS optical spectra data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Funding for the Sloan Digital Sky Survey V has been provided by the Alfred
+    P. Sloan Foundation, the Heising-Simons Foundation, the National Science Foundation,
+    and the Participating Institutions. SDSS acknowledges support and resources from
+    the Center for High-Performance Computing at the University of Utah. SDSS telescopes
+    are located at Apache Point Observatory, funded by the Astrophysical Research
+    Consortium and operated by New Mexico State University, and at Las Campanas Observatory,
+    operated by the Carnegie Institution for Science. The SDSS web site is* [*www.sdss.org*](https://www.sdss.org/)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*SDSS is managed by the Astrophysical Research Consortium for the Participating
+    Institutions of the SDSS Collaboration, including Caltech, the Carnegie Institution
+    for Science, Chilean National Time Allocation Committee (CNTAC) ratified researchers,
+    The Flatiron Institute, the Gotham Participation Group, Harvard University, Heidelberg
+    University, The Johns Hopkins University, L’Ecole polytechnique fédérale de Lausanne
+    (EPFL), Leibniz-Institut für Astrophysik Potsdam (AIP), Max-Planck-Institut für
+    Astronomie (MPIA Heidelberg), Max-Planck-Institut für Extraterrestrische Physik
+    (MPE), Nanjing University, National Astronomical Observatories of China (NAOC),
+    New Mexico State University, The Ohio State University, Pennsylvania State University,
+    Smithsonian Astrophysical Observatory, Space Telescope Science Institute (STScI),
+    the Stellar Astrophysics Participation Group, Universidad Nacional Autónoma de
+    México, University of Arizona, University of Colorado Boulder, University of Illinois
+    at Urbana-Champaign, University of Toronto, University of Utah, University of
+    Virginia, Yale University, and Yunnan University.*'
+  prefs: []
+  type: TYPE_NORMAL

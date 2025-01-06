@@ -1,0 +1,462 @@
+- en: Accelerating AI/ML Model Training with Custom Operators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11](https://towardsdatascience.com/accelerating-ai-ml-model-training-with-custom-operators-163ef2a04b12?source=collection_archive---------1-----------------------#2024-08-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: On the potential benefits of creating model-specific GPU kernels and their application
+    to optimizing the use of dynamically shaped tensors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--163ef2a04b12--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--163ef2a04b12--------------------------------)
+    ·15 min read·Aug 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/85652d4b9d9dc933840a03993bb7ae6b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [David Marioni](https://unsplash.com/@dgeneva68?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post continues a long [series of posts](/pytorch-model-performance-analysis-and-optimization-10c3c5822869)
+    on the topic of analyzing and optimizing the runtime performance of training AI/ML
+    models. The post could easily have been titled “PyTorch Model Performance Analysis
+    and Optimization — Part 7”, but due to the weight of the topic at hand, we decided
+    that a dedicated post (or series of posts) was warranted. In our previous posts,
+    we have spoken at length about the importance of analyzing and optimizing your
+    AI/ML workloads and the potentially significant impact it can have on the speed
+    and costs of AI/ML model development. We have advocated for having multiple tools
+    and techniques for profiling and optimizing training performance and have demonstrated
+    many of these in practice. In this post we will discuss one of the more advanced
+    optimization techniques — one that sets apart the true rock stars from the simple
+    amateurs — creating a custom PyTorch operator in C++ and CUDA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Popular ML frameworks, such as PyTorch, TensorFlow, and JAX are typically built
+    using SW components that are optimized for the underlying hardware that the AI/ML
+    workload is run on, be it a CPU, a GPU, or an AI-specific ASIC such as a Google
+    TPU. However, inevitably, you may find the performance of certain computation
+    blocks that comprise your model to be unsatisfactory or in-optimal. Oftentimes,
+    tuning the low-level code blocks — often referred to as *kernels —* to the specific
+    needs of the AI/ML model, can result in significant speed-ups to the runtime performance
+    of model training and inference. Such speed-ups can be accomplished by implementing
+    functionalities that were previously unsupported (e.g., an advanced attention
+    block), fusing together individual operations (e.g., as in [PyTorch’s tutorial
+    on multiply-add fusion](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)),
+    and/or optimizing existing kernels based on the specific properties of the model
+    at hand. Importantly, the ability to perform such customization depends on the
+    support of both the AI HW and the ML framework. Although our focus on this post
+    will be on NVIDIA GPUs and the PyTorch framework, it should be noted that other
+    AI ASICs and ML frameworks enable similar capabilities for custom kernel customization.
+    NVIDIA enables the development of custom kernels for its GPUs through its [CUDA
+    toolkit](https://developer.nvidia.com/cuda-toolkit). And PyTorch includes dedicated
+    [APIs](https://pytorch.org/docs/stable/cpp_extension.html#torch.utils.cpp_extension.CUDAExtension)
+    and [tutorials](https://pytorch.org/tutorials/advanced/cpp_custom_ops.html#cpp-custom-ops-tutorial)
+    for exposing this functionality and integrating it into the design of your model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our intention in this post is to draw attention to the power and potential of
+    kernel customization and demonstrate its application to the unique challenge of
+    training models with dynamically shaped tensors. Our intention is not — by any
+    means — to replace the official documentation on developing custom operations.
+    Furthermore, the examples we will share were chosen for demonstrative purposes
+    only. We have made no effort to optimize these or verify their robustness, durability,
+    or accuracy. If, based on this post, you choose to invest in AI/ML optimization
+    via custom CUDA kernel development, you should be sure to undergo the appropriate
+    training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Toy Model — The Challenge of Dynamically Shaped Tensors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The prevalence of tensors with dynamic shapes in AI models can pose unique and
+    exciting challenges with regards to performance optimization. We have already
+    seen one example of this in a [previous post](/pytorch-model-performance-analysis-and-optimization-part-3-1c5876d78fe2)
+    in which we demonstrated how the use of boolean masks can trigger an undesired
+    CPU-GPU sync event and advocated against their use. Generally speaking, AI accelerators
+    tend to prefer tensors with fixed shapes over ones with dynamic shapes. Not only
+    does it simplify the management of memory resources, but it also enables greater
+    opportunity for performance optimization (e.g., using [torch.compile](https://pytorch.org/tutorials/intermediate/torch_compile_tutorial.html)).
+    The toy example that follows demonstrates this challenge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose we are tasked with creating a face detection model for a next-generation
+    digital camera. To train this model we are provided with a dataset of one million
+    *256*x*256* grayscale images and associated ground-truth bounding boxes for each
+    image. Naturally, the number of faces in each image can vary greatly, with the
+    vast majority of images containing five or fewer faces, and just a few containing
+    dozens or even hundreds. The requirement from our model is to support all variations.
+    Specifically, our model needs to support the detection of up to *256* faces in
+    an image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this challenge, we define the following naïve model that generates
+    bounding boxes and an accompanying loss function. In particular, we naïvely truncate
+    the model outputs based on the number of target boxes rather than perform some
+    form of [assignment algorithm](https://en.wikipedia.org/wiki/Hungarian_algorithm)
+    for matching between the bounding box predictions and ground truth targets. We
+    (somewhat arbitrarily) choose the [Generalized Intersection Over Union (GIOU)](https://giou.stanford.edu/)
+    loss. A real-world solution would likely be far more sophisticated (e.g., it would
+    include a loss component that includes a penalty for false positives).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Due to the varying number of faces per image, the loss is calculated separately
+    for each individual sample rather than a single time (for the entire batch). In
+    particular, the CPU will launch each of the GPU kernels associated with the loss
+    function *B* times, where *B* is the chosen batch size. Depending on the size
+    of the batch, this could entail a significant overhead, as we will see below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the following block we define a dataset that generates random images and
+    associated bounding boxes. Since the number of faces varies per image, we require
+    a [custom collate function](https://pytorch.org/docs/stable/data.html#working-with-collate-fn)
+    for grouping samples into batches:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Typically, each training step starts with copying the training batch from the
+    host (CPU) to the device (GPU). When our data samples are of fixed size, they
+    are copied in batches. However, one of the implications of the varying number
+    of faces per image is that the bounding box targets of each sample is copied separately
+    requiring many more individual copy operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Lastly, we define our training/evaluation loop. For the purposes of our discussion,
+    we have chosen to focus just on the forward pass of our training loop. Note the
+    inclusion of a [PyTorch profiler](https://pytorch.org/tutorials/recipes/recipes/profiler_recipe.html)
+    object and our use of explicit [synchronization events](https://pytorch.org/docs/stable/generated/torch.cuda.synchronize.html)
+    (to facilitate performance evaluation of different portions of the forward pass).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Performance Analysis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Running our script on a Google Cloud [g2-standard-16](https://cloud.google.com/compute/docs/gpus#l4-gpus)
+    VM (with a single L4 GPU), a dedicated [deep learning VM image](https://cloud.google.com/deep-learning-vm/docs/release-notes),
+    and PyTorch 2.4.0, generates the output below (which we trimmed for readability).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Despite the fact that the loss function contains far fewer operations, it completely
+    dominates the overall step time. The overhead of the repeated invocations of the
+    underlying GPU kernels (for each sample in the batch) is clearly evident in the
+    *Trace* view in [TensorBoard](https://pytorch.org/tutorials/intermediate/tensorboard_profiler_tutorial.html#use-tensorboard-to-view-results-and-analyze-model-performance):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/adbbc45d08a2f4f6b3d425b40a66e026.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Impact of Individual Invocations of the Loss Function Per Batch Sample as
+    Seen in TensorBoard (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization Through Concatenation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One way to reduce the number of calls to the *loss* function is to combine together
+    all of the valid boxes each batch using [concatenation](https://pytorch.org/docs/stable/generated/torch.concatenate.html),
+    as shown in the following block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The results of this optimization are captured below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The concatenation optimization resulted in a 37X (!!) speed-up of the loss
+    function. Note, however, that it did not address the overhead of the individual
+    host-to-device copies of the sample ground-truth data. This overhead is captured
+    in the screenshot below from TensorBoard’s *Trace* view:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f360f4261cdc01a8d47bd17bf7273872.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Impact of Individual Host to Device Copies of the Batch Samples as Seen
+    in TensorBoard (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization Through Padding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A common approach to avoiding the use of dynamically shaped tensors is padding.
+    In the following code block, we modify the collate function to pad (with zeros)
+    the ground-truth bounding-boxes of each data sample to the maximum number of supported
+    boxes, 256\. (Note that the padding could also have been performed in the Dataset
+    class.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Padding the samples to fixed sized tensors enables us to copy the ground truth
+    of the batch with a single call. It also allows us to compute the loss with a
+    single invocation of the loss function. Note, that this method requires masking
+    the resultant loss, as shown below, so that only the valid boxes are taken into
+    consideration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The resultant runtime performance is captured below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note the nearly 10X boost in the data copy and the additional 14X boost in the
+    loss function performance. Keep in mind that padding may increase the use of the
+    GPU memory. In our case, this increase is less than 1%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the runtime of our loss function has improved dramatically, we note that
+    the vast majority of the calculations that are performed in the loss functions
+    are immediately masked away. We can’t help but wonder whether there is a way to
+    further improve the performance by avoiding these redundant operations. In the
+    next section, we will explore the opportunities provided by using custom CUDA
+    kernels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating a Custom CUDA Kernel
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Many tutorials will highlight the difficulty of creating CUDA kernels and the
+    high entrance barrier. While mastering CUDA development and tuning kernels to
+    maximize the utilization of the GPU could indeed require years of experience as
+    well as an intimate understanding of the GPU architecture, we strongly believe
+    that even a novice (but ambitious) CUDA enthusiast/ML developer can succeed at
+    — and greatly benefit from — building custom CUDA kernels. In this section we
+    will take PyTorch’s (relatively simple) example of a C++/CUDA extension for PyTorch
+    and enhance it with a GIOU kernel. We will do this in two stages: First we will
+    naïvely carry over all of the GIOU logic to C++/CUDA to assess the performance
+    impact of *kernel fusion.* Then, we will take advantage of our new-found low-level
+    control to add conditional logic and reduce unneeded arithmetic operations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Developing CUDA kernels allows you to determine the core logic that is performed
+    in each of the GPU threads and how these are distributed onto the underlying GPU
+    *streaming multiprocessors* (SMs). Doing this in the most optimal manner requires
+    an expert understanding of the GPU architecture including the different levels
+    of GPU memory, memory bandwidth, the on-chip acceleration engines (e.g., TensorCores),
+    the supported number of concurrent threads per SM and how they are scheduled,
+    and much much more. What makes things even more complicated is that these properties
+    can vary between GPU generations and flavors. See [this blog](https://developer.nvidia.com/blog/even-easier-introduction-cuda)
+    for a very basic, but very easy, introduction to CUDA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 1 — Kernel Fusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Looking back at the Trace view of our last experiment, you may notice that
+    the forward pass of our loss calculation includes roughly thirty independent arithmetic
+    operations which translate to launching and running an independent CUDA kernel
+    (as can be seen by simply counting the number of *cudaLaunchKernel* events). This
+    can negatively impact performance in a number of ways. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each kernel launch requires dedicated communication between the CPU and GPU
+    — something we always try to minimize.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Each kernel needs to wait for the previous kernel to be completed before running.
+    Sometimes, this can’t be avoided, but in some cases, such as ours — where most
+    of the operations are performed “per-pixel”, it can.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The use of many independent kernels can have implications on how the GPU memory
+    is used.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Optimization through *kernel fusion* attempts to reduce this overhead by combining
+    these operations into a lower number of kernels so as to reduce the overhead of
+    multiple kernels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the code block below, we define a kernel that performs our GIOU on a single
+    bounding-box prediction-target pair. We use a 1-D grid to allocate thread blocks
+    of size *256* each where each block corresponds to one sample in the training
+    batch and each thread corresponds to one bounding box in the sample. Thus, each
+    thread — uniquely identified by a combination of the *block* and *thread* IDs
+    — receives the predictions (*boxes1*) and targets (*boxes2*) and performs the
+    GIOU calculation on the single bounding box determined by the IDs. As before,
+    the “validity” of the bounding box is controlled by the value of the target boxes.
+    In particular, the GIOU is explicitly zeroed wherever the corresponding box is
+    invalid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: To complete the kernel creation, we need to add the appropriate C++ and Python
+    operator definitions (see [muladd.cpp](https://github.com/pytorch/extension-cpp/blob/master/extension_cpp/csrc/muladd.cpp#L68)
+    and [ops.py](https://github.com/pytorch/extension-cpp/blob/master/extension_cpp/ops.py#L7))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: To compile our kernel, run the installation script (`pip install .`) from the
+    base directory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following block uses our newly defined GIOU CUDA kernel:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note the explicit casting to *torch.float32*. This is a rather expensive operation
+    that could be easily avoided by enhancing our CUDA kernel support. We leave this
+    as an exercise to the reader :).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results of running our script with our custom kernel are displayed below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Despite the naïveté of our kernel (and our inexperience at CUDA), we have boosted
+    the loss function performance by an additional ~3X over our previous experiment
+    (628 microseconds compare to 1.8 milliseconds). As noted above, this can be improved
+    even further without much effort.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Step 2 — Conditional Execution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The thread-level control that CUDA provides us allows us to add a conditional
+    statement that avoids computation on the invalid bounding boxes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the case of our kernel, the impact on runtime performance is negligible.
+    The reason for this (presumably) is that our kernel is relatively small to the
+    point that its runtime is negligible compared to the time required to load and
+    instantiate it. The impact of our conditional execution might become apparent
+    for larger kernels only. (The impact, as a function of the kernel size can be
+    assessed by making our GIOU output dependent on a *for* loop that we run for a
+    varying number of fixed steps. This, too, we leave as an exercise :).) It is also
+    important to take into consideration how a conditional execution flow behaves
+    on CUDA’s [SIMT architecture](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#simt-architecture),
+    particularly, the potential performance penalty when threads belonging to the
+    same *warp* diverge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Results and Next Steps
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We summarize the results of our experiments in the table below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/705347a88876ca779d62ab6e9af3704e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Summary of Average of Loss Runtimes (by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Importantly, our work is not done. Admittedly, we have taken some shortcuts
+    in the example we have shared:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to use our custom kernel for training, we would need to implement the
+    backward pass. Typically, this can be a bit more complicated than the forward
+    pass.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We have fixed both the tensor types (to float32) and tensor shapes (to 256 boxes
+    per sample). Ideally, a more robust solution is desired that supports varying
+    input types and shapes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We limited our experiments to a single GPU type. In reality, we would want our
+    implementation to support (and be tested on) multiple GPUs.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We have completely neglected opportunities for kernel optimization — some of
+    which may require greater CUDA expertise than we have demonstrated here.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we demonstrated the potential of the use of a custom CUDA kernel
+    on the runtime performance of AI/ML applications. We attempted, in particular,
+    to utilize the low-level control enabled by CUDA to introduce a conditional flow
+    to limit the number of redundant arithmetic operations in the case of dynamically
+    shaped inputs. While the performance boost resulting from the fusion of multiple
+    kernel operations was significant, we found the size of our kernel to be too small
+    to benefit from the conditional execution flow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Throughout many of our posts we have emphasized the importance of having multiple
+    tools and techniques for optimizing ML and reducing its costs. Custom kernel development
+    is one of the most powerful techniques at our disposal. However, for many AI/ML
+    engineers, it is also one of the most intimidating techniques. We hope that we
+    have succeeded in convincing you that this opportunity is within reach of any
+    ML developer and that it does not require major specialization in CUDA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In recent years, new frameworks have been introduced with the goal of making
+    custom kernel development and optimization more accessible to AI/ML developers.
+    One of the most popular of these frameworks is [Triton](https://triton-lang.org/main/index.html).
+    In our [next post](https://chaimrand.medium.com/unleashing-the-power-of-triton-mastering-gpu-kernel-optimization-in-python-160a3f52701e)
+    we will continue our exploration of the topic of custom kernel development by
+    assessing the capabilities and potential impact of developing Triton kernels.
+  prefs: []
+  type: TYPE_NORMAL

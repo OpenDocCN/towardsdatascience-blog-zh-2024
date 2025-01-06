@@ -1,0 +1,574 @@
+- en: Exploring LLMs for ICD Coding — Part 1
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exploring-llms-for-icd-coding-part-1-959e48b58b9e?source=collection_archive---------1-----------------------#2024-05-16](https://towardsdatascience.com/exploring-llms-for-icd-coding-part-1-959e48b58b9e?source=collection_archive---------1-----------------------#2024-05-16)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Building automated clinical coding systems with LLMs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@anand.subu10?source=post_page---byline--959e48b58b9e--------------------------------)[![Anand
+    Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--959e48b58b9e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--959e48b58b9e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--959e48b58b9e--------------------------------)
+    [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--959e48b58b9e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--959e48b58b9e--------------------------------)
+    ·16 min read·May 16, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clinical coding isn’t common parlance, but it significantly impacts everyone
+    who interacts with the healthcare system in most countries. Clinical coding involves
+    translating and mapping medical information from patient health records, such
+    as diagnoses and procedures, into standardized numeric or alphanumeric codes.
+    These codes are crucial for billing, healthcare analytics, and ensuring that patients
+    receive appropriate care.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d56b7d4ee7bac168b0d1961b3e2c6378.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A representative workflow of automated ICD coding (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clinical coding is typically performed by human coders with medical expertise.
+    These coders navigate complex and often hierarchical coding terminologies with
+    specific codes for a vast range of diagnoses and procedures. As such, coders must
+    have a deep familiarity with and experience in the coding terminology used. However,
+    manually coding documents can be slow, error-prone, and bottlenecked by the requirement
+    for significant human expertise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deep learning can play a significant role in automating clinical coding. By
+    automating the extraction and translation of complex medical information into
+    codes, deep learning systems can function as a valuable tool within a human-in-the-loop
+    system. They can support coders by processing large volumes of data quickly, potentially
+    improving speed and accuracy. This can help streamline administrative operations,
+    reduce billing errors and enhance patient care outcomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this first part, I describe what ICD coding is, characterize the various
+    challenges that an automated coding system must overcome in order to be effective.
+    I also analyze how Large Language Models (LLMs) can be effectively used for overcoming
+    these problems, and illustrate that by implementing an algorithm from a recent
+    paper that leveraged LLMs effectively for ICD coding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table of Contents:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[**What is ICD Coding?**](#bfdf)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**What are the challenges in automated ICD coding**](#76c7)**?**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**How can LLMs help in automated ICD coding?**](#46fd)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Exploring the paper “Automated clinical coding using off-the-shelf large
+    language models”**](#2949)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Implementing the technique described in the paper**](#ddc6)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Conclusion**](#0356)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**References**](#f82e)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What is ICD Coding?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The International Classification of Diseases (ICD) coding is a clinical terminology
+    system developed and maintained by the World Health Organization [1]. It is used
+    in most countries to categorize and code all diagnoses, symptoms, and procedures
+    recorded for a patient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Medical notes, which document the diagnoses and medical procedures for a patient,
+    are crucial for ICD coding . The ICD terminology features a hierarchical, tree-like
+    structure to efficiently organize extensive information, with approximately 75,000
+    different assignable codes available for various medical conditions and diagnoses.
+    Coding these documents precisely is vital; accurate coding ensures appropriate
+    billing and influences the quality of healthcare analysis, directly impacting
+    patient care outcomes, reimbursement and healthcare efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What are the challenges in automated ICD coding?**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: ICD coding poses multiple challenges that an automated system must overcome
+    in order to be effective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Label Diversity in ICD Coding:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One significant challenge is the extensive output space of labels. ICD codes
+    are numerous, and each code can differ in minute details — for instance, a condition
+    affecting the right hand versus the left hand will have different codes. Additionally,
+    there exists a long tail of rare codes that appear infrequently in medical records,
+    making it difficult for deep learning models to learn and accurately predict these
+    codes due to the scarcity of examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Adapting to New ICD Codes:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Traditional datasets used for training, such as MIMIC-III [2] , while comprehensive,
+    often limit the scope of ICD codes to those included in the training corpus. This
+    restriction means that deep-learning models treating ICD coding as a multi-label
+    classification problem from medical notes to ICD codes have difficulty handling
+    new codes introduced into the ICD system after the model’s training. This makes
+    retraining necessary and potentially challenging.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Extracting and Contextualizing Information:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another major challenge is the accurate extraction and contextualization of
+    information from medical notes. ICD coding is fundamentally an Information Retrieval
+    problem that requires not only identifying the diagnoses in the medical records
+    but also capturing all supplementary information necessary for correctly mapping
+    these diagnoses to their respective ICD codes. Therefore, it is crucial for an
+    automated system to extract the various medical diagnoses in the medical note
+    and contextualize them appropriately to ensure accurate mapping to the ICD codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e8fc0ee85ce38370994cb37a6e4dc546.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example of the coarse-to-fine grained nature of ICD Coding — The final code
+    that is to be assigned to a diagnosis is a function of how contextualized and
+    precise the final query is. (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What does contextualization mean here? When dealing with medical notes, to contextualize
+    a diagnosis means to link it with all pertinent details — such as the bodypart
+    affected and the symptoms of the condition — to fully characterize the diagnosis.
+    Generally this task is referred to as **relation extraction**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3bcf3cb6b8074705379fc555c62cf3c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A representative example of the Relation Extraction process. Relation Extraction
+    can help associate all relevant information for the main diagnosis in the medical
+    note. (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can LLMs help in automated ICD coding?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When addressing the challenges of automated ICD coding, Large Language Models
+    (LLMs) are well-positioned to address these problems, particularly due to their
+    adaptability to new labels and their ability to manage complex information extraction
+    tasks. However the point here is not to argue that LLMs are the best solution
+    for automated ICD coding, or that these are problems that only LLMs can solve.
+    Rather, by establishing some of the main challenges than an automated ICD coding
+    system must overcome, I analyze how best the abilities of LLMs can be leveraged
+    to solve them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Adapting to New and Rare ICD Codes:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLMs demonstrate robust zero-shot and few-shot learning capabilities, allowing
+    them to adapt to new tasks with minimal examples and instructions provided in
+    the prompt. Retrieval-Augmented Generation (RAG) is another paradigm that enables
+    LLMs to access more contextual information to adapt to new tasks without fine-tuning.
+    This is particularly useful for adapting LLMs to new and/or rare ICD codes, which
+    may not be frequently represented in training datasets, from just a few descriptions
+    or examples of usage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Contextualizing Information:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LLMs are found to be effective at zero-shot relation extraction in the clinical
+    domain [3] [4]. Zero-shot relation extraction allows LLMs to identify and categorize
+    relationships in text without prior specific training on those relationships.
+    This allows for better contextualization of the diagnosis in the medical coding
+    to fetch more precise ICD codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Exploring the paper “Automated clinical coding using off-the-shelf large language
+    models”:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While exploring recent works that applied LLMs towards ICD coding, I came across
+    a very interesting paper that leveraged LLMs for ICD coding without any specific
+    fine-tuning. The authors came up with a method which they termed **LLM-guided
+    tree-search** [5].
+  prefs: []
+  type: TYPE_NORMAL
+- en: How does it work?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ICD terminology is a hierarchical, tree-like structure. Each ICD code exists
+    within this hierarchical structure where parent codes cover more general conditions,
+    and child codes detail specific diseases. Traversing the ICD tree leads to more
+    specific and fine-grained diagnosis codes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In LLM-guided tree search, the search begins at the root and uses the LLM to
+    select branches for exploration, continuing iteratively until all paths are exhausted.
+    Practically, this process is implemented by providing the descriptions of all
+    codes at any given level of the tree, along with the medical note, as a prompt
+    to the LLM and asking it to identify the relevant codes for the medical note.
+    The codes selected by the LLM in each instance are then further traversed and
+    explored. This method identifies the most pertinent ICD codes, which are subsequently
+    assigned as predicted labels for the clinical note.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a2b99ac2336be8186f28fa9601522cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Tree-Search algorithm starts at the first level of the ICD tree. The descriptions
+    of all the nodes in the first level along with the Medical Note are provided to
+    the LLM, which is prompted to identify all relevant codes for the provided note.
+    The output of the LLM is resolved as a set of Yes/No answers for each ICD code
+    description. (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s clarify this with an example. Imagine a tree with two root nodes: ICD
+    Code 1 and ICD Code 2\. Each node has a plain-text description characterizing
+    the code. In the initial stage, the LLM is given the medical note along with the
+    descriptions of the codes and asked to identify the codes pertinent to the medical
+    note.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/76ca69660ab14dc3e1c47bfdc5a52415.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Given that the LLM predicted both ICD Code 1 and 2 as relevant to the medical
+    note, the algorithm traverses the children of each of these nodes. Each node has
+    2 children codes, and the LLM is again invoked for each node’s children individually
+    to identify if the child nodes are relevant to the medical note. (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this scenario, the LLM identifies both ICD Code 1 and ICD Code 2 as relevant
+    to the medical note. The algorithm then examines the child nodes of each code.
+    Each parent code has two child nodes representing more specific ICD codes. Starting
+    with ICD Code 1, the LLM uses the descriptions of ICD Code 1.1 and ICD Code 1.2
+    along with the medical note to determine the relevant codes. The LLM concludes
+    that ICD Code 1.1 is relevant, while ICD Code 1.2 is not. Since ICD Code 1.1 has
+    no further child nodes, the algorithm checks if it is an assignable code and assigns
+    it to the document. Next, the algorithm evaluates the child nodes of ICD Code
+    2\. Invoking the LLM again, it determines that only ICD Code 2.1 is relevant.
+    This is a simplified example; in reality, the ICD tree is extensive and deeper,
+    meaning the algorithm will continue to traverse the children of each relevant
+    node until it reaches the end of the tree or exhausts valid traversals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Highlights**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This method does not require any fine-tuning of the LLM; it leverages the LLM’s
+    ability to contextually understand the medical note and dynamically identify the
+    relevant ICD codes based on the provided descriptions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Furthermore, this paper shows that LLMs can effectively adapt to a large output
+    space when given relevant information in the prompt, outperforming PLM-ICD [6]
+    on rare codes in terms of macro-average metrics.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This technique also outperforms the baseline of directly asking the LLM to predict
+    the ICD codes for a medical note based on its parametric knowledge. This highlights
+    the potential in integrating LLMs with tools or external knowledge for solving
+    clinical coding tasks.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Drawbacks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The algorithm invokes the LLM at every level in the tree. That leads to a high
+    number of LLM invocations as you traverse the tree, compounded by the vastness
+    of the ICD tree. This leads to high latency and costs in processing a single document.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As the authors also note in the paper, in order to correctly predict a relevant
+    code, the LLM must correctly identify its parent nodes at all levels. Even if
+    a mistake is made at one level, the LLM will be unable to reach the final relevant
+    code.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The authors were unable to evaluate their method using datasets like MIMIC-III
+    due to limitations that prohibit the transfer of data to external services such
+    as OpenAI’s GPT endpoints. Instead, they evaluated the method using the test set
+    of the CodiEsp dataset [7,8], which includes 250 medical notes. The small size
+    of this dataset suggests that the method’s effectiveness on larger clinical datasets
+    is yet to be established.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Implementing the technique described in the paper**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All code and resources related to this article are made available at [this link](https://github.com/anand-subu/automated-clinical-coding-llm)
+    with a mirror of the repo available in my original [blog-related repository](https://github.com/anand-subu/blog_resources).
+    I wish to stress that my reimplementation is not exactly identical to the paper
+    and differs in subtle ways that I’ve documented in the original repository. I’ve
+    tried to replicate the prompts used for invoking GPT-3.5 and Llama-70B based on
+    the details in the original paper. For translating the datasets from Spanish to
+    English, I created my own prompt for doing that, as the details were not accessible
+    in the paper.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let’s implement the technique to better understand how it works. As mentioned,
+    the paper uses the CodiEsp test set for its evaluation. This dataset consists
+    of Spanish medical notes along with their ICD codes. Although the dataset includes
+    an English translated version, the authors note that they translated the Spanish
+    medical notes into English using GPT-3.5, which they claim provided a modest performance
+    improvement over using the pre-translated version. We replicate this functionality
+    and translate the notes into English.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have the evaluation corpus ready, let’s implement the core logic
+    for the tree-search algorithm. We define the functionality in **get_icd_codes**,
+    which accepts the medical note to process, the model name, and the temperature
+    setting. The model name must be either **“gpt-3.5-turbo-0613”** for GPT-3.5 or
+    **“meta-llama/Llama-2–70b-chat-hf”** for Llama-2 70B Chat. This specification
+    determines the LLM that the tree-search algorithm will invoke during its processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating GPT-4 is possible using the same code-base by providing the appropriate
+    model name, but we choose to skip it as it is quite time-consuming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similar to the paper, we use the [**simple_icd_10_cm**](https://github.com/StefanoTrv/simple_icd_10_CM)library,
+    which provides access to the ICD-10 tree. This allows us to traverse the tree,
+    access the descriptions for each code, and identify valid codes. First, we get
+    the nodes at the first level of the tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Inside the loop, we obtain the descriptions corresponding to each of the nodes.
+    Now, we need to construct the prompt for the LLM based on the medical note and
+    the code descriptions. We create the prompts for GPT-3.5 and Llama-2 based on
+    the details provided in the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now construct the prompt based on the medical note and code descriptions.
+    An advantage for us, in terms of prompting and coding, is that we can use the
+    same **openai** library to interact with both GPT-3.5 and Llama 2, provided that
+    Llama-2 is deployed using [deepinfra](https://deepinfra.com/), which also supports
+    the **openai** format for sending requests to the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Having constructed the prompts, we now invoke the LLM to obtain the response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Great, we’ve obtained the output! From the response, we now parse each code
+    description to identify the nodes that the LLM has deemed relevant for further
+    traversal, as well as those nodes the LLM has rejected. We break the output response
+    into new lines and split each response to identify the prediction of the LLM for
+    each code description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s look at the remainder of the loop now. So far, we have constructed the
+    prompt, obtained the response from the LLM, and parsed the output to identify
+    the codes deemed relevant by the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we iterate through the predicted codes and check if each code is a **“leaf”**
+    code, which essentially ensures that the code is a valid and assignable ICD code.
+    If the predicted code is valid, we consider it as a prediction by the LLM for
+    that medical note. If not, we add it to our parent codes and obtain the children
+    nodes to further traverse the ICD tree. We break out of the loop if there are
+    no more parent codes to further traverse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In theory, the number of LLM invocations per medical note can be arbitrarily
+    high, leading to increased latency if the algorithm traverses many nodes. The
+    authors enforce a maximum of 50 prompts/LLM invocations per medical note to terminate
+    the processing, a limit we also adopt in our implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can now evaluate the results of the tree-search algorithm using GPT-3.5 and
+    Llama-2 as the LLMs. We assess the performance of the algorithm in terms of micro-average
+    and macro-average precision, recall, and F1-score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a5e30b996754e8cab45988d7e2ce23e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of our implementation for GPT-3.5 and Llama-2 70B Chat
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the implementation’s results are roughly in the ball-park of the reported
+    scores in the paper, there are some note-worthy differences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this implementation, GPT-3.5’s micro-average metrics slightly exceed the
+    reported figures, while the macro-average metrics fall a bit short of the reported
+    values.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Similarly, Llama-70B’s micro-average metrics either match or slightly exceed
+    the reported figures, but the macro-average metrics are lower than the reported
+    values.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: As mentioned earlier, this implementation differs from the paper in a few minor
+    ways, all of which impact the final performance. Please refer to the [linked repository](https://github.com/anand-subu/automated-clinical-coding-llm)
+    for a more detailed discussion of how this implementation differs from the original
+    paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Understanding and implementing this method was quite insightful for me in many
+    ways. It allowed me to develop a more nuanced understanding of the strengths and
+    weaknesses of Large Language Models (LLMs) in the clinical coding case. Specifically,
+    it became evident that providing LLMs dynamic access to pertinent information
+    about codes can help improve their performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It would be interesting to explore whether utilizing LLMs as agents for clinical
+    coding could further improve performance. Given the abundance of external knowledge
+    sources for biomedical and clinical texts in the form of papers or knowledge graphs,
+    LLM agents could potentially be used in workflows that analyze medical documents
+    at a finer granularity. They could also invoke tools that allow them to refer
+    to external knowledge on the fly if required, to arrive at the final code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this article, while I tried to analyze how LLMs can help with respect to
+    ICD coding, there are also some practical limitations to consider in general:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs require significant computational resources for deployment. This leads
+    to considerations such as the need for powerful GPUs without which applications
+    may suffer from high latency, which can constrain their adoption.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Furthermore, healthcare data processing may often require strict data security
+    and privacy safeguards. Online LLM services may not necessarily comply with the
+    security and privacy standards required for healthcare data processing.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Acknowledgement
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Huge thanks to Joseph, the lead author of this paper, for clarifying my doubts
+    regarding the evaluation of this method!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'References:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] [https://www.who.int/standards/classifications/classification-of-diseases](https://www.who.int/standards/classifications/classification-of-diseases)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Johnson, A. E., Pollard, T. J., Shen, L., Lehman, L. W. H., Feng, M., Ghassemi,
+    M., … & Mark, R. G. (2016). MIMIC-III, a freely accessible critical care database
+    Sci. *Data*, *3*(1), 1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Agrawal, M., Hegselmann, S., Lang, H., Kim, Y., & Sontag, D. (2022). Large
+    language models are few-shot clinical information extractors. *arXiv preprint
+    arXiv:2205.12689*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Zhou, H., Li, M., Xiao, Y., Yang, H., & Zhang, R. (2023). LLM Instruction-Example
+    Adaptive Prompting (LEAP) Framework for Clinical Relation Extraction. *medRxiv
+    : the preprint server for health sciences*, 2023.12.15.23300059\. [https://doi.org/10.1101/2023.12.15.23300059](https://doi.org/10.1101/2023.12.15.23300059)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Boyle, J. S., Kascenas, A., Lok, P., Liakata, M., & O’Neil, A. Q. (2023,
+    October). Automated clinical coding using off-the-shelf large language models.
+    In *Deep Generative Models for Health Workshop NeurIPS 2023*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Huang, C. W., Tsai, S. C., & Chen, Y. N. (2022). PLM-ICD: automatic ICD
+    coding with pretrained language models. *arXiv preprint arXiv:2207.05289*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Miranda-Escalada, A., Gonzalez-Agirre, A., Armengol-Estapé, J., & Krallinger,
+    M. (2020). Overview of Automatic Clinical Coding: Annotations, Guidelines, and
+    Solutions for non-English Clinical Cases at CodiEsp Track of CLEF eHealth 2020\.
+    *CLEF (Working Notes)*, *2020*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Miranda-Escalada, A., Gonzalez-Agirre, A., & Krallinger, M. (2020). CodiEsp
+    corpus: gold standard Spanish clinical cases coded in ICD10 (CIE10) — eHealth
+    CLEF2020 (1.4) [Data set]. Zenodo. [https://doi.org/10.5281/zenodo.3837305](https://doi.org/10.5281/zenodo.3837305)
+    (CC BY 4.0)'
+  prefs: []
+  type: TYPE_NORMAL

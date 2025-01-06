@@ -1,0 +1,248 @@
+- en: 'UniFliXsg: AI-Powered Undergraduate Program Recommendations for Singapore Universities'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/uniflixsg-ai-powered-undergraduate-program-recommendations-for-singapore-universities-b9b448f7ea19?source=collection_archive---------11-----------------------#2024-08-14](https://towardsdatascience.com/uniflixsg-ai-powered-undergraduate-program-recommendations-for-singapore-universities-b9b448f7ea19?source=collection_archive---------11-----------------------#2024-08-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How could AI suggest your majors?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://oadultradeepfield.medium.com/?source=post_page---byline--b9b448f7ea19--------------------------------)[![Phanuphat
+    (Oad) Srisukhawasu](../Images/9267b36dccb1782caa4017ca6f0656f3.png)](https://oadultradeepfield.medium.com/?source=post_page---byline--b9b448f7ea19--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b9b448f7ea19--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b9b448f7ea19--------------------------------)
+    [Phanuphat (Oad) Srisukhawasu](https://oadultradeepfield.medium.com/?source=post_page---byline--b9b448f7ea19--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b9b448f7ea19--------------------------------)
+    ·7 min read·Aug 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: A week ago, I shared a story on [my LinkedIn](https://www.linkedin.com/in/psrisukhawasu/)
+    about my latest project, UniFliXsg, the AI app that will suggest the program for
+    undergraduate studies in Singapore based on your interests and career goals. If
+    you haven’t seen it, you may also try it out at the link below. Currently, the
+    database only covers single major programs in NUS, NTU, SMU, and SUTD.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://huggingface.co/spaces/oadultradeepfield/uniflixsg?source=post_page-----b9b448f7ea19--------------------------------)
+    [## Uniflixsg — a Hugging Face Space by oadultradeepfield'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discover amazing ML apps made by the community
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: huggingface.co](https://huggingface.co/spaces/oadultradeepfield/uniflixsg?source=post_page-----b9b448f7ea19--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As promised, I will share the workflow and the technical aspects of how I did
+    this from scratch in this Medium blog. The layout of this article is organized
+    in the same process as my thought processes, so you may also find some jumping
+    between steps. Additionally, there will be little to no code in this article.
+    You can see those on this [GitHub repository](https://github.com/oadultradeepfield/UniFliXsg/)
+    if you like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is my first blog, so if we haven’t known each other yet, I am Oad. I am
+    now a computer science undergraduate at NUS with a strong passion for AI, particularly
+    Large Language Models (LLMs). That’s also why I started this project, to learn
+    more about their application :)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step #1: Outlining the Workflow'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Everything starts with planning. The first thing that came to my mind was to
+    do something similar to content-based filtering, where we could match the user’s
+    profile with the program’s information. After looking through samples of the programs,
+    I found that the information available for all the programs is essentially the
+    description, and the career prospects itself. So, I could employ techniques to
+    calculate the average similarity between the users and each piece of information
+    to recommend the programs. This is somewhat similar to [semantic search](https://en.wikipedia.org/wiki/Semantic_search),
+    where we match the user’s queries and the items in the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I also noted that there may be different cultures among the universities, so
+    including the description of the university as another piece of information could
+    be beneficial for more personalized recommendations. The name UniFliXsg arises
+    during this moment to replicate Netflix, which is also known for its powerful
+    recommender systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the user’s side, I would let them input their personal interests and career
+    goals. To reduce the extra computations, I decided to make the user profiles that
+    are inputted to the model be a single query, which is “I am interested in `user_input`.
+    Upon graduation, I want to work as `user_input`.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used the [cosine similarity](https://en.wikipedia.org/wiki/Cosine_similarity)
+    to compute the similarity scores. I chose this metric because it could handle
+    the varied length vectors better than other distance metrics. So we will first
+    convert each information and the user’s profile to vectors (text embedding), then
+    compute the scores. This overall planning is illustrated in the image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d9d804d8dd360ea5e8b4ce8e2c5f7b9d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simple illustration of the idea. Here, I simplify the embedding spaces to
+    two-dimensional spaces. The cosine similarity is just the cosine of the angle
+    between the vectors, the exact formulation is to be elaborated later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Data Collection and Preprocessing'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This was the most time-consuming part of this project. The information regarding
+    each program is organized in a completely different way. Therefore, I decided
+    to collect all data manually without any web scraping techniques, because it may
+    take the same effort and time anyway.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the dataset in the Hugging Face repository provided earlier. The
+    data is stored as a parquet file because I planned to use [Polars](https://pola.rs/)
+    instead of Pandas for this project. I never used it before but heard that it is
+    faster, so I want to try it out! However, I originally stored the data in an Excel
+    file, because I found it to be the most convenient for working with tables. The
+    image below shows how the data originally looked like before performing any embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef369387568ef6fc554017c2fb1d6700.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A screenshot of the Microsoft Excel spreadsheet used to collect the data before
+    embedding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Text Embedding and Model Selection'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To embed the texts in the dataset, it may be convenient to use some language
+    models from Hugging Face, which are pre-trained models and already know the similarity
+    between words. We could use only the embedding layers instead of the whole model.
+    Generally, we could access these layers for text embeddings from most models using
+    the [Sentence Transformers](https://huggingface.co/sentence-transformers) library.
+    We could initiate simply by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, each text in our corpus will be tokenized (i.e. split as separated words).
+    The processing will automatically be made to match the configuration of the model
+    we selected. Each token (word) will be embedded as a vector through the embedding
+    matrix. At the end, we will have the matrix that could be passed through the layers
+    of transformers. The output is an n-dimensional vector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When choosing the model, we should consider the balance between choosing high-performing
+    and lightweight models. Generally, the sentence transformers are lighter than
+    most models. However, as the free Hugging Face spaces are limited to use only
+    CPUs, I decided to pick some of the lightweight models known to perform well for
+    the task. This allows the users to get faster results when using the app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Honestly, I have tried several models but the one I found to be the best match
+    for the task is “[all-MiniLM-L6-v2](https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2)”.
+    I used this model to embed all relevant texts in the dataset. When the users input
+    their profiles, we could embed only the profiles and compute the similarity to
+    each program accordingly. This helps save computations by avoiding embedding the
+    texts in the dataset every time we run the task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Computing Cosine Similarity'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The cosine similarity is computed between each vector (representing different
+    information) of the program and the users accordingly. The final similarity score
+    is the average between the three scores. However, there is some tricky part in
+    this approach. After some run tests, I found that the model doesn’t provide much
+    accurate results. Therefore, I decided to weigh each similarity score differently.
+    I gave more weight to the program description and career prospects, and less to
+    the university description. This is essentially the [weighted arithmetic mean](https://en.wikipedia.org/wiki/Weighted_arithmetic_mean),
+    which allows a more accurate result in the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4def4740fb6d4fda5af2aec172ec9073.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A more accurate formula of the weighted arithmetic mean for this project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After I have all the similarities, I sort them in descending order and return
+    the top ten results. As mentioned, all the code and data are made available on
+    my [GitHub](https://github.com/oadultradeepfield).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e8dadab9811abe0f0f1d20692e429730.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of the output using the function defined for calculating the similarity
+    and return the best-matched output. This is the prototype for the app created
+    in the subsequent steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 5: Creating and Deploying the App'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I built this app using the integration of [Gradio](https://www.gradio.app/)
+    and Hugging Face ecosystems. If you’re new, Gradio is a library that allows you
+    to create and deploy the prototype of your app directly in Python using its template
+    and prebuilt elements. It is quite convenient as it facilitates faster production
+    to the users, and does not necessarily require me to know much about web development.
+    Although I used some HTML knowledge to build the app, it is just for centering
+    or scaling elements. I provided some code snippets below to see what Gradio looks
+    like in action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, the app is well-built, and can be easily accessed on any device using
+    the [link](https://huggingface.co/spaces/oadultradeepfield/uniflixsg) to my Hugging
+    Face space!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/48eda7617fa06d0a8d80ccbaf9740588.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is how the app looks when accessing it through the website on my desktop.
+    It is also responsive, you may see slightly different configurations on other
+    mobile devices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Availability Statement
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The dataset utilized in this project was sourced directly from the official
+    websites of the undergraduate programs of various universities. As this information
+    is publicly accessible, it can be located through standard search engines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Acknowledgment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I added this special section to extend grateful thank you messages to the community
+    and people who engaged with my LinkedIn post. I even received a comment from Gradio,
+    which is unexpected but appreciated. I also received feedback and kind suggestions
+    from the comments and other platforms. So thanks to everyone for contributing
+    to my learning! I will share more stories in future blogs and posts, see you there
+    soon!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL

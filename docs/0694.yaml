@@ -1,0 +1,193 @@
+- en: 'CausalLM Part 2: Fine-Tuning a Model'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/causallm-part-2-finetuning-a-model-3fdb4d9bd936?source=collection_archive---------13-----------------------#2024-03-14](https://towardsdatascience.com/causallm-part-2-finetuning-a-model-3fdb4d9bd936?source=collection_archive---------13-----------------------#2024-03-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 3 ways to fine-tune a CausalLM model on chat data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[![Theo
+    Lebryk](../Images/c2e0d606f4a99831fad5575f59848544.png)](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)
+    [Theo Lebryk](https://tlebryk.medium.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fdb4d9bd936--------------------------------)
+    ·7 min read·Mar 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e96c0450be2b342ca68c996282211eae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In this tutorial, we’ll be fine-tuning a CausalLM model to do simple translation.
+    Photo by [Rob Wilson](https://unsplash.com/@ventanamedia?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the [last post](/training-causallm-models-part-1-what-actually-is-causallm-6c3efb2490ec),
+    we talked about what CausalLM is and how Hugging Face expects data to be formatted.
+    In this post, we’re going to walk through an abridged notebook with three ways
+    to format the data to fine-tune a model. The first is a straightforward approach
+    building on the intuition from the previous post simply copying input_ids into
+    labels. The second approach utilizes masking to learn select parts of the text.
+    The third approach uses a separate library, [TRL](https://huggingface.co/docs/trl/main/en/index),
+    so that we don’t have to manually mask the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’ll leave out some function definitions to keep it readable, so it’s best to
+    reference [the full noteboo](https://github.com/tlebryk/CausalLM/blob/main/finetune_casuallm.ipynb)k
+    to get all the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fine-tuning with labels copied from input ids
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’re going to be using [Bloom-560m](https://huggingface.co/bigscience/bloom-560m),
+    a multilingual model which is small enough that we can fine-tune it on a standard
+    laptop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s start by doing some preprocessing. We’re going to add some special tokens,
+    namely “end of sequence” (eos) and “beginning of sequence“ (bos). These special
+    tokens can be helpful for the model to know when it’s supposed to start and stop
+    generating text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we’re going to do what we learned last session: create an input with a
+    labels key copied from input_ids.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: To start, labels and input_ids are identical. Let’s see what happens when we
+    train a model like that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: After 15 epochs, we’re still kind of confused. We output ‘</s>’ which is close
+    but we really want to output “bueno</s>”. Let’s learn another 15 epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: After 30 epochs we learned what we were supposed to!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s simulate what happens in training by iteratively predicting the prompt
+    one token at a time, based on the previous tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s pretty close to the actual prompt, as we expected. But the task is translation,
+    so we don’t really care about being able to predict the user prompt. Is there
+    a way to learn just the response part?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Masked approach
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Hugging Face allows you to only learn to predict certain tokens by “masking”
+    the tokens you don’t care about in “labels.” This is different from the attention
+    mask, which hides *previous* tokens we use to generate a new token. Masking the
+    labels hides the token you’re supposed to output at a certain index from the loss
+    function. Note the wording: Hugging Face has it implemented such that during training,
+    we still generate predictions for that masked token. However, because we hide
+    the true label to compare the predictions with, we don’t directly learn how to
+    improve on that prediction.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We create the “mask” by flipping those tokens to -100 in the labels key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: First off, we were faster this time by more than 10%. Presumably, the fact that
+    we have fewer loss calculations makes things a bit quicker.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I wouldn’t bank on the speed up being this large — our example is pretty lopsided
+    with much more human text than generated text. But when training times are in
+    the hours, every little percentage is helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The big question: did we learn the task?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This time we only need 15 epochs to learn the task. Let’s go back to how things
+    are under the hood during training
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Iteratively predicting the prompt leads to non-sense compared with our first
+    training approach. This checks out: we masked the prompt during training and therefore
+    don’t learn how to predict anything up until our real target: the assistant response.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using TRL’s supervised fine-tuning trainer
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Hugging Face semi-recently rolled out a TRL (transformer reinforcement learning)
+    library to add end-to-end support for the LLM training process. One feature is
+    supervised fine-tuning. Using the DataCollatorForCompletionOnlyLM and SFTTrainer
+    classes, we can create the labels like we did with *create_special_mask* with
+    just a few configs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Success! If you dig deeper, training actually took longer using SFT. This might
+    be credited to the fact that we have to tokenize at training time rather than
+    as a preprocessing step in the masked approach. However, this approach gives us
+    free batching (you’d need to tweak the tokenization process to use the masked
+    approach to batch properly), which should make things faster in the long run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The full notebook explores a few other things like training off multi-turn chats
+    and using special_tokens to indicate human vs chat text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Obviously, this example is a bit basic. However, hopefully you can start to
+    see the power of using CausalLM: You can imagine taking interactions from a large,
+    reliable model, and using the techniques above to fine-tune a smaller model on
+    the large model’s outputs. This is called knowledge distillation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we’ve learned anything over the last couple years of LLMs, it’s that we can
+    do some surprisingly intelligent things just by training on next token prediction.
+    Causal language models are designed to do just that. Even if the Hugging Face
+    class is a bit confusing at first, once you’re used to it, you have a very powerful
+    interface to train your own generative models.
+  prefs: []
+  type: TYPE_NORMAL

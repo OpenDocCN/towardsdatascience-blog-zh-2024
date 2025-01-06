@@ -1,0 +1,439 @@
+- en: 'Estimate the Unobserved: Moving-Average Model Estimation with Maximum Likelihood
+    in Python'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/estimate-the-unobserved-moving-average-model-estimation-with-maximum-likelihood-in-python-5f372cec3652?source=collection_archive---------11-----------------------#2024-06-28](https://towardsdatascience.com/estimate-the-unobserved-moving-average-model-estimation-with-maximum-likelihood-in-python-5f372cec3652?source=collection_archive---------11-----------------------#2024-06-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How unobserved covariates’ coefficients can be estimated with MLE
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@pollak.daniel?source=post_page---byline--5f372cec3652--------------------------------)[![Daniel
+    Pollak](../Images/a48f0aa944aeb4189e75cfc99949b4a7.png)](https://medium.com/@pollak.daniel?source=post_page---byline--5f372cec3652--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5f372cec3652--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5f372cec3652--------------------------------)
+    [Daniel Pollak](https://medium.com/@pollak.daniel?source=post_page---byline--5f372cec3652--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5f372cec3652--------------------------------)
+    ·8 min read·Jun 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/300647241e2591ade3f90bbd02c13b0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Connor Naasz](https://unsplash.com/@cjnaasz?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: For those experienced with time series data and forecasting, terms like regressions,
+    AR, MA, and ARMA should be familiar. Linear Regression is a straightforward model
+    with a closed-form parametric solution obtained through OLS. AR models can also
+    be estimated using OLS. However, things become more complex with MA models, which
+    form the second component of the more advanced ARMA and ARIMA models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The plan for this story:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introducing Moving Average models
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Discussing why there’s no closed solution for MA model
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Introducing Maximum Likelihood Estimation method
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: MA(1) ML estimation — Theory and Python code
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Moving Average Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'MA models can be described by the following formula:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d8b50b75af780962a4fd28205f7e819b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Eq 1: MA(q) formula'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, the thetas represent the model parameters, while the epsilons are the
+    error terms, assumed to be mutually independent and normally distributed with
+    constant variance. The intuition behind this formula is that our time series,
+    X, can always be described by the last q shocks that occurred in the series. It
+    is evident from the formula that each shock impacts only the subsequent q values
+    of X, in contrast to AR models where the effect of a shock persists indefinitely,
+    although gradually diminishing over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closed estimation of a simple model — Linear Regression
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As a reminder, the general form of a linear regression equation looks like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/05e531f5319c4f008477de2efa698218.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Eq 2: General linear regression formula'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For forecasting tasks, we typically aim to estimate all the model’s parameters
+    (the betas) using a sample set of x’s and y’s. Given a few assumptions about our
+    model, the **Gauss–Markov theorem** states that the ordinary least squares (OLS)
+    estimators for the betas have the lowest sampling variance among the class of
+    linear unbiased estimators. In simpler terms, OLS provides us with the best possible
+    estimation of the betas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, what is OLS? It is a closed-form solution to a loss function minimization
+    problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44114c60ef9374efc409c10735aedd51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Eq 3: OLS minimization equation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: where the loss function, S, is defined as follows -
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46e61adacddd09c1deaca8c27e0ac1a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Eq 4: OLS loss function'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this context, y and X are our sample data and are **observable** vectors
+    of numbers (as in time series). Therefore, it is straightforward to calculate
+    the function S, determine its derivative, and find the beta that solves the minimization
+    problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closed estimation of MA(q)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It is should be clear why applying a method like OLS to estimate MA(q) models
+    is problematic — the dependent variable, the time series values, are described
+    by **unobservable** variables, the epsilons. This raises the question: how can
+    these models be estimated at all?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maximum Likelihood (MLE)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Likelihood Function
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Statistical distributions typically depend on one or more parameters. For instance,
+    the normal distribution is characterized by its mean and variance, which define
+    its “height” and “center of mass” —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ece1c8b44d8345a842f0ef08a6bfcb99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Normal distribution from [Wikipedia](https://en.wikipedia.org/wiki/Normal_distribution)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Suppose we have a dataset, X={x_1,…x_n}, comprising samples drawn from an unknown
+    normal distribution, with its parameters unknown. Our objective is to determine
+    the mean and variance values that would characterize the specific normal distribution
+    from which our dataset X is most **likely** to have been sampled.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MLE provides a framework that precisely tackles this question. It introduces
+    a likelihood function, which is a function that yields another function. This
+    likelihood function takes a vector of parameters, often denoted as theta, and
+    produces a **probability density function** (PDF) that depends on theta.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90bb1564ef187f89653b8e970dcbf7a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The likelihood function general definition
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The probability density function (PDF) of a distribution is a function that
+    takes a value, x, and returns its probability within the distribution. Therefore,
+    likelihood functions are typically expressed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/456f9612c7bf6b89851084577631fd3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Likelihood as a function of theta given x
+  prefs: []
+  type: TYPE_NORMAL
+- en: The value of this function indicates the **likelihood of observing x from the
+    distribution defined by the PDF with theta as its parameters**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When constructing a forecast model, we have data samples and a parameterized
+    model, and our goal is to estimate the model’s parameters. In our examples, such
+    as Regression and MA models, these parameters are the coefficients in the respective
+    model formulas.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a686eaf98592b3337da346b90ecf6f4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Statistic model estimation process
+  prefs: []
+  type: TYPE_NORMAL
+- en: The equivalent in MLE is that we have observations and a PDF for a distribution
+    defined over a set of parameters, theta, which are unknown and not directly observable.
+    **Our goal is to estimate theta**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The MLE approach involves finding the set of parameters, theta, that maximizes
+    the likelihood function given the observable data, x.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6fa203b5d5c3e4913ca968a43172b6d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Maximization of the likelihood function
+  prefs: []
+  type: TYPE_NORMAL
+- en: We assume our samples, x, are drawn from a distribution with a known PDF that
+    depends on a set of parameters, theta. This implies that the likelihood (probability)
+    of observing x under this PDF is essentially 1\. Therefore, identifying the theta
+    values that make our likelihood function value close to 1 on our samples, should
+    reveal the true parameter values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conditional likelihood
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Notice that we haven’t made any assumptions about the distribution (PDF) on
+    which the likelihood function is based. Now, let’s assume our observation X is
+    a vector (x_1, x_2, …, x_n). We’ll consider a probability function that represents
+    the probability of observing x_n conditional on that we have already observed
+    (x_1, x_2, …, x_{n-1}) —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b628eb50e4fbb5553662921a658cd9b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'This represents the likelihood of observing just x_n given the previous values
+    (and theta, the set of parameters). Now, we define the conditional likelihood
+    function as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d432a00759163e07d59afd0e2c528354.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conditional likelihood function
+  prefs: []
+  type: TYPE_NORMAL
+- en: Later, we will see why it is useful to employ the conditional likelihood function
+    rather than the exact likelihood function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log-Likelihood
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In practice, it is often convenient to use the natural logarithm of the likelihood
+    function, referred to as the log-likelihood function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/43e35a0a64b76e0493f71695bb840b3d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Maximize the log-likelihood function
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is more convenient because we often work with a likelihood function that
+    is a joint probability function of independent variables, which translates to
+    the product of each variable’s probability. Taking the logarithm converts this
+    product into a sum.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating MA(1) with MLE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For simplicity, I’ll demonstrate how to estimate the most basic moving average
+    model — MA(1):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2cb70a6bc4250b8adbad548dd8b753bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: MA(1) model
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, x_t represents the time-series observations, alpha and beta are the model
+    parameters to be estimated, and the epsilons are random noise drawn from a normal
+    distribution with zero mean and some variance — sigma, which will also be estimated.
+    Therefore, our “theta” is (alpha, beta, sigma), which we aim to estimate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s define our parameters and generate some synthetic data using Python:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we have set the standard deviation of the error distribution to 3.3,
+    with alpha at 18 and beta at 0.7\. The data looks like this —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3db379dc985a0e08595c01c315be070e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Simulation of MA(1) DGP
+  prefs: []
+  type: TYPE_NORMAL
+- en: Likelihood function for MA(1)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Our objective is to construct a likelihood function that addresses the question:
+    how likely is it to observe our time series X=(x_1, …, x_n) assuming they are
+    generated by the MA(1) process described earlier?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/947345b1be99350bbb24f5c8ea3a1762.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Likelihood for observing X
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge in computing this probability lies in the mutual dependence among
+    our samples — as evident from the fact that both x_t and x_{t-1} depend on e_{t-1)
+    — making it non-trivial to determine the joint probability of observing all samples
+    (referred to as the exact likelihood).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, as discussed previously, instead of computing the exact likelihood,
+    we’ll work with a conditional likelihood. Let’s begin with the likelihood of observing
+    a single sample given all previous samples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0bb56d8d620460ed195d16df8b9ffc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conditional likelihood for observing x_n given the rest
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is much simpler to calculate because —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d6f46649792a3912f04dfbbfd1cdf268.png)![](../Images/be8c97e8745aec7ec37422597408f555.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: PDF of normal distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All that remains is to calculate the conditional likelihood of observing all
+    samples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90b57b8dca8c17a5890715d0796b95dd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'applying a natural logarithm gives:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/83615610be05471262a0d06a459e9076.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Final likelihood function to maximize
+  prefs: []
+  type: TYPE_NORMAL
+- en: which is the function we should maximize.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We’ll utilize the `GenericLikelihoodModel` class from statsmodels for our MLE
+    estimation implementation. As outlined in the [tutorial](https://www.statsmodels.org/dev/examples/notebooks/generated/generic_mle.html)
+    on statsmodels’ website, we simply need to subclass this class and include our
+    likelihood function calculation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The function `loglike` is essential to implement. Given the iterated parameter
+    values `params`and the dependent variables (in this case, the time series samples),
+    which are stored as class members `self.endog`, it calculates the conditional
+    log-likelihood value, as we discussed earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now let’s create the model and fit on our simulated data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and the output is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9e4512927b243a89efd88794d665358f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: MLE results from python
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that’s it! As demonstrated, MLE successfully estimated the parameters we
+    selected for simulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping Up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Estimating even a simple MA(1) model with maximum likelihood demonstrates the
+    power of this method, which not only allows us to make efficient use of our data
+    but also provides a solid statistical foundation for understanding and interpreting
+    the dynamics of time series data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hope you liked it !
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Andrew Lesniewski, [Time Series Analysis](https://mfe.baruch.cuny.edu/wp-content/uploads/2014/12/TS_Lecture1_2019.pdf),
+    2019, Baruch College, New York'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Eric Zivot, [Estimation of ARMA Models](https://faculty.washington.edu/ezivot/econ584/notes/armaestimation.pdf),
+    2005'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless otherwise noted, all images are by the author*'
+  prefs: []
+  type: TYPE_NORMAL

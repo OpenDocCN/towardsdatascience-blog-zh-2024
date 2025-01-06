@@ -1,0 +1,373 @@
+- en: MIDI Files as Training Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/midi-files-as-training-data-b67852c8b291?source=collection_archive---------3-----------------------#2024-09-13](https://towardsdatascience.com/midi-files-as-training-data-b67852c8b291?source=collection_archive---------3-----------------------#2024-09-13)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'A fundamental difference: MIDI scores vs MIDI performances'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@foscarin.francesco?source=post_page---byline--b67852c8b291--------------------------------)[![Francesco
+    Foscarin](../Images/f4d238b54771adc6d03c9a62f28d3152.png)](https://medium.com/@foscarin.francesco?source=post_page---byline--b67852c8b291--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b67852c8b291--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b67852c8b291--------------------------------)
+    [Francesco Foscarin](https://medium.com/@foscarin.francesco?source=post_page---byline--b67852c8b291--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b67852c8b291--------------------------------)
+    ·10 min read·Sep 13, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8cc863eae2ddaf0ad98de4390333a286.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Before starting any deep learning project with MIDI files, make sure you know
+    the **difference between MIDI scores and MIDI performances**!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is for people planning or beginning to work with MIDI files. This
+    format is widely used in the music community, and it caught the attention of computer
+    music researchers due to the availability of datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, different types of information can be encoded in MIDI files. In particular,
+    there is a big difference between MIDI scores and MIDI performances. Not being
+    aware of this results in **time wasted on a useless task** or an incorrect choice
+    **of training data and approaches**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will provide a basic introduction to the two formats and give hands-on examples
+    of how to start working with them in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*What is MIDI?*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: MIDI was introduced as a real-time communication protocol between synthesizers.
+    The main idea is to **send a message** every time a **note is pressed** (note
+    on) on a MIDI keyboard and another message when the **note is released** (note
+    off). Then the synthesizer on the receiving end will know what sound to produce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Welcome to MIDI files!*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If we collect and save all these messages (making sure to add their time position)
+    then we have a MIDI file that we can use to reproduce a piece. Other than note-on
+    and note-off, many other kinds of messages exist, for example specifying pedal
+    information or other controllers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can think of plotting this information with a*pianoroll*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beware, this is not a MIDI file, but only a possible representation of its content!
+    Some software (in this example [Reaper](https://www.reaper.fm/)) adds a small
+    piano keyboard next to the pianoroll to make it easier to visually interpret.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8017dddfc17763d1f6f5b970e6dcf361.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*How is a MIDI file created?*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A MIDI file can be created mainly **in two ways**: 1) by playing on a MIDI
+    instrument, 2) by manually writing into a sequencer (Reaper, Cubase, GarageBand,
+    Logic) or a musical score editor (for example from MuseScore).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With each way of producing MIDI files comes also a different kind of file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: playing on a MIDI instrument → **MIDI performance**
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: manually writing the notes (sequencer or musical score) → **MIDI score**
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We’ll now dive into each type, and then summarize their differences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before starting, a disclaimer: **I will not focus specifically on how the information
+    is encoded, but on what information can be extracted from the file**. For example,
+    when I say “ time is represented in seconds” it means that we can get seconds,
+    even though the encoding itself is more complex.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MIDI performances
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We can find 4 kinds of information in a MIDI performance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When the note start: note onset'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'When the note end: note offset (or note duration computed as offset -onset)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Which note was played: note pitch'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'How “strong” was the key pressed: note velocity'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Note onset and offset (and duration)** are represented in seconds, corresponding
+    to the seconds the notes were pressed and released by the person playing the MIDI
+    instrument.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note pitch** is encoded with an integer from 0 (lowest) to 127 (highest);
+    note that more notes can be represented than those that can be played by a piano;
+    the piano range corresponds to 21–108\.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note velocity** is also encoded with an integer from 0 (silence) to 127 (maximum
+    intensity).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The vast majority of MIDI performances are piano performances because most MIDI
+    instruments are MIDI keyboards. Other MIDI instruments (for example MIDI saxophones,
+    MIDI drums, and MIDI sensors for guitar) exist, but they are not as common.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The biggest dataset of human MIDI performances (classical piano music) is the
+    [Maestro dataset](https://magenta.tensorflow.org/datasets/maestro) by Google Magenta.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main property of MIDI performances
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A fundamental characteristic of MIDI performances is that **there are never
+    notes with exactly the same onset or duration** (this is, in theory, possible
+    but, in practice, extremely unlikely).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, even if they really try, players won’t be able to press two (or more)
+    notes exactly at the same time, since there is a limit to the precision humans
+    can obtain. The same is true for note durations. Moreover, this is not even a
+    priority for most musicians, since time deviation can help to produce a more expressive
+    or groovy feeling. Finally, consecutive notes will have some silence in between
+    or partially overlap.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8683281fa2d944677d7994e066df482c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: For this reason, MIDI performances are sometimes also called *unquantized MIDI*.
+    Temporal positions are spread on a continuous time scale, and not quantized to
+    discrete positions (for digital encoding reasons, it is technically a discrete
+    scale, but extremely fine, thus we can consider it continuous).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hands-on example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let us look at a MIDI performance. We will use the [ASAP dataset](https://github.com/fosfrancesco/asap-dataset),
+    available on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In your favorite terminal (I’m using PowerShell on Windows), go to a convenient
+    location and clone the repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will also use the Python library [Partitura](https://github.com/CPJKU/partitura)
+    to open the MIDI files, so you can install it in your Python environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that everything is set, let’s open the MIDI file, and print the first 10
+    notes. Since this is a MIDI performance, we will use the `load_midi_performance`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output of this Python program should look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that we have the onset and durations in seconds, pitch and velocity.
+    Other fields are not so relevant for MIDI performances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Onsets and durations are also represented in *ticks*. This is closer to the
+    actual way this information is encoded in a MIDI file: a very short temporal duration
+    (= 1 tick) is chosen, and all temporal information is encoded as a multiple of
+    this duration. When you deal with music performances, you can typically ignore
+    this information and use directly the information in seconds.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can verify that there are never two notes with exactly the same onset or
+    the same duration!
+  prefs: []
+  type: TYPE_NORMAL
+- en: MIDI scores
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Midi scores use a **much richer set of MIDI messages** to encode information
+    such as time signature, key signature, bar, and beat positions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this reason, **they resemble musical scores** (sheet music), even though
+    **they still miss some vital information**, for example, pitch spelling, ties,
+    dots, rests, beams, etc…
+  prefs: []
+  type: TYPE_NORMAL
+- en: The temporal information is not encoded in seconds but in more musically abstract
+    units, like quarter notes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main property of MIDI scores
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A fundamental characteristic of MIDI score is that **all note onsets are aligned
+    to a quantized grid**, defined first by bar positions and then by recursive integer
+    divisions (mainly by 2 and 3, but other divisions such as 5,7,11, etc…) are used
+    for tuplets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hands-on example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We are now going to look at the score from Bach Prelude BWV 848 in C#, which
+    is the score of the performance we loaded before. Partitura has a dedicated `load_score_midi`
+    function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output of this Python program should look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that the onsets of the notes are all falling exactly on a grid.
+    If we consider `onset_quarter` (the 3rd column) we can see that 16th notes fall
+    every 0.25 quarters, as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ca2dffd6524f8a72dd58c8dc6c7d411b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The duration is a bit more problematic. For example, in this score, a 16th note
+    should have a `quarter_duration` of 0.25\. However, we can see from the Python
+    output that the duration is actually 0.24791667\. What happened is that MuseScore,
+    which was used to generate this MIDI file, shortened a bit each note. Why? Just
+    to make the audio rendition of this MIDI file sound a bit better. And it does
+    indeed, at the cost of causing many problems to the people using these files for
+    Computer Music research. Similar problems also exist in widely used datasets,
+    such as the Lakh MIDI Dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MIDI scores vs MIDI performances
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Given the differences between MIDI scores and MIDI performances we’ve seen,
+    let me give you some generic guidelines that can help in correctly setting up
+    your deep learning system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prefer MIDI scores for music generation systems, since the quantized note positions
+    can be represented with a pretty small vocabulary, and other simplifications are
+    possible, like only considering monophonic melodies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use MIDI performance for systems that target the way humans play and perceive
+    music, for example, beat tracking systems, tempo estimators, and emotion recognition
+    systems (focusing on expressive playing).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use both kinds of data for tasks like score-following (input: performance,
+    output: score) and expressive performance generation (input: score, output: performance).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extra problems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I have presented the main differences between MIDI scores and MIDI performances.
+    However, as often happens, **things may be more complex**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, some datasets, like the AMAPS datasets, are originally MIDI scores,
+    but the authors introduced time changes at every note, **to simulate the time
+    deviation of real human players** (note that this only happens between notes at
+    different time positions; all notes in a chord will still be perfectly simultaneous).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moreover, some MIDI exports, like the one from MuseScore, will also try to make
+    the MIDI score more similar to a MIDI performance, again by changing tempo indication
+    if the piece changes tempo, by inserting a very small silence between consecutive
+    notes (we saw this in the example before), and by playing grace notes as a very
+    short note slightly before the reference note onset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Indeed, grace notes constitute a very annoying problem in MIDI scores. Their
+    duration is unspecified in musical terms, we just generically know that they should
+    be “short”. And their onset is in the score the same one of the reference note,
+    but this would sound very weird if we listed to an audio rendition of the MIDI
+    file. Should we then shorten the previous note, or the next note to make space
+    for the grace note?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other embellishments are also problematic since there are no unique rules on
+    how to play them, for example, how many notes should a trill contains? Should
+    a mordent start from the actual note or the upper note?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: MIDI files are great, because they explicitly provide information about the
+    pitch, onset, and duration of every note. This means for example that, compared
+    to audio files, models targeting MIDI data can be smaller and be trained with
+    smaller datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This comes at a cost: MIDI files, and symbolically encoded music in general,
+    are complex formats to use since they encode so many kinds of information in many
+    different ways.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To properly use MIDI data as training data, it is important to be aware of the
+    kind of data that are encoded. I hope this article gave you a good starting point
+    to learn more about this topic!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[All figures are from the author.]'
+  prefs: []
+  type: TYPE_NORMAL

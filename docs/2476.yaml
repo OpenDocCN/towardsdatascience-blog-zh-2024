@@ -1,0 +1,271 @@
+- en: A Walkthrough of Nvidia’s Latest Multi-Modal LLM Family
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-walkthrough-of-nvidias-latest-multi-modal-llm-family-fdc067b59596?source=collection_archive---------6-----------------------#2024-10-10](https://towardsdatascience.com/a-walkthrough-of-nvidias-latest-multi-modal-llm-family-fdc067b59596?source=collection_archive---------6-----------------------#2024-10-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: From LLaVA, Flamingo, to NVLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--fdc067b59596--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--fdc067b59596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fdc067b59596--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fdc067b59596--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--fdc067b59596--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fdc067b59596--------------------------------)
+    ·6 min read·Oct 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-modal LLM development has been advancing fast in recent years.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the commercial multi-modal models like [GPT-4v](https://openai.com/index/gpt-4v-system-card/),
+    [GPT-4o](https://openai.com/index/gpt-4v-system-card/), [Gemini](https://gemini.google.com/),
+    and [Claude 3.5 Sonnet](https://www.anthropic.com/news/claude-3-5-sonnet) are
+    the most eye-catching performers these days, the open-source models such as [LLaVA](https://arxiv.org/abs/2304.08485),
+    [Llama 3-V](https://huggingface.co/spaces/MBZUAI/LLaMA-3-V), [Qwen-VL](https://arxiv.org/abs/2308.12966)
+    have been steadily catching up in terms of performance on public benchmarks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Just last month, Nvidia released their open-source [multi-modal LLM family](https://arxiv.org/pdf/2409.11402)
+    called NVLM. The family comprises three architectures: a) decoder-based, b) cross-attention-based,
+    and c) hybrid. The decoder-based model takes both the image and text tokens to
+    a pre-trained LLM, such as the LLaVA model. The cross-attention-based model uses
+    the image token embeddings as the keys and values while using the text token embeddings
+    as the queries; since the attention is calculated using different sources, it’s
+    called “cross-attention” as in the original transformer decoder rather than the
+    self-attention as in decoder-only models. The hybrid architecture is a unique
+    design merging the decoder and cross-attention architecture for the benefit of
+    multi-modal reasoning, fewer training parameters, and taking high-resolution input.
+    The 72B decoder-based NVLM-D model achieved an impressive performance, beating
+    state-of-the-art open-source and commercial models on tasks like natural image
+    understanding and OCR.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this article, I’m going to walk through the following things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the dynamic high-resolution (DHR) vision encoder, which all the NVLM models
+    adopt
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the decoder-based model, NVLM-D, compared to LLaVA
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the gated cross-attention model, NVLM-X, compared to Flamingo
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the hybrid model, NVLM-H
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the end, I’ll show the NVLM-D 72B performance. Compared to state-of-the-art
+    open-source and commercial models, the NVLM-D model shows stability over text-based
+    tasks and superior performance on natural understanding and OCR tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e4ae48dd6785464df1a1ed3950a52a99.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/821032](https://pxhere.com/en/photo/821032)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamic High-Resolution-based Vision Encoder (DHR)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: One of the prominent advantages of NVLM models is that they excel in processing
+    OCR-related tasks, which require high-resolution image inputs. NVML adopts the
+    dynamic high-resolution approach proposed in the [InternVL 1.5](https://arxiv.org/abs/2404.16821)
+    [technical report](https://arxiv.org/abs/2404.16821) to retain high resolution.
+    The DHR approach first converts a high resolution image into a pre-defined aspect
+    ratio size (also called dynamic aspect ratio matching), before splitting it into
+    non-overlapping 448*448 tiles with an extra thumb-nail image, which can retain
+    better global information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa5821f98f063e6cc79a71e582fb62f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'DHR pipeline. Image source: [https://arxiv.org/abs/2409.11402](https://arxiv.org/pdf/2409.11402)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image above shows a detailed explanation of the DHR pipeline. An input image
+    is shown on the left, and a list of 6 different pre-defined aspect ratios is searched
+    and matched to the original image shape. Then, the reshaped image is cropped into
+    six non-overlapping tiles of 448*448, with an extra underresolution thumbnail
+    image to capture global information. The sequence of n tiles (n=6+1=7 in this
+    case) is passed into the ViT separately and converted into a sequence of length
+    n with 1024 tokens (448/14*448/14=1024), each of embedding dimension d. To reduce
+    the computational cost, a [pixel reshuffle](https://pytorch.org/docs/stable/generated/torch.nn.PixelShuffle.html)
+    operation is employed to resize the 32*32 patch to 16*16, which reduces the final
+    output token size to 256 with an increased embedding dimension of 4*d.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Decoder-only Models: NVLM-D vs LLaVA'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[LLaVA](https://arxiv.org/pdf/2304.08485) is a well-known decoder-based Multi-modal
+    LLM, which takes in the image X_v and uses a pre-trained CLIP encoder ViT-L/14
+    as vision encoder Z_v, with a trainable linear project layer W to convert into
+    embedding tokens H_v, which can be digested together with other text tokens. The
+    LLaVA architecture is shown below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7bc3a807281d96c9b810bc6efe211c0b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'LLaVA architecture. Image source: [https://arxiv.org/pdf/2304.08485](https://arxiv.org/pdf/2304.08485)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, the NVLM-D architecture takes in encoded tile sequence tokens using
+    the DHR vision encoder and inserts tile tags in between before concatenating with
+    the text tokens for the transformer layer ingestion. The architecture is shown
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/755d770abda63648b8988169b6a01bd5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Decoder-based NVLM-D architecture with DHR vision encoder. Image source: [https://arxiv.org/pdf/2409.11402](https://arxiv.org/pdf/2409.11402)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Cross-attention Models: NVLM-X vs Flamingo'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Comparing to LLaVA, the [Flamingo model](https://arxiv.org/pdf/2204.14198) uses
+    a more complicated cross-attention technique, which takes the vision embeddings
+    as keys (K) and values (V), while the text embeddings as queries (Q). Moreover,
+    the vision encoder is a CNN-based model with a Perceiver Resampler, which takes
+    in a sequence of image(s) with temporal positional embedding to train learnable
+    latent query vectors using cross attention. A more detailed discussion of the
+    Perceiver Resampler can be found in [my latest article here](https://medium.com/towards-data-science/from-set-transformer-to-perceiver-sampler-2f18e741d242).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e218b29b9ea9c17dc58910a33ba598e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The Flamingo architecture. Image source: [https://arxiv.org/pdf/2204.14198](https://arxiv.org/pdf/2204.14198)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fuse the vision embedding and text embedding, the Flamingo freezes the pre-trained
+    LLM layers and further adds a trainable gated cross-attention layer in between,
+    which is shown below. The gated attention uses a tanh gating with a learnable
+    alpha parameter after the cross-attention layer and the subsequent linear layer.
+    When the tanh gating is initialized as zero, the only information passed is through
+    the skip connection, so the whole model will still be the original LLM to increase
+    stability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9902afd9e93f34aeb02ccdd62c39b92c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The gated cross attention design from Flamingo. Image source: [https://arxiv.org/pdf/2204.14198](https://arxiv.org/pdf/2204.14198)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In comparison, the NVLM-X removes the Perceiver Resampler design for the benefit
+    of OCR tasks to keep the more spatial relationship and only uses the DHR encoder
+    output for the gated cross-attention. Unlike the decoder-based model, the NVLM-X
+    concatenates the tile tags to the text tokens before sending them into the gated
+    cross-attention. The whole architecture is shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/db129490cd7e9c6b52b27d59900e2ddf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'NVLM-X architecture with gated cross-attention design. Image source: [https://arxiv.org/pdf/2409.11402](https://arxiv.org/pdf/2409.11402)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Hybrid Models: NVLM-H'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The hybrid model is a unique design by NVLM. The thumbnail image token is added
+    to the text tokens as input to the self-attention layer, which preserves the benefit
+    of multi-modal reasoning from the decoder-based model. The other image tiles and
+    tile tags are passed into the gated cross-attention layer to capture finer image
+    details while minimizing total model parameters. The detailed architecture is
+    shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/542156bcdf3846a012a7fdaf0b97400c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'NVML-H architecture. Image source: [https://arxiv.org/pdf/2409.11402](https://arxiv.org/pdf/2409.11402)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So, how’s the performance of NVLM compared to other state-of-the-art models?
+    The paper lists benchmark performances comparing NVLM-D 72B to other open-source
+    models like Llama-3 V and commercial models like GPT-4o. The NVLM-D achieved above-average
+    performance on most benchmarks and excelled in the OCR and natural image understanding
+    tasks due to the high-resolution image features and the model’s intrinsic multi-modal
+    reasoning ability. Compared to Llama 3-V 70B and InternVL2-Llama3–76B, which have
+    the equivalent amount of parameter numbers, the NVLM-D shows the advantage of
+    having more consistent behaviours on the text-only tasks, the VQA task and the
+    image understanding tasks. The detailed comparison is shown as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c5af6c78b569aaf809cc7513259c4b2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'NVLM-D performance compared to other open-source and commercial models on public
+    benchmarks. Image source: [https://arxiv.org/pdf/2409.11402](https://arxiv.org/pdf/2409.11402)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s also interesting to note that, although the decoder-based model is very
+    powerful, the training throughput (numbers of sampled trained per second) is much
+    lower than the cross-attention-based model. The paper explains that the decoder-based
+    model takes a much longer sequence length than the cross-attention-based model,
+    which causes a much higher GPU consumption and lower throughput. The detailed
+    training comparison is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60f00ce4fbd64cf616749bbbf76b53b4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Training detail comparison. Image source: [https://arxiv.org/pdf/2409.11402](https://arxiv.org/pdf/2409.11402)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Dai et al., NVLM: Open Frontier-Class Multimodal LLMs. arXiv 2024.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Chen et al., How Far Are We to GPT-4V? Closing the Gap to Commercial Multimodal
+    Models with Open-Source Suites. arXiv 2024.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Liu et al., Visual Instruction Tuning. NeurIPS 2023.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bai et al., Qwen-VL: A Versatile Vision-Language Model for Understanding, Localization,
+    Text Reading, and Beyond. arXiv 2023.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Alayrac et al., Flamingo: a Visual Language Model for Few-Shot Learning. NeurIPS
+    2022.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

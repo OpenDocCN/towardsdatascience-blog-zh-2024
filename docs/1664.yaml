@@ -1,0 +1,728 @@
+- en: Neural Network (MLP) for Time Series Forecasting in Practice
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/neural-network-mlp-for-time-series-forecasting-in-practice-04c47c1e3711?source=collection_archive---------0-----------------------#2024-07-08](https://towardsdatascience.com/neural-network-mlp-for-time-series-forecasting-in-practice-04c47c1e3711?source=collection_archive---------0-----------------------#2024-07-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A Practical Example for Feature Engineering and Constructing an MLP Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)[![Daniel
+    J. TOTH](../Images/a7fd7d723abdba92c493c3dd9aeb2273.png)](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------)
+    [Daniel J. TOTH](https://tothjd.medium.com/?source=post_page---byline--04c47c1e3711--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c47c1e3711--------------------------------)
+    ·16 min read·Jul 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Time series and more specifically time series forecasting is a very well known
+    data science problem among professionals and business users alike.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Several forecasting methods exist, which may be grouped as statistical or machine
+    learning methods for comprehension and a better overview, but as a matter of fact,
+    the demand for forecasting is so high that the available options are abundant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Machine learning methods are considered state-of-the-art approach in time series
+    forecasting and are increasing in popularity, due to the fact that they are able
+    to capture complex non-linear relationships within the data and generally yield
+    higher accuracy in forecasting [1]. One popular machine learning field is the
+    landscape of neural networks. Specifically for time series analysis, recurrent
+    neural networks have been developed and applied to solve forecasting problems
+    [2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data science enthusiasts might find the complexity behind such models intimidating
+    and being one of you I can tell that I share that feeling. However, this article
+    aims to show that
+  prefs: []
+  type: TYPE_NORMAL
+- en: despite the latest developments in machine learning methods, it is not necessarily
+    worth pursuing the most complex application when looking for a solution for a
+    particular problem. Well-established methods enhanced with powerful feature engineering
+    techniques could still provide satisfactory results.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: More specifically, I apply a Multi-Layer Perceptron model and share the code
+    and results, so you can get a hands-on experience on engineering time series features
+    and forecasting effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Goal of the Article**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'More precisely what I aim at to provide for fellow self-taught professionals,
+    could be summarized in the following points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: forecasting based on real-world problem / data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: how to engineer time series features for capturing temporal patterns
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'build an MLP model capable of utilizing mixed variables: floats and integers
+    (treated as categoricals via embedding)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: use MLP for point forecasting
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: use MLP for multi-step forecasting
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: assess feature importance using permutation feature importance method
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: retrain model for a subset of grouped features (multiple groups, trained for
+    individual groups) to refine the feature importance of grouped features
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: evaluate the model by comparing to an `UnobservedComponents` model
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Key Technical Terms**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Please note, that this article assumes the prior knowledge of some key technical
+    terms and do not intend to explain them in details. Find those key terms below,
+    with references provided, which could be checked for clarity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Time Series** [3]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Prediction** [4] — in this context it will be used to distinguish model outputs
+    in the training period'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Forecast** [4] — in this context it will be used to distinguish model outputs
+    in the test period'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Feature Engineering** [5]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Autocorrelation** [6]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Partial Autocorrelation** [6]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**MLP (Multi-Layer Perceptron)** [7]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Input Layer** [7]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Hidden Layer** [7]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Output Layer** [7]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Embedding** [8]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**State Space Models** [9]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Unobserved Components Model** [9]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**RMSE (Root Mean Squared Error)** [10]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Feature Importance** [11]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Permutation Feature Importance** [11]'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Data Exploration**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The essential packages used during the analysis are `numpy` and `pandas` for
+    data manipulation, `plotly` for interactive charts, `statsmodels` for statistics
+    and state space modeling and finally, `tensorflow` for MLP architcture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: due to technical limitations, I will provide the code snippets for interactive
+    plotting, but the figures will be static presented here.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The data is loaded automatically using `opendatasets`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Keep in my mind, that data cleaning was an essential first step in order to
+    progress with the analysis. If you are interested in the details and also in state
+    space modeling, please refer to my previous article [here](https://medium.com/analytics-vidhya/multi-seasonal-time-series-analysis-decomposition-and-forecasting-with-python-609409570007).
+    ☚📰 In a nutshell, the following steps were conducted:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identifying gaps, when specific timestamps are missing (only single steps were
+    identified)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Perform imputation (using mean of previous and next records)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identifying and dropping duplicates
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Set timestamp column as index for dataframe
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Set dataframe index frequency to hourly, because it is a requirement for further
+    processing
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After preparing the data, let’s explore it by drawing 5 random timestamp samples
+    and compare the time series at different scales.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0a11e7108055273a11e5804af3946d3c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Random sampling of dataset and visuals at different time scales. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: State Space Modeling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'By closely examining this simple, yet effective plot, for me it is clearly
+    visible, that the analysis should address several seasonal effects:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: energy consumption — in general — peak in mid summer and mid winter, regardless
+    of the year selected
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: a weekly minimum pattern seems to emerge on Mondays
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: there is a daily minimum during the nights, maximum during the days
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Further analysis would reveal, that the yearly pattern of the dataset has 2
+    harmonics, as the winter and summer peaks have different levels. As a result,
+    the following state space model has been considered, where the periods are measured
+    in hours (see model summary as well below):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Without getting too much ahead of myself, let me note, that this model approximates
+    the total energy consumption for the last 365 days with an error of ~2%, which
+    is fairly accurate from a business perspective I believe. The MLP model constructed
+    below will be evaluated by comparing it to the abovementioned state space model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feature Engineering
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before constructing the MLP model, we should make the unique trend and seasonal
+    effects available for the model to learn it. That is achieved by adding new features
+    to the dataset, derived from the original 1D time series data. Derived features
+    for capturing already identified or unidentified patterns include:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lags
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Differences
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Rolling means
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Rolling standard deviations
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hour of the day
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Day of week
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Labeling weekends
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Such derived — and numerical — features could be considered in multiple intervals.
+    In order to determine which intervals a model would benefit, it is highly recommended
+    to check the autocorrelation properties of the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2db5e7d8a24a253430c45eadd4fb3031.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Autocorrelation and partial autocorrelation plots of time series. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset is highly autocorrelated, which makes sense as the values vary
+    mostly between 10K MW and 20K MW with a smooth transition from hour to hour. However,
+    focusing on partial autocorrelations as shown on the plot below, a significant
+    correlation seems to be present in the multiples of 24 hours and in the last couple
+    of hours. As a result, the derived features can be mainly classified as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Daily (multiples of 24 hours),
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hourly (focusing on the last couple of hours) and
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Categorical features
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Constructing the MLP Model**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Generating the above detailed features, the input shapes are known and the
+    MLP model can be constructed. It is important to notice, that we are dealing with
+    mixed datatypes: floats and integers. Please also note, that while all features
+    are of numerical type, the integer inputs are fundamentally categorical features
+    and should be treated as such.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is an option to encode the categories with e.g. one hot encoding technique,
+    but that would significantly increase the number of features as each categorical
+    column should be expanded to as many columns as many categories exist (minus one)
+    [12]. I deliberately chose embedding instead to limit the number of features on
+    the expense, that the model input layer will be more complex as the categoricals
+    are converted to vectors via embedding first and then combined with the float
+    inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please see the graph after the code section for clarity. The architecture has
+    been built using rule of thumbs, as the hyperparameter tuning is out of scope
+    for this article. However, if you are interested in a general framework how it
+    can be done, please check 📰☛ [my previous article](https://medium.com/towards-data-science/binary-classification-xgboost-hyperparameter-tuning-scenarios-by-non-exhaustive-grid-search-and-c261f4ce098d)
+    (I tuned an XGBoost model with Optuna as a tool for Bayesian search of optimal
+    hyperparameter values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/d1e93289f78adc2ad27fe54af42aa5d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'MLP architecture created by using Tensorflow/Keras. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As far as point forecasts goes, the results are ridiculously accurate. This
+    is a good sign, that the feature engineering principles applied are correctly
+    capturing the underlying patterns in the data and the model was able to generalize
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/181dd0c122d63276258e6f6f5576e070.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Baseline MLP model point-forecasts vs. test data. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The point forecasts overlap with the test set and the two figure traces are
+    indistinguishable from each other. More precisely, the RMSE of the predictions
+    (training set) and forecasts (test set) are approx. 19.3 and 18.9 respectively
+    (in the ballpark of 0.1% in relative terms).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Feature Importance**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'What led the model to be accurate? Are all derived features equally important
+    or is there a subset which has a greater weight in determining the outcome? These
+    are valid questions for two distinct reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In real-world scenarios and in the case of big data, the resources for training
+    the model is limited and the amount of data used could make a significant difference
+    if the model could be trained at all
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Without any explanation, the model works as a black box, which creates uncertainty
+    regarding its perfomance. Neural Networks are especially prone to be black box
+    models and interpreting them is a field of its own [11]
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: There is an abundance of techniques to interpret models, each has its pros and
+    cons. I selected the permutation feature importance method to give some insights
+    on model interpretation however, a key takeway from my analysis is that such
+  prefs: []
+  type: TYPE_NORMAL
+- en: model interpretation techniques are only interpreting the model in scope and
+    not necessarily the underlying process itself. Reality could be very different
+    from feature importance analysis, hence it should not be taken as ground truth
+    of causal relationship between independent variables and the target variable.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let me explain that with my analysis results. Permuting features one at a time,
+    recalculating the RMSE score and recording the relative change in RMSE compared
+    to forecasts using the original data will give the relative importance of features
+    [13].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2564e8b61f4fb48c7d19a4b671007da9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Permutation feature importance histogram. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hourly-, daily lags and differences seem important and maybe the hourly rolling
+    means as well. However, the daily and hourly rolling standards just as well as
+    the categorical features seem negligible, relative to the aforementioned features.
+    One caveat of permutation feature importance is that it does not take into account
+    multicollinearity and consequently may give inaccurate results. Remember, the
+    features have been derived from a dataset with high autocorrelation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One possible way to handle the situation is following `scikit learn` ‘s guidance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: perform hierarchical clustering on the Spearman rank-order correlations, pick
+    a threshold, and keep a single feature from each cluster. [13]
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'However, I would like to focus on highlighting the inaccuracy and adding more
+    insights to the dataset by training alternative models with the grouped features
+    one group at a time. The same MLP architecture was used for this purpose with
+    adjustments only applied on the input layer to accomodate a subset of data. The
+    following groups were created in the feature engineering section and tested here
+    (train/test dataset RMSE results also reported respectively):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: daily lags (942 and 994)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: daily differences (1792 and 1952)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: hourly lags (686 and 611)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: daily rolling means and standard deviations (1710 and 1663)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: hourly rolling means and standard deviations (84.4 and 75.5)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'It is clear that the alternative models show results not anticipated from simple
+    permutation feature importance analysis, without handling multicollinearity: e.g.
+    daily rolling features yielded better scores than daily differences and the model
+    trained on hourly rolling features has the best performance out of the alternative
+    models, close to the baseline model (RMSE reported in percentage ~0.5% vs. ~0.1%
+    respectively).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Note on a Specific Anomaly in the Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I would like to highlight a very specific case of anomaly observed at 14:00
+    on 20th October 2008\. This is the highest ever recorded value with no apparent
+    cause, no similar datapoints before or after in the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Yet, the baseline model powered by feature engineering was able to predict that
+    datapoint and is not considered an outlier!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/fe5663c1e874d9c4bcbf0d8dd541ab3c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Baseline MLP model point-predictions and the observed potential anomaly. Source:
+    author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From which features the model was able to predict that point? Let’s use our
+    alternative models for inference. The best alternative (hourly rolling features)
+    seems extremely accurate in the vicinity, but could only explain the phenomenon
+    partially:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1d891089cfb4b6494f8ac7e5afc5959e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Alternative MLP model (utilizing hourly rolling features) point-predictions
+    and the observed potential anomaly. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The second best alternative is the one utilizing hourly lags, but it has absolutely
+    no answer why that happened:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d699078a9afb2b07b740af85194b30d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Alternative MLP model (utilizing hourly lag features) point-predictions and
+    the observed potential anomaly. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Making a long story short, the daily differences might contain important information
+    regarding the underlying patterns. Although utilizing the daily differences group
+    solely gives higher predictions, the baseline model seemingly found a good balance
+    of weights for the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c0f627ebf8eb29789a55dda1e01f9faf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Alternative MLP model (utilizing daily difference features) point-predictions
+    and the observed potential anomaly. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-step Prediction Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, the model architecture has been modified to yield multi-step predictions.
+    The forecasting period is one year, as suggested by the dataset publisher [14].
+    Given all uncertainties in such a process with special regard to weather conditions,
+    it might not make sense to consider such a long forecasting period. However, it
+    is an intersting exercise to evaluate the multi-step model’s performance to the
+    state space model, which explicitly models the trend and seasonal effects observed
+    across the year (see next section).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The key points for implementing a multi-step model are as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the target was a series of vectors (next 8766 hours defined for ech step)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: as a result, the prediction or forecast is the next 8766 hours (approx. one
+    year) for the last row of inputs
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: due to resource limitations I had to limit the training data for the last year
+    of the former training dataset
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: the output layer was modified accordingly, to give the desired vector output
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For a visual evaluation, one could see the model was trying to generalize the
+    patterns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2c6c7c1d334527dfc742b07d89445916.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Multistep MLP model predictions and forecasts vs. original data. Source: author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MLP vs. State Space Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Due to generalization of the data, the RMSE score increased significantly:
+    1982 and 2017 for the train and test dataset respectively. However, in order the
+    properly evaluate the multi-step MLP, we should use another model for comparison.
+    As I mentioned in the previous section, state space models gives fairly understandable
+    approximations of the trend and seasonal effects observed across the year. This
+    feature make them relatively easily interpretable, unlike neural networks. The
+    primary reason is that hidden layers have many connections and understanding how
+    they are activated is not a straightforward process. [11].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In [my previous article](https://medium.com/analytics-vidhya/multi-seasonal-time-series-analysis-decomposition-and-forecasting-with-python-609409570007),
+    ☚📰 I used a simplified, yet meaningful evaluation method: comparing the total
+    energy consumption within the last year. Practically, that is the area under the
+    curve of the energy consumption time series. The values for the original data
+    and model forecasts can be compared directly. For the `UnobservedComponents` model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'For the MLP model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In short: it is -1.912% vs. -2.159% in favor of the MLP model. Please note,
+    that this has been achieved by utilizing an MLP architecture using some simple
+    rule of thumbs, not even considering hyperparameter tuning or some effective model
+    training features, e.g. reducing the learning rate when the evaluation metric
+    reaches a plateau or early stopping.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results should be fairly convincing that indeed, utilizing relatively simple
+    neural network architectures combined with powerful feature engineering techniques,
+    accurate forecasting tools are within reach for a data scientist early in his
+    or her seniority level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Data source:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/)
+    (CC0)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Notebook (only code, without outputs): [https://gist.github.com/danielandthelions/2e6f0edd30902113ad10fd9f20bda215](https://gist.github.com/danielandthelions/2e6f0edd30902113ad10fd9f20bda215)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] [https://preset.io/blog/time-series-forecasting-a-complete-guide/](https://preset.io/blog/time-series-forecasting-a-complete-guide/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [https://www.ibm.com/topics/recurrent-neural-networks](https://www.ibm.com/topics/recurrent-neural-networks)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [https://www.timescale.com/blog/time-series-analysis-what-is-it-how-to-use-it/](https://www.timescale.com/blog/time-series-analysis-what-is-it-how-to-use-it/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [https://plat.ai/blog/difference-between-prediction-and-forecast/](https://plat.ai/blog/difference-between-prediction-and-forecast/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] [https://dotdata.com/blog/practical-guide-for-feature-engineering-of-time-series-data/](https://dotdata.com/blog/practical-guide-for-feature-engineering-of-time-series-data/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] [https://statisticsbyjim.com/time-series/autocorrelation-partial-autocorrelation/](https://statisticsbyjim.com/time-series/autocorrelation-partial-autocorrelation/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] [https://www.sciencedirect.com/topics/computer-science/multilayer-perceptron](https://www.sciencedirect.com/topics/computer-science/multilayer-perceptron)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] [https://jina.ai/news/embeddings-in-depth/](https://jina.ai/news/embeddings-in-depth/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] Hyndman, R.J., & Athanasopoulos, G. (2021) Forecasting: principles and
+    practice, 3rd edition, OTexts: Melbourne, Australia. OTexts.com/fpp3\. Accessed
+    on 7th July 2024'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10] [https://statisticsbyjim.com/regression/root-mean-square-error-rmse/](https://statisticsbyjim.com/regression/root-mean-square-error-rmse/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11] [https://christophm.github.io/interpretable-ml-book/](https://christophm.github.io/interpretable-ml-book/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[12] [https://scikit-learn.org/stable/modules/preprocessing.html](https://scikit-learn.org/stable/modules/preprocessing.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[13] [https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance](https://scikit-learn.org/stable/modules/permutation_importance.html#permutation-feature-importance)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[14] [https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/](https://www.kaggle.com/datasets/robikscube/hourly-energy-consumption/)'
+  prefs: []
+  type: TYPE_NORMAL

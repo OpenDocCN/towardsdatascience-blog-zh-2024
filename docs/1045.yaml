@@ -1,0 +1,548 @@
+- en: Building an Email Assistant Application with Burr
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-an-email-assistant-application-with-burr-324bc34c547d?source=collection_archive---------4-----------------------#2024-04-25](https://towardsdatascience.com/building-an-email-assistant-application-with-burr-324bc34c547d?source=collection_archive---------4-----------------------#2024-04-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A tutorial to demonstrate how to use Burr, using simple OpenAI client calls
+    to GPT4, and FastAPI to create a custom email assistant agent.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@stefan.krawczyk?source=post_page---byline--324bc34c547d--------------------------------)[![Stefan
+    Krawczyk](../Images/150405abaad9590e1dc2589168ed2fa3.png)](https://medium.com/@stefan.krawczyk?source=post_page---byline--324bc34c547d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--324bc34c547d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--324bc34c547d--------------------------------)
+    [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--324bc34c547d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--324bc34c547d--------------------------------)
+    ·12 min read·Apr 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b059bfe0d0e941f2f4d698e8c8ce886.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The control flow of the agent application we’ll create. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this tutorial, I will demonstrate how to use [Burr](https://github.com/dagworks-inc/burr),
+    an open source framework (disclosure: I helped create it), using simple OpenAI
+    client calls to GPT4, and [FastAPI](https://fastapi.tiangolo.com/) to create a
+    custom email assistant agent. We’ll describe the challenge one faces and then
+    how you can solve for them. For the application frontend we provide a reference
+    implementation but won’t dive into details for it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Why are interactive agents applications a challenge?**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LLMs rarely achieve complex goals on their own, and almost never on the first
+    try. While it is in vogue to claim that ChatGPT given an internet connection can
+    solve the world’s problems, the majority of high-value tools we’ve encountered
+    use a blend of AI ingenuity and human guidance. This is part of the general move
+    towards building agents — an approach where the AI makes decisions from information
+    it receives — this could be information it queries, information a user provides,
+    or information another LLM gives it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple example of this is a tool to help you draft a response to an email.
+    You put the email and your response goals, and it writes the response for you.
+    At a minimum, you’ll want to provide feedback so it can adjust the response. Furthermore,
+    you will want it to give a chance to ask clarifying questions (an overly confident
+    yet incorrect chatbot helps no one).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In designing this interaction, your system will, inevitably, become a back-and-forth
+    between user/LLM control. In addition to the standard challenges around AI applications
+    (unreliable APIs, stochastic implementations, etc…), you will face a suite of
+    new problems, including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logically modeling a set of interaction points/flows
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Persisting the state so the user can pick up the interaction/application from
+    where it left off
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Monitoring the decisions the LLM made (E.G. whether to ask the user questions
+    or not)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: And so on… In this post we’re going to walk through how to approach solving
+    these — we’ll use the Burr library as well as FastAPI to build a web service to
+    address these challenges in an extensible, modular manner; so you can then use
+    this as a blue print for your own agent assistant needs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Tools
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Burr
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Burr](https://github.com/dagworks-inc/burr) is a lightweight python library
+    you use to build applications as state machines. You construct your application
+    out of a series of actions (these can be either decorated functions or objects),
+    which declare inputs from state, as well as inputs from the user. These specify
+    custom logic (delegating to any framework), as well as instructions on how to
+    update state. State is immutable, which allows you to inspect it at any given
+    point. Burr handles orchestration, monitoring and persistence.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the action above has two returns — the results (the counter), and
+    the new, modified state (with the counter field incremented).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You run your Burr actions as part of an application — this allows you to string
+    them together with a series of (optionally) conditional transitions from action
+    to action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Burr comes with a user-interface that enables monitoring/telemetry, as well
+    as hooks to persist state/execute arbitrary code during execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can visualize this as a flow chart, i.e. graph / state machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/82b3314c0dd8202e046fac71eb013c1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image of our application as produced by Burr. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And monitor it using the local telemetry debugger:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7cfd6694f108ffd1e74d01f09afba486.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Burr comes with a UI — this is what it looks like when inspecting a run of our
+    counter example. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While we showed the (very simple) counter example above, Burr is more commonly
+    used for building chatbots/agents (we’ll be going over an example in this post).
+  prefs: []
+  type: TYPE_NORMAL
+- en: FastAPI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[FastAPI](https://fastapi.tiangolo.com/) is a framework that lets you expose
+    python functions in a REST API. It has a simple interface — you write your functions
+    then decorate them, and run your script — turning it into a server with self-documenting
+    endpoints through [OpenAPI](https://www.openapis.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: FastAPI is easy to deploy on any cloud provider — it is infrastructure-agnostic
+    and can generally scale horizontally (so long as consideration into state management
+    is done). See [this page](https://fastapi.tiangolo.com/deployment/cloud/?h=deploy)
+    for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: React (or any frontend framework)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can use any frontend framework you want — react-based tooling, however,
+    has a natural advantage as it models everything as a function of state, which
+    can map 1:1 with the concept in Burr. In the demo app we use [react](https://react.dev/),
+    [react-query](https://tanstack.com/query/latest/docs/framework/react/overview),
+    and [tailwind](https://tailwindcss.com/), but we’ll be skipping over this largely
+    (it is not central to the purpose of the post).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s dig a bit more into the conceptual model. At a high-level, our email
+    assistant will do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Accept an email + instructions to respond
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Come up with a set of clarifying questions (if the LLM deems it required)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Generates a draft using the answer to those questions
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Accept feedback to that draft and generates another one, repeating until the
+    user is happy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Return the final draft (done)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Modeling Control Flow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As Burr requires you to build a control flow from *actions* and *transitions*,
+    we can initially model this as a simple flowchart.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b059bfe0d0e941f2f4d698e8c8ce886.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What our application will look like. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We drafted this before actually writing any code — you will see it transforms
+    to code naturally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The green nodes represent actions (these take state in and modify it), and the
+    blue nodes represent inputs (these are points at which the app has to pause and
+    ask the user for information). Note that there is a loop (formulate_draft ⇔process_feedback)
+    — we iterate on feedback until we’re happy with the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This diagram is simply a stylized version of what Burr shows you — the modeling
+    is meant to be close to the actual code. We have not displayed state information
+    (the data the steps take in/return), but we’ll need to track the following (that
+    may or may not be populated at any given point) so we can make decisions about
+    what to do next:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The initial inputs: `{email_to_respond: str, response_instructions: str}`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The questions the LLM asks and the user responses (if any):`{clarifications:
+    list[str], response_instructions: list[str]}`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The list of drafts + feedback: `{drafts: list[str], feedback_history: list[str]}`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The final result: `{final_result: str}`'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Implementing/Testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Looking at the requirements above, we can build a straightforward burr application
+    since we can very closely match our code with our diagram above. Let’s take a
+    look at the [determine_clarifications](https://github.com/DAGWorks-Inc/burr/blob/c3810dcf5a4aa44153957377ddb17fc97e05ac92/examples/email-assistant/application.py#L32C1-L65C46)
+    step, for example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that this uses simple OpenAI calls — you can replace this with [Langchain](https://www.langchain.com/),
+    [LlamaIndex](https://www.llamaindex.ai/), [Hamilton](https://github.com/dagWorks-Inc/hamilton)
+    (or something else) if you prefer more abstraction, and delegate to whatever LLM
+    you like to use. And, you should probably use something a little more concrete
+    (E.G. [instructor](https://github.com/jxnl/instructor)) to guarantee output shape.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To tie these together, we put them into the application builder — this allows
+    us to set conditional transitions (e.g. `len(clarification_questions>0`) and therefore
+    connect actions, recreating the diagram above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To iterate on this, we used a [jupyter notebook.](https://github.com/DAGWorks-Inc/burr/blob/main/examples/email-assistant/notebook.ipynb)
+    Running our application is simple — all you do is call the `.run()` method on
+    the Application, with the right *halting* conditions. We’ll want it to halt before
+    any action that requires user input (`clarify_instructions` and `process_feedback`),
+    and after `final_result`. We can then run it in a while loop, asking for user
+    input and feeding it back to the state machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can then use the Burr UI to monitor your application as it runs!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fe14069261250066fd0ba15e25320d6b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of using the Burr UI (with the email app UI) and then seeing it’s execution.
+    Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Persistence
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’re going to persist our results to an SQLite server (although as you’ll see
+    later on this is customizable). To do this, we need to add a few lines to the
+    ApplicationBuilder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This ensures that every email draft we create will be saved and can be loaded
+    at every step. When you want to resume a prior draft of an email, all you have
+    to do is rerun the code and it will start where it left off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Integrating in a web server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To expose this in a web server we’ll be using FastAPI to create endpoints and
+    Pydantic to represent types. Before we get into the details, we’ll note that Burr
+    naturally provides an `application_id` (either generated or specified) for every
+    instance of an application. In this case the `application_id` would correspond
+    to a particular email draft. This allows us to uniquely access it, query from
+    the db, etc… It also allows for a partition key (E.G. user_id) so you can add
+    additional indexing in your database. We center the API around inputs/outputs
+  prefs: []
+  type: TYPE_NORMAL
+- en: Endpoints
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We will construct the following endpoints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`POST /create`: This will create a new application and return the ID'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`PUT /initialize_draft/{id}/`: This calls out to process_input, passing in
+    the email and instructions'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`PUT /clarify_instructions/{id}`: This will give answers back to the LLM'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`PUT /process_feedback/{id}`: This will give feedback back to the LLM'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '`GET /{id}/state`: This will return the current state of the application'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The GET endpoint allows us to get the current state of the application — this
+    enables the user to reload if they quit the browser/get distracted. Each of these
+    endpoints will return the full state of the application, which can be rendered
+    on the frontend. Furthermore, it will indicate the next API endpoint we call,
+    which allows the UI to render the appropriate form and submit to the right endpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using FastAPI + Pydantic, this becomes very simple to implement. First, let’s
+    add a utility to get the application object. This will use a cached version or
+    instantiate it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: All this does is call our function application in email_assistant that recreates
+    the application. We have not included the `create` function here, but it calls
+    out to the same API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s then define a Pydantic model to represent the state, and the app object
+    in FastAPI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that every endpoint will return this same pydantic model!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Endpoints
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Given that each endpoint returns the same thing (a representation of the current
+    state as well as the next step to execute), they all look the same. We can first
+    implement a generic `run_through`function, which will progress our state machine
+    forward, and return the state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This represents a simple but powerful architecture. We can continue calling
+    these endpoints until we’re at a “terminal” state, at which point we can always
+    ask for the state. If we decide to add more input steps, we can modify the state
+    machine and add more input steps. We are not required to hold state in the app
+    (it is all delegated to Burr’s persistence), so we can easily load up from any
+    given point, allowing the user to wait for seconds, minutes, hours, or even days
+    before continuing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the frontend simply renders based on the current state and the next step,
+    it will always be correct, and the user can always pick up where they left off.
+    With Burr’s telemetry capabilities you can debug any state-related issues, ensuring
+    a smooth user experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding a UI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we have a set of endpoints, the UI is simple. In fact, it mirrors
+    the API almost exactly. We won’t dig into this too much, but the high-level is
+    that you’ll want the following capabilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Render the current state (show the history, latest draft)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Include a form for the next action’s inputs (provide feedback, answer clarifications)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Post the results to your FastAPI endpoints, pause for response, GOTO (1)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'You can see the UI [here](https://github.com/DAGWorks-Inc/burr/blob/main/telemetry/ui/src/examples/EmailAssistant.tsx).
+    Here’s an example of it in action:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e645b6e63e200b656e18c6fce0a0cf0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can play around with it if you download burr (``pip install “burr[start]”
+    && burr``), and navigate to [http://localhost:7241/demos/email-assistant](http://localhost:7241/demos/email-assistant).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that there are *many* tools that make this easier/simpler to prototype,
+    including [chainlit](https://docs.chainlit.io/get-started/overview), [streamlit](https://streamlit.io/),
+    etc… The backend API we built is amenable to interacting with them as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional Capabilities
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Customizing Persistence
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While we used the simple SQLLite persister, you can use any of the others that
+    come with Burr or implement your own to match your schema/db infrastructure. To
+    do this you implement the [BaseStatePersister](https://burr.dagworks.io/reference/persister/#burr.core.persistence.BaseStatePersister)
+    class, and add it in with the ApplicationBuilder, instead of the SQLLite persister
+    we used above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional Monitoring/Visibility
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Using the Burr UI to monitor is not the only way. You can integrate your own
+    by leveraging [lifecycle hooks](https://burr.dagworks.io/concepts/hooks/), enabling
+    you to log data in a custom format to, say, [datadog](http://datadog.com/), [langsmith](https://www.langchain.com/langsmith),
+    or [langfuse](http://langfuse.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, you can leverage additional monitoring capabilities to track spans/traces,
+    either logging them directly to the Burr UI or to any of the above providers.
+    See the list of available hooks [here](https://burr.dagworks.io/reference/lifecycle/#hooksref).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Async/Streaming
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While we kept the APIs we exposed synchronous for simplicity, Burr supports
+    asynchronous execution as well. Burr also supports streaming responses for those
+    who want to provide a more interactive UI/reduce *time to first token*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So how does it do in practice?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As with any LLM application, the entire prompt matters. If you can provide the
+    right guidance, the results are going to be better than if you don’t. Much like
+    if you are going to instruct a human, more guidance is always better. That said,
+    if you find yourself always correcting some aspect, then changing the base prompt
+    is likely the best course of action. For example, using a [single-shot or few-shot](https://neptune.ai/blog/zero-shot-and-few-shot-learning-with-llms#:~:text=%E2%80%9COne%2Dshot%E2%80%9D%20means%20we,examples%20%E2%80%93%20you%20get%20the%20gist.)
+    approach might be a good choice to try to help instruct the LLM as to what you’d
+    like to see given your specific context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Post Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we discussed how to address some of the challenges around building
+    human-in-the-loop agentic workflows. We ran through an example of making an email
+    assistant using Burr to build and run it as a state machine, and FastAPI to run
+    Burr in a web service. We finally showed how you can extend the tooling we used
+    here for a variety of common production needs — e.g. monitoring & storage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional Resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Join Burr’s [Discord](https://discord.gg/6Zy2DwP4f3) for help or if you have
+    questions!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Burr’s Github repository](http://github.com/dagworks-inc/burr) (if you like
+    it we’d love a ⭐️)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[FastAPI guide](https://fastapi.tiangolo.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Technical deep-dive of built with a web-server on github](https://github.com/DAGWorks-Inc/burr/tree/main/examples/web-server)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Code for the email assistant](https://github.com/DAGWorks-Inc/burr/tree/main/examples/email-assistant)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

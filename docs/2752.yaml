@@ -1,0 +1,851 @@
+- en: From Parallel Computing Principles to Programming for CPU and GPU Architectures
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/from-parallel-computing-principles-to-programming-for-cpu-and-gpu-architectures-dd06e1f30586?source=collection_archive---------5-----------------------#2024-11-12](https://towardsdatascience.com/from-parallel-computing-principles-to-programming-for-cpu-and-gpu-architectures-dd06e1f30586?source=collection_archive---------5-----------------------#2024-11-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For early ML Engineers and Data Scientists, to understand memory fundamentals,
+    parallel execution, and how code is written for CPU and GPU.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)[![Shreya
+    Shukla](../Images/202aca58677a445ec618494f1151d2d7.png)](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------)
+    [Shreya Shukla](https://medium.com/@shreyashukla04?source=post_page---byline--dd06e1f30586--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dd06e1f30586--------------------------------)
+    ·19 min read·Nov 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/655d3adf6d073a78237e2072eedbb398.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Olav Ahrens Røtne](https://unsplash.com/@olav_ahrens?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article aims to explain the fundamentals of parallel computing. We start
+    with the basics, including understanding shared vs. distributed architectures
+    and communication within these systems. We will explore GPU architecture and how
+    coding elements (using C++ Kokkos) help map architectural principles to code implementation.
+    Finally, we will measure performance metrics (speedup) using the runtime data
+    obtained from running the Kokkos code on both CPU and GPU architectures for vector-matrix
+    multiplication, one of the most common operations in the machine learning domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The central theme of the article is exploring and answering questions. It may
+    seem like a lengthy journey, but it will be worth it. Let’s get started!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fundamentals of System Architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I get that parallel computing saves time by running multiple operations at once.
+    But I’ve heard that system time is different from human time or wall-clock time.
+    How is it different?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The smallest unit of time in computing is called a **clock tick**. It represents
+    the minimum time required to perform an operation, such as fetching data, executing
+    computations, or during communication. A **clock tick** technically refers to
+    the change of state necessary for an instruction.The state can be processor state,
+    data state, memory state, or control signals.In one clock tick, a complete instruction,
+    part of an instruction, or multiple instructions may be executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**CPU allows for a limited number of state changes per second**. For example,
+    a CPU with 3GHz clock speed allows for 3 billion changes of state per second.
+    There is a limit to the allowable clock speed because each clock tick generates
+    heat, and excessive speed can damage the CPU chip due to the heat generated.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, we want to utilize the available capacity by using parallel computing
+    methodologies. The purpose is to hide **memory latency** (the time it takes for
+    the first data to arrive from memory), increase **memory bandwidth** (the amount
+    of data transferred per unit of time), and enhance **compute throughput** (the
+    tasks performed in a clock tick).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To compare **performance**, such as when calculating efficiency of a parallel
+    program, we use wall-clock time instead of clock ticks, since it includes all
+    real-time overheads like memory latency and communication delays, that cannot
+    be directly translated to clock ticks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What does the architecture of a basic system look like?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A system can consist of a single processor, a node, or even a cluster. Some
+    of the **physical** building blocks of a system are —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Node** — A physical computer unit that has several processor chips. Multiple
+    nodes combine to form a **cluster**.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Processor Chips** — Chips contain multiple processing elements called cores.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Core** — Each core is capable of running an independent **thread** of execution.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In set terms, a node can have a one-to-many relationship with processor chips,
+    and each processor chip can have a one-to-many relationship with cores. The image
+    below gives a visual description of a node with processors and cores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c153ab76de53b118f94f98245679085f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Modern node with four eight-core processors that share a common memory pool.
+    Ref: [Cornell Virtual Workshop](https://cvw.cac.cornell.edu/parallel/hpc/nodes)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **non-physical** components of a system include threads and processes —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Thread** — Thread is a **sequence of CPU instructions** that operating system
+    treats as a single unit for scheduling and execution purposes.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Process** — In computing, a process is a **coherent unit** of resource allocation,
+    including memory, file handlers, ports and devices. A single process may manage
+    resources for several threads. [Threads can be modelled as components of a process.](https://cvw.cac.cornell.edu/parallel/terminology/threads-processes)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: So, do threads run on cores on the same system, or can they be spread across
+    different systems for a single program? And in either case, how do they communicate?
+    How’s memory handled for these threads ? Do they share it, or do they each get
+    their own separate memory?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A single program can execute across multiple cores on the same or different
+    systems/ nodes. The design of the system and the program determines whether it
+    aligns with the desired execution strategy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When designing a system, three key aspects must be considered: **execution**
+    (how threads run), **memory access** (how memory is allocated to these threads),
+    and **communication** (how threads communicate, especially when they need to update
+    the same data). It’s important to note that these aspects are mostly interdependent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Execution**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Serial execution***—* This uses a single thread of execution to work on a
+    single data item at any time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Parallel execution** — In this, more than one thing happens simultaneously.
+    In computing, this can be —'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**One worker** — A single thread of execution operating on multiple data items
+    simultaneously (vector instructions in a CPU). Imagine a single person sorting
+    a deck of cards by suit. With four suits to categorize, the individual must go
+    through the entire deck to organize the cards for each suit.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Working Together** — Multiple threads of execution in a single process. It
+    is equivalent to multiple people working together to sort a single deck of cards
+    by suit.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Working Independently** — Multiple processes can work on the same problem,
+    utilizing either the same node or multiple nodes. In this scenario, each person
+    would be sorting their deck of cards.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Any combination of the above.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/6d28c89a540999a37bf692c49d4ab184.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Working Together: Two workers need to insert cards from the same suit. Worker
+    A is holding the partial results'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'for the clubs suit, so Worker B is temporarily blocked. Ref: [Cornell Virtual
+    Workshop](https://cvw.cac.cornell.edu/parallel/intro/working-together)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Memory Access**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Shared Memory** — When a program runs on multiple cores (**a single multithreaded
+    process**) on the same system, each thread within the process has access to memory
+    in the same virtual address space.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Distributed Memory** — A distributed memory design is employed when a program
+    utilizes **multiple processes** (whether on a single node or across different
+    nodes). In this architecture, each process owns a portion of the data, and other
+    processes must send messages to the owner to update their respective parts. Even
+    when multiple processes run on a single node, each has its own virtual memory
+    space. Therefore, such processes should use distributed memory programming for
+    communication.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Hybrid Strategy** — **Multithreaded processes** that can run on the same
+    or different nodes, designed to use multiple cores on a single node through shared
+    memory programming. At the same time, they can employ distributed memory strategies
+    to coordinate with processes on other nodes. Imagine multiple people or threads
+    working in multiple cubicles in the image above. Workers in the same cubicle communicate
+    using shared memory programming, while those in different cubicles interact through
+    distributed memory programming.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/55c24c2dcde05cd6ce2f376d807bdda8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In a distributed memory design, parallel workers are assigned to different
+    cubicles (processes). Ref: [Cornell Virtual Workshop](https://cvw.cac.cornell.edu/parallel/terminology/tasks)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Communication**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The communication mechanism depends on the memory architecture. In **shared
+    memory architectures**, application programming interfaces like **OpenMP** (Open
+    Multi-Processing)enable communication between threads that share memory and data.
+    On the other hand, **MPI** (Message Passing Interface) can be used for communication
+    between processes running on the same or different nodes in **distributed memory
+    architectures**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parallelization Strategy and Performance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: How can we tell if our parallelization strategy is working effectively?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are several methods, but here, we discuss efficiency and speedup. In parallel
+    computing, efficiency refers to the proportion of available resources that are
+    actively utilized during a computation. It is determined by comparing the actual
+    resource utilization against the peak performance, i.e., optimal resource utilization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Actual processor utilization** refers to the number of floating point operations
+    (FLOP) performed over a specific period.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Peak performance** assumes that each processor core executes the maximum
+    possible FLOPs during every clock cycle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Efficiency for parallel code** is the ratio of actual floating-point operations
+    per second (FLOPS) to the peak possible performance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Speedup** is used to assess efficiency and is measured as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/917b99538054a2358cb3c512063c8ceb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Speedup cannot be greater than the number of parallel resources](https://cvw.cac.cornell.edu/parallel/efficiency/about-efficiency)
+    when programs are limited by computing speed of the processors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using speedup, parallel efficiency is measured as :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5979f6439a7de8b14daa2056e1bdd6b5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[*Hence, a worthy goal for optimization of a parallel program is to bring its
+    speedup as close as possible to the number of cores.*](https://cvw.cac.cornell.edu/parallel/efficiency/about-efficiency)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Suppose the serial execution of code took 300 seconds. After parallelizing
+    the tasks using 50 cores, the overall wall-clocktime for parallel execution was
+    6 seconds. In this case, the speedup can be calculated as the wall-clock time
+    for serial execution divided by the wall-clock time for parallel execution, resulting
+    in a speedup of 300s/6s = 50\. We get parallel efficiency by dividing the speedup
+    by the number of cores, 50/50 ​= 1\. This is an example of the best-case scenario:
+    the workload is perfectly parallelized, and all cores are utilized efficiently.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Will adding more computing units constantly improve performance if the data
+    size or number of tasks increases?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Only sometimes. In parallel computing, we have two types of scaling based on
+    the problem size or the number of parallel tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Strong Scaling** — Increasing the number of parallel tasks while keeping
+    the problem size constant. However, even as we increase the number of computational
+    units (cores, processors, or nodes) to process more tasks in parallel, there is
+    an overhead associated with communication between these units or the host program,
+    such as the time spent sending and receiving data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: S[*trong scaling performance is affected by the ratio of time communicating
+    to the time spent computing. The larger the ratio, worse the strong scaling behaviour
+    will be.*](https://cvw.cac.cornell.edu/parallel/efficiency/scaling)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Ideally, the execution time decreases as the number of parallel tasks increases.
+    However, if the code doesn’t get faster with strong scaling, it could indicate
+    that we’re using too many tasks for the amount of work being done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Weak Scaling —** In this, problem size increases as the number of tasks increase,
+    so computation per task remains constant. If your program has good weak scaling
+    performance, you can run a problem twice as large on twice as many nodes in the
+    same wall-clock time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are restrictions around what we can parallelize since some operations
+    can’t be parallelized. Is that right?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Yes, parallelizing certain sequential operations can be quite challenging. Parallelizing
+    depends on multiple instruction streams and/or multiple data streams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/826d67454a004c65b755cbb6b327bc25.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Different types of parallel computing architectures. Ref: [Cornell Virtual
+    Workshop](https://cvw.cac.cornell.edu/parallel/hpc/taxonomy-parallel-computers)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand what can be parallelized, let’s look at SIMD in CPUs, which is
+    achieved using vectorization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Vectorization is a programming technique in which operations are applied to
+    entire arrays at once rather than processing individual elements one by one. It
+    is achieved using the vector unit in processors, which includes vector registers
+    and vector instructions.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Consider a scenario where we iterate over an array and perform multiple operations
+    on a single element within a for loop. When the data is independent, writing vectorizable
+    code becomes straightforward; see the example below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this loop, each iteration is independent — meaning `a(i)` is processed independently
+    of `a(i+1)` and so on. Therefore, this code is vectorizable, that will allow multiple
+    elements of array `a` to be computed in parallel using elements from `b` and `c`,
+    as demonstrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Modern compilers are generally capable of analyzing such loops and transforming
+    them into sequences of vector operations.* [*Problem arises when an operation
+    in one iteration depends upon the result of a previous iteration. In this case,
+    automatic vectorization might lead to incorrect results. This situation is known
+    as a data dependency.*](https://cvw.cac.cornell.edu/vector/coding/data-dependencies)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Data dependencies commonly encountered in scientific code are -
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Read After Write (RAW)** — *Not Vectorizable*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Write After Read (WAR)** — *Vectorizable*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Write After Write (WAW)** — *Not Vectorizable*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Read After Read (RAR)** — *Vectorizable*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Adhering to certain standard rules for vectorization — such as ensuring independent
+    assignments in loop iterations, avoiding random data access, and preventing dependencies
+    between iterations — can help write vectorizable code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPU architecture and cross-architectural code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When data increases, it makes sense to parallelize as many parallelizable operations
+    as possible to create scalable solutions, but that means we need bigger systems
+    with lots of cores. Is that why we use GPUs? How are they different from CPUs,
+    and what leads to their high throughput?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: YES!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b996318622b4ea4b0acd28a9998e877.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Comparing the relative capabilities of the basic elements of CPU and GPU architectures.
+    Ref: [Cornell Virtual Workshop](https://cvw.cac.cornell.edu/gpu-architecture/gpu-characteristics/design)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**GPUs (Graphics processing units)** have many more processor units (green)
+    and higher aggregate *memory bandwidth* (the amount of data transferred per unit
+    of time) as compared to CPUs, which, on the other hand, have more sophisticated
+    instruction processing and faster clock speed. As seen above, CPUs have more cache
+    memory than GPUs. However, CPUs have fewer arithmetic logic units (ALUs) and floating
+    point units (FPUs) than GPUs. Considering these points, **using CPUs for complex
+    workflow and GPUs for computationally intensive tasks is intuitive.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[GPUs are designed to produce high computational throughput](https://cvw.cac.cornell.edu/gpu-architecture/gpu-characteristics/performance)
+    using their massively parallel architecture. Their computational potential can
+    be measured in billions of floating point operations per second (GFLOPS). GPU
+    hardware comes in the form of standard graphic cards (NVIDIA quad), High-end accelerator
+    cards (NVIDIA Tesla), etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two key properties of the graphics pipeline that enable parallelization and,
+    thus, high throughput are —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Independence of Objects —** A typical graphics scene consists of many independent
+    objects; each object can be processed separately without dependencies on the others.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Uniform Processing Steps —** The sequence of processing steps is the same
+    for all objects.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: So, multiple cores of GPUs work on different data at the same time, executing
+    computations in parallel like a SIMD (Single Instruction Multiple Data) architecture.
+    How are tasks divided between cores? Does each core run a single thread like in
+    the CPU?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In a GPU, **Streaming Multiprocessors (SMs)** are similar to cores in a CPU.
+    Cores in GPUs are similar to vector lanes in CPUs. SMs are the hardware units
+    that house cores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a function or computation, referred as a **kernel,** is executed on the
+    GPU, it is often broken down into **thread blocks**. These thread blocks contain
+    **multiple threads;** each SM can manage many threads across its cores. If there
+    are more thread blocks than SMs, multiple thread blocks can be assigned to a single
+    SM. Also, multiple threads can run on a single core.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Each SM further divides the **thread blocks** into groups called **warps**,
+    with each warp consisting of **32 threads**.](https://cvw.cac.cornell.edu/gpu-architecture/gpu-characteristics/simt_warp)
+    These threads execute the same stream of instructions on different data elements,
+    following a **Single Instruction, Multiple Data (SIMD)** model. The warp size
+    is set to 32 because, in NVIDIA’s architecture, CUDA cores are grouped into sets
+    of 32\. This enables all threads in a warp to be processed together in parallel
+    by the 32 CUDA cores, achieving high efficiency and optimized resource utilization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In **SIMD (Single Instruction, Multiple Data)**, a single instruction acts uniformly
+    on all data elements, with each data element processed in exactly the same way.
+    **SIMT (Single Instruction, Multiple Threads)**, which is commonly used in GPUs,
+    relaxes this restriction. In SIMT, threads can be activated or deactivated so
+    that instruction and data are processed in active threads; however, the local
+    data remains unchanged on inactive threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to understand how we can code to use different architectures. Can similar
+    code work for both CPU and GPU architectures? What parameters and methods can
+    we use to ensure that the code efficiently utilizes the underlying hardware architecture,
+    whether it’s CPUs or GPUs?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Code is generally written in high-level languages like C or C++ and must be
+    converted into binary code by a compiler since machines cannot directly process
+    high-level instructions. While both GPUs and CPUs can execute the same kernel,
+    as we will see in the example code, we need to use directives or parameters to
+    run the code on a specific architecture to compile and generate an instruction
+    set for that architecture. This approach allows us to use architecture-specific
+    capabilities. To ensure compatibility, we can specify the appropriate flags for
+    the compiler to produce binary code optimized for the desired architecture, whether
+    it is a CPU or a GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Various coding frameworks, such as SYCL, CUDA, and Kokkos, are used to write
+    kernels or functions for different architectures. In this article, we will use
+    examples from Kokkos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A bit about Kokkos —** An open-source C++ programming model for performance
+    portability for writing Kernels: it is implemented as a template library on top
+    of CUDA, OpenMP, and other backends and aims to be descriptive, in the sense that
+    we define *what* we want to do rather than prescriptive (how we want to do it).
+    Kokkos Core provides a programming model for parallel algorithms that uses many-core
+    chips and shares memory across those cores.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A **kernel** has three components —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pattern —** Structure of the computation: for, scan, reduction, task-graph'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Execution policy —** How computations are executed: static scheduling, dynamic
+    scheduling, thread teams.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Computational Body —** Code which performs each unit of work. e.g., loop
+    body'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Pattern and policy drive computational body. In the example below, used just
+    for illustration, ‘for**’** is the *pattern***,** the *condition* to control the
+    pattern (element=0; element<n; ++element) is the *policy*, and the *computational
+    body* is the code executed within the pattern
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Kokkos framework allows developers to define parameters and methods based
+    on three key factors: where the code will run **(Execution Space)**, what memory
+    resources will be utilized **(Memory Space)**, and how data will be structured
+    and managed **(Data Structure and Data management**).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We primarily discuss how to write the Kokkos kernel for the **vector-matrix
+    product** to understand how these factors are implemented for different architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But before that, let’s discuss the building blocks of the kernel we want to
+    write.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Memory Space —**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kokkos provides a range of memory space options that enable users to control
+    memory management and data placement on different computing platforms. Some commonly
+    used memory spaces are —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**HostSpace —** This memory space represents the CPU’s main memory. It is used
+    for computations on the CPU and is typically the default memory space when working
+    on a CPU-based system.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**CudaSpace —** CudaSpace is used for NVIDIA GPUs with CUDA. It provides memory
+    allocation and management for GPU devices, allowing for efficient data transfer
+    and computation.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**CudaUVMSpac —** For Unified Virtual Memory (UVM) systems, such as those on
+    some NVIDIA GPUs, CudaUVMSpace enables the allocation of memory accessible from
+    both the CPU and GPU without explicit data transfers. Cuda runtime automatically
+    handles data movement at a performance hit.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: It is also essential to discuss **memory layout**, which refers to the organization
+    and arrangement of data in memory. Kokkos provides several memory layout options
+    to help users optimize their data storage for various computations. Some commonly
+    used memory layouts are —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1049e781fcb83e45fec8455b8c008e2d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Row-major vs Column-major iteration of a matrix. Ref: [Wikipedia](https://en.wikipedia.org/wiki/Row-_and_column-major_order)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**LayoutRight (also known as Row-Major)** is the default memory layout for
+    multi-dimensional arrays in C and C++. In LayoutRight, the rightmost index varies
+    most rapidly in memory. If no layout is chosen, the default layout for HostSpace
+    is LayoutRight.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**LayoutLeft (also known as Column-Major) —** In LayoutLeft, the leftmost index
+    varies most rapidly in memory. If no layout is chosen, the default layout for
+    CudaSpace is LayoutLeft.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the programmatic implementation below, we defined memory space and layout
+    as macros based on the compiler flag ENABLE_CUDA, which will be True if we want
+    to run our code on GPU and False for CPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Data Structure and Data Management —**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Kokkos Views *—*** In Kokkos, a “view” is a **fundamental data structure**
+    representing one-dimensional and multi-dimensional arrays, which can be used to
+    store and access data efficiently. Kokkos views provide a high-level abstraction
+    for managing data and is designed to work seamlessly with different execution
+    spaces and memory layouts.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Kokkos Mirroring technique for data management** — Mirrors are views of equivalent
+    arrays residing in possible different memory spaces, which is when we need data
+    in both CPU and GPU architecture. This technique is helpful for scenarios like
+    reading data from a file on the CPU and subsequently processing it on the GPU.
+    Kokkos’ mirroring creates a mirrored view of the data, allowing seamless sharing
+    between the CPU and GPU execution spaces and facilitating data transfer and synchronization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To create a mirrored copy of the primary data, we can use Kokkos’ *create_mirror_view()*
+    function. This function generates a mirror view in a specified execution space
+    (e.g., GPU) with the same data type and dimensions as the primary view.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Execution Space —**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Kokkos, the **execution space** refers to the specific computing environment
+    or hardware platform where parallel operations and computations are executed.
+    Kokkos abstracts the execution space, enabling code to be written in a descriptive
+    manner while adapting to various hardware platforms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We discuss two primary execution spaces —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Serial**: The Serial execution space is a primary and portable option suitable
+    for single-threaded CPU execution. It is often used for debugging, testing, and
+    as a baseline for performance comparisons.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Cuda**: The Cuda execution space is used for NVIDIA GPUs and relies on CUDA
+    technology for parallel processing. It enables efficient GPU acceleration and
+    management of GPU memory.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Either the ExecSpace can be defined, or it can be determined dynamically based
+    on the Memory space as below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: How can we use these building blocks to write an actual kernel? Can we use it
+    to compare performance between different architectures?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For the purpose of writing a kernel and performance comparison, we use following
+    computation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The kernel for this operation in Kokkos —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the above kernel, `parallel_reduce` serves as the pattern, `range_policy`
+    defines the policy, and the actual operations constitute the computational body.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I executed this kernel on a TACC Frontera node which has an NVIDIA Quadro RTX
+    5000 GPU. The experiments were performed with varying values of **N**, which refers
+    to the lengths of the vectors **y** and **x**, and the number of rows in matrix
+    **A**. Computation was performed 100 times to get notable results, and the execution
+    time of the kernel was recorded for both Serial (Host) and CUDA execution spaces.
+    I used `**ENABLE_CUDA**` compiler flag to switch between execution environments:
+    **True** for GPU/CUDA execution space and **False** for CPU/serial execution space.
+    The results of these experiments are presented below, with the corresponding speedup.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data on kernel execution runtime data and speedup for CPU vs GPU architecture
+    Ref: Table by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/29171354662a8b3bac463f48c99db523.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Speedup trend for varying data size (GPU vs CPU) Ref: Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We notice that the speedup increases significantly with the size of N, indicating
+    that the CUDA implementation becomes increasingly advantageous for larger problem
+    sizes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s all for now! I hope this article has been helpful in getting started
+    on the right foot in exploring the domain of computing. Understanding the basics
+    of the GPU architecture is crucial, and this article introduces one way of writing
+    cross-architectural code that I experimented with. However, there are several
+    methods and technologies worth exploring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While I’m not a field expert, this article reflects my learning journey from
+    my brief experience working at TACC in Austin, TX. I welcome feedback and discussions,
+    and I would be happy to assist if you have any questions or want to learn more.
+    Please refer to the excellent resources below for further learning. Happy computing!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Acknowledgments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This article draws from three primary sources. The first is the graduate-level
+    course **SDS394: Scientific and Technical Computing at UT Austin**, which provided
+    essential background knowledge on single-core multithreaded systems. The second
+    is the [**Cornell Virtual Workshop: Parallel Programming Concepts and High Performance
+    Computing**](https://cvw.cac.cornell.edu/parallel), an excellent resource for
+    learning about parallel computing. The Kokkos code implementation is primarily
+    based on materials available at [**Kokkos Tutorials on GitHub**](https://github.com/kokkos/kokkos-tutorials).
+    These are all amazing resources for anyone interested in learning more about parallel
+    computing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: — — — — — — — — — —
+  prefs: []
+  type: TYPE_NORMAL
+- en: The development of C++ Kokkos kernels for performance comparison across different
+    architectures was part of a project supported by the **Intel OneAPI Center of
+    Excellence** and the **TACC STAR Scholars program**, funded through generous contributions
+    from TACC industry partners, including **Intel, Shell, Exxon,** and **Chevron**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: — — — — — — — — — —
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'References/Resources:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/VictorEijkhout/TheArtofHPC_pdfs/tree/main?source=post_page-----dd06e1f30586--------------------------------)
+    [## GitHub - VictorEijkhout/TheArtofHPC_pdfs: All pdfs of Victor Eijkhout''s Art
+    of HPC books and…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All pdfs of Victor Eijkhout's Art of HPC books and courses - VictorEijkhout/TheArtofHPC_pdfs
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/VictorEijkhout/TheArtofHPC_pdfs/tree/main?source=post_page-----dd06e1f30586--------------------------------)
+    [](https://docs.tacc.utexas.edu/hpc/frontera/?source=post_page-----dd06e1f30586--------------------------------)
+    [## Frontera - TACC HPC Documentation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Last update: October 24, 2024 Important: Please note TACC''s new SU charge
+    policy. Frontera is funded by the National…'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'docs.tacc.utexas.edu](https://docs.tacc.utexas.edu/hpc/frontera/?source=post_page-----dd06e1f30586--------------------------------)  [##
+    Cornell Virtual Workshop: Parallel Programming Concepts and High Performance Computing'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This roadmap explains parallel programming concepts, how parallel programming
+    relates to high performance computing…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'cvw.cac.cornell.edu](https://cvw.cac.cornell.edu/parallel?source=post_page-----dd06e1f30586--------------------------------)  [##
+    Cornell Virtual Workshop: Understanding GPU Architecture'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This roadmap is intended for those who are relatively new to GPUs or who would
+    like to learn more about computer technology that goes into them….
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'cvw.cac.cornell.edu](https://cvw.cac.cornell.edu/gpu-architecture?source=post_page-----dd06e1f30586--------------------------------)  [##
+    Cornell Virtual Workshop: Vectorization'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This roadmap describes the vectorization process as it relates to computing
+    hardwares, compilers, and coding practices…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'cvw.cac.cornell.edu](https://cvw.cac.cornell.edu/vector?source=post_page-----dd06e1f30586--------------------------------)
+    [](https://github.com/kokkos/kokkos-tutorials?source=post_page-----dd06e1f30586--------------------------------)
+    [## GitHub — kokkos/kokkos-tutorials: Tutorials for the Kokkos C++ Performance
+    Portability Programming…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tutorials for the Kokkos C++ Performance Portability Programming Ecosystem —
+    kokkos/kokkos-tutorials
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/kokkos/kokkos-tutorials?source=post_page-----dd06e1f30586--------------------------------)
+    [](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series?source=post_page-----dd06e1f30586--------------------------------)
+    [## Kokkos Lecture Series
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tutorials for the Kokkos C++ Performance Portability Programming Ecosystem -
+    Kokkos Lecture Series ·…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/kokkos/kokkos-tutorials/wiki/Kokkos-Lecture-Series?source=post_page-----dd06e1f30586--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

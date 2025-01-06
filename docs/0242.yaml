@@ -1,0 +1,271 @@
+- en: Performant IPv4 Range Spark Joins
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/performant-ipv4-range-spark-joins-95143b305436?source=collection_archive---------3-----------------------#2024-01-25](https://towardsdatascience.com/performant-ipv4-range-spark-joins-95143b305436?source=collection_archive---------3-----------------------#2024-01-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A Practical guide to optimizing non-equi joins in Spark
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)[![Jean-Claude
+    Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------)
+    [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--95143b305436--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--95143b305436--------------------------------)
+    ·9 min read·Jan 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e2dd3d2557024e0fd123571495dea461.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by John Lee on Unsplash
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enriching network events with IP geolocation information is a crucial task,
+    especially for organizations like the [Canadian Centre for Cyber Security](https://www.cyber.gc.ca/en),
+    the national CSIRT of Canada. In this article, we will demonstrate how to optimize
+    Spark SQL joins, specifically focusing on scenarios involving non-equality conditions
+    — a common challenge when working with IP geolocation data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As cybersecurity practitioners, our reliance on enriching network events with
+    IP geolocation databases necessitates efficient strategies for handling non-equi
+    joins. While numerous articles shed light on various join strategies supported
+    by Spark, the practical application of these strategies remains a prevalent concern
+    for professionals in the field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: David Vrba’s insightful article, [“About Joins in Spark 3.0”](/about-joins-in-spark-3-0-1e0ea083ea86),
+    published on Towards Data Science, serves as a valuable resource. It explains
+    the conditions guiding Spark’s selection of specific join strategies. In his article,
+    David briefly suggests that optimizing non-equi joins involves transforming them
+    into equi-joins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This write-up aims to provide a practical guide for optimizing the performance
+    of a non-equi JOIN, with a specific focus on joining with IP ranges in a geolocation
+    table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To exemplify these optimizations, we will revisit the geolocation table introduced
+    [in our previous article](/unleashing-the-power-of-sql-analytical-window-functions-a-deep-dive-into-fusing-ipv4-blocks-62bf2b3405e0).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Equi-Join
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To illustrate Spark’s execution of an equi-join, we’ll initiate our exploration
+    by considering a hypothetical scenario. Suppose we have a table of events, each
+    event being associated with a specific `owner`denoted by the `event_owner` column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s take a closer look at how Spark handles this equi-join:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this example, the equi-join is established between the `events` table and
+    the `geolocation` table. The linking criterion is based on the equality of the
+    `event_owner` column in the `events` table and the `owner` column in the `geolocation`
+    table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As explained by David Vrba in his blog post:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spark will plan the join with SMJ if there is an equi-condition and the joining
+    keys are sortable
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Spark will execute a Sort Merge Join, distributing the rows of the two tables
+    by hashing the `event_owner` on the left side and the `owner` on the right side.
+    Rows from both tables that hash to the same Spark partition will be processed
+    by the same Spark task—a unit of work. For example, Task-1 might receive:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how Task-1 handles only a subset of the data. The join problem is divided
+    into multiple smaller tasks, where only a subset of the rows from both the left
+    and right sides is required. Furthermore, the left and right side rows processed
+    by Task-1 have to match. This is true because every occurrence of “Telus” will
+    hash to the same partition, regardless of whether it comes from the `events` or
+    `geolocation` tables. We can be certain that no other Task-X will have rows with
+    an `owner` of “Telus”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the data is divided as shown above, Spark will sort both sides, hence the
+    name of the join strategy, Sort Merge Join. The merge is performed by taking the
+    first row on the left and testing if it matches the right. Once the rows on the
+    right no longer match, Spark will pull rows from the left. It will keep dequeuing
+    each side until no rows are left on either side.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-equi Join
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have a better understanding of how equi-joins are performed, let’s
+    contrast it with a non-equi join. Suppose we have events with an `event_ip`, and
+    we want to add geolocation information to this table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To execute this join, we need to determine the IP range within which the `event_ip`
+    falls. We accomplish this with the following condition:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, let’s consider how Spark will execute this join. On the right side (the
+    geolocation table), there is no key by which Spark can hash and distribute the
+    rows. It is impossible to divide this problem into smaller tasks that can be distributed
+    across the compute cluster and performed in parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a situation like this, Spark is forced to employ more resource-intensive
+    join strategies. As stated by David Vrba:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is no equi-condition, Spark has to use BroadcastNestedLoopJoin (BNLJ)
+    or cartesian product (CPJ).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Both of these strategies involve brute-forcing the problem; for every row on
+    the left side, Spark will test the “between” condition on every single row of
+    the right side. It has no other choice. If the table on the right is small enough,
+    Spark can optimize by copying the right-side table to every task reading the left
+    side, a scenario known as the BNLJ case. However, if the left side is too large,
+    each task will need to read both the right and left sides of the table, referred
+    to as the CPJ case. In either case, both strategies are highly costly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, how can we improve this situation? The trick is to introduce an equality
+    in the join condition. For example, we could simply unroll all the IP ranges in
+    the geolocation table, producing a row for every IP found in the IP ranges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is easily achievable in Spark; we can execute the following SQL to unroll
+    all the IP ranges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The [sequence](https://spark.apache.org/docs/latest/api/sql/#sequence) function
+    creates an array with the IP values from `start_ip` to `end_ip`. The [explode](https://spark.apache.org/docs/latest/api/sql/#explode)
+    function unrolls this array into individual rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: With a key on both sides, we can now execute an equi-join, and Spark can efficiently
+    distribute the problem, resulting in optimal performance. However, in practice,
+    this scenario is not realistic, as a genuine geolocation table often contains
+    billions of rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To address this, we can enhance the efficiency by increasing the coarseness
+    of this mapping. Instead of mapping IP ranges to each individual IP, we can map
+    the IP ranges to segments within the IP space. Let’s assume we divide the IP space
+    into segments of 5\. The segmented space would look something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, our objective is to map the IP ranges to the segments they overlap with.
+    Similar to what we did earlier, we can unroll the IP ranges, but this time, we’ll
+    do it in segments of 5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We observe that certain IP ranges share a `bucket_id`. Ranges 1–2 and 3–4 both
+    fall within the segment 1–5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally, we notice that some IP ranges are duplicated. The last two rows
+    for the IP range 23–29 overlap with segments 20–25 and 26–30\. Similar to the
+    scenario where we unrolled individual IPs, we are still duplicating rows, but
+    to a much lesser extent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can utilize this bucketed table to perform our join.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The equality in the join enables Spark to perform a Sort Merge Join (SMJ) strategy.
+    The “between” condition eliminates cases where IP ranges share the same `bucket_id`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this illustration, we used segments of 5; however, in reality, we would segment
+    the IP space into segments of 256\. This is because the global IP address space
+    is overseen by the Internet Assigned Numbers Authority (IANA), and traditionally,
+    IANA allocates address space in blocks of 256 IPs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Analyzing the IP ranges in a genuine geolocation table using the Spark `approx_percentile`
+    function reveals that most records have spans of less than 256, while very few
+    are larger than 256.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: This implies that most IP ranges are assigned a `bucket_id`, while the few larger
+    ones are unrolled, resulting in the unrolled table containing approximately an
+    extra 10% of rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A query executed with a genuine geolocation table might resemble the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In conclusion, this article has presented a practical demonstration of converting
+    a non-equi join into an equi-join through the implementation of a mapping technique
+    that involves segmenting IP ranges. It’s crucial to note that this approach extends
+    beyond IP addresses and can be applied to any dataset characterized by bands or
+    ranges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ability to effectively map and segment data is a valuable tool in the arsenal
+    of data engineers and analysts, providing a pragmatic solution to the challenges
+    posed by non-equality conditions in Spark SQL joins.
+  prefs: []
+  type: TYPE_NORMAL

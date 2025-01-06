@@ -1,0 +1,243 @@
+- en: How Long Does It Take to Train the LLM From Scratch?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-long-does-it-take-to-train-the-llm-from-scratch-a1adb194c624?source=collection_archive---------1-----------------------#2024-10-28](https://towardsdatascience.com/how-long-does-it-take-to-train-the-llm-from-scratch-a1adb194c624?source=collection_archive---------1-----------------------#2024-10-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Guide to estimating time for training X-billion LLMs with Y trillion tokens
+    and Z GPU compute
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@maxshapp?source=post_page---byline--a1adb194c624--------------------------------)[![Max
+    Shap](../Images/34811d87a5eb23f21e8d6fd569311a3a.png)](https://medium.com/@maxshapp?source=post_page---byline--a1adb194c624--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a1adb194c624--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a1adb194c624--------------------------------)
+    [Max Shap](https://medium.com/@maxshapp?source=post_page---byline--a1adb194c624--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a1adb194c624--------------------------------)
+    ·5 min read·Oct 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/22c36c4b0f024261ae215cb9306bbb76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Intro**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Every ML engineer working on LLM training has faced the question from a manager
+    or product owner: *‘How long will it take to train this LLM?’*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When I first tried to find an answer online, I was met with many articles covering
+    generic topics — training techniques, model evaluation, and the like. But none
+    of them addressed the core question I had: *How do I actually estimate the time
+    required for training?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Frustrated by the lack of clear, practical guidance, I decided to create my
+    own. In this article, I’ll walk you through a simple, back-of-the-envelope method
+    to quickly estimate how long it will take to train your LLM based on its size,
+    data volume, and available GPU power
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Approach**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The goal is to quantify the computational requirements for processing data and
+    updating model parameters during training in terms of **FLOPs** (floating point
+    operations). Next, we estimate the system’s throughput in **FLOPS** (floating-point
+    operations per second) based on the type and number of GPUs selected. Once everything
+    is expressed on the same scale, we can easily calculate the time required to train
+    the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So the final formula is pretty straightforward:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e635eab3d7c67dcee53d0d155a997497.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let’s dive into knowing how to estimate all these variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FLOPs for Data and Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The number of add-multiply operations per token for the forward pass for Transformer
+    based LLM involves roughly the following amount of FLOPs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/931583db7f575dfa66cfc1285987af01.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Approximation of FLOPs per token for the Transformer model of size N during
+    forward pass from [paper](https://arxiv.org/pdf/2001.08361)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where the factor of two comes from the multiply-accumulate operation used in
+    matrix multiplication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The backward pass requires approximately twice the compute of the forward pass.
+    This is because, during backpropagation, we need to compute gradients for each
+    weight in the model as well as gradients with respect to the intermediate activations,
+    specifically the activations of each layer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**With this in mind, the floating-point operations per training token can be
+    estimated as:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3817cdce9aa32f0eec695f00f2220eaa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Approximation of FLOPs per token for the Transformer model of size N during
+    forward and backward pass from [paper](https://arxiv.org/pdf/2001.08361)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A more detailed math for deriving these estimates can be found in the paper
+    from the authors [here](https://arxiv.org/pdf/2001.08361).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To sum up, training FLOPs for the transformer model of size N and dataset of
+    P tokens can be estimated as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b356d4df53ad88326a799b8553b0852c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: FLOPS of the training Infrastructure
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Today, most LLMs are trained using GPU accelerators. Each GPU model (like Nvidia’s
+    H100, A100, or V100) has its own FLOPS performance, which varies depending on
+    the data type (form factor) being used. For instance, operations with FP64 are
+    slower than those with FP32, and so on. The peak theoretical FLOPS for a specific
+    GPU can usually be found on its product specification page (e.g., [here](https://www.nvidia.com/en-gb/data-center/h100/)
+    for the H100).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the theoretical maximum FLOPS for a GPU is often less relevant in practice
+    when training Large Language Models. That’s because these models are typically
+    trained on thousands of interconnected GPUs, where the efficiency of network communication
+    becomes crucial. If communication between devices becomes a bottleneck, it can
+    drastically reduce the overall speed, making the system’s actual FLOPS much lower
+    than expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this, it’s important to track a metric called model FLOPS utilization
+    (MFU) — the ratio of the observed throughput to the theoretical maximum throughput,
+    assuming the hardware is operating at peak efficiency with no memory or communication
+    overhead. In practice, as the number of GPUs involved in training increases, MFU
+    tends to decrease. Achieving an MFU above 50% is challenging with current setups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the authors of the LLaMA 3 [paper](https://arxiv.org/pdf/2407.21783)
+    reported an MFU of 38%, or 380 teraflops of throughput per GPU, when training
+    with 16,000 GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2eb3da3d53dfffa58532e6b705f75264.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Reported TFLOPs throughput per GPU training Llama3 models as reported in the
+    [paper](https://arxiv.org/pdf/2407.21783) for different configurations
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To summarize, when performing a back-of-the-envelope calculation for model
+    training, follow these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identify the theoretical peak FLOPS for the data type your chosen GPU supports.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Estimate the MFU (model FLOPS utilization) based on the number of GPUs and network
+    topology, either through benchmarking or by referencing open-source data, such
+    as reports from Meta engineers (as shown in the table above).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Multiply the theoretical FLOPS by the MFU to get the average throughput per
+    GPU.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Multiply the result from step 3 by the total number of GPUs involved in training.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Case study with Llama 3 405B
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, let’s put our back-of-the-envelope calculations to work and estimate how
+    long it takes to train a 405B parameter model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'LLaMA 3.1 (405B) was trained on 15.6 trillion tokens — a massive dataset. The
+    total FLOPs required to train a model of this size can be calculated as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/61a2c49b64193b8f2c567caa1dac0977.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The authors used 16,000 H100 GPUs for training. According to the paper, the
+    average throughput was 400 teraflops per GPU. This means the training infrastructure
+    can deliver a total throughput of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1ab3387731738214dbbf88f6d5dc2718.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Finally, by dividing the total required FLOPs by the available throughput and
+    converting the result into days (since what we really care about is the number
+    of training days), we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/518a4ceb08820b09d1ab968c6e7555ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Bonus: How much does it cost to train Llama 3.1 405B?'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once you know the FLOPS per GPU in the training setup, you can calculate the
+    total GPU hours required to train a model of a given size and dataset. You can
+    then multiply this number by the cost per GPU hour from your cloud provider (or
+    your own cost per GPU hour).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, if one H100 GPU costs approximately $2 per hour, the total cost
+    to train this model would be around $52 million! The formula below explains how
+    this number is derived:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e790d633c6d7eb0841e81317dd5f332f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] [Scaling Laws for Neural Language Models](https://arxiv.org/pdf/2001.08361)
+    by Jared Kaplan et al.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2][The Llama 3 Herd of Models](https://arxiv.org/pdf/2407.21783) by Llama
+    Team, AI @ Meta'
+  prefs: []
+  type: TYPE_NORMAL

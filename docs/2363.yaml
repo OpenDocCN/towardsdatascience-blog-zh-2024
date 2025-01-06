@@ -1,0 +1,666 @@
+- en: Nine Rules for Running Rust on WASM WASI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a?source=collection_archive---------1-----------------------#2024-09-28](https://towardsdatascience.com/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a?source=collection_archive---------1-----------------------#2024-09-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Practical Lessons from Porting `range-set-blaze` to this Container-Like Environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)[![Carl
+    M. Kadie](../Images/9dbe27c76e9567136e5a7dc587f1fb15.png)](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------)
+    [Carl M. Kadie](https://medium.com/@carlmkadie?source=post_page---byline--550cd14c252a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--550cd14c252a--------------------------------)
+    ·13 min read·Sep 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2aeccd7db0b3d1c20858eb872f60daf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Rust Running on a Container-Like Environment — Source: [https://openai.com/dall-e-2/](https://openai.com/dall-e-2/).
+    All other figures from the author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do you want your Rust code to run everywhere — from large servers to web pages,
+    robots, and even watches? In this first of three articles [[1](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-wasm-wasi-550cd14c252a),
+    [2](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1),
+    [3](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)],
+    I’ll detail the steps to make that happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running Rust in constrained environments presents challenges. Your code may
+    not have access to a complete operating system such as Linux, Windows, or macOS.
+    You may have limited (or no) access to files, networks, time, random numbers,
+    and even memory. We’ll explore workarounds and solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This first article focuses on running code on “WASM WASI”, a container-like
+    environment. We’ll see that WASM WASI may (or may not) be useful in its own right.
+    However, it is valuable as a first step toward running Rust in browsers or embedded
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Porting code to run on WASM WASI requires many steps and choices. Navigating
+    these choices can be time consuming. Missing a step can lead to failure. We’ll
+    reduce this complication by offering nine rules, which we’ll explore in detail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Prepare for disappointment: WASM WASI is easy, but — for now — mostly useless
+    — except as a steppingstone.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Understand Rust targets.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Install the `wasm32-wasip1` target and WASMTIME, then create “Hello, WebAssembly!”.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Understand conditional compilation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Run regular tests but with the WASM WASI target.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Understand Cargo features.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Change the things you can: dependency issues by choosing Cargo features, 64-bit/32-bit
+    issues.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Accept that you cannot change everything: Networking, Tokio, Rayon, etc.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add WASM WASI to your CI (continuous integration) tests.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Aside: These articles are based on a three-hour workshop that I presented at
+    [RustConf24](https://rustconf.com/programs/#755) in Montreal. Thanks to the participants
+    of that workshop. A special thanks, also, to the volunteers from the Seattle Rust
+    Meetup who helped test this material. These articles replace [an article I wrote
+    last year](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-the-web-and-on-embedded-94462ef249a2)
+    with updated information.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Before we look at the rules one by one, let’s define our terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Native:** Your home OS (Linux, Windows, macOS)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Standard library (std)**: Provides Rust’s core functionality — `Vec`, `String`,
+    file input/output, networking, time.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**WASM**: WebAssembly (WASM) is a binary instruction format that runs in most
+    browsers (and beyond).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**WASI**: WebAssembly System Interface (WASI) allows outside-the-browser WASM
+    to access file I/O, networking (not yet), and time handling.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**no_std**: Instructs a Rust program not to use the full standard library,
+    making it suitable for small, embedded devices or highly resource-constrained
+    environments.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**alloc**: Provides heap memory allocation capabilities (`Vec`, `String`, etc.)
+    in `no_std` environments, essential for dynamically managing memory.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With these terms in mind, we can visualize the environments we want our code
+    to run in as a Venn diagram of progressively tighter constraints. This article
+    details how to move from native to WASM WASI. [The second article](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)
+    tells how to then move to WASM in the Browser. The [final article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)
+    covers running Rust in `no_std` environments, both with and without `alloc`, ideal
+    for embedded systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/867094390e12910af5d9c304494db513.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Based on my experience with `[range-set-blaze](https://github.com/CarlKCarlK/range-set-blaze)`,
+    a data structure project, here are the decisions I recommend, described one at
+    a time. To avoid wishy-washiness, I’ll express them as rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 1: Prepare for disappointment: WASM WASI is easy, but — for now — mostly
+    useless — except as a steppingstone.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In 2019, Docker co-creator Solomon Hykes [tweeted](https://x.com/solomonstre/status/1111004913222324225):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If WASM+WASI existed in 2008, we wouldn’t have needed to created Docker. That’s
+    how important it is. Webassembly on the server is the future of computing. A standardized
+    system interface was the missing link. Let’s hope WASI is up to the task.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Today, if you follow technology news, you’ll see optimistic headlines like
+    these:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/480c34163ac2f64c108340b17c9a2b74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If WASM WASI were truly ready and useful, everyone would already be using it.
+    The fact that we keep seeing these headlines suggests it’s not yet ready. In other
+    words, they wouldn’t need to keep insisting that WASM WASI is ready if it really
+    were.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As of WASI Preview 1, here is how things stand: You can access some file operations,
+    environment variables, and have access to time and random number generation. However,
+    there is no support for networking.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: WASM WASI *might* be useful for certain AWS Lambda-style web services, but even
+    that’s uncertain. Because wouldn’t you prefer to compile your Rust code natively
+    and run twice as fast at half the cost compared to WASM WASI?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maybe WASM WASI is useful for plug ins and extensions. In genomics, I have a
+    Rust extension for Python, which I compile for 25 different combinations (5 versions
+    of Python across 5 OS targets). Even with that, I don’t cover every possible OS
+    and chip family. Could I replace those OS targets with WASM WASI? No, it would
+    be too slow. Could I add WASM WASI as a sixth “catch-all” target? Maybe, but if
+    I really need portability, I’m already required to support Python and should just
+    use Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, what is WASM WASI good for? Right now, its main value lies in being a step
+    toward running code in the browser or on embedded systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 2: Understand Rust targets.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In Rule 1, I mentioned “OS targets” in passing. Let’s look deeper into Rust
+    targets — essential information not just for WASM WASI, but also for general Rust
+    development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On my Windows machine, I can compile a Rust project to run on Linux or macOS.
+    Similarly, from a Linux machine, I can compile a Rust project to target Windows
+    or macOS. Here are the commands I use to add and check the Linux target to a Windows
+    machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: While `cargo check` verifies that the code compiles, building a fully
+    functional executable requires additional tools. To cross-compile from Windows
+    to Linux (GNU), you’ll also need to install the Linux GNU C/C++ compiler and the
+    corresponding toolchain. That can be tricky. Fortunately, for the WASM targets
+    we care about, the required toolchain is easy to install.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To see all the targets that Rust supports, use the command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: It will list over 200 targets including `x86_64-unknown-linux-gnu`, `wasm32-wasip1`,
+    and `wasm32-unknown-unknown`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Target names contain up to four parts: CPU family, vendor, OS, and environment
+    (for example, GNU vs LVMM):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/106509d86795e2a7eb85e55a4162ad49.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Target Name parts — figure from author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we understand something of targets, let’s go ahead and install the
+    one we need for WASM WASI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 3: Install the wasm32-wasip1 target and WASMTIME, then create “Hello,
+    WebAssembly!”.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To run our Rust code on WASM outside of a browser, we need to target `wasm32-wasip1`
+    (32-bit WebAssembly with WASI Preview 1). We’ll also install WASMTIME, a runtime
+    that allows us to run WebAssembly modules outside of the browser, using WASI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To test our setup, let’s create a new “Hello, WebAssembly!” Rust project using
+    `cargo new`. This initializes a new Rust package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Edit `src/main.rs` to read:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: We’ll look deeper into the `#[cfg(...)]` attribute, which enables conditional
+    compilation, in Rule 4.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Now, run the project with `cargo run`, and you should see `Hello, world!` printed
+    to the console.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, create a `.cargo/config.toml` file, which specifies how Rust should run
+    and test the project when targeting WASM WASI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: This `.cargo/config.toml` file is different from the main `Cargo.toml`
+    file, which defines your project’s dependencies and metadata.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now, if you say:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: You should see `Hello, WebAssembly!`. Congratulations! You’ve just successfully
+    run some Rust code in the container-like WASM WASI environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 4: Understand conditional compilation.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now, let’s investigate `#[cfg(...)]`—an essential tool for conditionally compiling
+    code in Rust. In Rule 3, we saw:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `#[cfg(...)]` lines tell the Rust compiler to include or exclude certain
+    code items based on specific conditions. A “code item” refers to a unit of code
+    such as a function, statement, or expression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With `#[cfg(…)]` lines, you can conditionally compile your code. In other words,
+    you can create different versions of your code for different situations. For example,
+    when compiling for the `wasm32` target, the compiler ignores the `#[cfg(not(target_arch
+    = "wasm32"))]` block and only includes the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: You specify conditions via expressions, for example, `target_arch = "wasm32"`.
+    Supported keys include `target_os` and `target_arch`. See the Rust Reference for
+    [the full list](https://doc.rust-lang.org/reference/conditional-compilation.html#set-configuration-options)
+    of supported keys. You can also create expressions with Cargo features, which
+    we will learn about in Rule 6.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You may combine expressions with the logical operators `not`, `any`, and `all`.
+    Rust’s conditional compilation doesn’t use traditional `if...then...else` statements.
+    Instead, you must use `#[cfg(...)]` and its negation to handle different cases:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: To conditionally compile an entire file, place `#![cfg(...)]` at the top of
+    the file. (Notice the “!”). This is useful when a file is only relevant for a
+    specific target or configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also use `cfg` expressions in `Cargo.toml` to conditionally include
+    dependencies. This allows you to tailor dependencies to different targets. For
+    example, this says “depend on Criterion with Rayon when not targeting `wasm32`”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Aside: For more information on using `cfg` expressions in `Cargo.toml`, see
+    my article: [Nine Rust Cargo.toml Wats and Wat Nots](https://medium.com/towards-data-science/nine-rust-cargo-toml-wats-and-wat-nots-1e5e02e41648):
+    Master Cargo.toml formatting rules and avoid frustration | *Towards Data Science
+    (medium.com)*.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Rule 5: Run regular tests but with the WASM WASI target.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It’s time to try to run *your* project on WASM WASI. As described in Rule 3,
+    create a `.cargo/config.toml` file for your project. It tells Cargo how to run
+    and test your project on WASM WASI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, [your project — like all good code — should already contain tests](https://doc.rust-lang.org/rust-by-example/testing.html).
+    My `range-set-blaze` project includes, for example, this test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now attempt to run your project’s tests on WASM WASI. Use the following
+    command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: If this works, you may be done — but it probably won’t work. When I try this
+    on `range-set-blaze`, I get this error message that complains about using Rayon
+    on WASM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: To fix this error, we must first understand Cargo features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 6: Understand Cargo features.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To resolve issues like the Rayon error in Rule 5, it’s important to understand
+    how Cargo features work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In `Cargo.toml`, an optional `[features]` section allows you to define different
+    configurations, or versions, of your project depending on which features are enabled
+    or disabled. For example, here is a simplified part of the `Cargo.toml` file from
+    the [Criterion benchmarking project](https://github.com/bheisler/criterion.rs/blob/master/Cargo.toml):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This defines four Cargo features: `rayon`, `plotters`, `html_reports`, and
+    `cargo_bench_support`. Since each feature can be included or excluded, these four
+    features create 16 possible configurations of the project. Note also the special
+    default Cargo feature.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Cargo feature can include other Cargo features. In the example, the special
+    `default` Cargo feature includes three other Cargo features — `rayon`, `plotters`,
+    and `cargo_bench_support`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Cargo feature can include a dependency. The `rayon` Cargo feature above includes
+    the `rayon` crate as a dependent package.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Moreover, dependent packages may have their own Cargo features. For example,
+    the `plotters` Cargo feature above includes the `plotters` dependent package with
+    the following Cargo features enabled: `svg_backend`, `area_series`, and `line_series`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can specify which Cargo features to enable or disable when running `cargo
+    check`, `cargo build`, `cargo run`, or `cargo test`. For instance, if you’re working
+    on the Criterion project and want to check only the `html_reports` feature without
+    any defaults, you can run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This command tells Cargo not to include any Cargo features by default but to
+    specifically enable the `html_reports` Cargo feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Within your Rust code, you can include/exclude code items based on enabled
+    Cargo features. The syntax uses `#cfg(…)`, as per Rule 4:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: With this understanding of Cargo features, we can now attempt to fix the `Rayon`
+    error we encountered when running tests on WASM WASI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 7: Change the things you can: dependency issues by choosing Cargo features,
+    64-bit/32-bit issues.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When we tried running `cargo test --target wasm32-wasip1`, part of the error
+    message stated: `Criterion ... Rayon cannot be used when targeting wasi32\. Try
+    disabling default features.` This suggests we should disable Criterion’s `rayon`
+    Cargo feature when targeting WASM WASI.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this, we need to make two changes in our `Cargo.toml`. First, we need
+    to disable the `rayon` feature from Criterion in the `[dev-dependencies]` section.
+    So, this starting configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: becomes this, where we explicitly turn off the default features for Criterion
+    and then enable all the Cargo features except `rayon`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, to ensure `rayon` is still used for non-WASM targets, we add it back
+    in with a conditional dependency in `Cargo.toml` as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: In general, when targeting WASM WASI, you may need to modify your dependencies
+    and their Cargo features to ensure compatibility. Sometimes this process is straightforward,
+    but other times it can be challenging — or even impossible, as we’ll discuss in
+    Rule 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Aside: In the [third article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)
+    in this series — about `no_std` and embedded — we go deeper into strategies for
+    fixing dependencies.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: After running the tests again, we move past the previous error, only to encounter
+    a new one, which is progress!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: The compiler complains that `u32::MAX as usize + 1` overflows. On 64-bit Windows
+    the expression doesn’t overflow because `usize` is the same as `u64` and can hold
+    `u32::MAX as usize + 1`. WASM, however, is a 32-bit environment so `usize` is
+    the same as `u32` and the expression is one too big.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The fix here is to replace `usize` with `u64`, ensuring that the expression
+    doesn’t overflow. More generally, the compiler won’t always catch these issues,
+    so it’s important to review your use of `usize` and `isize`. If you’re referring
+    to the size or index of a Rust data structure, `usize` is correct. However, if
+    you’re dealing with values that exceed 32-bit limits, you should use `u64` or
+    `i64`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Aside**: In a 32-bit environment, a Rust array, `Vec`, `BTreeSet`, etc.,
+    can theoretically hold up to 2³²−1 = 4,294,967,295 elements. However, this is
+    only a theoretical limit based on addressable memory.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Aside Aside**: The actual maximum number of elements is even more limited.
+    [Rust limits our allocations to an](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)
+    `[isize](https://doc.rust-lang.org/std/primitive.pointer.html#method.offset)`,
+    so 2³¹−1 (about 2 billion) bytes. If each element is, for example, 2 bytes, we
+    can have at most about 1 billion elements.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So, we’ve fixed the dependency issue and addressed a `usize` overflow. But can
+    we fix everything? Unfortunately, the answer is no.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 8: Accept that you cannot change everything: Networking, Tokio, Rayon,
+    etc.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: WASM WASI Preview 1 (the current version) supports file access (within a specified
+    directory), reading environment variables, and working with time and random numbers.
+    However, its capabilities are limited compared to what you might expect from a
+    full operating system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your project requires access to networking, asynchronous tasks with Tokio,
+    or multithreading with Rayon, Unfortunately, these features aren’t supported in
+    Preview 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fortunately, WASM WASI Preview 2 is expected to improve upon these limitations,
+    offering more features, including better support for networking and possibly asynchronous
+    tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rule 9: Add WASM WASI to your CI (continuous integration) tests.'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So, your tests pass on WASM WASI, and your project runs successfully. Are you
+    done? Not quite. Because, as I like to say:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If it’s not in CI, it doesn’t exist.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Continuous integration (CI) is a system that can automatically run your tests
+    every time you update your code, ensuring that your code continues to work as
+    expected. By adding WASM WASI to your CI, you can guarantee that future changes
+    won’t break your project’s compatibility with the WASM WASI target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In my case, my project is hosted on GitHub, and I use GitHub Actions as my
+    CI system. Here’s the configuration I added to `.github/workflows/ci.yml` to test
+    my project on WASM WASI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: By integrating WASM WASI into CI, I can confidently add new code to my project.
+    CI will automatically test that all my code continues to support WASM WASI in
+    the future.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, there you have it — nine rules for porting your Rust code to WASM WASI.
+    Here is what surprised me about porting to WASM WASI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Bad:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running on WASM WASI offers little utility today. It, however, holds the potential
+    to be useful tomorrow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In Rust, there’s a common saying: “If it compiles, it works.” Unfortunately,
+    this doesn’t always hold true for WASM WASI. If you use an unsupported feature,
+    like networking, the compiler won’t catch the error. Instead, it will fail at
+    runtime. For example, this code compiles and runs on WASM WASI but always returns
+    an error because networking isn’t supported.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**The Good:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running on WASM WASI is a good first step toward [running your code in the browser](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1)
+    and on embedded systems.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can run Rust code on WASM WASI without needing to port to `no_std`. (Porting
+    to `no_std` is the topic of the [third article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)
+    of this series.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can run standard Rust tests on WASM WASI, making it easy to verify your
+    code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `.cargo/config.toml` file and Rust’s `--target` option make it incredibly
+    straightforward to configure and run your code on different targets—including
+    WASM WASI.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Stay tuned! In [the next article](https://medium.com/towards-data-science/nine-rules-for-running-rust-in-the-browser-8228353649d1),
+    you’ll see how to port your Rust code to run on WASM in the browser — an ability
+    I find super useful. After that, the [final article](https://medium.com/towards-data-science/nine-rules-for-running-rust-on-embedded-systems-b0c247ee877e)
+    will explain porting code to embedded systems, which I find incredibly cool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Aside:* Interested in future articles? *Please* [*follow me on Medium*](https://medium.com/@carlmkadie)*.
+    I write about Rust and Python, scientific programming, machine learning, and statistics.
+    I tend to write about one article per month.*'
+  prefs: []
+  type: TYPE_NORMAL

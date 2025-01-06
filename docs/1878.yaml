@@ -1,0 +1,899 @@
+- en: How We Optimized The Problem Of Global Containers Distribution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-we-optimized-the-problem-of-global-containers-distribution-ea6201d4513e?source=collection_archive---------5-----------------------#2024-08-01](https://towardsdatascience.com/how-we-optimized-the-problem-of-global-containers-distribution-ea6201d4513e?source=collection_archive---------5-----------------------#2024-08-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using Linear Programming to optimize a complete container-based supply chain
+    operation across the globe
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)[![Will
+    Fuks](../Images/8c7227ad8677f34792058dfd45083c0b.png)](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)
+    [Will Fuks](https://willian-fuks.medium.com/?source=post_page---byline--ea6201d4513e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ea6201d4513e--------------------------------)
+    ·18 min read·Aug 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recently I was invited by a coworker to join a project for a big company in
+    Brazil that sells goods and services on a global scale.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The project involved transport optimization and was quite interesting — and
+    challenging — so I’d like to write about it and how we solved the problem using
+    the library [cvxpy](https://www.cvxpy.org/) (also used to solve optimization problems
+    at companies like *Tesla*, *Netflix* and *Two Sigma*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Specifically, this post covers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge of transporting containers globally with a set of several constraints.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How we managed the company’s data and described it as a set of linear transformations.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How we adapted the variables and constraints to fit the Linear Programming formulation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Techniques used to guarantee the objective function and constraints were convex
+    — cvxpy’s main restriction.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With no further ado, let’s dive into it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. The Challenge
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When the project started, the company revealed us that they already had a solution
+    implemented on top of *Microsoft Excel Solver* to optimize how to best manage
+    the containers. The Solver aimed to reduce costs of transportation, freight, storage,
+    and operation while following a set of constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution worked fine but as operations expanded the process began to halt
+    and suffer with some bottlenecks, as the company explained. At times, they had
+    so many containers to allocate that it would take the Solver a few days to process
+    the whole dataset and come up with an answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They requested us to develop something new that could handle the workload of
+    the system while also being flexible enough so that the system would accept new
+    constraints on demand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To begin with, the company has factories located across the country and containers
+    are prepared by demand on each factory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/001c29d34f438addc891bce6c9dbdac9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Factories located across the country and its containers. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each factory produces containers weekly according to its own demands, which
+    means some factories will produce more containers than others. Each container
+    carries its own goods so the sales price changes as well (this variable will be
+    important soon).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The destiny of each container also varies; some will be transported to nearby
+    countries whereas others have to cross the globe. Therefore, the company needs
+    to send the containers to appropriate docks or it risks not succeeding with the
+    delivery (due the lack of connection between the docks of each country).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Several new variables shows up when trying to connect factories to the appropriate
+    docks. First, each factory may choose how to transport the containers: either
+    by using trains — and, in doing so, there are various types of contracts to choose
+    from — or by trucks (again, multiple types of contracts as well):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fdbfee15861f3e4967091c415c6c6177.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Factories may choose how to transport containers to dock, according to availability
+    of options. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now another challenge arises: each container has a specific destination and
+    so does the ships available on each dock. Destinations must, therefore, match!
+    If a container that should go to Hong Kong is transported to a dock where no ships
+    will be going to Asia then we just sacrificed an entire container.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The matching problem means that, at times, factories may need to transport a
+    container to a more distant dock (and expend more money) simply because it’s the
+    only remaining option for making the connection between Brazil and the rest of
+    the world. Shippers will be another variable and they should be accounted for
+    availability in terms of spaces on each ship and also the ship’s destination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Shippers may also allow for what is known as “*overbooking spaces*”, that is,
+    just like the concept applies to airline flights, it also applies to ships but
+    here the concepts is a bit less restrictive: for a given week, shippers can inform
+    an “overbooking factor” which gives us an idea of how many more containers can
+    be added on each ship above the threshold capacity — with a higher freight, as
+    expected. The optimizer can use this factor to allocate remaining containers and
+    take advantage of cheaper transportation, for instance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4b2327f58c1a5ca015aaba46d9191ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Adding shippers to the whole challenge. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The optimizer must consider as well a set of rules to follow. Here’s a brief
+    list of requirements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Ships have a maximum capacity**: each ship attends specific regions through
+    what is called “trades”. Each shipper have a maximum capacity of containers for
+    each trade — this rule can be broken at times through *overbooking*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Connect factory and dock**: factories can only send containers to docks with
+    valid and available transportation — if a factory does not have a train station
+    connection to a given dock then the optimizer must choose another transport.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Transportation Limits**: the company made clear that contracts and slots
+    available for transportation can vary; they have agreements and licenses to use
+    certain slots from trains monthly, which adds an upper cap on number of containers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Connect departure dock and shipper**: the optimizer must send containers
+    from factories to docks that contains shippers with spaces on ships and attend
+    the *trade* where the container is going.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Overbooking**: overbooking can happen — like an extra trick at our disposal.
+    Each shipper have a factor of how many slots may be used above the max cap. Containers
+    under overbooking are much more expensive and it should happen only if all prior
+    available spaces have already been consumed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Transport Or Not Transport**: The optimizer may conclude that it’s better
+    to store a given container in the factory than transporting it, which affects
+    the total costs expectation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Are we there yet? Well, not really. In practice, the challenge is a bit more
+    evolved as it should contain the time that factories take to transport each container
+    and connect it to when shippers will be available at the docks. If we end up choosing
+    a transport that is too slow we may miss the ship and either have to wait and
+    hope that there is another ship going to the same destination or we basically
+    just lose the container. This post does not consider the time variables as it
+    makes development much more complex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have the challenge, now, let’s see how we solved it 🥷!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Linear Programming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Linear Programming](https://www.britannica.com/science/linear-programming-mathematics)
+    (LP) is an optimization technique that also accepts a set of constraints represented
+    as linear transformations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mathematically, we have something like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/70d4a1a86c13c0f4e06e37a43132f0a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '***f***is the **objective function** (or cost function) and for our challenge
+    it represents the costs associated to each transportation, ship, whether containers
+    were stored on overbooking status and the trade-offs between leaving the containers
+    in the factories or not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The values ***x*** represent the variables the optimizer must manipulate in
+    order to minimize the objective. In our case, it’ll be which transport, ship,
+    dock and overbooking status to choose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make the concept more tangible and connected with the main challenge in this
+    post, let’s begin with a very simple implementation on top of cvxpy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.1 Simple Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Suppose the following setting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The company produced 4 containers in a given week, all in the same factory.
+    Their values is: [$200, $300, $400, $500].'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The factory can use only one type of transportation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The factory is connected to just one dock.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this supposed week, two shippers will have ships available at the dock. Shippers
+    charges $100 and $130 per container respectively.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: First shipper has 2 remaining slots available; the second has just 1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The main goal of the optimizer is to distribute the 4 containers on the available
+    spaces on ships while minimizing total costs of transportation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How do we implement it in cvxpy? Well, it’s quite simple actually. First we
+    need a variable **x** that represents the choices that the optimizer can make.
+    Best way to represent **x** in this case is as a **boolean** array with shape
+    (4, 2) — each row corresponds to a given container, and 2 columns as there are
+    2 shippers available:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4684be83ca2133aa3fc0f31123427229.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example of one possible value of **x** that represents choices the optimizer
+    can make to minimize costs. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A value of “1” on a row means the optimizer allocated the corresponding container
+    to the respective shipper at that column. In this example, the first and second
+    containers go to the first shipper and the third and fourth containers go to the
+    second shipper. Notice that each row can contain only one value expressed as “1”
+    and the other must be “0” as otherwise it would mean that a given container was
+    allocated to both shippers at the same time, which is invalid.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The challenge of the optimizer will be, therefore, to keep changing this array
+    until it finds a minimal value of total costs, while still respecting the requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Costs will have two components: one associated to the shippers and another
+    to the container itself. If a given container is not allocated to any ship then
+    its value should be added to the final costs — it’s better, therefore, to prioritize
+    allocation of the $500 container instead of the $200 one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As for the code implementation, this is one possibility:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Key points to consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: cvxpy requires the set of **variables**, **constraints** and finally the **cost
+    expression**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The line `constraint0 = cx.sum(x_shippers, axis=1) <= 1` is a constraint that
+    *cvxpy* must obey when optimizing **x**. As a general rule, they must keep the
+    optimization process convex (which guarantees convergence) and can either be an
+    equality expression or an upper bound equality. In this case, the `sum` operator
+    happens on *axis=1* which means “sum through columns”.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The rule imples that the summation of each row of **x_shippers** can be at maximum
+    equal to 1, which guarantees that a given container won’t be assigned to multiple
+    shippers at the same time.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: As the summation constraint follows the `<=` rule, then a given row can be of
+    just 0’s, which means a given container may not be assigned to any ship at all
+    (this may happen due lack of available spaces on ships, for instance).
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '`constraint1 = cx.sum(x_shippers, axis=0) <= shippers_spaces` works similarly
+    to *constraint0*. It basically translates that all containers assigned for each
+    ship cannot surpass their maximum capacity.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Then we arrive at the heart of the problem: the cost function, given by: `cost
+    = cx.sum(x_shippers @ shippers_cost.T) + container_costs @ (1 — cx.sum(x_shippers,
+    axis=1))` . The first component `cx.sum(x_shippers @ shippers_cost.T)` basically
+    express all costs for allocating each container to each shipper. “**@**”represents
+    the dot product so the result of the operation is already the cost associated
+    to each container, which has to be summed for the total cost.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second component `container_costs @ (1 — cx.sum(x_shippers, axis=1))` is arguably
+    more interesting as here we start to see the strategies we can use to express
+    our problems in *cvxpy*. By using the **1** matrix minus the row values expressed
+    as `cx.sum(x_shippers, axis=1)` , we essentially get a (4, 1) matrix where each
+    row indicates whether the container was ever assigned to some shipper or not.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: The dot `container_costs @ not chosen containers` tracks which containers were
+    not routed and sum their cost value.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: 'This is an example of the result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Container 0 was not assigned to any ship (as it’s the cheapest so it was not
+    prioritized).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some tips before we move on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can run experiments with cvxpy using [Colab](https://colab.research.google.com/).
+    Just run `!pip install cvxpy` and you are pretty much ready to go.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can run some checks to confirm you are on the right track when implementing
+    your models. One technique I like to use is to, for instance, set the variables
+    with an initial value, such as `x_shippers = cx.Variable((2, 2), value=[[1, 0],
+    [0, 1]]`. Then, after running operations (such as `r=A @ x_shippers` ), you can
+    print the result `r.value` attribute to check if everything is working as expected.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'When working with cvxpy, at times you’ll get some errors when running the optimization.
+    One common problem is the error message:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/495c23a75b2347bb0018533dd00b4ab7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is the infamous Disciplined Convex Problem ([DCP](http://cvxr.com/cvx/doc/dcp.html)
+    for short) which consists of a set of rules that must be followed to guarantee
+    that restrictions and objective will be convex. For instance, if instead of the
+    `sum` operator we used `max` , we’d get the exact same result but when trying
+    to run it we’d get`DCPError` . DCP means then that all operations used to express
+    the cost and constraints must follow the rules of convexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The previous example works well for a gentle introduction to the *cvxpy* API.
+    Let’s now consider a bit more evolved problem on the same theme.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 Medium Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s consider again the same 4 containers with same costs and conditions.
+    This time, the first and third container are going to destination “0” whereas
+    second and fourth containers must go to destine “1” and available spaces are the
+    same as before ([2, 1]). The input we’d get for this problem is something like
+    this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0f2cdb29fbc489646b636f49b2111817.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Containers in rows, cost and destination in columns. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All containers are produced on the same factory but this time there are 2 options
+    to choose from for transportation: train and trucks, with respective costs [$50,
+    $70]. For this considered week, we’ll be able to allocate at maximum 2 containers
+    on train.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before moving on, think about how you would solve this one. Remember the essential
+    steps recommended for working with Linear Programming:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What are the variables required to describe the problem? `x_shippers = ...`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How to express the cost function? `cost = ...`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: How to use constraints expressed through matrices and mathematical operations
+    (that follows DCP) to formulate the whole problem? `destines <= x_shippers...`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: (you can also use Colab for trying it out)
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s one possible solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Overall it follows the same structure as before. Some notes about the code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we are optimizing two variables, `x_shippers` and `x_transport`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We use mappers for trains and for linking shippers to their destination. The
+    name of the mappers variables start, by our convention, as the name of the variable
+    in the rows space and then the columns one. For instance, `destine_shippers` means
+    that rows represents destines and columns the shippers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In specific, the result of the line `dest_ships_arr = destine_shippers_map[containers[:,
+    1]]` is a matrix with 4 rows whose lines contains the ships that attend the destinations
+    of the respective containers. To make it more clear:'
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '![](../Images/21da9318f47e715e0fee80b97c4aff47.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: destine_shippers_map matrix transforms the input containers into an array indicating
+    for each container which shippers are appropriate for the transportation. Image
+    by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Mappers allows input data to be used on constraints and the cost function.
+    In the previous example, the optimizer is restricted to only assign shipper 0
+    to the first container and shipper 1 to the second, for instance. This is implemented
+    as: `constraint02 = x_shippers <= dest_ships_arr` .'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Similar technique is used in: `constraint11 = cx.sum(x_transports @ train_map.T)
+    <= 2)`, the dot matrix operation tracks all transports associated to trains. Final
+    summation is equivalent to all containers that were assigned to trains, which
+    must be lower or equal to 2.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Constraints receive two numbers (“00” or “10”) for instance. This is to group
+    all constraints for a particular theme. In this example, the first 0 relates to
+    all constraints regarding ships and 1 relates to transport. We do so because if
+    later on we need to increase the number of constraints then we can just add new
+    numbers after “0” and extends the final array.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Final solution is: `x_shippers = [[1, 0], [0, 0], [1, 0], [0, 1]` and `x_transport
+    = [[1, 0], [0, 0], [1, 0], [0, 1]` (both equal by coincidence). The optimizer
+    didn’t route the second container as there’s only 3 total spaces on ships. First
+    container goes to shipper 0 by train so does the third and last container goes
+    to shipper 1 by truck.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now step it up a notch a bit and increase the challenge now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 Complete Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s use the same example as before but now add another variable: the docks.
+    Now, the factory can transport the containers to two possible available docks.
+    Trains and trucks can reach *Dock 0* with costs [$50, $70] and *Dock 1* can be
+    reached only by trucks with cost $60\. Both shippers attend both docks with same
+    costs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How would you solve this problem?
+  prefs: []
+  type: TYPE_NORMAL
+- en: You’ll probably realize that this simple addition of the docks variables make
+    things more challenging. Many attempts to connect docks and transportation leas
+    to *DCPErrors*. See if you can find strategies to guarantee their modeling as
+    expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: ….
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Did you succeed? Here’s one possible solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s equivalent to the previous example for the most part. But notice now that
+    we have the AND variables which links the variables docks and transports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Main point is: when the optimizer selects a value for `x_transport` it ends
+    up affecting the choices available for `x_docks`. But when it chooses the dock
+    **it also affects the transport in return!** In order to solve this problem, we
+    implement AND variables such that the optimizer discerns the impact of its decisions
+    at the same time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is implemented first with the y variable: `y_docks_and_transp = cx.Variable((4,
+    4), boolean=True, name="docks AND transportations")`. This variable will be also
+    updated by the optimizer but we’ll force it to be the `AND` combination between
+    two other data sources, as we’ll see soon. The technique we used creates a template
+    on columns as a reference, i.e., it combines, in this case, docks and transports:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b69fc16b735bed79ebcd1dddbc187c46.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The AND variables used combine two variables, in this case, docks and transports.
+    Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The columns will be a tree like structure. As in the variable name `"y_docks_and_transp”`
+    the first name to appear is `"docks”` then it means that docks will be the first
+    reference and then transports will follow, as shown above. Taking the second row
+    as an example, there’s a value “1” at the second column. This means that it selects
+    Dock 0 and Transport 1 (truck).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this template we can create other data and constraints that work on both
+    dock and transport variables at the same time. For instance, here’s how we specify
+    costs: `transport_and_dock_costs = np.array([[50, 70, 0, 60]])` , which means
+    Dock 0 and Transport 0 (train) costs $50 for instance.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The optimizer can use the template to transpose each x variable to the docks
+    and transportation setting. For doing so, we used the mappers as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8874df58b7448fd7c66dc8a8cc12d71e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Left image is the mapping that takes x_transport variable to dock_AND_transp
+    map. On the right, it maps x_docks to docks_AND_transp as well. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If the optimizer chooses transport 0 then it’s mapped to the first row of the
+    left image. Remember that trains do not attend Dock 1 so that’s why it’s a “0”
+    at the third column. Also, notice that the name of the variables also follows
+    a pattern: `transp_dock_transp_map` means that rows represent the transports and
+    it maps to the AND conjunction between docks and transports, where docks comes
+    first.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is where we use `y_docks_and_transp` . When the optimizer changes the
+    `x` variables we map it to the domain of docks and transports. But then we need
+    to combine both mappings to know exactly which point corresponds the dock AND
+    the transport variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/df1fd6f7697ef3aa218d18c7eb98f17d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The image may seen daunting but it’s quite simple. First we have the x variables
+    and the dot operation (“@”) which maps x to docks and transports domain. We then
+    force an AND operation to find y_docks_and_transps. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As the image above shows, first we transpose the x variables to the dock and
+    transport domain. We then take the results and apply an AND operation to find
+    specifically, for each container, which docker AND transport were chosen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/daa3a7baecd3d0d7526eeac54c141b83.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Result of the AND operation. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First row means the optimizer chose Dock 0 and Train. Second row means it chose
+    Dock 1 and Truck. Notice that as Dock 1 is not connected with Train then third
+    column will never be “1” so this solves the problem of valid connections as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, but this is not that simple actually as most attempts to implement this
+    AND operation raises *DCPError*. To solve it, we used helper constraints:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: By doing so, `y_docks_and_transp` is forced to be “1” only at points where `x1`
+    AND `x2` are “1” as well. This technique can be used when an AND operation is
+    required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`constraint15` is a safety clause to guarantee that only routed containers
+    will remain.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the final values of x and y:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: First container goes to first shipper by train on Dock 0 and second container
+    remained at the factory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With all the examples and the ideas discussed, we can finally solve the challenge
+    the company offered us. Let’s tackle it down now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Final Challenge
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 4.1 Input Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We received information about shippers, transportation and their respective
+    freights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the first table, we obtain that transporting a container from F*actory
+    0* to the dock located at *Santos* by R*oad* (truck)using T*hird Party* contract
+    costs *$6000*. Also, *Shipper 0* can take the container to *Hong Kong* through
+    the *Far East* trade charging *$8000* per container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As for spaces on shippers, we got something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each shipper can attend certain trades (and therefore a group of countries)
+    and the spaces they have on the ship varies on a weekly basis, as depicted by
+    the numbers from 1 to 52.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And finally, the list of containers, the factory they were made, its destination
+    and net worth:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the last columns are basically the final result we are looking for.
+    The goal of the algorithm is to find the set of shippers and their transportation
+    minimizing freight costs while following some restrictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also received another table related to the timings associated to each transportation
+    and shipper but as discussed before it won’t be used in this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This data needs to turn into matrices that we can use later on. This is actually
+    quite simple. Let’s take shippers as an example: when reading the file containing
+    data about shippers, we associate each new shipper to a counter value that keeps
+    increasing as more ships are added in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90a883b77ed8cd7d84dab80e3c7e522e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of how shippers files is read. As new shippers are processed, the counter
+    keeps increasing such that index “0” means shipper 0 and so on. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we know that on any matrix associated to shipper, if the result is “0” index
+    then it means it refers to “Shipper 0” and so on. Every component in our model
+    (ports, transportation, factories) follows the same idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the data, let’s see the final solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.2 Solution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We already have the input data. The challenge now, specifically, is: how to
+    route each container by choosing transportation, docks and shippers such that
+    costs are minimized while following the constraints already discussed in this
+    post?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The ideas presented on previous examples were a prelude of what the final solution
+    looks like. Here’s how we solved this problem:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The function `optimize` receives as first parameter `data_models` where all
+    data input from the company is processed and transformed into matrices that can
+    be used by *cvxpy*. Specifically, the data input `containers` is a bit different
+    from previous examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f8b642078389e35f315f02a01d75a48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Variable containers, first column represents factories, second represents destine
+    and third the value of containers. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The overall idea though is exactly the same. Points to consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At line 72 the code `shipper_shipper_trade_arr = x_shippers @ shipper_shipper_and_trade_map.matrix`
+    transforms the shippers choices to the domain of shippers and trades. By doing
+    we can sum up the total containers allocated for each trade and shipper.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`constr23` is designed to force overbooking if and only if the optimizer already
+    consumed all spaces from shippers before. This is done by translating `x_ob_shippers`
+    (“ob” means overbooking) into the shippers and trades domain:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/198432af76932f202378d54f6ad9b9f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The x variable is translated into shippers and trades domain through the “@”
+    (dot) operation. Then the `max` operation is carried over the columns which results
+    in a mapping of which points corresponds to overbooking. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`shipper_ob_trade_indices` works as a mapping for which points are overbooked.
+    We then use this information to install `constr23` by saying that shippers at
+    those points must be at maximum capacity. By doing so, we force the rule that
+    overbooking should happen if and only if all regular spaces were already consumed.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Constraints 3- use the AND technique as discussed on previous examples. This
+    allows us to combine which shipper and dock the optimizer selected so far and
+    use this information to install other constraints and costs.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`constr55` combines information about docks and transportation linked to factories.
+    It forces the optimizer, through `y_origin_and_transp` to choose a dock and transport
+    that connects to the corresponding factory where the container is located.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cost function is equivalent to what was discussed on previous examples.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: And there we have it. The whole system capable of optimizing distribution of
+    containers throughout the globe. Before delivering the code to the company, we
+    wanted to add a layer of security to have some guarantees it was working as intended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3 Is It Working?!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To guarantee the code is working, we decided to implement some unit tests by
+    simulating some scenarios. Here’s an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It uses Django as the backend of the system was built on top of it. In the example
+    above, the test creates an input data that forces the optimizer to overbook a
+    ship. We then compare results to what is expected to confirm it’s working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Several tests were implemented to increase the chances that everything is working
+    properly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This challenge was quite exciting. At first it wasn’t that straightforward to
+    implement this solution on top of *cvxpy.* We probably saw hundreds of times the
+    error *DCPError* and it took a while until figuring out the workarounds to the
+    issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As for results, I guess probably we could say that there’s not even how to compare
+    the previous Solver as implemented in *Excel* to the new one built. Even testing
+    the algorithm with thousands of containers the whole processing took a few seconds
+    on a *i5 CPU @ 2.20GHz*. On top of that, the solution implemented is already more
+    in-depth than the current solution as cost function and constraints have more
+    items.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Possible downsides is that implementation is also more complex (much more) and
+    to add new constraints the whole code may need changing, which means it’s not
+    that flexible as probably the company would like it to be. Given the advantages
+    still, that was a good trade-off to make.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, that was a great experience. Hopefully you learned and enjoyed it as much
+    as we did. It was tough but worth it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And, as always, see you [next mission](https://open.spotify.com/playlist/6DDVtTmNRo32PUGy3vsRCC)
+    ;)!
+  prefs: []
+  type: TYPE_NORMAL

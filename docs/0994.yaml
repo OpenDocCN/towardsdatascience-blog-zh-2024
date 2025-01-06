@@ -1,0 +1,332 @@
+- en: Meta Llama 3 Optimized CPU Inference with Hugging Face and PyTorch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/meta-llama-3-optimized-cpu-inference-with-hugging-face-and-pytorch-9dde2926be5c?source=collection_archive---------2-----------------------#2024-04-19](https://towardsdatascience.com/meta-llama-3-optimized-cpu-inference-with-hugging-face-and-pytorch-9dde2926be5c?source=collection_archive---------2-----------------------#2024-04-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/2d381d40cdfb97cc7c50ca03b4b947a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Created with Nightcafe — Image property of Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Learn how to reduce model latency when deploying Meta* Llama 3 on CPUs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://eduand-alvarez.medium.com/?source=post_page---byline--9dde2926be5c--------------------------------)[![Eduardo
+    Alvarez](../Images/8a51c754fdd3362aa82dee5acd2a68c5.png)](https://eduand-alvarez.medium.com/?source=post_page---byline--9dde2926be5c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9dde2926be5c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9dde2926be5c--------------------------------)
+    [Eduardo Alvarez](https://eduand-alvarez.medium.com/?source=post_page---byline--9dde2926be5c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9dde2926be5c--------------------------------)
+    ·7 min read·Apr 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The much-anticipated [release](https://huggingface.co/blog/llama3) of Meta’s
+    third-generation batch of Llama is here, and I want to ensure you know how to
+    deploy this state-of-the-art (SoTA) LLM optimally. In this tutorial, we will focus
+    on performing weight-only-quantization (WOQ) to compress the 8B parameter model
+    and improve inference latency, but first, let’s discuss Meta Llama 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Llama 3
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To date, the Llama 3 family includes models ranging from 8B to 70B parameters,
+    with more versions coming in the future. The models come with a permissive Meta
+    Llama 3 [license](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct/blob/main/LICENSE),
+    you are encouraged to review before accepting the terms required to use them.
+    This marks an exciting chapter for the Llama model family and open-source AI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The Llama 3 is an auto-regressive LLM based on a decoder-only transformer.
+    Compared to Llama 2, the Meta team has made the following notable improvements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adoption of grouped query attention (GQA), which improves inference efficiency.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Optimized tokenizer with a vocabulary of 128K tokens designed to encode language
+    more efficiently.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Trained on a 15 trillion token dataset, this is 7x larger than Llama 2’s training
+    dataset and includes 4x more code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The figure below (Figure 1) is the result of `print(model)` where `model` is
+    [meta-llama/Meta-Llama-3–8B-Instruct](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct).
+    In this figure, we can see that the model comprises 32 LlamaDecoderLayers composed
+    of Llama Attention self-attention components. Additionally, it has LlamaMLP, LlamaRMSNorm,
+    and a Linear head. We hope to learn more once the Llama 3 research paper is released.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c802b721da904eefda4260786011cf54.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1\. Output of `print(model)` showcasing the distribution of layers across
+    llama-3–8B-instruct’s architecture — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Language Modeling Performance
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The model was evaluated on various industry-standard language modeling benchmarks,
+    such as MMLU, GPQA, HumanEval, GSM-8K, MATH, and more. For the purpose of this
+    tutorial, we will review the performance of the “Instruction Tuned Models” (Figure
+    2). The most remarkable aspect of these figures is that the Llama 3 8B parameter
+    model outperforms Llama 2 70B by 62% to 143% across the reported benchmarks while
+    being an 88% smaller model!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/803024fc44c78d908f4d7fb793e79fed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 . Summary of Llama 3 instruction model performance metrics across the
+    MMLU, GPQA, HumanEval, GSM-8K, and MATH LLM benchmarks. — Image by Author ([source](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct))
+  prefs: []
+  type: TYPE_NORMAL
+- en: The increased language modeling performance, permissive licensing, and architectural
+    efficiencies included with this latest Llama generation mark the beginning of
+    a very exciting chapter in the generative AI space. Let’s explore how we can optimize
+    inference on CPUs for scalable, low-latency deployments of Llama 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing Llama 3 Inference with PyTorch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In a [previous article](https://medium.com/towards-data-science/improving-llm-inference-latency-on-cpus-with-model-quantization-28aefb495657),
+    I covered the importance of model compression and overall inference optimization
+    in developing LLM-based applications. In this tutorial, we will focus on applying
+    weight-only quantization (WOQ) to [meta-llama/Meta-Llama-3–8B-Instruct](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct).
+    WOQ offers a balance between performance, latency, and accuracy, with options
+    to quantize to int4 or int8\. A key component of WOQ is the dequantization step,
+    which converts int4/in8 weights back to bf16 before computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3035f2396f92ac8f2fbe9af4294e0d2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig 3\. Simple illustration of weight-only quantization, with pre-quantized
+    weights in orange and the quantized weights in green. Note that this depicts the
+    initial quantization to int4/int8 and dequantization to fp16/bf16 for the computation
+    step. — Image by Author ([source](https://medium.com/towards-data-science/improving-llm-inference-latency-on-cpus-with-model-quantization-28aefb495657))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Environment Setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will need approximately 60GB of RAM to perform WOQ on Llama-3-8B-Instruct.
+    This includes ~30GB to load the full model and ~30GB for peak memory during quantization.
+    The WOQ Llama 3 will only consume ~10GB of RAM, meaning we can free ~50GB of RAM
+    by releasing the full model from memory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*You can run this tutorial on the* [*Intel*® *Tiber*® *Developer Cloud*](https://medium.com/r?url=https%3A%2F%2Fbit.ly%2Fllama3woq)
+    *free JupyterLab* environment. This environment offers a 4th Generation Intel*®
+    *Xeon*® *CPU with 224 threads and 504 GB of memory, more than enough to run this
+    code.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If running this in your own IDE, you may need to address additional dependencies
+    like installing Jupyter and/or configuring a conda/python environment. Before
+    getting started, ensure that you have the following dependencies installed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Accessing and Configuring Llama 3
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will need a Hugging Face* account to access Llama 3’s model and tokenizer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do so, select “Access Tokens” from your settings menu (Figure 4) and create
+    a token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b621f7448cbda9124a39953850909676.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4\. Snapshot of the Hugging Face token configuration console — Image
+    by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Copy your access token and paste it into the “Token” field generated inside
+    your Jupyter cell after running the following code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Go to [meta-llama/Meta-Llama-3–8B-Instruct](https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct)
+    and carefully evaluate the terms and license before providing your information
+    and submitting the Llama 3 access request. Accepting the model’s terms and providing
+    your information is yours and yours alone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantizing Llama-3–8B-Instruct with WOQ
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will leverage the [Intel® Extension for PyTorch](https://medium.com/r?url=https%3A%2F%2Fwww.intel.com%2Fcontent%2Fwww%2Fus%2Fen%2Fdeveloper%2Ftools%2Foneapi%2Foptimization-for-pytorch.html)*
+    to apply WOQ to Llama 3\. This extension contains the latest PyTorch optimizations
+    for Intel hardware. Follow these steps to quantize and perform inference with
+    an optimized Llama 3 model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Llama 3 Model and Tokenizer:** Import the required packages and use the `AutoModelForCausalLM.from_pretrained()`
+    and `AutoTokenizer.from_pretrained()` methods to load the Llama-3–8B-Instruct
+    specific weights and tokenizer.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 2\. **Quantization Recipe Config:** Configure the WOQ quantization recipe. We
+    can set the `weight_dtype` variable to the desired in-memory datatypes, choosing
+    from `torch.quint4x2` or `torch.qint8` for int4 and in8, respectively. Additionally
+    we can use `lowp_model` to define the dequantization precision. For now, we will
+    keep this as `ipex.quantization.WoqLowpMode.None` to keep the default bf16 computation
+    precision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use `ipex.llm.optimize()` to apply WOQ and then `del model` to delete the
+    full model from memory and free ~30GB of RAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. **Prompting Llama 3:** Llama 3, like LLama 2, has a pre-defined prompting
+    template for its instruction-tuned models. Using this template, developers can
+    define specific model behavior instructions and provide user prompts and conversation
+    history.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We provide the required fields and then use the tokenizer to convert the entire
+    template into tokens for the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4. **Llama 3 Inference:** For text generation, we leverage `TextStreamer` to
+    generate a real-time inference stream instead of printing the entire output at
+    once. This results in a more natural text generation experience for readers. We
+    provide the configured streamer to `model_ipex.generate()` and other text-generation
+    parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Upon running this code, the model will start generating outputs. Keep in mind
+    that these are unfiltered and non-guarded outputs. For real-world use cases, you
+    will need to make additional post-processing considerations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aca89dea56a6712604806222f4b4f7a5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5\. Streamed inference of Llama-3–8B-Instruct with WOQ mode compression
+    at int4 running on the Intel Tiber Developer Cloud’s JupyterLab environment —
+    Gif by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s it. With less than 20 lines of code, you now have a low-latency CPU optimized
+    version of the latest SoTA LLM in the ecosystem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Considerations for Deployment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Depending on your inference service deployment strategy, there are a few things
+    that you will want to consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If deploying instances of Llama 3 in containers, WOQ will offer a smaller memory
+    footprint and allow you to serve multiple inference services of the model on a
+    single hardware node.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When deploying multiple inference services, you should optimize the threads
+    and memory reserved for each service instance. Leave enough additional memory
+    (~4 GB) and threads (~4 threads) to handle background processes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Consider saving the WOQ version of the model and storing it in a model registry
+    to eliminate the need to re-quantize the model per instance deployment.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conclusion and Discussion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Meta’s Llama 3 LLM family delivers remarkable improvements over previous generations
+    with a diverse range of configurations (more coming soon). In this tutorial, we
+    explored enhancing CPU inference with weight-only quantization (WOQ), a technique
+    that reduces latency with minimal impacts to accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By integrating the new generation of performance-oriented Llama 3 LLMs with
+    optimization techniques like WOQ, developers can unlock new possibilities for
+    [GenAI](https://www.intel.com/content/www/us/en/developer/topic-technology/artificial-intelligence/training/generative-ai.html)
+    applications. This combination simplifies the hardware requirements to achieve
+    high-fidelity, low-latency results from LLMs integrated into new and existing
+    systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A few exciting things to try next would be:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Experiment with Quantization Levels:** You should test int4 and int8 quantization
+    to identify the best compromise between performance and accuracy for your specific
+    applications.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Performance Monitoring:** It is crucial to continuously assess the performance
+    and accuracy of the Llama 3 model across different real-world scenarios to ensure
+    that quantization maintains the desired effectiveness.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Test more Llamas:** Explore the entire Llama 3 family and evaluate the impact
+    of WOQ and other PyTorch [quantization recipes](https://pytorch.org/docs/stable/quantization.html).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '***Thank you for reading! Don’t forget to follow*** [***my profile for more
+    articles***](https://eduand-alvarez.medium.com/) ***like this!***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Other names and brands may be claimed as the property of others.*'
+  prefs: []
+  type: TYPE_NORMAL

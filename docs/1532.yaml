@@ -1,0 +1,575 @@
+- en: A Step-By-Step Guide to Building a Programming Language
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-step-by-step-guide-to-building-a-programming-language-5f5b84246991?source=collection_archive---------0-----------------------#2024-06-19](https://towardsdatascience.com/a-step-by-step-guide-to-building-a-programming-language-5f5b84246991?source=collection_archive---------0-----------------------#2024-06-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Building a programming language from scratch in a few hours
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@physboom?source=post_page---byline--5f5b84246991--------------------------------)[![Matthew
+    Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--5f5b84246991--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5f5b84246991--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5f5b84246991--------------------------------)
+    [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--5f5b84246991--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5f5b84246991--------------------------------)
+    ·17 min read·Jun 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c544cad7b26dd0bb3008c29eb2dba5e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Trees: The Hierarchical Heart of Computer Science. Source: [Jeremy Bishop on
+    Unsplash](https://unsplash.com/@jeremybishop)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The world is full of programming languages with all kinds of different use cases.
+    Most of these languages, though, are built for very general purposes — sometimes,
+    we may want to design a language to fit a very specific use case (e.g. Facebook
+    designed React to make it easier to develop their web applications, and Apple
+    recently developed [Pkl](https://github.com/apple/pkl), a language designed to
+    make configurations easier. There are many more examples of this in various fields).
+    As such, knowing how to build a programming language is a useful skill to have
+    in your belt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will build an interpreted programming language from scratch
+    and learn a little bit about both the lambda calculus and programming languages
+    as a whole along the way. The language we build here will be fairly esoteric,
+    but the process should hopefully give you an idea of how to design your own use-case-specific
+    languages (and teach you useful information about how programming languages function
+    under the hood).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Game Plan
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Since we’re building an interpreted language¹, our overarching flow will look
+    something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9f171ab3d352f80924bec9732bde250b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The broad flow chart for our language
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basically, we start with some **concrete syntax** (code) written in our **target
+    language** (the language that we are trying to write), pass it to some **parser**
+    that converts it to an **abstract syntax tree** (a tree representation of the
+    code that’s easy to work with), and then pass that to an **interpreter** that
+    “runs” the abstract syntax tree to give us a final result. Note that the parser
+    and interpreter are written in some already existing **host language** — C’s original
+    parser and compiler, for instance, were written in assembly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*** Note: My use of “parser” here encapsulates the entire parsing process.
+    Usually, lexing is done prior to “parsing”, but in this case parsing is just the
+    process of taking concrete syntax to abstract syntax, whatever that may look like.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, consider the following specification for a simple language for
+    basic arithmetic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The above, by the way, is an **EBNF** for a **context-free grammar²**. I won’t
+    delve too deeply into what this means here, but all programming languages written
+    in a form like this are parse-able in polynomial time via the CYK algorithm. For
+    this EBNF, something like `(4 + 4) * 3` is a valid program, but something like
+    `def f(x): return 5; f(5)` is not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose we are now given the concrete syntax `(4 + 4) * 3` . After parsing,
+    we should get an abstract syntax tree (AST) like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6bd4ba20c268ed4ff1093f4a20ce1820.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AST for our concrete syntax
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then our interpreter will start at the root and recursively go down the tree
+    until we get our answer, namely 24.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note quickly that this grammar is **ambiguous** — for instance, how should the
+    expression `4 + 4 * 3` parse? It could either parse as the above (that is, `(4
+    + 4) * 3`), or it could also parse as `4 + (4 * 3)` — neither parsing is inherently
+    more “correct” in the way that we have specified the language, as both are valid
+    parse trees. In cases like this, the parser will have to arbitrarily make a decision
+    about how to parse our language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Designing our Syntax
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'By the flow chart, our first step should logically be to design our concrete
+    syntax. What you choose to make your syntax is completely up to you. I decided
+    to create *EmojiLang*, a (horrible) language that ensures an extremely colorful
+    screen while you are typing. The grammar is below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*** Note: the above specification is written to be used in a tool called ANTLR,
+    we’ll get back to this very soon.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This language is, of course, ridiculous, but it is interesting for a couple
+    of reasons. Firstly, all of our expressions are required to be parenthesized.
+    This makes it extremely annoying to code, but also makes our grammar non-ambiguous.
+    Secondly, notice how we can only define anonymous functions — there is no equivalent
+    syntax for something like `def` in Python. Finally, all functions in this language
+    (except for the base computations) have *exactly one argument*. We’ll explore
+    the implications of the last two design decisions when we play around with our
+    language in a bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parsing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can, of course, write our own parser. Luckily though, there are tools that
+    can parse arbitrary context-free grammars. For this tutorial, we will use **ANTLR
+    (**you can download it [here](https://www.antlr.org/)). ANTLR is a very nice and
+    easy-to-use tool that takes grammar specifications like the above and creates
+    parsers in a variety of target languages (in this tutorial, we will be using Python).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using it is fairly simple, just follow the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Download the ANTLR Java binaries from [here](https://www.antlr.org/download.html)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Create a .g4 file (like the above) for your grammar. Note that ANTLR can’t
+    actually handle emojis very well, so if you plan to use emojis in your language,
+    run the following python script to demojify your grammar:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 3\. Run `java -Xmx500M -cp <path_to_antlr.jar> org.antlr.v4.Tool -Dlanguage=Python3
+    <your_grammar.g4>` to generate your parser
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can then import the generated parsing files and use them as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: You probably won’t have to do the demojizing step in which case you can use
+    antlr4’s `FileStream` instead of the `InputStream` , but it really doesn’t matter.
+    Now, we have a very nice abstract syntax tree that’s easy to work with, and we
+    can move on to the hard part — interpreting³
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building an Interpreter
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Because we are working with trees, our interpreter will naturally be a recursive
+    entity. We do have some choices though on how exactly we implement some of its
+    features. For this tutorial, we will build an interpreter that uses **environments**
+    that bind variables to addresses and then a mutable **store** that maps addresses
+    to values. This idea is fairly common, though not ubiquitous, and it allows us
+    to maintain proper scope and support variable mutation. For ease of implementation,
+    we will also make our interpreter return a common value structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Values, Stores, and the Environment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, let’s define what our interpreter can output. We have three obvious
+    base cases in our EBNF (namely booleans, strings, and numbers) so let’s create
+    value objects for those:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To store mappings of variables to values, we will also create an environment
+    and a store:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Effectively, our environment will store variable → address bindings, and our
+    store will hold address → value bindings. The store is perhaps not necessary with
+    our current feature set, but if we allowed for mutation for pass-by-reference
+    variables, it would be useful⁴.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ideally, we’d also like to pass functions as variables, so we need one more
+    value to represent them. To do this, we create a **closure**, which contains the
+    function’s parameter, body, and the environment that it was created in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You may reasonably ask about why we need the environment stored in the function.
+    Suppose instead that we had a function value like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, suppose that we had code equivalent to the following in our language:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: To ensure that `y` is still in scope for `g` in the top case, we would have
+    to implement dynamic scoping (scope where variables are added to the environment
+    as the program runs without being cleared) without closures, meaning that the
+    bottom code would actually run and print `9`. For the bottom code to properly
+    crash though, we can’t implement dynamic scope. Thus we want the functions to
+    effectively remember what environment they were created in — hence why we add
+    environments to our closure class⁵.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Interpreter
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now, we are ready to write our actual interpreter. In ANTLR, our interpreter
+    will extend the `EmojiLangListener` class. We will also need to create a top-level
+    environment and give the interpreter a store:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we need to create an interp method that handles all of our expression
+    cases. It will end up looking something as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Our base cases (IDs, atoms, function definitions, reading, and printing) are
+    fairly simple, so we can just write them in:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our if condition is also fairly simple. We just need to interpret the condition
+    and then return the result of interpreting the true case if it's true and the
+    false case if its false. The code is thus just
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Sequential operations are similarly simple, they just need to interpret the
+    first expression and then the second. We can thus replace the code in that block
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next are the base computations. This is a decent amount of code since we need
+    to handle a lot of operations, but it’s not super complex:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Perhaps this can also be cleaned up a bit with the use of e.g. dictionaries,
+    but that’s not super important. Next we have variable assignments, which are also
+    not too complicated. We have a couple choices here on what exactly we want it
+    to do — namely, should it allow new variables to come into existence or only modify
+    existing ones? I’ll choose the latter case, which makes our code look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we have function applications. Here, we have to do four steps. First,
+    we interpret the function we are calling to get our closure. Then, we interpret
+    our argument. Then, we bind the argument into a copy of the closure’s environment.
+    Finally, we interpret the closure’s body in the new environment. The code ends
+    up looking as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, our interp is fully functional! We need only modify our main program to
+    run it now on a program:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Playing With Our Language
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We are now finally ready to start writing programs in our language. Here’s
+    a simple hello world program in the emoji language (EML):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: And to run it, we just do
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: (the above, of course, assumes that the program is present in a file called
+    `helloworld.eml` )
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currying
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Back in the first section, I noted that our programming language is interesting
+    because functions can only take one argument. How then do we create an effect
+    similar to multivariate functions? Consider, for instance, the following python
+    code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`f` here has **arity** 2 — that is, it takes two arguments. We can, however,
+    write equivalent code that only uses functions of arity one (except addition)
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The above concept of turning higher arity functions into unary functions is
+    called **currying**. It works for functions of any arity — for a function *f*
+    of arity *n*, we can simply perform currying *n-1* times. In emoji language, this
+    allows us to write a program like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: the Python translation of which is
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Or, more legibly,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice also how the first python iteration used no named functions. It turns
+    out that we don’t really need them, though of course they are useful for readability.
+    Then we get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Recursion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: How do we do a loop or recursion in this language though? We have no syntax
+    for `for` or `while` , and without names for functions, it may seem like recursion
+    is impossible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can, however, do a neat little trick. Since functions are values, we can
+    pass functions to *themselves* whenever we call them, thus allowing them to call
+    themselves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Take, for instance, the following python code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We can convert this to a recursive version using something like this⁶:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But we do have a problem here — namely, notice how `while_loop` calls itself.
+    We can’t do that in our language with only anonymous functions, so how do we fix
+    that? The answer is that we can do something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: In effect, we make `while_loop` take *itself* as a parameter. Then, we can call
+    `self` inside `while_loop` , allowing `while_loop` to call itself recursively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We still, of course, need to lambda-fy and curry this for our language, so
+    we need to make code equivalent to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is a bit of a doozy, but it does work. In emoji lang, this then becomes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Bonus: The Y Combinator'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'It’s somewhat annoying to pass in while to itself each time we want to call
+    it, so what if we could create a version of while that already had itself curried?
+    It turns out we can with something called the **Y Combinator**. The Y combinator
+    is a function that looks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s completely absurd, but it allows us to effectively “store” a function in
+    itself. I won’t go into too much detail about it, but if you’d like to learn more
+    I advise looking at [this excellent article](https://www.playfulpython.com/y-combinator-in-python/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With the combinator though, we can change our code to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, notice how our call to while after it has been y-combinated⁷ only involves
+    passing the condition and the body — we don’t need to pass itself. and we still
+    get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Congratulations! You have now hopefully built your own programming language
+    and coded some fun things in it. Though something like EmojiLang obviously doesn’t
+    have much real use, you can imagine some cool use cases for building your own
+    languages, e.g. by creating a super case-specific scripting language to speed
+    up common tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you’d like some challenges, try the following exercises:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exercise 1:** Build a simple parser and interpreter for the following language
+    *without* using ANTLR. Ensure that parenthesis always take precedence, and that
+    operations otherwise have equal precedence (e.g. `4 + 4 * 3` should evaluate to
+    `24` , not `16` )'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Exercise 2:** Modify your above code to add operator precedence'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exercise 3 (Tricky)**: We don’t *have* to make all of our functions anonymous.
+    Try implementing an interpreter for the following language (you can use ANTLR,
+    but you’ll have to write your own .g4 file):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Exercise 4 (Easy →Very Very Hard):** .g4 files for a ton of real languages
+    can be found [here](https://github.com/antlr/grammars-v4). Implement an interpreter
+    for any one of them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Please contact mchak@calpoly.edu for any inquiries*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P.S. Thank you to Brian Jones, my CS 430 professor, for teaching me a lot
+    of this stuff.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images by author unless otherwise stated.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Compiled languages are slightly different. The generated abstract syntax tree
+    is instead passed to a compiler that converts it to code in a different existing
+    language (most commonly assembly). The outputted code can then be run.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Technically, this isn’t actually in EBNF, but it’s close enough. If you’re curious,
+    you can read more about the EBNF [here](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Note: Some languages may perform some optimizations to the AST before passing
+    it to the interpreter. We will not do that here.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We can still allow for mutation by using boxed values in our environment, but
+    the store is more akin to what most languages do and is more intuitive, at least
+    for me.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: See [7 Functions Anywhere (brown.edu)](https://cs.brown.edu/courses/cs173/2012/book/higher-order-functions.html#%28part._.Implementing_.Closures%29)
+    for more info
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '6\. Note that we have to use a box here because Python’s environment doesn’t
+    really work in the same way ours does, e.g. we can’t do this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: 7\. Really, it has been Z-combinated since our language evaluates stuff eagerly,
+    but the effect is the same
+  prefs: []
+  type: TYPE_NORMAL

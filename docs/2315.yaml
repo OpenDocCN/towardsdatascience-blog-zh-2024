@@ -1,0 +1,379 @@
+- en: Graph RAG into Production — Step-by-Step
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23](https://towardsdatascience.com/graph-rag-into-production-step-by-step-3fe71fb4a98e?source=collection_archive---------0-----------------------#2024-09-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/203dbf1037dad17615e4716e4782dc37.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [JJ Ying](https://unsplash.com/@jjying?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A GCP native, fully serverless implementation that you will replicate in minutes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Jakob
+    Pörschmann](../Images/b130445bf9ac471b70070eb4a2dc6b64.png)](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
+    [Jakob Pörschmann](https://jakobpoerschmann.medium.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3fe71fb4a98e--------------------------------)
+    ·14 min read·Sep 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After [discussing Graph RAG conceptually](/graph-rag-a-conceptual-introduction-41cd0d431375),
+    let’s bring it into production. This is how to productionize GraphRAG: completely
+    serverless, fully parallelized to minimize inference and indexing times, and without
+    ever touching a graph database (promise!).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will introduce you to [graphrag-lite](https://github.com/jakobap/graphrag-light),
+    an end-to-end Graph RAG ingestion and query implementation. I published graphrag-lite
+    as an OSS project to make your life easier when deploying graphrag on GCP. Graphrag-lite
+    is Google Cloud-native and ready to use off the shelf. The code is designed in
+    a modular manner, adjustable for your platform of choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Recap:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Retrieval Augmented Generation itself does not yet describe any specific architecture
+    or method. It only depicts the augmentation of a given generation task with an
+    arbitrary retrieval method. The original RAG paper ([Retrieval-Augmented Generation
+    for Knowledge-Intensive NLP Tasks by Lewis et. al.](https://arxiv.org/abs/2005.11401))
+    compares a two-tower embedding approach with bag-of-words retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modern Q&A systems differentiate between local and global questions. A local
+    (extractive) question on an unstructured sample knowledge base might be “Who won
+    the Nobel Peace Prize in 2023?”. A global (aggregative) question might be “Who
+    are the most recent Nobel prize winners you know about?”. Text2embedding RAG leaves
+    obvious gaps when it comes to global and structured questions. Graph RAG can close
+    these gaps and it does that well! Via an abstraction layer, it learns the semantics
+    of the knowledge graph communities. That builds a more “global” understanding
+    of the indexed dataset. [Here is a conceptual intro to Graph RAG to read up on.](/graph-rag-a-conceptual-introduction-41cd0d431375)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Graph RAG pipeline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A Graph RAG pipeline will usually follows the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph Extraction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is the main ingestion step. Your LLM scans every incoming document with
+    a prompt to extract relevant nodes and edges for our knowledge graph. You iterate
+    multiple times over this prompt to assure you catch all relevant pieces of information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph Storage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You store the extracted nodes and edges in your data store of choice. Dedicated
+    Graph DBs are one option, but they are often tedious. Graph2nosql is a Python-based
+    interface to store and manage knowledge graphs in Firestore or any other NoSQL
+    DB. I open sourced this project becase I did not find any other comparable, knowledge
+    graph native option on the market.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Community detection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once you store your knowledge graph data you will use a community detection
+    algorithm to identify groups of nodes that are more densely connected within each
+    other than they are to the rest of the graph. In the context of a knowledge graph,
+    the assumption is that dense communities cover common topics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Community report generation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You then instruct your LLM to generate a report for each graph community. These
+    community reports help abstract across single topics to grasp wider, global concepts
+    across your dataset. Community reports are stored along with your knowledge graph.
+    This concludes the ingestion layer of the pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map-Reduce for final context building.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At query time you follow a map-reduce pattern to generate an intermediate response
+    to the user query for every community report in your knowledge graph. You have
+    the LLM also rate the relevance of each intermediate query response. Finally,
+    you rank the intermediate responses by relevance and select the top n as context
+    for your final response to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/00aa36eaa8a8bf508304c06feae85d4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Graph RAG step-by-step logic — Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph Extraction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In the initial ingestion step, you instruct your LLM to encode your input document(s)
+    as a graph. An extensive prompt instructs your LLM to first identify nodes of
+    given types, and secondly edges between the nodes you identified. Just like with
+    any LLM prompt, there is not one solution for this challenge. Here is the core
+    of my graph extraction prompt, which I based on [Microsoft’s OSS implementation](https://github.com/microsoft/graphrag):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The extraction step is responsible for which information will be reflected
+    in your knowledge base. Thus you should use a rather powerful model such as Gemini
+    1.5 Pro. You can further increase the result robustness, use the multi-turn version
+    Gemini 1.5 Pro, and query the model to improve its results n times. Here is how
+    I implemented the graph extraction loop in graphrag-lite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: First I make an initial call to the multi-turn model to extract nodes and edges.
+    Second I ask the model to improve the previous extraction results several times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the graphrag-lite implementation, the extraction model calls are made by
+    the front-end client. If you want to reduce client load you could outsource the
+    extraction queries to a microservice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph Storage
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once you extract the nodes and edges from a document you need to store them
+    in an accessible format. Graph Databases are one way to go, but they can also
+    be cumbersome. For your knowledge graph, you might be looking for something a
+    little more lightweight. I thought the same, because I did not find any knowledge
+    graph native library I open sources graph2nosql. [Graph2nosql is a simple knowledge
+    graph native Python interface](https://github.com/jakobap/graph2nosql). It helps
+    store and manage your knowledge graph in any NoSQL DB. All that without blowing
+    up your tech stack with a graph db or needing to learn Cypher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Graph2nosql is designed for knowledge graph retrieval with graph rag in mind.
+    The library is designed around three major datatypes: EdgeData, NodeData, and
+    CommunityData. Nodes are identified by an uid. Edges are identified by source
+    and destination node uid and an edge uid. Given that uids can be freely designed,
+    the graph2nosql data model leaves space for any size of the knowledge graph. You
+    can even add text or graph embeddings. That allows embedding-based analytics,
+    edge prediction, and additional text embedding retrieval (thinking hybrid RAG).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Graph2nosql](https://github.com/jakobap/graph2nosql) is natively designed
+    around Firestore.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: To store your graph data via graph2nosql simply run the following code when
+    parsing the results from your extraction step. Here is the graphrag-lite implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Community detection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With all relevant nodes and edges stored in your Graph DB, you can start building
+    the abstraction layer. One way of doing that is finding nodes that describe similar
+    concepts and describe how they are connected semantically. Graph2nosql offers
+    inbuilt community detection, for example, based on Louvain communities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Depending on your extraction result quality you will find zero-degree nodes
+    in your knowledge graph. From experience, zero-degree nodes are often duplicates.
+    Graphrag-lite uses graph communities as a major abstraction layer thus you should
+    drop the nodes without any edges. Thus it would make sense to think about another
+    duplicate/merge step and/or a node prediction step based on description and graph
+    embeddings to add edges that might have been missed in the extraction step. In
+    graphrag-lite I currently simply drop all zero-degree nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here is the [graphrag-lite implementation of community detection](https://github.com/jakobap/graphrag-light/blob/39d7ed73fe23509951a8c93cc4806499110e1433/graphrag_lite/GraphExtractor.py#L508C1-L509C1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimizing throughput latency in LLM applications
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The GraphRAG pipeline mentioned above takes numerous LLM calls per document
+    ingestion and user query. For example, to generate multiple community reports
+    for every newly indexed document, or to generate intermediate responses for multiple
+    communities at query time. If processed concurrently an awful user experience
+    will be the result. Especially at scale users will have to wait minutes to hours
+    to receive a response to their query. Fortunately, if you frame your LLM prompts
+    the right way you can design them as “stateless workers”. The power of stateless
+    processing architectures is twofold. Firstly, they are easy to parallelize. Secondly,
+    they are easy to implement as serverless infastructure. Combined with a parallelized
+    and serverless architecture maximizes your throughput scalability and minimizes
+    your cost for idle cluster setups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the graphrag-lite architecture I host both the community report generation
+    and the intermediate query generation as serverless Cloud Run microservice workers.
+    These are fed with messages via GCP’s serverless messaging queue PubSub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c49303b5e6ca48937ad3fc3115f7eb01.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: graphrag-lite’s serverless and distributed ingestion & query pipeline — Image
+    by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Community report generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After running the community detection you now know multiple sets of community
+    member nodes. Each of these sets represents a semantic topic within your knowledge
+    graph. The community reporting step needs to abstract across these concepts that
+    originated in different documents within your knowledge base. I again built on
+    the Microsoft implementation and added a function call for easily parsable structured
+    output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The community report generation also demonstrated the biggest challenge around
+    knowledge graph retrieval. Theoretically, any document could add a new node to
+    every existing community in the graph. In the worst-case scenario, you re-generate
+    every community report in your knowledge base for each new document added. In
+    practice it is crucial to include a detection step that identifies which communities
+    have changed after a document upload, resulting in new report generation for only
+    the adjusted communities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you need to re-generate multiple community reports for every document upload
+    we are also facing significant latency challenges if running these requests concurrently.
+    Thus you should outsource and parallelize this work to asynchronous workers. As
+    mentioned before, graphrag-lite solved this using a serverless architecture. I
+    use PubSub as a message queue to manage work items and ensure processing. Cloud
+    Run comes on top as a compute platform hosting stateless workers calling the LLM.
+    For generation, they use the prompt as shown above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Here is the code that runs in the stateless worker for community report generation](https://github.com/jakobap/graphrag-light/blob/main/stateless-comm-reporter/main.py):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This completes the ingestion pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Map-step for intermediate responses
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, you reached query time. To generate your final response to the user,
+    you generate a set of intermediate responses (one per community report). Each
+    intermediate response takes the user query and one community report as input.
+    You then rate these intermediate queries by their relevance. Finally, you use
+    the most relevant community reports and additional information such as node descriptions
+    of the relevant member nodes as the final query context. Given a high number of
+    community reports at scale, this again poses a challenge of latency and cost.
+    Similar to previously you should also parallelize the intermediate response generation
+    (map-step) across serverless microservices. In the future, you could significantly
+    improve efficiency by adding a filter layer to pre-determine the relevance of
+    a community report for a user query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[The map-step microservice looks as follows](https://github.com/jakobap/graphrag-light/blob/main/stateless-context-processor/main.py):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The map-step microservice uses the following prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Reduce-step for final user response
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For a successful reduce-step, you need to store the intermediate response for
+    access at query time. With graphrag-lite, I use Firestore as a shared state across
+    microservices. After triggering the intermediate response generations, the client
+    also periodically checks for the existence of all expected entries in the shared
+    state. The following code extract from graphrag-lite shows how I submit every
+    community report to the PubSub queue. After, I periodically query the shared state
+    to check whether all intermediate responses have been processed. Finally, the
+    end response towards the user is generated using the top-scoring community reports
+    as context to respond to the user query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once all entries are found the client triggers the final user response generation
+    given the selected community context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Graph RAG is a powerful technique every ML Engineer should add to their toolbox.
+    Every Q&A type of application will eventually arrive at the point that purely
+    extractive, “local” queries don’t cut it anymore. With graphrag-lite, you now
+    have a lightweight, cloud-native, and serverless implementation that you can rapidly
+    replicate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite these strengths, please note that in the current state Graph RAG still
+    consumes significantly more LLM input tokens than in the text2emb RAG. That usually
+    comes with considerably higher latency and cost for queries and document indexing.
+    Nevertheless, after experiencing the improvement in result quality I am convinced
+    that in the right use cases, Graph RAG is worth the time and money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAG applications will ultimately move in a hybrid direction. Extractive queries
+    can be handled efficiently and correctly by text2emb RAG. Global abstractive queries
+    might need a knowledge graph as an alternative retrieval layer. Finally, both
+    methods underperform with quantitative and analytical queries. Thus a third text2sql
+    retrieval layer would add massive value. To complete the picture, user queries
+    could initially be classified between the three retrieval methods. Like this,
+    every query could be grounded most efficiently with the right amount and depth
+    of information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I cannot wait to see where else this is going. **Which alternative retrieval
+    methods have you been working with?**
+  prefs: []
+  type: TYPE_NORMAL

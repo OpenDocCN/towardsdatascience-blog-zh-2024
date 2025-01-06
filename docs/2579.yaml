@@ -1,0 +1,217 @@
+- en: Self-Service ML with Relational Deep Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/self-service-ml-with-relational-deep-learning-beb693a21d5b?source=collection_archive---------9-----------------------#2024-10-22](https://towardsdatascience.com/self-service-ml-with-relational-deep-learning-beb693a21d5b?source=collection_archive---------9-----------------------#2024-10-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Do ML directly on your relational database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)[![Laurin
+    Brechter](../Images/5a68b96bddf86846a2bef9d482ef9dd3.png)](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------)
+    [Laurin Brechter](https://medium.com/@brechterlaurin?source=post_page---byline--beb693a21d5b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--beb693a21d5b--------------------------------)
+    ·7 min read·Oct 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd3ee51120626ff5eccf5c3fc113c1db.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Relational Schema of our Dataset, [source](https://www.kaggle.com/datasets/mmohaiminulislam/ecommerce-data-analysis/data);
+    Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, we will dive into an interesting new approach to Deep Learning
+    (DL) called Relational Deep Learning (RDL). We will also gain some hands-on experience
+    by doing some RDL on a real-world database (not a dataset!) of an e-commerce company.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the real world, we usually have a relational database against which we want
+    to run some ML task. But especially when the database is highly normalized, this
+    implies lots of time-consuming feature engineering and loss of granularity as
+    we have to do many aggregations. What’s more, there’s a myriad of possible combinations
+    of features that we can construct each of which might yield good performance [2].
+    That means we are likely to leave some information relevant to the ML task on
+    the table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is similar to the early days of computer vision, before the advent of deep
+    neural networks where features were hand-crafted from the pixel values. Nowadays,
+    models work directly with the raw pixels instead of relying on this intermediate
+    layer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Relational Deep Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: RDL promises to do the same for tabular learning. That is, it removes the extra
+    step of constructing a feature matrix by learning directly on top of your relational
+    database. It does so by transforming the database with its relations into a graph
+    where a row in a table becomes a node and relations between tables become edges.
+    The row values are stored inside the nodes as node features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*In this blog post, we will be using this* [*e-commerce dataset*](https://www.kaggle.com/datasets/mmohaiminulislam/ecommerce-data-analysis/data)
+    *from kaggle which contains transactional data about an e-commerce platform in
+    a star schema with a central fact table (transactions) and some dimension tables.
+    The full code can be found in this* [*notebook*](https://github.com/LaurinBrechter/GraphTheory/blob/main/rdl/rdl_ecommerce.ipynb)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Throughout this blog post, we will be using the [relbench](https://github.com/snap-stanford/relbench)
+    library to do [RDL](https://relbench.stanford.edu/). The first thing we have to
+    do in relbench is to specify the schema of our relational database. Below is an
+    example of how we can do so for the ‘transactions’ table in the database. We give
+    the table as a pandas dataframe and specify the primary key and the timestamp
+    column. The primary key column is used to uniquely identify the entity. The timestamp
+    ensures that we can only learn from past transactions when we want to forecast
+    future transactions. In the graph, this means that information can only flow from
+    nodes with a lower timestamp (i.e. in the past) to ones with a higher timestamp.
+    Additionally, we specify the foreign keys that exist in the relation. In this
+    case, the transactions table has the column ‘customer_key’ which is a foreign
+    key that points to the ‘customer_dim’ table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The rest of the tables need to be defined in the same way. Note that this could
+    also be automated if you already have a database schema. Since the dataset is
+    from Kaggle, I needed to create the schema manually. We also need to convert the
+    date columns to actual pandas datetime objects and remove any NaN values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Crucially, the authors introduce the idea of a training table. This training
+    table essentially defines the ML task. The idea here is that we want to predict
+    the future state (i.e. a future value) of some entity in the database. We do this
+    by specifying a table where each row has a timestamp, the identifier of the entity,
+    and some value we want to predict. The id serves to specify the entity, the timestamp
+    specifies at which point in time we need to predict the entity. This will also
+    limit the data that can be used to infer the value of this entity (i.e. only past
+    data). The value itself is what we want to predict (i.e. ground truth).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our case, we have an online platform with customers. We want to predict a
+    customer’s revenue in the next 30 days. We can create the training table with
+    a SQL statement executed with DuckDB. This is the big advantage of RDL as we could
+    create any kind of ML task with just SQL. For example, we can define a query to
+    select the number of purchases of buyers in the next 30 days to make a churn prediction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result will be a table that has the seller_id as the key of the entity that
+    we want to predict, the revenue as the target, and the timestamp as the time at
+    which we need to make the prediction (i.e. we can only use data up until this
+    point to make the prediction).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/249add07383580218f2c4e9e3b3cf33d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Training Table; Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is the complete code for creating the ‘customer_revenue’ task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: With that, we have done the bulk of the work. The rest of the workflow will
+    be similar, independent of the ML task. I was able to copy most of the code from
+    the [example notebook](https://github.com/snap-stanford/relbench/blob/main/tutorials/train_model.ipynb)
+    that relbench provides.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, we need to encode the node features. Here, we can use glove embeddings
+    to encode all the text features such as the product descriptions and the product
+    names.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: After that, we can apply those transformations to our data and build out the
+    graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The rest of the code will be building the GNN from standard layers, coding the
+    training loop, and doing some evaluations. I will leave this code out of this
+    blog post for brevity since it is very standard and will be the same across tasks.
+    You can check out the notebook [here](https://github.com/LaurinBrechter/GraphTheory/tree/main/rdl).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/885dfaed5f9ea9705ffb86ecb8d1fca9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Result of Training, Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a result, we can train this GNN to reach an r2 of around 0.3 and an MAE of
+    500\. This means that it predicts the seller’s revenue in the next 30 days with
+    an average error of +- $500\. Of course, we can’t know if this is good or not,
+    maybe we could have gotten an r2 of 80% with a combination of classical ML and
+    feature engineering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Relational Deep Learning is an interesting new approach to ML especially when
+    we have a complex relational schema where manual feature engineering would be
+    too laborious. It gives us the ability to define an ML task with just SQL which
+    can be especially useful for individuals that are not deep into data science but
+    know some SQL. This also means that we can iterate quickly and experiment a lot
+    with different tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the same time, this approach presents its own problems such as the difficulty
+    of training GNNs and constructing the graph from the relational schema. Additionally,
+    the question is to what extent RDL can compete in terms of performance with classical
+    ML models. In the past, we have seen that models such as XGboost have proven to
+    be better than neural networks on tabular prediction problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Robinson, Joshua, et al. “RelBench: A Benchmark for Deep Learning on Relational
+    Databases.” *arXiv*, 2024, [https://arxiv.org/abs/2407.20060](https://arxiv.org/abs/2407.20060).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[2] Fey, Matthias, et al. “Relational deep learning: Graph representation learning
+    on relational databases.” *arXiv preprint arXiv:2312.04615* (2023).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[3] Schlichtkrull, Michael, et al. “Modeling relational data with graph convolutional
+    networks.” *The semantic web: 15th international conference, ESWC 2018, Heraklion,
+    Crete, Greece, June 3–7, 2018, proceedings 15*. Springer International Publishing,
+    2018.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

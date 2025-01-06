@@ -1,0 +1,454 @@
+- en: Automate Video Chaptering with LLMs and TF-IDF
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/automate-video-chaptering-with-llms-and-tf-idf-f6569fd4d32b?source=collection_archive---------3-----------------------#2024-09-09](https://towardsdatascience.com/automate-video-chaptering-with-llms-and-tf-idf-f6569fd4d32b?source=collection_archive---------3-----------------------#2024-09-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Transform raw transcripts into well-structured documents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[![Yann-Aël
+    Le Borgne](../Images/acc1c8b32373d7f345064b89b51869fd.png)](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)
+    [Yann-Aël Le Borgne](https://ya-lb.medium.com/?source=post_page---byline--f6569fd4d32b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f6569fd4d32b--------------------------------)
+    ·12 min read·Sep 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/32d60a6f1a504bcb2a692f7a8846cb0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Jakob Owens](https://unsplash.com/@jakobowens1?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Video chaptering is the task of segmenting a video into distinct chapters. Besides
+    its use as a navigation aid as seen with YouTube chapters, it is also core to
+    a series of downstream applications ranging from information retrieval (e.g.,
+    RAG semantic chunking), to referencing or [summarization](https://medium.com/p/d2c1e04e7a7b).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a recent project, I needed to automate this task and was suprised by the
+    limited options available, especially in the open-source domain. While some professional
+    tools or paid APIs offer such services, I couldn’t find any library or tutorial
+    that provided a sufficiently robust and accurate solution. If you know of any,
+    please share them in the comment!
+  prefs: []
+  type: TYPE_NORMAL
+- en: And in case you wonder why not simply copy and paste the transcript into a large
+    language model (LLM) and ask for chapter headings, this won’t be effective for
+    two reasons. First, LLMs cannot consistently preserve timestamp information to
+    link them back to chapter titles. Second, LLMs often overlook important sections
+    when dealing with long transcripts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I therefore ended up designing a custom workflow by relying on LLMs for different
+    language processing subtasks (text formatting, paragraph structuring, chapter
+    segmentation and title generation), and on a [TF-IDF](https://en.wikipedia.org/wiki/Tf%E2%80%93idf)
+    statistics to add timestamps back after the paragraph structuring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/780f882c38449694c48c995a6382887c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The combination of LLMs and TF-IDF allows to efficiently edit and structure
+    a raw transcript while preserving timestamps — See demo on this [HuggingFace space](https://huggingface.co/spaces/Yannael/video-chaptering)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The resulting workflow turns out to work pretty well, often generating chapters
+    that replicate or enhance YouTube’s suggested ones. The tool additionally allows
+    to export poorly formatted transcripts into well-structured documents, as illustrated
+    on this [HuggingFace space](https://huggingface.co/spaces/Yannael/video-chaptering).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This blog post aims at explaining its main steps, which are outlined in the
+    diagram below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ec059b1795fb2245cf75e684608ae62c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Proposed workflow for video chaptering, from raw transcript retrieval to structured
+    markdown and Gradio app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The key steps in the workflow lie in structuring the transcript in paragraphs
+    (step 2) before grouping the paragraphs into chapters from which a table of contents
+    is derived (step 4). Note that these two steps may rely on different LLMs: A fast
+    and cheap LLM such as LLama 3 8B for the simple task of text editing and paragraph
+    identification, and a more sophisticated LLM such as GPT-4o-mini for the generation
+    of the table of contents. In between, TF-IDF is used to add back timestamp information
+    to the structured paragraphs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rest of the post describes each step in more detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check out the accompanying [Github repository and Colab notebook](https://github.com/Yannael/automatic-video-chaptering)
+    to explore on your own!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) Get the video/audio transcript
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let us use as an example [the first lecture](https://www.youtube.com/watch?v=ErnWZxJovaM)
+    of the course ‘MIT 6.S191: Introduction to Deep Learning’ ([IntroToDeepLearning.com](http://introtodeeplearning.com))
+    by Alexander Amini and Ava Amini **(**[licensed under the MIT License](http://introtodeeplearning.com/)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c2f97d5dd2e28cf1b72c2562e1e38cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot of the course YouTube page. Course material is under an MIT licence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that chapters are already provided in the video description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/01a6fbed9e9f9dff298272404cc8bd7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Chaptering made available in the YouTube description
+  prefs: []
+  type: TYPE_NORMAL
+- en: This provides us with a baseline to qualitatively compare our chaptering later
+    in this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*YouTube transcript API*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For YouTube videos, an automatically generated transcript is usually made available
+    by YouTube. A convenient way to retrieve that transcript is by calling the *get_transcript*
+    method of the Python *youtube_transcript_api* library. The method takes the YouTube
+    *video_id* library as argument:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This returns the transcript as a list of text and timestamp key-value pairs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The transcript is however poorly formatted: it lacks punctuation and contains
+    typos (‘MIT sus1 191’ instead of ‘MIT 6.S191'', or ‘amini’ instead of ‘Amini’).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Speech-to-text with Whisper
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Alternatively, a speech-to-text library can be used to infer the transcript
+    from a video or audio file. We recommend using [*faster-whisper*](https://github.com/SYSTRAN/faster-whisper),
+    which is a fast implementation of the state-of-the-art open-source [*whisper*](https://github.com/openai/whisper)
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The models come in different size. The most accurate is the ‘large-v3’, which
+    is able to transcribe about 15 minutes of audio per minute on a T4 GPU (available
+    for free on Google Colab).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result of the transcription is provided as segments which can be easily
+    converted in a list of text and timestamps as with the *youtube_transcript_api*
+    library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip: Whisper may sometimes [not include the punctuation](https://github.com/openai/whisper/discussions/194).
+    The *initial_prompt* argument can be used to nudge the model to add punctuation
+    by providing a small sentence containing punctuation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below is an excerpt of the transcription of the our video example with whisper
+    large-v3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that compared to the YouTube transcription, the punctuation is added. Some
+    transcription errors however still remain (‘MIT Success 191’ instead of ‘MIT 6.S191').
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2) Structure the transcript in paragraphs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once a transcript is available, the second stage consists in editing and structuring
+    the transcript in paragraphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transcript editing refers to changes made to improve readability. This involves,
+    for example, adding punctuation if it is missing, correcting grammatical errors,
+    removing verbal tics, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The structuring in paragraphs also improves readability, and additionnally serves
+    as a preprocessing step for identifying chapters in stage 4, since chapters will
+    be formed by grouping paragraphs together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Paragraph editing and structuring can be carried out in a single operation,
+    using an LLM. We illustrated below the expected result of this stage:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c5df77d97bd440adef5a65f05b5309f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Left: Raw transcript. Right: Edited and structured transcript.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This task does not require a very sophisticated LLM since it mostly consists
+    in reformulating content. At the time of writing this article, decent results
+    could be obtained with for example GPT-4o-mini or Llama 3 8B, and the following
+    system prompt:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You are a helpful assistant.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Your task is to improve the user input’s readability: add punctuation if needed
+    and remove verbal tics, and structure the text in paragraphs separated with ‘\n\n’.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Keep the wording as faithful as possible to the original text.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Put your answer within <answer></answer> tags.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We rely on [OpenAI compatible chat completion API](https://platform.openai.com/docs/guides/chat-completions)
+    for LLM calling, with messages having the roles of either ‘system’, ‘user’ or
+    ‘assistant’. The code below illustrates the instantiation of an LLM client with
+    [Groq](https://console.groq.com/docs/text-chat), using LLama 3 8B:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Given a piece of raw ‘transcript_text’ as input, this returns an edited piece
+    of text within <answer> tags:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let us then extract the edited text from the <answer> tags, divide it into
+    paragraphs, and structure the results as a JSON dictionary consisting of paragraph
+    numbers and pieces of text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the input should not be too long as the LLM will otherwise ‘forget’
+    part of the text. For long inputs, the transcript must be split in chunks to improve
+    reliability. We noticed that GPT-4o-mini handles well up to 5000 characters, while
+    Llama 3 8B can only handle up to 1500 characters. The notebook provides the function
+    *transcript_to_paragraphs* which takes care of splitting the transcript in chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3) Infer paragraph timestamps with TF-IDF
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The transcript is now structured as a list of edited paragraphs, but the timestamps
+    have been lost in the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third stage consists in adding back timestamps, by inferring which segment
+    in the raw transcript is the closest to each paragraph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/61fb2633ad48094b726132474c7d221f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: TF-IDF is used to find which raw transcript segment (right) best matches the
+    beginning of the edited pargagraphs (left).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We rely for this task on the [TF-IDF metric](https://en.wikipedia.org/wiki/Tf%E2%80%93idf).
+    TF-IDF stands for **term frequency–inverse document frequency** and is a similarity
+    measure for comparing two pieces of text. The measure works by computing the number
+    of similar words, giving more weight to words which appear less frequently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a preprocessing step, we adjust the transcript segments and paragraph beginnings
+    so that they contain the same number of words. The text pieces should be long
+    enough so that paragraph beginnings can be successfully matched to a unique transcript
+    segment. We find that using 50 words works well in practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then rely on the *sklearn* library and its [TfidfVectorizer](https://scikit-learn.org/stable/modules/generated/sklearn.feature_extraction.text.TfidfVectorizer.html)
+    and [cosine_similarity](https://scikit-learn.org/stable/modules/generated/sklearn.metrics.pairwise.cosine_similarity.html#cosine-similarity)
+    function to run TF-IDF and compute similarities between each paragraph beginning
+    and transcript segment. below is an example of code for finding the best match
+    index in the transcript segments for the first paragraph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We wrapped the process in a *add_timestamps_to_paragraphs* function, which
+    adds timestamps to paragraphs, together with the matched segment index and text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the example above, the first paragraph (numbered 0) is found to match the
+    transcript segment number 1 that starts at time 10 (in seconds).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4) Generate table of contents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The table of contents is then found by grouping consecutive paragraphs into
+    chapters and identifying meaningful chapter titles. The task is mostly carried
+    out by an LLM, which is instructed to transform an input consisting in a list
+    of JSON paragraphs into an output consisting in a list of JSON chapter titles
+    with the starting paragraph numbers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: An important element is to specifically ask for a JSON output, which increases
+    the chances to get a correctly formatted JSON output that can later be loaded
+    back in Python.
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPT-4o-mini is used for this task, as it is more cost-effective than OpenAI’s
+    GPT-4o and generally provides good results. The instructions are provided through
+    the ‘system’ role, and paragraphs are provided in JSON format through the ‘user’
+    role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Et voilà! The call returns the list of chapter titles together with the starting
+    paragraph number in JSON format:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: As in step 2, the LLM may struggle with long inputs and dismiss part of the
+    input. The solution consists again in splitting the input into chunks, which is
+    implemented in the notebook with the *paragraphs_to_toc* function and the *chunk_size*
+    parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5) Output structured chapters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This last stage combines the paragraphs and the table of contents to create
+    a structured JSON file with chapters, an example of which is provided in the [accompanying
+    Github repository](https://github.com/Yannael/automatic-video-chaptering/blob/master/tmp/ErnWZxJovaM/ErnWZxJovaM.json).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We illustrate below the resulting chaptering (right), compared to the baseline
+    chaptering that was available from the YouTube description (left):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f23d10c1159cfcf70370ae8be3055be.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Side-by-side comparison of baseline chaptering from YouTube (left) and ours
+    (right)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The comparison is mostly qualitative as there is no ‘ground truth’. Overall,
+    the approach described in this post identified similar chapters but provides a
+    slightly more refined segmentation of the video. A manual check of both chapterings
+    revealed that the baseline chaptering is off regarding course information, which
+    indeed starts at 9:37 and not at 7:25.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A couple of other examples of chaptering are given on this [HuggingFace space](https://huggingface.co/spaces/Yannael/video-chaptering).
+    The whole workflow is bundled as a Gradio app at the end of the [accompanying
+    notebook](https://colab.research.google.com/github/Yannael/automatic-video-chaptering/blob/master/video_chapter_generator.ipynb),
+    making it easier to test it on your own videos.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/780f882c38449694c48c995a6382887c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Gradio app](https://colab.research.google.com/github/Yannael/automatic-video-chaptering/blob/master/video_chapter_generator.ipynb)
+    that bundles the different steps and outputs a well-structured document from a
+    raw transcript'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To go further
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[From Text Segmentation to Smart Chaptering:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Novel Benchmark for Structuring Video Transcriptions](https://arxiv.org/pdf/2402.17633v1)
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '[Review of existing solutions for transcript summarizers](https://www.notta.ai/en/blog/transcript-summarizer)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://paperswithcode.com/task/text-segmentation](https://paperswithcode.com/task/text-segmentation)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://en.wikipedia.org/wiki/Video_chapter](https://en.wikipedia.org/wiki/Video_chapter)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Note:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Enjoyed this post? Share your thoughts, give it claps, or* [*connect with
+    me on LinkedIn*](https://www.linkedin.com/in/yannaelb/) *.*'
+  prefs: []
+  type: TYPE_NORMAL

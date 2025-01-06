@@ -1,0 +1,578 @@
+- en: Quantizing the Weights of AI Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/quantizing-the-weights-of-ai-models-39f489455194?source=collection_archive---------6-----------------------#2024-09-07](https://towardsdatascience.com/quantizing-the-weights-of-ai-models-39f489455194?source=collection_archive---------6-----------------------#2024-09-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reducing high-precision floating-point weights to low-precision integer weights
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)[![Arun
+    Nanda](../Images/48836e7e13dbe0821bed6902209f2d25.png)](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)
+    [Arun Nanda](https://medium.com/@arunnanda?source=post_page---byline--39f489455194--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--39f489455194--------------------------------)
+    ·12 min read·Sep 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/50ca7965b4f8806bfb9c64b046896779.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: To make AI models more affordable and accessible, many developers and researchers
+    are working towards making the models smaller but equally powerful. Earlier in
+    this series, the article [*Reducing the Size of AI Models*](https://medium.com/@arunnanda/reducing-the-size-of-ai-models-4ab4cfe5887a)
+    gives a basic introduction to quantization as a successful technique to reduce
+    the size of AI models. Before learning more about the quantization of AI models,
+    it is necessary to understand how the quantization operation works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article, the second in the series, presents a hands-on introduction to
+    the arithmetics of quantization. It starts with a simple example of scaling number
+    ranges and progresses to examples with clipping, rounding, and different types
+    of scaling factors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are different ways to represent real numbers in computer systems, such
+    as 32-bit floating point numbers, 8-bit integers, and so on. Regardless of the
+    representation, computers can only express numbers in a finite range and of a
+    limited precision. 32-bit floating point numbers (using the [IEEE 754 32-bit base-2](https://en.wikipedia.org/wiki/IEEE_754)
+    system) have a range from -3.4 * 10³⁸ to +3.4 * 10³⁸. The smallest positive number
+    that can be encoded in this format is of the order of 1 * 10^-38\. In contrast,
+    signed 8-bit integers range from -128 to +127.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Traditionally, model weights are represented as 32-bit floats (or as 16-bit
+    floats, in the case of many large models). When quantized to 8-bit integers (for
+    example), the quantizer function maps the entire range of 32-bit floating point
+    numbers to integers between -128 and +127.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Scaling Number Ranges
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Consider a rudimentary example: you need to map numbers in the integer range
+    A from -1000 to 1000 to the integer range B from -10 to +10\. Intuitively, the
+    number 500 in range A maps to the number 5 in range B. The steps below illustrate
+    how to do this formulaically:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To transform a number from one range to another, you need to multiply it by
+    the right scaling factor. The number 500 from range A can be expressed in the
+    range B as follows:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 500 * scaling_factor = Representation of 500 in Range B = 5
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'To calculate the scaling factor, take the ratio of the difference between the
+    maximum and minimum values of the target range to the original range:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/014d4744fd61bb9f6832e61bfcaf579c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'To map the number 500, multiply it by the scaling factor:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 500 * (1/100) = 5
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Based on the above formulation, try to map the number 510:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 510 * (1/100) = 5.1
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Since the range B consists only of integers, extend the above formula with
+    a rounding function:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Round ( 510 * (1/100) ) = 5
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Similarly, all the numbers from 500 to 550 in Range A map to the number 5 in
+    Range B. Based on this, notice that the mapping function resembles a step function
+    with uniform steps.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/d4e43419f9c1b053ac389cfee3cf2ee7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The X-axis in this figure represents the source Range, A (unquantized weights)
+    and the Y-axis represents the target Range, B (quantized weights).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simple Integer Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As a more practical example, consider a floating point range -W to +W, which
+    you want to quantize to signed N-bit integers. The range of signed N-bit integers
+    is -2^(N-1) to +2^(N-1)-1\. But, to simplify things for the sake of illustration,
+    assume a range from -2^(N-1) to +2^(N-1). For example, (signed) 8-bit integers
+    range from -16 to +15 but here we assume a range from -16 to +16\. This range
+    is symmetric around 0 and the technique is called symmetric range mapping.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The scaling factor, s, is:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/068239d0b2064c9224cedafa5b55c062.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The quantized number is the product of the unquantized number and the scaling
+    factor. To quantize to integers, we need to round this product to the nearest
+    integer:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/ee09c59ddd8ae1647bf91d675272749d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To remove the assumption that the target range is symmetric around 0, you also
+    account for the zero-point offset, as explained in the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Zero Point Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The number range -2^(N-1) to +2^(N-1), used in the previous example, is symmetric
+    around 0\. The range -2^(N-1) to +2^(N-1)-1, represented by N-bit integers, is
+    not symmetric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When the quantization number range is not symmetric, you add a correction, called
+    a zero point offset, to the product of the weight and the scaling factor. This
+    offset shifts the range such that it is effectively symmetric around zero. Conversely,
+    the offset represents the quantized value of the number 0 in the unquantized range.
+    The steps below show how to calculate the zero point offset, z.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The quantization relation with the offset is expressed as:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/66f06ee0cdd5b6771f43382d4ca124de.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Map the extreme points of the original and the quantized intervals. In this
+    context, W_min and W_max refer to the minimum and maximum weights in the original
+    unquantized range.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/7644979bd7e76323e3ec4c823e5253f8.png)![](../Images/02cee12747c02b98131657743af4bff6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Solving these linear equations for the scaling factor, s, we get:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/4ed443bd993e9020a69f8210fc10274c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Similarly, we can express the offset, z, in terms of scaling factor s, as:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/c5e44ff836ce56a73ecb5b60b7dab817.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Substituting for s in the above relation:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/85564153797cedc0f357a2af83b7d60b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Since we are converting from floats to integers, the offset also needs to be
+    an integer. Rounding the above expression:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/ec0b5d248c7c1b9563b0e617c5093136.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Meaning of Zero-Point
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the above discussion, the offset value is called the zero-point offset. It
+    is called the zero-point because it is the quantized value of the floating point
+    weight of 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When W = 0 in
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e4534f2ff4111df5a09584514fafa485.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'You get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae813a1bc998444a60858c8cd6dfa137.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The article, [*Zero-point quantization: How do we get those formulas*](https://medium.com/@luis.vasquez.work.log/zero-point-quantization-how-do-we-get-those-formulas-4155b51a60d6),
+    by Luis Vasquez, discusses zero-point quantization with many examples and illustrative
+    pictures.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: De-quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The function to obtain an approximation of the original floating point value
+    from the quantized value is called the de-quantization function. It is simply
+    the inverse of the original quantization relation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b92297666cca4e9c43592ade5710a943.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Ideally, the de-quantized weight should be equal to the original weight. But,
+    because of the rounding operations in the quantization functions, this is not
+    the case. Thus, there is a loss of information involved in the de-quantization
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Improving the Precision of Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The biggest drawback of the above methods is the loss of precision. Bhandare
+    et al, in a 2019 paper titled [*Efficient 8-Bit Quantization of Transformer Neural
+    Machine Language Translation Model*](https://arxiv.org/pdf/1906.00532), were the
+    first to quantize Transformer models. They demonstrated that naive quantization,
+    as discussed in earlier sections, results in a loss of precision. In gradient
+    descent, or indeed any optimization algorithm, the weights undergo just a slight
+    modification in each pass. It is therefore important for the quantization method
+    to be able to capture fractional changes in the weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clipping the Range
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Quantized intervals have a fixed and limited range of integers. On the other
+    hand, unquantized floating points have a very large range. To increase the precision,
+    it is helpful to reduce (clip) the range of the floating point interval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is observed that the weights in a neural network follow a statistical distribution,
+    such as a normal Gaussian distribution. This means, most of the weights fall within
+    a narrow interval, say between W_max and W_min. Beyond W_max and W_min, there
+    are only a few outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following description, the weights are clipped, and W_max and W_min refer
+    to the maximum and minimum values of the weights in the clipped range.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Clipping (restricting) the range of the floating point weights to this interval
+    means:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weights which fall in the tails of the distribution are clipped — Weights higher
+    than W_max are clipped to W_max. Weights smaller than W_min are clipped to W_min.
+    The range between W_min and W_max is the clipping range.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Because the range of the floating point weights is reduced, a smaller unquantized
+    range maps to the same quantized range. Thus, the quantized range can now account
+    for smaller changes in the values of the unquantized weights.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The quantization formula shown in the previous section is modified to include
+    the clipping:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47b2f90a3267dd360f1f9a72c85aafca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The clipping range is customizable. You can choose how narrow you want this
+    interval to be. If the clipping is overly aggressive, weights that contribute
+    to the model’s accuracy can be lost in the clipping process. Thus, there is a
+    tradeoff — clipping to a very narrow interval increases the precision of the quantization
+    of weights within the interval, but it also reduces the model’s accuracy due to
+    loss of information from those weights which were considered as outliers and got
+    clipped.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Determining the Clipping Parameters
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It has been noted by many researchers that the statistical distribution of model
+    weights has a significant effect on the model’s performance. Thus, it is essential
+    to quantize weights in such a way that these statistical properties are preserved
+    through the quantization. Using statistical methods, such as Kullback Leibler
+    Divergence, it is possible to measure the similarity of the distribution of weights
+    in the quantized and unquantized distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The optimal clipped values of W_max and W_min are chosen by iteratively trying
+    different values and measuring the difference between the histograms of the quantized
+    and unquantized weights. This is called calibrating the quantization. Other approaches
+    include minimizing the mean square error between the quantized weights and the
+    full-precision weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Different Scaling Factors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is more than one way to scale floating point numbers to lower precision
+    integers. There are no hard rules on what is the right scaling factor. Researchers
+    have experimented with various approaches. A general guideline is to choose a
+    scaling factor so that the unquantized and quantized distributions have a similar
+    statistical properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**MinMax Quantization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The examples in the previous sections scale each weight by the difference of
+    W_max and W_min (the maximum and minimum weights in the set). This is known as
+    minmax quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62fe76ce030770d3a772c5ffab9da9c3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is one of the most common approaches to quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AbsMax Quantization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is also possible to scale the weights by the absolute value of the maximum
+    weight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd29fb0f4a10fbb088428c8c3c7238b0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Wang et al, in their 2023 paper titled [BitNet: Scaling 1-bit Transformers
+    for Large Language Models](https://arxiv.org/pdf/2310.11453), use absmax quantization
+    to build the 1-bit BitNet Transformer architecture. The BitNet architecture is
+    explained later in this series, in [*Understanding 1-bit Large Language Models*](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AbsMean Quantization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another approach is to make the scaling factor equal to the average of the
+    absolute values of all the unquantized weights:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/408a6180e68e94a389c6b7d8d4d1874c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Ma et al, in the 2024 paper titled [The Era of 1-bit LLMs: All Large Language
+    Models are in 1.58 Bits](https://arxiv.org/pdf/2402.17764), use absmean quantization
+    to build a 1.58-bit variant of BitNet. To learn more about 1.58-bit language models,
+    refer to [*Understanding 1.58-bit Large Language Models*](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Granularity of Quantization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is possible to quantize all the weights in a model using the same quantization
+    scale. However, for better accuracy, it is also common to calibrate and estimate
+    the range and quantization formula separately for each tensor, channel, and layer.
+    The article [*Different Approaches to Quantization*](https://medium.com/@arunnanda/different-approaches-to-quantization-e3fac905bd5a)
+    discusses the granularity levels at which quantization is applied.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extreme Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Traditional quantization approaches reduce the precision of model weights to
+    16-bit or 8-bit integers. Extreme quantization refers to quantizing weights to
+    1-bit and 2-bit integers. Quantization to 1-bit integers ({0, 1}) is called binarization.
+    The simple approach to binarize floating point weights is to map positive weights
+    to +1 and negative weights to -1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a86ce61c5ee49b12d8679bf2f3c9973.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Similarly, it is also possible to quantize weights to ternary ({-1, 0, +1}):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da4189c9a88e3e11e5870626fa48a3c7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'In the above system, Delta is a threshold value. In a simplistic approach,
+    one might quantize to ternary as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Normalize the unquantized weights to lie between -1 and +1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantize weights below -0.5 to -1
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantize weights between -0.5 and +0.5 to 0
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantize weights above 0.5 to +1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Directly applying binary and ternary quantization leads to poor results. As
+    discussed earlier, the quantization process must preserve the statistical properties
+    of the distribution of the model weights. In practice, it is common to adjust
+    the range of the raw weights before applying the quantization and to experiment
+    with different scaling factors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Later in this series, the articles [*Understanding 1-bit Large Language Models*](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
+    and [*Understanding 1.58-bit Language Models*](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)
+    discuss practical examples of binarization and ternarization of weights. The 2017
+    paper titled [*Trained Ternary Quantization* by Zhu et al](https://arxiv.org/pdf/1612.01064)
+    and the [2023 survey paper on ternary quantization](https://arxiv.org/pdf/2303.01505)
+    by Liu et al dive deeper into the details of ternary quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The premise of binarization is that even though this process (binarization)
+    seems to result in a loss of information, using a large number of weights compensates
+    for this loss. The statistical distribution of the binarized weights is similar
+    to that of the unquantized weights. Thus, deep neural networks are still able
+    to demonstrate good performance even with binary weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Non-uniform Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The quantization methods discussed so far uniformly map the range of unquantized
+    weights to quantized weights. They are called “uniform” because the mapping intervals
+    are equidistant. To clarify, when you mapped the range -1000 to +1000 to the range
+    -10 to +10:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the numbers from -1000 to -951 are mapped to -10
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The interval from -950 to -851 is mapped to -9
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The interval from -850 to -751 maps to -8
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and so on…
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These intervals are also called bins.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The disadvantage of uniform quantization is that it does not take into consideration
+    the statistical distribution of the weights themselves. It works best when the
+    weights are equally distributed between W_max and W_min. The range of floating
+    point weights can be considered as divided into uniform bins. Each bin maps to
+    one quantized weight.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In reality, floating point weights are not distributed uniformly. Some bins
+    contain a large number of unquantized weights while other bins have very few.
+    Non-uniform quantization aims to create these bins in such a way that bins with
+    a higher density of weights map to a larger interval of quantized weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are different ways of representing the non-uniform distribution of weights,
+    such as K-means clustering. However, these methods are not currently used in practice,
+    due to the computational complexity of their implementation. Most practical quantization
+    systems are based on uniform quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the hypothetical graph below, in the chart on the right, unquantized weights
+    have a low density of distribution towards the edges and a high density around
+    the middle of the range. Thus, the quantized intervals are larger towards the
+    edges and compact in the middle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6b85f289a7fd0b08c8ae28afa8bbd9d2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantizing Activations and Biases
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The activation is quantized similarly as the weights are, but using a different
+    scale. In some cases, the activation is quantized to a higher precision than the
+    weights. In models like [BinaryBERT](https://medium.com/@arunnanda/extreme-quantization-1-bit-ai-models-07169ee29d96),
+    and the [1-bit Transformer — BitNet](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3),
+    the weights are quantized to binary but the activations are in 8-bit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The biases are not always quantized. Since the bias term only undergoes a simple
+    addition operation (as opposed to matrix multiplication), the computational advantage
+    of quantizing the bias is not significant. Also, the number of bias terms is much
+    less than the number of weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article explained (with numerical examples) different commonly used ways
+    of quantizing floating point model weights. The mathematical relationships discussed
+    here form the foundation of [quantization to 1-bit weights](https://medium.com/@arunnanda/understanding-1-bit-large-language-models-a33cc6acabb3)
+    and to [1.58-bit weights](https://medium.com/@arunnanda/understanding-1-58-bit-large-language-models-88373010974a)
+    — these topics are discussed later in the series.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To learn more about the mathematical principles of quantization, refer to [this
+    2023 survey paper by Weng](https://arxiv.org/pdf/2112.06126). [*Quantization for
+    Neural Networks*](https://leimao.github.io/article/Neural-Networks-Quantization/)
+    by Lei Mao explains in greater detail the mathematical relations involved in quantized
+    neural networks, including non-linear activation functions like the ReLU. It also
+    has code samples implementing quantization. The next article in this series, [*Quantizing
+    Neural Network Models*](https://medium.com/@arunnanda/quantizing-neural-network-models-8ce49332f1d3),
+    presents the high-level processes by which neural network models are quantized.
+  prefs: []
+  type: TYPE_NORMAL

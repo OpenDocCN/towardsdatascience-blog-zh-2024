@@ -1,0 +1,496 @@
+- en: Leveraging Smaller LLMs for Enhanced Retrieval-Augmented Generation (RAG)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/leveraging-smaller-llms-for-enhanced-retrieval-augmented-generation-rag-bc320e71223d?source=collection_archive---------1-----------------------#2024-10-18](https://towardsdatascience.com/leveraging-smaller-llms-for-enhanced-retrieval-augmented-generation-rag-bc320e71223d?source=collection_archive---------1-----------------------#2024-10-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Llama-3.2–1 B-Instruct and LanceDB
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)[![Alex
+    Punnen](../Images/296f165c293200adfa39482cb1388264.png)](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------)
+    [Alex Punnen](https://alexcpn.medium.com/?source=post_page---byline--bc320e71223d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bc320e71223d--------------------------------)
+    ·12 min read·Oct 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Abstract**: Retrieval-augmented generation (RAG) combines large language
+    models with external knowledge sources to produce more accurate and contextually
+    relevant responses. This article explores how smaller language models (LLMs),
+    like the recently opensourced Meta 1 Billion model, can be effectively utilized
+    to summarize and index large documents, thereby improving the efficiency and scalability
+    of RAG systems. We provide a step-by-step guide, complete with code snippets,
+    on how to summarize chunks of text from a product documentation PDF and store
+    them in a LanceDB database for efficient retrieval.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Retrieval-Augmented Generation is a paradigm that enhances the capabilities
+    of language models by integrating them with external knowledge bases. While large
+    LLMs like GPT-4 have demonstrated remarkable capabilities, they come with significant
+    computational costs. Small LLMs offer a more resource-efficient alternative, especially
+    for tasks like text summarization and keyword extraction, which are crucial for
+    indexing and retrieval in RAG systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this article, we’ll demonstrate how to use a small LLM to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Extract and summarize text from a PDF document**.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Generate embeddings for summaries and keywords**.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Store the data efficiently in a LanceDB database**.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Use this for effective RAG**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Also a Agentic workflow for self correcting errors from the LLM**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using a smaller LLM drastically reduces the cost for these types of conversions
+    on huge data-sets and gets similar benefits for simpler tasks as the larger parameter
+    LLMs and can easily be hosted in the Enterprise or from the Cloud with minimal
+    cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will use [LLAMA 3.2 1 Billion](https://ai.meta.com/blog/llama-3-2-connect-2024-vision-edge-mobile-devices/)
+    parameter model, the smallest state-of-the-art LLM as of now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d1e06fb0bf3f7cac0d4f247f2977944d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLM Enhanced RAG (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem with Embedding Raw Text
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before diving into the implementation, it’s essential to understand why embedding
+    raw text from documents can be problematic in RAG systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ineffective Context Capture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Embedding raw text from a page without summarization often leads to embeddings
+    that are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**High-dimensional noise**: Raw text may contain irrelevant information, formatting
+    artefacts, or boilerplate language that doesn’t contribute to understanding the
+    core content.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Diluted key concepts**: Important concepts may be buried within extraneous
+    text, making the embeddings less representative of the critical information.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Retrieval Inefficiency
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When embeddings do not accurately represent the key concepts of the text, the
+    retrieval system may fail to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Match user queries effectively**: The embeddings might not align well with
+    the query embeddings, leading to poor retrieval of relevant documents.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Provide correct context**: Even if a document is retrieved, it may not offer
+    the precise information the user is seeking due to the noise in the embedding.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Solution: Summarization Before Embedding'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Summarizing the text before generating embeddings addresses these issues by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Distilling Key Information**: Summarization extracts the essential points
+    and keywords, removing unnecessary details.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improving Embedding Quality**: Embeddings generated from summaries are more
+    focused and representative of the main content, enhancing retrieval accuracy.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Prerequisites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before we begin, ensure you have the following installed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python 3.7 or higher
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PyTorch
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Transformers library
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SentenceTransformers
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PyMuPDF (for PDF processing)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LanceDB
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A laptop with GPU Min 6 GB or Colab (T4 GPU will be sufficient) or similar
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Step 1: Setting Up the Environment'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, import all the necessary libraries and set up logging for debugging and
+    tracking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 2: Defining Helper Functions'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Creating the Prompt
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We define a function to create prompts compatible with the LLAMA 3.2 model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Processing the Prompt
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This function processes the prompt using the model and tokenizer. We are setting
+    the temperature to 0.1 to make the model less creative (less hallucinating)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 3: Loading the Model'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We use the LLAMA 3.2 1B Instruct model for summarization. We are loading the
+    model with bfloat16 to reduce the memory and running in NVIDIA laptop GPU (NVIDIA
+    GeForce RTX 3060 6 GB/ Driver NVIDIA-SMI 555.58.02/Cuda compilation tools, release
+    12.5, V12.5.40) in a Linux OS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Better would be to host via vLLM or better [exLLamaV2](https://github.com/turboderp/exllamav2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 4: Reading and Processing the PDF Document'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We extract text from each page of the PDF document.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 5: Setting Up LanceDB and SentenceTransformer'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We initialize the SentenceTransformer model for generating embeddings and set
+    up LanceDB for storing the data. We are using PyArrow based Schema for the LanceDB
+    tables
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that keywords are not used now but can be used for hybrid search, that
+    is vector similarity search as well as text search if needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 6: Summarizing and Storing Data'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We loop through each page, generate a summary and keywords, and store them along
+    with embeddings in the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using LLMs to Correct Their Outputs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When generating summaries and extracting keywords, LLMs may sometimes produce
+    outputs that are not in the expected format, such as malformed JSON.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can leverage the LLM itself to correct these outputs by prompting it to fix
+    the errors. This is shown in the code above
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this code snippet, if the LLM’s initial output cannot be parsed as JSON,
+    we prompt the LLM again to correct the JSON. This self-correction pattern improves
+    the robustness of our pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Suppose the LLM generates the following malformed JSON:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Attempting to parse this JSON results in an error due to the use of single
+    quotes instead of double quotes. We catch this error and prompt the LLM to correct
+    it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The LLM then provides the corrected JSON:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: By using the LLM to correct its own output, we ensure that the data is in the
+    correct format for downstream processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extending Self-Correction via LLM Agents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This pattern of using the LLM to correct its outputs can be extended and automated
+    through the use of **LLM Agents**. LLM Agents can:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Automate Error Handling**: Detect errors and autonomously decide how to correct
+    them without explicit instructions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improve Efficiency**: Reduce the need for manual intervention or additional
+    code for error correction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Enhance Robustness**: Continuously learn from errors to improve future outputs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**LLM Agents** act as intermediaries that manage the flow of information and
+    handle exceptions intelligently. They can be designed to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Parse outputs and validate formats.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Re-prompt the LLM with refined instructions upon encountering errors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Log errors and corrections for future reference and model fine-tuning.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Approximate Implementation**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead of manually catching exceptions and re-prompting, an LLM Agent could
+    encapsulate this logic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `LLMAgent` class would handle the initial processing, error detection, re-prompting,
+    and correction internally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now lets see how we can use the Embeddings for an effective RAG pattern again
+    using the LLM to help in ranking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Retrieval and Generation: Processing the User Query'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is the usual flow. We take the user’s question and search for the most
+    relevant summaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Preparing the Retrieved Summaries
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We compile the retrieved summaries into a list, associating each summary with
+    its page number for reference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Ranking the Summaries
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We prompt the language model to rank the retrieved summaries based on their
+    relevance to the user’s question and select the most relevant one. This is again
+    using the LLM in ranking the summaries than the K-Nearest Neighbour or Cosine
+    distance or other ranking algorithms alone for the contextual embedding (vector)
+    match.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Extracting the Selected Summary and Generating the Final Answer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We retrieve the original content associated with the selected summary and prompt
+    the language model to generate a detailed answer to the user’s question using
+    this context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Explanation of the Workflow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**User Query Vectorization**: The user’s question is converted into an embedding
+    using the same SentenceTransformer model used during indexing.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Similarity Search**: The query embedding is used to search the vector database
+    (LanceDB) for the most similar summaries and return Top 3'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**3\. Summary Ranking**: The retrieved summaries are passed to the language
+    model, which ranks them based on relevance to the user’s question.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**4\. Context Retrieval**: The original content associated with the most relevant
+    summary is retrieved by parsing out the page number and getting the associated
+    page from the LanceDB'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**5\. Answer Generation**: The language model generates a detailed answer to
+    the user’s question using the retrieved context.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a sample output from a sample PDF I have used
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can efficiently summarise and extract keywords from large documents using
+    a small LLM like LLAMA 3.2 1B Instruct. These summaries and keywords can be embedded
+    and stored in a database like LanceDB, enabling efficient retrieval for RAG systems
+    using the LLM in the workflow and not just in generation
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Meta LLAMA 3.2 1B Instruct Model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[SentenceTransformers](https://www.sbert.net/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[LanceDB](https://lancedb.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PyMuPDF Documentation](https://pymupdf.readthedocs.io/en/latest/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Github repo](https://github.com/alexcpn/llmenhancedrag) for this project'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

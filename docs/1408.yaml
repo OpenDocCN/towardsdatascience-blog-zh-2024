@@ -1,0 +1,343 @@
+- en: The One Billion Row Challenge in Julia
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-one-billion-row-challenge-in-julia-bdd19cde58d5?source=collection_archive---------9-----------------------#2024-06-05](https://towardsdatascience.com/the-one-billion-row-challenge-in-julia-bdd19cde58d5?source=collection_archive---------9-----------------------#2024-06-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What can data scientists learn should they choose to accept this mission?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vikas.negi10?source=post_page---byline--bdd19cde58d5--------------------------------)[![Vikas
+    Negi](../Images/3f5974d44cfdbdecb77e3b4cb3098af0.png)](https://medium.com/@vikas.negi10?source=post_page---byline--bdd19cde58d5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--bdd19cde58d5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--bdd19cde58d5--------------------------------)
+    [Vikas Negi](https://medium.com/@vikas.negi10?source=post_page---byline--bdd19cde58d5--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--bdd19cde58d5--------------------------------)
+    ·8 min read·Jun 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dded10279fcf25261adbea5aecf60745.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Indira Tjokorda](https://unsplash.com/@indiratjokorda?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Earlier this year, Gunnar Morling launched the [One Billon Row Challenge](https://www.morling.dev/blog/one-billion-row-challenge/),
+    which has since gained a lot of popularity. Although the original challenge was
+    meant to be done using Java, the amazing open-source community has since shared
+    impressive solutions in different programming languages. I noticed that not many
+    people had tried using Julia (or at least not publicly shared results), so decided
+    to share my own humble attempt via this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A question that often came to my mind was what value does this challenge bring
+    to a data scientist? Can we learn something more other than just doing a fun exercise?
+    After all, the goal of the challenge is to “simply” parse a large dummy data file,
+    calculate basic statistics (min, max and mean), and output the data in a specific
+    format. This might not be a realistic situation for most if not all projects that
+    data scientists usually work on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, one aspect of the problem has to do with the size of the data versus the
+    available RAM. When working locally (laptop or a desktop), for most people, it
+    will be difficult to load the data all at once into memory. Dealing with larger
+    than memory data sets therefore becomes an essential skill, which might come in
+    handy when prototyping big data pipelines or performing big data analysis/visualization
+    tasks. The rules of the original challenge also state that use of external libraries/packages
+    should be avoided. This forces you to think of novel solutions and provides a
+    fascinating opportunity to learn the nuances of the language itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In rest of the article, I will share results from both the approaches — using
+    base Julia and also with external packages. This way, we get to compare the pros
+    and cons of each. All experiments have been performed on a desktop equipped with
+    AMD Ryzen 9 5900X (12 cores, 24 threads), 32 GB RAM and Samsung NVMe SSD. Julia
+    1.10.2 is running on Linux (Elementary OS 7.1 Horus). All relevant code is available
+    [here](https://github.com/vnegi10/1brc_julia). Do note that the performance in
+    this case is also tied to the hardware, so results may vary in case you decide
+    to run the scripts on your own system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prerequisites
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A recent release of [Julia](https://julialang.org/downloads/) such as 1.10 is
+    recommended. For those wanting to use a notebook, the [repository](https://github.com/vnegi10/1brc_julia)
+    shared above also contains a Pluto file, for which [Pluto.jl](https://github.com/fonsp/Pluto.jl)
+    needs to be installed. The input data file for the challenge is unique for everyone
+    and needs to be generated using [this Python script](https://github.com/gunnarmorling/1brc/blob/main/src/main/python/create_measurements.py).
+    Keep in mind that the file is about 15 GB in size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally, we will be running benchmarks using the [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl)
+    package. Note that this does not impact the challenge, it’s only meant to collect
+    proper statistics to measure and quantify the performance of the Julia code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using base Julia
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The structure of the input data file `measurements.txt` is as follows (only
+    the first five lines are shown):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The file contains a billion lines (also known as rows or records). Each line
+    has a station name followed by the `;` separator and then the recorded temperature.
+    The number of unique stations can be up to 10,000\. This implies that the same
+    station appears on multiple lines. We therefore need to collect all the temperatures
+    for all distinct stations in the file, and then calculate the required statistics.
+    Easy, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s start slow but simple
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: My first attempt was to simply parse the file one line at a time, and then collect
+    the results in a dictionary where every station name is a key and the temperatures
+    are added to a vector of `Float64` to be used as the value mapped to the key.
+    I expected this to be slow, but our aim here is to get a number for the baseline
+    performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the dictionary is ready, we can calculate the necessary statistics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The output of all the data processing needs to be displayed in a certain format.
+    This is achieved by the following function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since this implementation is expected to take long, we can run a simple test
+    by timing `@time` the following only once:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our poor man’s implementation takes about 526 seconds, so ~ 9 minutes. It’s
+    definitely slow, but not that bad at all!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Taking it up a notch — Enter multithreading!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instead of reading the input file one line at a time, we can try to split it
+    into chunks, and then process all the chunks in parallel. Julia makes it quite
+    easy to implement a parallel `for` loop. However, we need to take some [precautions](https://docs.julialang.org/en/v1/manual/multi-threading/#Caveats)
+    while doing so.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before we get to the loop, we first need to figure out how to split the file
+    into chunks. This can be achieved using [memory mapping](https://docs.julialang.org/en/v1/stdlib/Mmap/https://docs.julialang.org/en/v1/stdlib/Mmap/)
+    to read the file. Then we need to determine the `start` and `end` positions of
+    each chunk. It’s important to note that each line in the input data file ends
+    with a new-line character, which has `0x0a` as the byte representation. So each
+    chunk should end at that character to ensure that we don’t make any errors while
+    parsing the file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following function takes the number of chunks`num_chunks`as an input argument,
+    then returns an array with each element as the memory mapped chunk.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since we are parsing station and temperature data from different chunks, we
+    also need to combine them in the end. Each chunk will first be processed into
+    a dictionary as shown before. Then, we combine all chunks as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we know how to split the file into chunks, and how we can combine the parsed
+    dictionaries from the chunks at the end. However, the desired speedup can only
+    be obtained if we are also able to process the chunks in parallel. This can be
+    done in a `for` loop. Note that Julia should be [started with multiple threads](https://docs.julialang.org/en/v1/manual/multi-threading/#Starting-Julia-with-multiple-threads)
+    `julia -t 12` for this solution to have any impact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, we now want to run a proper statistical benchmark. This means
+    that the challenge should be executed a certain number of times, and we should
+    then be able to visualize the distribution of the results. Thankfully, all of
+    this can be easily done with [BenchmarkTools.jl](https://github.com/JuliaCI/BenchmarkTools.jl).
+    We cap the maximum number of samples to 10, maximum time for the total run to
+    be 20 minutes and enable garbage collection (will free up memory) to execute between
+    samples. All of this can be brought together in a single script. Note that the
+    input arguments are now the name of the file `fname` and the number of chunks
+    `num_chunks.`
+  prefs: []
+  type: TYPE_NORMAL
+- en: Benchmark results along with the inputs used are shown below. Note that we have
+    used 12 threads here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/72ec4e552a082a0938866ae4f1e12de3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 12 threads, number of chunks = 48 (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-threading provides a big performance boost, we are now down to roughly
+    over 2 minutes. Let’s see what else we can improve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Avoiding storing all temperature data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Until now, our approach has been to store all the temperatures, and then determine
+    the required statistics (min, mean and max) at the very end. However, the same
+    can already be achieved while we parse every line from the input file. We replace
+    existing values each time a new value which is either larger (for maximum) or
+    smaller (for minimum) is found. For mean, we sum all the values and keep a separate
+    counter as to how many times a temperature for a given station has been found.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Overall, out new logic looks like the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function to combine all the results (from different chunks) also needs to
+    be updated accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s run a new benchmark and see if this change improves the timing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/03e629680c5f7ea6a82d412a8dfd74b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 12 threads, number of chunks = 48 (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The median time seems to have improved, but only slightly. It’s a win, nonetheless!
+  prefs: []
+  type: TYPE_NORMAL
+- en: More performance enhancement
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Our previous logic to calculate and save the mix, max for temperature can be
+    further simplified. Moreover, following the suggestion from this [Julia Discourse
+    post](https://discourse.julialang.org/t/the-one-billion-row-challenge/109534/24),
+    we can make use of views (using `@view` ) when parsing the station names and temperature
+    data. This has also been [discussed](https://docs.julialang.org/en/v1/manual/performance-tips/index.html#Consider-using-views-for-slices-1)
+    in the Julia performance manual. Since we are using a slice expression for parsing
+    every line, `@view` helps us avoid the cost of allocation and copying.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Rest of the logic remains the same. Running the benchmark now gives the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f521124dfe4e634f7f0478fcbea99c64.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 12 threads, number of chunks = 48 (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whoa! We managed to reach down to almost a minute. It seems switching to a view
+    does make a big difference. Perhaps, there are further tweaks that could be made
+    to improve performance even further. In case you have any suggestions, do let
+    me know in the comments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using external packages
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Restricting ourselves only to base Julia was fun. However, in the real world,
+    we will almost always be using packages and thus making use of existing efficient
+    implementations for performing the relevant tasks. In our case, CSV.jl (parsing
+    the file in parallel) and DataFrames.jl (performing `groupby` and `combine`) will
+    come in handy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The function below performs the following tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use `Mmap` to read the large file
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Split file into a predefined number of chunks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Loop through the chunks, read each chunk in parallel using `CSV.read` (12 threads
+    passed to `ntasks`) into a DataFrame.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use DataFrame `groupby` and `combine` to get the results for each station
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Concatenate all DataFrames to combine results from all chunks
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once outside the loop, perform a `groupby` and `combine` again to get the final
+    set of results for all stations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can now run the benchmark in the same manner as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/72da5f5c1ebda12a8453bd0ddd76df4a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 12 threads, number of chunks = 48, using external packages (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The performance using CSV.jl and DataFrames.jl is quite good, albeit slower
+    than our base Julia implementation. When working on real world projects, these
+    packages are an essential part of a data scientist’s toolkit. It would thus be
+    interesting to explore if further optimizations are possible using this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we tackled the One Billion Row Challenge using Julia. Starting
+    from a very naive implementation that took ~ 10 minutes, we managed to gain significant
+    performance improvement through iterative changes to the code. The most optimized
+    implementation completes the challenge in ~ 1 minute. I am certain that there’s
+    still more room for improvement. As an added bonus, we learned some valuable tricks
+    on how to deal with larger than memory data sets. This might come in handy when
+    doing some big data analysis and visualization using Julia.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you found this exercise useful. Thank you for your time! Connect with
+    me on [LinkedIn](https://www.linkedin.com/in/negivikas/) or visit my [Web 3.0
+    powered website](https://vikasnegi.eth.limo/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[https://www.morling.dev/blog/one-billion-row-challenge/](https://www.morling.dev/blog/one-billion-row-challenge/)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[https://docs.julialang.org/en/v1/manual/performance-tips/index.html#man-performance-annotations](https://docs.julialang.org/en/v1/manual/performance-tips/index.html#man-performance-annotations)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

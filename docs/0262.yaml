@@ -1,0 +1,381 @@
+- en: Using Poetry and Docker to Package Your Model for AWS Lambda
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/using-poetry-and-docker-to-package-your-model-for-aws-lambda-cd6d448eb88f?source=collection_archive---------1-----------------------#2024-01-29](https://towardsdatascience.com/using-poetry-and-docker-to-package-your-model-for-aws-lambda-cd6d448eb88f?source=collection_archive---------1-----------------------#2024-01-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An accessible tutorial for one way to put a model into production, with special
+    focus on troubleshooting and hiccups you might encounter along the way
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@s.kirmer?source=post_page---byline--cd6d448eb88f--------------------------------)[![Stephanie
+    Kirmer](../Images/f9d9ef9167febde974c223dd4d8d6293.png)](https://medium.com/@s.kirmer?source=post_page---byline--cd6d448eb88f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--cd6d448eb88f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--cd6d448eb88f--------------------------------)
+    [Stephanie Kirmer](https://medium.com/@s.kirmer?source=post_page---byline--cd6d448eb88f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--cd6d448eb88f--------------------------------)
+    ·10 min read·Jan 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8ca1c71ddc8ebed25afbc74ed0a12b1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I like to think of models as little critters. Photo by [Jiawei Zhao](https://unsplash.com/@jiaweizhao?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As promised, this week I’m coming with a more technical topic and taking a little
+    break from all the discussions of business. I recently had an opportunity to deploy
+    a new model using AWS Lambda, and I learned a few things when combining my usual
+    development tooling (Poetry) with the infrastructure of Lambda. (Big hat tip to
+    my teammate Aaron for teaching me new stuff!) I’m going to walk through the less
+    obvious steps to getting a locally trained model deployed to Lambda successfully.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For my regular readers who are not interested in the nuts and bolts of model
+    development, fear not, I’ll be back to commenting on social issues and machine
+    learning next time!
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Setting up your model architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you don’t already have a preferred package manager/environment manager tool
+    in Python, let me make a case for Poetry. It took me a while to get started and
+    get the hang of it, but I’ve been using it for a couple of years now and have
+    become a real fan. Some folks prefer venv or other more bare bones tooling, which
+    is fine, but Poetry has some nice extra features that I think are worth it. (If
+    you don’t have any experience with Poetry, please visit the official docs at [https://python-poetry.org/](https://python-poetry.org/)
+    and they can get you set up.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the selling points I’d like to emphasize is that Poetry makes it quite
+    easy to package your project so that internal modules you create are callable
+    without a lot of fuss. This means that you don’t have to fight the “Python says
+    that module doesn’t exist” battle that I’m sure many of us are familiar with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The example embedded here is just the head of the pyproject.toml file for a
+    project like this one — notice the line starting with `packages` telling this
+    env to include the package I’m creating in its imports. This is what lets me call
+    things like `from new_package.tools import stuff` anywhere inside this project,
+    even if those things are not in the immediate parent directory or whatever.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Assuming you’re sold on Poetry, then you can use this to define your environment
+    and manage all your dependencies, and you’ll be developing your model and its
+    pipelines inside that project. Go ahead and build and train your model, and come
+    back when that bit is done. I’ll wait.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ok, welcome back! Because you know you’re going to be deploying this model through
+    Docker in Lambda, that dictates how your inference pipeline should be structured.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You need to construct a “handler”. What is that, exactly? It’s just a function
+    that accepts the JSON object that is passed to the Lambda, and it returns whatever
+    your model’s results are, again in a JSON payload. So, everything your inference
+    pipeline is going to do needs to be called inside this function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the case of my project, I’ve got a whole codebase of feature engineering
+    functions: mountains of stuff involving semantic embeddings, a bunch of aggregations,
+    regexes, and more. I’ve consolidated them into a `FeatureEngineering` class, which
+    has a bunch of private methods but just one public one, `feature_eng`. So starting
+    from the JSON that is being passed to the model, that method can run all the steps
+    required to get the data from “raw” to “features”. I like setting up this way
+    because it abstracts away a lot of complexity from the handler function itself.
+    I can literally just call:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: And I’m off to the races, my features come out clean and ready to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Be advised: I have written exhaustive unit tests on all the inner guts of this
+    class because while it is neat to write it this way, I still need to be extremely
+    conscious of any changes that might occur under the hood. Write your unit tests!
+    If you make one small change, you may not be able to immediately tell you’ve broken
+    something in the pipeline until it’s already causing problems.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The second half is the inference work, and this is a separate class in my case.
+    I’ve gone for a very similar approach, which just takes in a few arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The class initialization accepts the result of the feature engineering class’s
+    method, so that handshake is clearly defined. Then the prediction method takes
+    two items: the feature set (a JSON file listing all the feature names) and the
+    model object, in my case a CatBoost classifier I’ve already trained and saved.
+    I’m using the native CatBoost save method, but whatever you use and whatever model
+    algorithm you use is fine. The point is that this method abstracts away a bunch
+    of underlying stuff, and neatly returns the `predictions` object, which is what
+    my Lambda is going to give you when it runs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, to recap, my “handler” function is essentially just this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Nothing more to it! You might want to add some controls for malformed inputs,
+    so that if your Lambda gets an empty JSON, or a list, or some other weird stuff
+    it’s ready, but that’s not required. Do make sure your output is in JSON or similar
+    format, however (here I’m giving back a dict).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building your Docker image
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is all great, we have a Poetry project with a fully defined environment
+    and all the dependencies, as well as the ability to load the modules we create,
+    etc. Good stuff. But now we need to translate that into a Docker image that we
+    can put on AWS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here I’m showing you a skeleton of the dockerfile for this situation. First,
+    we’re pulling from AWS to get the right base image for Lambda. Next, we need to
+    set up the file structure that will be used inside the Docker image. This may
+    or may not be exactly like what you’ve got in your Poetry project — mine is not,
+    because I’ve got a bunch of extra junk here and there that isn’t necessary for
+    the prod inference pipeline, including my training code. I just need to put the
+    inference stuff in this image, that’s all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The beginning of the dockerfile*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this project, anything you copy over is going to live in a `/tmp` folder,
+    so if you have packages in your project that are going to try and save data at
+    any point, you need to direct them to the right place.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You also need to make sure that Poetry gets installed right in your Docker image-
+    that’s what will make all your carefully curated dependencies work right. Here
+    I’m setting the version and telling `pip` to install Poetry before we go any further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next issue is making sure all the files and folders your project uses locally
+    get added to this new image correctly — Docker copy will irritatingly flatten
+    directories sometimes, so if you get this built and start seeing “module not found”
+    issues, check to make sure that isn’t happening to you. Hint: add `RUN ls -R`
+    to the dockerfile once it’s all copied to see what the directory is looking like.
+    You’ll be able to view those logs in Docker and it might reveal any issues.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, make sure you copy everything you need! That includes the Lambda file,
+    your Poetry files, your feature list file, and your model. All of this is going
+    to be needed unless you store these elsewhere, like on S3, and make the Lambda
+    download them on the fly. (That’s a perfectly reasonable strategy for developing
+    something like this, but not what we’re doing today.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’re almost done! The last thing you should do is actually install your Poetry
+    environment and then set up your handler to run. There are a couple of important
+    flags here, including `--no-dev` , which tells Poetry not to add any developer
+    tools you have in your environment, perhaps like pytest or black.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The end of the dockerfile*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s it, you’ve got your dockerfile! Now it’s time to build it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure Docker is installed and running on your computer. This may take a
+    second but it won’t be too difficult.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Go to the directory where your dockerfile is, which should be the the top level
+    of your project, and run `docker build .` Let Docker do its thing and then when
+    it’s completed the build, it will stop returning messages. You can see in the
+    Docker application console if it’s built successfully.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Go back to the terminal and run `docker image ls` and you’ll see the new image
+    you’ve just built, and it’ll have an ID number attached.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: From the terminal once again, run `docker run -p 9000:8080 IMAGE ID NUMBER`
+    with your ID number from step 3 filled in. Now your Docker image will start to
+    run!
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Open a new terminal (Docker is attached to your old window, just leave it there),
+    and you can pass something to your Lambda, now running via Docker. I personally
+    like to put my inputs into a JSON file, such as `lambda_cases.json` , and run
+    them like so:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: If the result at the terminal is the model’s predictions, then you’re ready
+    to rock. If not, check out the errors and see what might be amiss. Odds are, you’ll
+    have to debug a little and work out some kinks before this is all running smoothly,
+    but that’s all part of the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deploying to AWS and testing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next stage will depend a lot on your organization’s setup, and I’m not a
+    devops expert, so I’ll have to be a little bit vague. Our system uses the AWS
+    Elastic Container Registry (ECR) to store the built Docker image and Lambda accesses
+    it from there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When you are fully satisfied with the Docker image from the previous step, you’ll
+    need to build one more time, using the format below. The first flag indicates
+    the platform you’re using for Lambda. (Put a pin in that, it’s going to come up
+    again later.) The item after the -t flag is the path to where your AWS ECR images
+    go- fill in your correct account number, region, and project name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this, you should authenticate to an Amazon ECR registry in your terminal,
+    probably using the command `aws ecr get-login-password` and using the appropriate
+    flags.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, you can push your new Docker image up to ECR:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you’ve authenticated correctly, this should only take a moment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There’s one more step before you’re ready to go, and that is setting up the
+    Lambda in the AWS UI. Go log in to your AWS account, and find the “Lambda” product.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8aceb40567bd62e48f5f1e4c3ead919.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is what the header will look like, more or less.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pop open the lefthand menu, and find “Functions”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0c7f02a7e00298f337b81be7f5f4231e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is where you’ll go to find your specific project. If you have not set up
+    a Lambda yet, hit “Create Function” and follow the instructions to create a new
+    function based on your container image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/453e48f74497877e8ccac974650a246a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you’ve already created a function, go find that one. From there, all you
+    need to do is hit “Deploy New Image”. Regardless of whether it’s a whole new function
+    or just a new image, make sure you select the platform that matches what you did
+    in your Docker build! (Remember that pin?)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d2f098b237ed6bda29063376158629d8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The last task, and the reason I’ve carried on explaining up to this stage, is
+    to test your image in the actual Lambda environment. This can turn up bugs you
+    didn’t encounter in your local tests! Flip to the Test tab and create a new test
+    by inputting a JSON body that reflects what your model is going to be seeing in
+    production. Run the test, and make sure your model does what is intended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b58fe5e55653bc190ed6c0194b318d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If it works, then you did it! You’ve deployed your model. Congratulations!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Troubleshooting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are a number of possible hiccups that may show up here, however. But don’t
+    panic, if you have an error! There are solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If your Lambda runs out of memory, go to the Configurations tab and increase
+    the memory.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the image didn’t work because it’s too large (10GB is the max), go back to
+    the Docker building stage and try to cut down the size of the contents. Don’t
+    package up extremely large files if the model can do without them. At worst, you
+    may need to save your model to S3 and have the function load it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you have trouble navigating AWS, you’re not the first. Consult with your
+    IT or Devops team to get help. Don’t make a mistake that will cost your company
+    lots of money!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you have another issue not mentioned, please post a comment and I’ll do my
+    best to advise.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Good luck, happy modeling!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Upcoming talks: I will be speaking remotely about data science career trajectories
+    to the [Overseas Chinese Association for Institutional Research (OCAIR)](https://ocair.org/)
+    on Friday, April 12, at 1 pm US Central Time. Check with OCAIR about how to join
+    if you’d like to tune in.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (All images in this post except the header photo are created by the author.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: See more of my work at [www.stephaniekirmer.com](http://www.stephaniekirmer.com/).
+  prefs: []
+  type: TYPE_NORMAL

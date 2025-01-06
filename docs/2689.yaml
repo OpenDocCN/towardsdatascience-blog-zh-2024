@@ -1,0 +1,679 @@
+- en: Building Knowledge Graphs with LLM Graph Transformer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59?source=collection_archive---------0-----------------------#2024-11-05](https://towardsdatascience.com/building-knowledge-graphs-with-llm-graph-transformer-a91045c49b59?source=collection_archive---------0-----------------------#2024-11-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A deep dive into LangChain’s implementation of graph construction with LLMs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)[![Tomaz
+    Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------)
+    [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--a91045c49b59--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a91045c49b59--------------------------------)
+    ·17 min read·Nov 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c100d65f7368e26e05871fc243e2c8d2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Building knowledge graph. Image by ChatGPT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating graphs from text is incredibly exciting, but definitely challenging.
+    Essentially, it’s about converting unstructured text into structured data. While
+    this approach has been around for some time, it gained significant traction with
+    the advent of Large Language Models (LLMs), bringing it more into the mainstream.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/391f15d81764d9d695809c24cb771da0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extracting entities and relationships from text to construct a knowledge graph.
+    Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the image above, you can see how information extraction transforms raw text
+    into a knowledge graph. On the left, multiple documents show unstructured sentences
+    about individuals and their relationships with companies. On the right, this same
+    information is represented as a graph of entities and their connections, showing
+    who worked at or founded various organizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But why would you want to extract structured information from text and represent
+    it as a graph? One key reason is to power retrieval-augmented generation (RAG)
+    applications. While using text embedding models over unstructured text is an useful
+    approach, it can fall short when it comes to answering [complex, multi-hop questions](https://medium.com/neo4j/knowledge-graphs-llms-multi-hop-question-answering-322113f53f51)
+    that require understanding connections across multiple entities or question where
+    [structured operations like filtering, sorting, and aggregation](https://medium.com/neo4j/limitations-of-text-embeddings-in-rag-applications-b060020b543b)
+    is required. By extracting structured information from text and constructing knowledge
+    graphs, you not only organize data more effectively but also create a powerful
+    framework for understanding complex relationships between entities. This structured
+    approach makes it much easier to retrieve and leverage specific information, expanding
+    the types of questions you can answer while providing greater accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Around a year ago, I began [experimenting with building graphs using LLMs](https://medium.com/@bratanic-tomaz/constructing-knowledge-graphs-from-text-using-openai-functions-096a6d010c17),
+    and due to the growing interest, we decided to integrate this capability into
+    LangChain as the [LLM Graph Transformer](https://python.langchain.com/docs/how_to/graph_constructing/).
+    Over the past year, we’ve gained valuable insights and introduced new features,
+    which we’ll be showcasing in this blog post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code is available on [GitHub](https://github.com/tomasonjo/blogs/blob/master/llm/llm_graph_transformer_in_depth.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Neo4j environment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will use Neo4j as the underlying graph store, which comes with out-of-the
+    box graph visualizations. The easiest way to get started is to use a free instance
+    of [Neo4j Aura](https://neo4j.com/cloud/platform/aura-graph-database/), which
+    offers cloud instances of the Neo4j database. Alternatively, you can set up a
+    local instance of the Neo4j database by downloading the [Neo4j Desktop](https://neo4j.com/download/)
+    application and creating a local database instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: LLM Graph Transformer
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The LLM Graph Transformer was designed to provide a flexible framework for building
+    graphs using any LLM. With so many different providers and models available, this
+    task is far from simple. Fortunately, LangChain steps in to handle much of the
+    standardization process. As for the LLM Graph Transformer itself, it’s like two
+    cats stacked in a trench coat —with the ability to operate in two completely independent
+    modes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6657e49d4e353000a1cc75cda74536e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLM Graph Transformer consists of two separate modes of extracting graphs from
+    text. Image by user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The LLM Graph Transformer operates in two distinct modes, each designed to generate
+    graphs from documents using an LLM in different scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Tool-Based Mode (Default):** When the LLM supports structured output or function
+    calling, this mode leverages the [LLM’s built-in](https://python.langchain.com/docs/how_to/structured_output/)
+    `[with_structured_output](https://python.langchain.com/docs/how_to/structured_output/)`[to
+    use tools](https://python.langchain.com/docs/how_to/structured_output/). The tool
+    specification defines the output format, ensuring that entities and relationships
+    are extracted in a structured, predefined manner. This is depicted on the left
+    side of the image, where code for the Node and Relationship classes is shown.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Prompt-Based Mode (Fallback):** In situations where the LLM doesn’t support
+    tools or function calls, the LLM Graph Transformer falls back to a purely prompt-driven
+    approach. This mode uses few-shot prompting to define the output format, guiding
+    the LLM to extract entities and relationships in a text-based manner. The results
+    are then parsed through a custom function, which converts the LLM’s output into
+    a JSON format. This JSON is used to populate nodes and relationships, just as
+    in the tool-based mode, but here the LLM is guided entirely by prompting rather
+    than structured tools. This is shown on the right side of the image, where an
+    example prompt and resulting JSON output are provided.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: These two modes ensure that the LLM Graph Transformer is adaptable to different
+    LLMs, allowing it to build graphs either directly using tools or by parsing output
+    from a text-based prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note that you can use prompt-based extraction even with models that support
+    tools/functions by setting the attribute* `*ignore_tools_usage=True*`*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tool-based extraction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We initially chose a tool-based approach for extraction since it minimized the
+    need for extensive prompt engineering and custom parsing functions. In LangChain,
+    the `with_structured_output` method allows you to extract information using tools
+    or functions, with output defined either through a JSON structure or a Pydantic
+    object. Personally, I find Pydantic objects clearer, so we opted for that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start by defining a `Node` class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each node has an `id`, a `label`, and optional `properties`. For brevity, I
+    haven’t included full descriptions here. Describing ids as human-readable unique
+    identifier is important since some LLMs tend to understand ID properties in more
+    traditional way like random strings or incremental integers. Instead we want the
+    name of entities to be used as id property. We also limit the available label
+    types by simply listing them in the `label`description. Additionally, LLMs like
+    OpenAI’s, support an `enum` parameter, which we also use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we take a look at the `Relationship` class
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is the second iteration of the `Relationship` class. Initially, we used
+    a nested `Node` object for the source and target nodes, but we quickly found that
+    nested objects reduced the accuracy and quality of the extraction process. So,
+    we decided to flatten the source and target nodes into separate fields—for example,
+    `source_node_id` and `source_node_label`, along with `target_node_id` and `target_node_label`.
+    Additionally, we define the allowed values in the descriptions for node labels
+    and relationship types to ensure the LLMs adhere to the specified graph schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The tool-based extraction approach enables us to define properties for both
+    nodes and relationships. Below is the class we used to define them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each `Property` is defined as a key-value pair. While this approach is flexible,
+    it has its limitations. For instance, we can't provide a unique description for
+    each property, nor can we specify certain properties as mandatory while others
+    optional, so all properties are defined as optional. Additionally, properties
+    aren't defined individually for each node or relationship type but are instead
+    shared across all of them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve also implemented a [detailed system prompt](https://github.com/langchain-ai/langchain-experimental/blob/main/libs/experimental/langchain_experimental/graph_transformers/llm.py#L72)
+    to help guide the extraction. In my experience, though, the function and argument
+    descriptions tend to have a greater impact than the system message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, at the moment, there is no simple way to customize function or
+    argument descriptions in LLM Graph Transformer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prompt-based extraction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Since only a few commercial LLMs and LLaMA 3 support native tools, we implemented
+    a fallback for models without tool support. You can also set `ignore_tool_usage=True`
+    to switch to a prompt-based approach even when using a model that supports tools.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the prompt engineering and examples for the prompt-based approach were
+    contributed by [Geraldus Wilsen](https://www.linkedin.com/in/geraldus-wilsen/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the prompt-based approach, we have to define the output structure directly
+    in the prompt. You can find the [whole prompt here](https://github.com/langchain-ai/langchain-experimental/blob/main/libs/experimental/langchain_experimental/graph_transformers/llm.py#L206).
+    In this blog post, we’ll just do a high-level overview. We start by defining the
+    system prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the prompt-based approach, a key difference is that we ask the LLM to extract
+    only relationships, not individual nodes. This means we won’t have any *isolated
+    nodes*, unlike with the tool-based approach. Additionally, because models lacking
+    native tool support typically perform worse, we do not allow extraction any properties
+    — whether for nodes or relationships, to keep the extraction output simpler.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we add a couple of few-shot examples to the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this approach, there’s currently no support for adding custom few-shot examples
+    or extra instructions. The only way to customize is by modifying the entire prompt
+    through the `prompt`attribute. Expanding customization options is something we’re
+    actively considering.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we’ll take a look at defining the graph schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining the graph schema
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When using the LLM Graph Transformer for information extraction, defining a
+    graph schema is essential for guiding the model to build meaningful and structured
+    knowledge representations. A well-defined graph schema specifies the types of
+    nodes and relationships to be extracted, along with any attributes associated
+    with each. This schema serves as a blueprint, ensuring that the LLM consistently
+    extracts relevant information in a way that aligns with the desired knowledge
+    graph structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, we’ll use the opening paragraph of [Marie Curie’s Wikipedia
+    page](https://en.wikipedia.org/wiki/Marie_Curie) for testing with an added sentence
+    at the end about Robin Williams.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ll also be using GPT-4o in all examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: To start, let’s examine how the extraction process works without defining any
+    graph schema.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can process the documents using the `aconvert_to_graph_documents` function,
+    which is asynchronous. Using async with LLM extraction is recommended, as it allows
+    for parallel processing of multiple documents. This approach can significantly
+    reduce wait times and improve throughput, especially when dealing with multiple
+    documents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The response from the LLM Graph Transformer will be a graph document, which
+    has the following structure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The graph document describes extracted `nodes` and `relationships` . Additionally,
+    the source document of the extraction is added under the `source` key.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can use the Neo4j Browser to visualize the outputs, providing a clearer and
+    more intuitive understanding of the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a13874667bfc937faf32649450a465a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of two extraction passes over the same dataset without a defined
+    graph schema. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The image above shows two extraction passes over the same paragraph about Marie
+    Curie. In this case, we used GPT-4 with tool-based extraction, which also allows
+    for isolated nodes, as illustrated in the image. Because no graph schema was defined,
+    the LLM determines at runtime what information to extract, which can lead to variations
+    in the output, even from the same paragraph. As a result, some extractions are
+    more detailed than others and may vary in structure, even for the same information.
+    For instance, on the left, Marie is represented as the `WINNER`of the Nobel Prize,
+    while on the right, she `WON`the Nobel Prize.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s try the same extraction using the prompt-based approach. For models
+    that support tools, you can enable prompt-based extraction by setting the `ignore_tool_usage`parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we can visualize two separate executions in Neo4j Browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a68da1cdfec428b4b7f1d626e032f4eb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of two extraction passes over the same dataset without a defined
+    graph schema using the prompt-based approach. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the prompt-based approach, we won’t see any isolated nodes. However, as
+    with previous extractions, the schema can vary between runs, resulting in different
+    outputs on the same input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, let’s walk through how defining a graph schema can help produce more consistent
+    outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining allowed nodes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Constraining the extracted graph structure can be highly beneficial, as it guides
+    the model to focus on specific, relevant entities and relationships. By defining
+    a clear schema, you improve consistency across extractions, making the outputs
+    more predictable and aligned with the information you actually need. This reduces
+    variability between runs and ensures that the extracted data follows a standardized
+    structure, capturing expected information. With a well-defined schema, the model
+    is less likely to overlook key details or introduce unexpected elements, resulting
+    in cleaner, more usable graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll start by defining the expected types of nodes to extract using the `allowed_nodes`parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we defined that the LLM should extract five types of nodes like *Person*,
+    *Organization*, *Location*, and more. We visualize two separate executions in
+    Neo4j Browser for comparison.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4eb80ac824a94649476f98d7bd4cf60b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of two extraction passes with predefined node types. Image by
+    author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By specifying the expected node types, we achieve more consistent node extraction.
+    However, some variation may still occur. For example, in the first run, “radioactivity”
+    was extracted as a research field, while in the second, it was not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we haven’t defined relationships, their types can also vary across runs.
+    Additionally, some extractions may capture more information than others. For instance,
+    the `MARRIED_TO`relationship between Marie and Pierre isn’t present in both extractions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s explore how defining relationship types can further improve consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining allowed relationships
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we’ve observed, defining only node types still allows for variation in relationship
+    extraction. To address this, let’s explore how to define relationships as well.
+    The first approach is to specify allowed relationships using a list of available
+    types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s again examine two separate extractions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8834e9764cd6bf340a7e99377b2dd47.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of two extraction passes with predefined node and relationship
+    types. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With both nodes and relationships defined, our outputs become significantly
+    more consistent. For example, Marie is always shown as winning an award, being
+    the spouse of Pierre, and working at the University of Paris. However, since relationships
+    are specified as a general list without restrictions on which nodes they can connect,
+    some variation still occurs. For instance, the `FIELD_OF_RESEARCH`relationship
+    might appear between a `Person`and a `ResearchField`, but sometimes it links an
+    `Award`to a `ResearchField`. Additionally, since relationship directions aren’t
+    defined, there may be differences in directional consistency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address the issues of not being able to specify which nodes a relationship
+    can connect and enforcing relationship direction, we recently introduced a new
+    option for defining relationships, as shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Rather than defining relationships as a simple list of strings, we now use a
+    three-element tuple format, where the elements represents the source node, relationship
+    type, and target node, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s visualize the results again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c26aee8a8356ce6ad2d431cf826e499d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of two extraction passes with predefined node and advanced relationship
+    types. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the three-tuple approach provides a much more consistent schema for the
+    extracted graph across multiple executions. However, given the nature of LLMs,
+    there may still be some variation in the level of detail extracted. For instance,
+    on the right side, Pierre is shown as winning the Nobel Prize, while on the left,
+    this information is missing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Defining properties
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The final enhancement we can make to the graph schema is to define properties
+    for nodes and relationships. Here, we have two options. The first is setting either
+    `node_properties`or `relationship_properties`to `true`allows the LLM to autonomously
+    decide which properties to extract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s examine the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a49d80b92ca86d853d8a4856a6f67e89.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extracted node and relationship properties. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve enabled the LLM to add any node or relationship properties it considers
+    relevant. For instance, it chose to include Marie Curie’s birth and death dates,
+    her role as a professor at the University of Paris, and the fact that she won
+    the Nobel Prize twice. These additional properties significantly enrich the extracted
+    information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The second option we have is to define the node and relationship properties
+    we want to extract.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: The properties are simply defined as two lists. Let’s see what the LLM extracted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e10e408dd76aaa10d841f25d6b30922b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extracted predefined node and relationship properties. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The birth and death dates remain consistent with the previous extraction. However,
+    this time, the LLM also extracted the start date of Marie’s professorship at the
+    University of Paris.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Properties indeed add valuable depth to the extracted information, though there
+    are currently some limitations in this implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Properties can only be extracted using the tool-based approach.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All properties are extracted as strings.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Properties can only be defined globally, not per node label or relationship
+    type.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is no option to customize property descriptions to guide the LLM for more
+    precise extraction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Strict mode
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you thought we had perfected a way to make the LLM follow the defined schema
+    flawlessly, I have to set the record straight. While we invested considerable
+    effort into prompt engineering, it’s challenging to get LLM, especially the less
+    performant one, to adhere to instructions with complete accuracy. To tackle this,
+    we introduced a post-processing step, called `strict_mode`, that removes any information
+    not conforming to the defined graph schema, ensuring cleaner and more consistent
+    results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By default, `strict_mode`is set to `True`, but you can disable it with the
+    following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: With strict mode turned off, you may get node or relationship types outside
+    the defined graph schema, as LLMs can sometimes take creative liberties with output
+    structure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importing graph documents into graph database
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The extracted graph documents from the LLM Graph Transformer can be imported
+    into graph databases like Neo4j for further analysis and applications using the
+    `add_graph_documents` method. We’ll explore different options for importing this
+    data to suit different use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Default import**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can import nodes and relationships into Neo4j using the following code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: This method straightforwardly imports all nodes and relationships from the provided
+    graph documents. We’ve used this approach throughout the blog post to review the
+    results of different LLM and schema configurations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/670cba1162b9e041fba881433e0dc851.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Default import setting. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Base entity label
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most graph databases support indexes to optimize data import and retrieval.
+    In Neo4j, indexes can only be set for specific node labels. Since we might not
+    know all the node labels in advance, we can handle this by adding a secondary
+    base label to each node using the `baseEntityLabel`parameter. This way, we can
+    still leverage indexing for efficient importing and retrieval without needing
+    an index for every possible node label in the graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: As mentioned, using the `baseEntityLabel` parameter will result in each node
+    having an additional `__Entity__` label.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2c5f7c083ec1ad026b69ac274b98c052.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Each node gets a secondary label using the baseEntityLabel parameter. Image
+    by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Include source documents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The final option is to also import the source documents for the extracted nodes
+    and relationships. This approach lets us track which documents each entity appeared
+    in. You can import the source documents using the `include_source` parameter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Upon inspecting the imported graph, we should see a result similar to this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2cd17506e7328a3bfc5fe28cd56a00d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Imported source document. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this visualization, the source document is highlighted in blue, with all
+    entities extracted from it connected by `MENTIONS`relationships. This mode allows
+    you to build [retrievers that utilize both structured and unstructured search
+    approaches](https://medium.com/neo4j/enhancing-the-accuracy-of-rag-applications-with-knowledge-graphs-ad5e2ffab663).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, we explored LangChain’s LLM Graph Transformer and its dual modes
+    for building knowledge graphs from text. The tool-based mode, our primary approach,
+    leverages structured output and function calling, which reduces prompt engineering
+    and allows for property extraction. Meanwhile, the prompt-based mode is useful
+    when tools aren’t available, relying on few-shot examples to guide the LLM. However,
+    prompt-based extraction does not support property extraction and also yields no
+    isolated nodes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We observed that defining a clear graph schema, including allowed node and relationship
+    types, improves extraction consistency and performance. A constrained schema helps
+    ensure that the output adheres to our desired structure, making it more predictable,
+    reliable, and applicable. Whether using tools or prompts, the LLM Graph Transformer
+    enables more organized, structured representations of unstructured data, enabling
+    better RAG applications and multi-hop query handling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code is available on [GitHub](https://github.com/tomasonjo/blogs/blob/master/llm/llm_graph_transformer_in_depth.ipynb).
+    You can also try out the LLM Graph Transformer in a no-code environment using
+    Neo4j’s hosted **LLM Graph Builder** application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[## Neo4j graph builder'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No-code
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: llm-graph-builder.neo4jlabs.com](https://llm-graph-builder.neo4jlabs.com/?source=post_page-----a91045c49b59--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

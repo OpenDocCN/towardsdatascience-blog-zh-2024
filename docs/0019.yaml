@@ -1,0 +1,251 @@
+- en: Things No One Tells You About Testing Machine Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/things-no-one-tells-you-about-testing-machine-learning-28b7a3df3bca?source=collection_archive---------6-----------------------#2024-01-04](https://towardsdatascience.com/things-no-one-tells-you-about-testing-machine-learning-28b7a3df3bca?source=collection_archive---------6-----------------------#2024-01-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How to avoid disaster
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)[![Ryan
+    Feather](../Images/085e617055a63eed8c00837edef17837.png)](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------)
+    [Ryan Feather](https://medium.com/@ryan.feather?source=post_page---byline--28b7a3df3bca--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28b7a3df3bca--------------------------------)
+    ·7 min read·Jan 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: You’re ready to deploy your smartly conceived, expertly tuned, and accurately
+    trained algorithm into that final frontier called “production.” You have collected
+    a quality test set and are feeling cheerful about your algorithm’s performance.
+    Time to ship it and call it a good day’s work! Not so fast.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No one wants to be called on after the fact to fix an embarrassingly broken
+    ML application. If your customers have called out that something is amiss, you’ve
+    lost trust. Now it’s time to frantically attempt to debug and fix a system whose
+    inner workings may involve billions of automatically learned parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9267516a16e656b2cc2a69feebc53c5f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created by author using Stable Diffusion
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If any of this sounds abstract or unlikely, here are some examples from my
+    own career of real world results from models that performed well on the “test”
+    set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A model for predicting the energy savings from a building energy audit was accurate
+    for most test buildings. However, on live data it predicted that a single premise
+    would save more energy than the entire state consumed. The users understandably
+    noticed the outlier more than the good predictions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A model to understand which equipment is driving energy use in buildings suddenly
+    gave wild results when an upstream system filled missing home area data with zero
+    instead the expected null. This led to a weeks long, multi-team effort to fix
+    the issue and regenerate the results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Of course, you know that even though the real value is the ML, you’ve built
+    software and all of the normal rules apply. You need unit tests, scrutiny on integration
+    points, and monitoring to catch the many issues that arise in real systems. But
+    how do you do that effectively? The outputs are expected to change as you improve
+    the model, and your trained in assumptions are at the mercy of a changing world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**(Approximately) unit test around the model**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: It should be obvious that the above is a really brittle test that doesn’t catch
+    many potential issues. It only tests that our model produces the results that
+    we expected when it was first trained. Differing software and hardware stacks
+    between local and production environments make it likely to break as you progress
+    towards deployment. As your model evolves, this is going to create more maintenance
+    than it’s worth. The vast majority of your prediction pipeline’s complexity consists
+    of gathering data, preprocessing, cleaning, feature engineering, and wrapping
+    that prediction into a useful output format. That’s where better tests can make
+    the task much easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s what you should do instead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Unit test your feature generation and post-processing thoroughly.** Your
+    feature engineering should be deterministic and will likely involve munging multiple
+    data sources as well as some non-trivial transformations. This is a great opportunity
+    to unit test.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Unit test all of your cleaning and bounds checking.** You do have some code
+    dedicated to cleaning your input data and ensuring that it all resembles the data
+    that you trained on, right? If you don’t, read on. Once you do, test those checks.
+    Ensure that all of the assertions, clipping, and substitutions are keeping your
+    prediction safe from the daunting world of real data. Assert that exceptions happen
+    when they should.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Extra credit: use approximate asserts.** In case you aren’t already aware,
+    there are easy ways to avoid the elusive failures that result from asserting on
+    precise floating points. Numpy provides a suite of [approximate asserts](https://numpy.org/doc/stable/reference/routines.testing.html)
+    that test at the precision level that matters for your application.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Suspect the integration**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Ever play the game of telephone? **At each hand-off, understanding decreases.
+    Complex systems have many hand-offs.** How much faith do you have in the thorough
+    documentation and communication of data semantics by every member of a team trying
+    to deliver quickly? Alternatively, how well do you trust yourself to remember
+    all of those things precisely when you make changes months or years later?
+  prefs: []
+  type: TYPE_NORMAL
+- en: The plumbing in complex software is where countless problems arise. The solution
+    is to create a suite of black box test cases that test the outputs of the entire
+    pipeline. While this will require regular updates if your model or code change
+    frequently, it covers a large swath of code and can detect unforeseen impacts
+    quickly. The time spent is well worth it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Testing whole pipelines keeps ML applications healthy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trust has a cost
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Paranoia is a virtue when developing ML pipelines. The more complex your pipeline
+    and dependencies grow, the more likely something is going to go awry that your
+    algorithm vitally depends on. Even if your upstream dependencies are managed by
+    competent teams, can you really expect they’ll never make a mistake? **Is there
+    zero chance that your inputs will never be corrupted**? **Probably not.** But,
+    the formula for preparing for humans being humans is simple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stick to known inputs ranges.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Fail fast.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Fail loud.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The simplest way to do this is check for known input ranges as early as possible
+    in your pipeline. You can manually set these or learn them along with your model
+    training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The example above demonstrates the formula. Simply repeat for every input. Put
+    it first in your pipeline. Noisy validation functions are quick to implement and
+    save your team from unfortunate consequences. This simple type of check would
+    have saved us from that unfortunate null-to-zero swap. However, these tests don’t
+    catch every scenario involving multivariate interactions. That’s where the MLOps
+    techniques touched on later come into play to level up the robustness level significantly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Run the real data obstacle course
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Unit tests are a scalpel with fine grained control that exercise exact paths
+    through code. Integration tests are great for checking that data is flowing through
+    the whole system as expected. However, **there are always “unknown unknowns” in
+    real data**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ideal pre-deployment check is to execute your ML pipeline against as much
+    of your real data as cost and time allow. Follow that with dissection of the results
+    to spot outliers, errors, and edge cases. As a side benefit, you can use this
+    large scale execution to performance test and infrastructure cost estimation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another great strategy is to “soft launch” your model. Roll it out to a small
+    portion of users before general launch. This lets you spot any negative user feedback
+    and find real world failures at small scale instead of big scale. This is a great
+    time to also A/B test against existing or alternative solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Testing is never enough**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Creating and diligently maintaining unit tests is only the start. It’s no secret
+    that live software requires an exception handling strategy, monitoring, and alerting.
+    This is doubly so when software relies on a learned model that might go out of
+    date quickly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The field of MLOps has evolved to solve exactly these challenge. I won’t give
+    a deep overview on the state of MLOps in this article. However, here are a few
+    quick ideas of things to monitor beyond “[golden signals](https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals)”
+    for ML applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Look for target drift — the deviation of the predicted distribution to a
+    long term or test average.** For example, over a large enough sample predicted
+    categories should be distributed similarly to the base rate. You can monitor divergence
+    of your most recent predictions from the expected distribution for a sign that
+    something is changing.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Feature drift is equally if not more important to monitor than prediction
+    drift.** Features are your snapshot of the world. If their relationships stop
+    matching the one learned by the model, prediction validity plummets. Similar to
+    monitoring predictions, the key is to monitor the divergence of features from
+    the initial distribution. Monitoring changes to the relationships between features
+    is even more powerful. Feature monitoring would have caught that savings model
+    predicting impossible values before the users did.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The big cloud tools like Azure AI, Vertex AI, and SageMaker all provide built
+    in drift detection capabilities. Other options include [Fiddler AI](https://www.fiddler.ai/)
+    and [EvidentlyAI](https://www.evidentlyai.com/). For more thoughts on how to choose
+    an ML stack, see [Machine Learning Scaling Options for Every Team](https://medium.com/towards-data-science/machine-learning-scaling-options-for-every-team-5e713d66bf03).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Keeping ML pipelines in top shape from training to deployment and beyond is
+    a challenge. Fortunately, it’s completely manageable with a savvy testing and
+    monitoring strategy. Keep a vigilant watch on a few key signals to head off impending
+    catastrophe! Unit test pipelines to detect breakage across large code bases. Leverage
+    your production data as much as possible in the process. Monitor predictions and
+    features to make sure that your models remain relevant.
+  prefs: []
+  type: TYPE_NORMAL

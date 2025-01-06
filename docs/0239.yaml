@@ -1,0 +1,440 @@
+- en: How to Estimate Depth from a Single Image
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-estimate-depth-from-a-single-image-7f421d86b22d?source=collection_archive---------0-----------------------#2024-01-25](https://towardsdatascience.com/how-to-estimate-depth-from-a-single-image-7f421d86b22d?source=collection_archive---------0-----------------------#2024-01-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Run and evaluate monocular depth estimation models with Hugging Face and FiftyOne
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)[![Jacob
+    Marks, Ph.D.](../Images/94d9832b8706d1044e3195386613bfab.png)](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------)
+    [Jacob Marks, Ph.D.](https://medium.com/@jacob_marks?source=post_page---byline--7f421d86b22d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7f421d86b22d--------------------------------)
+    ·10 min read·Jan 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d3b08d99c0c36b77d0d0c0bb16c53f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Monocular Depth heat maps generated with Marigold on NYU depth v2 images. Image
+    courtesy of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Humans view the world through two eyes. One of the primary benefits of this
+    *binocular* vision is the ability to perceive *depth* — how near or far objects
+    are. The human brain infers object depths by comparing the pictures captured by
+    left and right eyes at the same time and interpreting the disparities. This process
+    is known as [stereopsis](https://en.wikipedia.org/wiki/Stereopsis).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just as depth perception plays a crucial role in human vision and navigation,
+    the ability to estimate depth is critical for a wide range of computer vision
+    applications, from autonomous driving to robotics, and even augmented reality.
+    Yet a slew of practical considerations from spatial limitations to budgetary constraints
+    often limit these applications to a single camera.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Monocular depth estimation](https://paperswithcode.com/task/monocular-depth-estimation)
+    (MDE) is the task of predicting the depth of a scene from a single image. Depth
+    computation from a single image is inherently ambiguous, as there are multiple
+    ways to project the same 3D scene onto the 2D plane of an image. As a result,
+    MDE is a challenging task that requires (either explicitly or implicitly) factoring
+    in many cues such as object size, occlusion, and perspective.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we will illustrate how to load and visualize depth map data, run
+    monocular depth estimation models, and evaluate depth predictions. We will do
+    so using data from the [SUN RGB-D](https://rgbd.cs.princeton.edu/) dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In particular, we will cover the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Loading and visualizing SUN-RGBD ground truth depth maps](#15fc)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Running inference with Marigold and DPT](#fd8c)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Evaluating relative depth predictions](#1924)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We will use the Hugging Face [transformers](https://huggingface.co/docs/transformers/index)
+    and [diffusers](https://huggingface.co/docs/diffusers/index) libraries for inference,
+    [FiftyOne](https://github.com/voxel51/fiftyone) for data management and visualization,
+    and [scikit-image](https://scikit-image.org/) for evaluation metrics. All of these
+    libraries are open source and free to use. *Disclaimer: I work at Voxel51, the
+    lead maintainers of one of these libraries (FiftyOne).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before we get started, make sure you have all of the necessary libraries installed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we’ll import the modules we’ll be using throughout the post:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Loading and Visualizing SUN-RGBD Depth Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [SUN RGB-D dataset](https://rgbd.cs.princeton.edu/) contains 10,335 RGB-D
+    images, each of which has a corresponding RGB image, depth image, and camera intrinsics.
+    It contains images from the [NYU depth v2](https://cs.nyu.edu/~silberman/datasets/nyu_depth_v2.html),
+    Berkeley [B3DO](http://kinectdata.com/), and [SUN3D](https://sun3d.cs.princeton.edu/)
+    datasets. SUN RGB-D is [one of the most popular](https://paperswithcode.com/dataset/sun-rgb-d)
+    datasets for monocular depth estimation and semantic segmentation tasks!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 💡For this walkthrough, we will only use the NYU depth v2 portions. NYU depth
+    v2 is [permissively licensed for commercial use](https://github.com/dwofk/fast-depth/blob/master/LICENSE)
+    (MIT), and can be [downloaded from Hugging Face](https://huggingface.co/datasets/sayakpaul/nyu_depth_v2)
+    directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Downloading the Raw Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, download the SUN RGB-D dataset from [here](https://rgbd.cs.princeton.edu/)
+    and unzip it, or use the following command to download it directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then unzip it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you want to use the dataset for other tasks, you can fully convert the annotations
+    and load them into your `fiftyone.Dataset`. However, for this tutorial, we will
+    only be using the depth images, so we will only use the RGB images and the depth
+    images (stored in the `depth_bfx` sub-directories).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the Dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Because we are just interested in getting the point across, we’ll restrict
+    ourselves to the first 20 samples, which are all from the NYU Depth v2 portion
+    of the dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here we are storing the depth maps as [heatmaps](https://docs.voxel51.com/user_guide/using_datasets.html#heatmaps).
+    Everything is represented in terms of normalized, *relative* distances, where
+    255 represents the maximum distance in the scene and 0 represents the minimum
+    distance in the scene. This is a common way to represent depth maps, although
+    it is far from the only way to do so. If we were interested in *absolute* distances,
+    we could store sample-wise parameters for the minimum and maximum distances in
+    the scene, and use these to reconstruct the absolute distances from the relative
+    distances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualizing Ground Truth Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'With heatmaps stored on our samples, we can visualize the ground truth data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/e13d2736bd24bfe61ef3629acc934b4a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Ground truth depth maps for samples from the SUN RGB-D dataset. Image courtesy
+    of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When working with depth maps, the color scheme and opacity of the heatmap are
+    important. I’m colorblind, so I find that the [viridis](https://cran.r-project.org/web/packages/viridis/vignettes/intro-to-viridis.html)
+    colormap with opacity turned all the way up works best for me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bcf625a36ee7d97a1afe4d32d72d2046.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visibility settings for heatmaps. Image courtesy of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ground Truth?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Inspecting these RGB images and depth maps, we can see that there are some
+    inaccuracies in the ground truth depth maps. For example, in this image, the dark
+    rift through the center of the image is actually the *farthest* part of the scene,
+    but the ground truth depth map shows it as the *closest* part of the scene:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5089c29d7fffe32d2eb44bb9fba5f018.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Issue in ground truth depth data for sample from the SUN RGB-D dataset. Image
+    courtesy of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is one of the key challenges for MDE tasks: ground truth data is hard
+    to come by, and is often noisy! It’s essential to be aware of this while evaluating
+    your MDE models.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running Monocular Depth Estimation Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have our dataset loaded in, we can run monocular depth estimation
+    models on our RGB images!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For a long time, the state-of-the-art models for monocular depth estimation
+    such as [DORN](https://github.com/hufu6371/DORN) and [DenseDepth](https://github.com/ialhashim/DenseDepth)
+    were built with convolutional neural networks. Recently, however, both transformer-based
+    models such as [DPT](https://huggingface.co/docs/transformers/model_doc/dpt) and
+    [GLPN](https://huggingface.co/docs/transformers/model_doc/glpn), and diffusion-based
+    models like [Marigold](https://huggingface.co/Bingxin/Marigold) have achieved
+    remarkable results!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this section, we’ll show you how to generate MDE depth map predictions with
+    both DPT and Marigold. In both cases, you can optionally run the model locally
+    with the respective Hugging Face library, or run remotely with [Replicate](https://replicate.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To run via Replicate, install the Python client:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And export your Replicate API token:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 💡 With Replicate, it might take a minute for the model to load into memory on
+    the server (cold-start problem), but once it does the prediction should only take
+    a few seconds. Depending on your local compute resources, running on server may
+    give you massive speedups compared to running locally, especially for Marigold
+    and other diffusion-based depth-estimation approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Monocular Depth Estimation with DPT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first model we will run is a dense-prediction transformer (DPT). DPT models
+    have found utility in both MDE and semantic segmentation — tasks that require
+    “dense”, pixel-level predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The checkpoint below uses [MiDaS](https://github.com/isl-org/MiDaS/tree/master),
+    which returns the [inverse depth map](https://pyimagesearch.com/2022/01/17/torch-hub-series-5-midas-model-on-depth-estimation/),
+    so we have to invert it back to get a comparable depth map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To run locally with `transformers`, first we load the model and image processor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we encapsulate the code for inference on a sample, including pre and
+    post processing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we are storing predictions in a `label_field` field on our samples, represented
+    with a heatmap just like the ground truth labels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that in the `apply_dpt_model()` function, between the model's forward pass
+    and the heatmap generation, notice that we make a call to `torch.nn.functional.interpolate()`.
+    This is because the model's forward pass is run on a downsampled version of the
+    image, and we want to return a heatmap that is the same size as the original image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why do we need to do this? If we just want to *look* at the heatmaps, this would
+    not matter. But if we want to compare the ground truth depth maps to the model’s
+    predictions on a per-pixel basis, we need to make sure that they are the same
+    size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'All that is left to do is iterate through the dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/92fca2436322f33052cdabbccf4c1a59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Relative depth maps predicted by a hybrid MiDaS DPT model on SUN RGB-D sample
+    images. Image courtesy of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To run with Replicate, you can use [this](https://replicate.com/cjwbw/midas)
+    model. Here is what the API looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Monocular Depth Estimation with Marigold
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Stemming from their tremendous success in text-to-image contexts, diffusion
+    models are being applied to an ever-broadening range of problems. [Marigold](https://huggingface.co/Bingxin/Marigold)
+    “repurposes” diffusion-based image generation models for monocular depth estimation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To run Marigold locally, you will need to clone the git repository:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This repository introduces a new diffusers pipeline, `MarigoldPipeline`, which
+    makes applying Marigold easy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Post-processing of the output depth image is then needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To instead run via Replicate, we can create an `apply_marigold_model()` function
+    in analogy with the DPT case above and iterate over the samples in our dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0d3b08d99c0c36b77d0d0c0bb16c53f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Relative depth maps predicted with Marigold endpoint on SUN RGB-D sample images.
+    Image courtesy of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating Monocular Depth Estimation Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now that we have predictions from multiple models, let’s evaluate them! We
+    will leverage `scikit-image` to apply three simple metrics commonly used for monocular
+    depth estimation: [root mean squared error](https://en.wikipedia.org/wiki/Root-mean-square_deviation)
+    (RMSE), [peak signal to noise ratio](https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio)
+    (PSNR), and [structural similarity index](https://en.wikipedia.org/wiki/Structural_similarity)
+    (SSIM).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 💡Higher PSNR and SSIM scores indicate better predictions, while lower RMSE scores
+    indicate better predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the specific values I arrive at are a consequence of the specific
+    pre-and-post processing steps I performed along the way. What matters is the relative
+    performance!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will define the evaluation routine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And then apply the evaluation to the predictions from both models:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Computing average performance for a certain model/metric is as simple as calling
+    the dataset’s `mean()`method on that field:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: All of the metrics seem to agree that DPT outperforms Marigold. However, it
+    is important to note that these metrics are not perfect. For example, RMSE is
+    very sensitive to outliers, and SSIM is not very sensitive to small errors. For
+    a more thorough evaluation, we can filter by these metrics in the app in order
+    to visualize what the model is doing well and what it is doing poorly — or where
+    the metrics are failing to capture the model’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, toggling masks on and off is a great way to visualize the differences
+    between the ground truth and the model’s predictions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9cc8c71a8a38c238f74bdcfea80a543b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visual comparison of heatmaps predicted by the two MDE models and the ground
+    truth. Image courtesy of the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To recap, we learned how to run monocular depth estimation models on our data,
+    how to evaluate the predictions using common metrics, and how to visualize the
+    results. We also learned that monocular depth estimation is a notoriously difficult
+    task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data quality and quantity are severely limiting factors; models often struggle
+    to generalize to new environments; and metrics are not always good indicators
+    of model performance. The specific numeric values quantifying model performance
+    can depend greatly on your processing pipeline. And even your qualitative assessment
+    of predicted depth maps can be heavily influenced by your color schemes and opacity
+    scales.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If there’s one thing you take away from this post, I hope it is this: it is
+    mission-critical that you look at the depth maps themselves, and not just the
+    metrics!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: All images are courtesy of the author. The sub-dataset used for all workflows
+    and visuals presented in this post is NYU depth v2, which is [permissively licensed
+    for commercial use](https://github.com/dwofk/fast-depth/blob/master/LICENSE) (MIT).'
+  prefs: []
+  type: TYPE_NORMAL

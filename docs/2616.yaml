@@ -1,0 +1,387 @@
+- en: Voice and Staff Separation in Symbolic Piano Music with GNNs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/voice-and-staff-separation-in-symbolic-piano-music-with-gnns-0cab100629cf?source=collection_archive---------2-----------------------#2024-10-27](https://towardsdatascience.com/voice-and-staff-separation-in-symbolic-piano-music-with-gnns-0cab100629cf?source=collection_archive---------2-----------------------#2024-10-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'This post covers my recent paper ***Cluster and Separate: A GNN Approach to
+    Voice and Staff Prediction for Score Engraving*** published at ISMIR 2024'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)[![Emmanouil
+    Karystinaios](../Images/120d889f330aa7b433a0668a1224e1c8.png)](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)
+    [Emmanouil Karystinaios](https://manoskary.medium.com/?source=post_page---byline--0cab100629cf--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cab100629cf--------------------------------)
+    ·9 min read·Oct 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35cb15f4617539ec42c48e0308c27ab2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Background image originally created with Dall-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Music encoded in formats like MIDI, even when it includes quantized notes, time
+    signatures, or bar information, often lacks important elements for visualization
+    such as voice and staff information. This limitation also applies to the output
+    from music generation, transcription, or arrangement systems. As a result, such
+    music can’t be easily transformed into a readable musical score for human musicians
+    to interpret and perform.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth noting that voice and staff separation are just two of many aspects
+    — others include pitch spelling, rhythmic grouping, and tuplet creation — that
+    a score engraving system might address.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In musical terms, “voice” often refers to a sequence of non-overlapping notes,
+    typically called a monophonic voice. However, this definition falls short when
+    dealing with polyphonic instruments. For example, voices can also include chords,
+    which are groups of notes played simultaneously, perceived as a single unit. In
+    this context, we refer to such a voice, capable of containing chords, as a homophonic
+    voice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Separating the notes from a quantized symbolic music piece (e.g., a MIDI file)
+    into multiple voices and staves is an important and non-trivial task. It is a
+    fundamental part of the larger task of music score engraving (or score type-setting),
+    which aims to produce readable musical scores for human performers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The musical score is an important tool for musicians due to its ability to convey
+    musical information in a compact graphical form. Compared to other music representations
+    that may be easier to define and process for machines, such as MIDI files, the
+    musical score is characterized by how efficiently trained musicians can read it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2c25e1bd58f924668aa559a33335a7e0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Given a Quantized Midi there are many possibilities for transforming it to a
+    readable format, which mostly consists of separating the notes into voices and
+    staves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: See below two of these possibilities. They demonstrate how engraving systems
+    usually work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/49ba13108dc736eaf1b733000412a3bc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The big question is how can we make automatic transcription models better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Motivation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To develop a more effective system for separating musical notes into voices
+    and staves, particularly for complex piano music, we need to rethink the problem
+    from a different perspective. We aim to improve the readability of transcribed
+    music starting from a quantized MIDI, which is important for creating good score
+    engravings and better performance by musicians.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For good score readability, two elements are probably the most important:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the separation of staves, which organizes the notes between the top and bottom
+    staff;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and the separation of voices, highlighted in this picture with lines of different
+    colors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/84fcb2362072c70b0251752ed7d2c4e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Voice streams in a piano score
+  prefs: []
+  type: TYPE_NORMAL
+- en: In piano scores, as said before, voices are not strictly monophonic but homophonic,
+    which means a single voice can contain one or multiple notes playing at the same
+    time. From now on, we call these chords. You can see some examples of chord highlighted
+    in purple in the bottom staff of the picture above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From a **machine-learning perspective**, we have two tasks to solve:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first is **staff separation**, which is straightforward, we just need to
+    predict for each note a binary label, for top or bottom staff specifically for
+    piano scores.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The **voice separation** task may seem similar, after all, if we can predict
+    the voice number for each voice, with a multiclass classifier, and the problem
+    would be solved!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: However, directly predicting voice labels is problematic. We would need to fix
+    the maximum number of voices the system can accept, but this creates a trade-off
+    between our system flexibility and the class imbalance within the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if we set the maximum number of voices to 8, to account for 4 in
+    each staff as it is commonly done in music notation software, we can expect to
+    have very few occurrences of labels 8 and 4 in our dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f844e660e329245c46607713c6f4f4ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Voice Separation with absolute labels
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking specifically at the score excerpt here, voices 3,4, and 8 are completely
+    missing. Highly imbalanced data will degrade the performance of a multilabel classifier
+    and if we set a lower number of voices, we would lose system flexibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Methodology
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The solution to these problems is to be able to translate the knowledge the
+    system learned on some voices, to other voices. For this, we abandon the idea
+    of the multiclass classifier, and frame the **voice prediction** as a **link prediction**
+    problem. We want to link two notes if they are consecutive in the same voice.
+    This has the advantage of breaking a complex problem into a set of very simple
+    problems where for each pair of notes we predict again a binary label telling
+    whether the two notes are linked or not. This approach is also valid for chords,
+    as you see in the low voice of this picture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This process will create a graph which we call an **output graph**. To find
+    the voices we can simply compute the connected components of the output graph!
+  prefs: []
+  type: TYPE_NORMAL
+- en: To re-iterate, we formulate the problem of voice and staff separation as two
+    binary prediction tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For **staff separation**, we predict the staff number for each note,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: and to **separate voices** we predict links between each pair of notes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'While not strictly necessary, we found it useful for the performance of our
+    system to add an extra task:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Chord prediction**, where similar to voice, we link each pair of notes if
+    they belong to the same chord.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s recap what our system looks like until now, we have three binary classifiers,
+    one that inputs single notes, and two that input pairs of notes. What we need
+    now are good input features, so our classifiers can use contextual information
+    in their prediction. Using deep learning vocabulary, we need a good **note encoder!**
+  prefs: []
+  type: TYPE_NORMAL
+- en: We choose to use a Graph Neural Network (GNN) as a note encoder as it often
+    excels in symbolic music processing. Therefore we need to create a graph from
+    the musical input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this, we deterministically build a new graph from the Quantized midi, which
+    we call **input graph**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7425955fc727932733d104ab886a7db7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Creating these input graph can be done easily with tools such as [GraphMuse](https://github.com/manoskary/graphmuse).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, putting everything together, our model looks something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c99e142a69c0acfa00084ed629d47fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It starts with some quantized midi which is preprocessed to a graph to create
+    the input graph.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The input graph goes through a Graph Neural Network (GNN) to create an intermediate
+    latent representation for every note. We encode every note therefore we call this
+    part, the GNN encoder;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Then we feed this to a shallow MLP classifier for our three tasks, voice, staff,
+    and chord prediction. We can also call this part the decoder;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After the prediction, we obtain an output graph.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The approach until now, can be seen as a graph-to-graph approach, where we start
+    from the input graph that we built from the MIDI, to predict the output graph
+    containing voice and chord links and staff labels.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. For the final step, our output graph goes through a **postprocessing** routine
+    to create a beautiful and easy-to-read musical score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The goal of the postprocessing is to remove configurations that could lead
+    to an invalid output, such as a voice splitting into two voices. To mitigate these
+    issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: we cluster the notes that belong to the same chord according to the chord prediction
+    head
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We ensure every node has a maximum of one incoming and outgoing edge by applying
+    a linear assignment solution;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: And, finally, propagate the information back to the original nodes.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/e9538545fb724c6f5c6a85d39d6b8fe5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Postprocessing routine of our system
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the standout features of our system is its ability to outperform other
+    existing systems in music analysis and score engraving. Unlike traditional approaches
+    that rely on musical heuristics — which can sometimes be unreliable — our system
+    avoids these issues by maintaining a simple but robust approach. Furthermore,
+    our system is able to compute a global solution for the entire piece, without
+    segmentation due to its low memory and computational requirements. Additionally,
+    it is capable of handling an unlimited number of voices, making it a more flexible
+    and powerful tool for complex musical works. These advantages highlight the system’s
+    robust design and its capacity to tackle challenges in music processing with greater
+    precision and efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Datasets
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To train and evaluate our system we used two datasets. The J-pop dataset, which
+    contains 811 pop piano scores, and the DCML romantic corpus which contains 393
+    romantic music piano scores. Comparatively, the DCML corpus is much more complex,
+    since it contains scores that present a number of difficulties such as a high
+    number of voices, voice crossing, and staff crossing. Using a combination of complex
+    and simpler data we can train a system that remains robust and flexible to diverse
+    types of input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualizing the Predictions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To accompany our system, we also developed a web interface where the input and
+    output graphs can be visualized and explored, to debug complex cases, or simply
+    to have a better understanding of the graph creation process. Check it out [here](https://github.com/fosfrancesco/musgviz/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9f12d5b97139d5a71e943230a6f60384.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Our web interface, MusGViz!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the interest of giving a fair comparison and deeper understanding of how
+    our model works and how the predictions can vary, we take a closer look at some.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We compare the ground truth edges (links) to our predicted edges for chord and
+    voice prediction. Note that in the example you are viewing below the output graph
+    is plotted directly on top of the score with the help of our visualization tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7fe0f94f7b89f379b7c1099bfc6d4fc5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The first two bars are done perfectly, however we can see some limitations of
+    our system at the third bar. Synchronous notes within a close pitch range but
+    with a different voice arrangement can be problematic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our model predicts a single chord (instead of splitting across the staff) containing
+    all the synchronous syncopated quarter notes and also mispredicts the staff for
+    the first D#4 note. A more in-depth study of why this happens is not trivial,
+    as neural networks are not directly interpretable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open Challenges
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Despite the strengths of our system, several challenges remain open for future
+    development. Currently, grace notes are not accounted for in this version, and
+    overlapping notes must be explicitly duplicated in the input, which can be troublesome.
+    Additionally, while we have developed an initial MEI export feature for visualizing
+    the results, this still requires further updates to fully support the various
+    exceptions and complexities found in symbolic scores. Addressing these issues
+    will be key to enhancing the system’s versatility and making it more adaptable
+    to diverse musical compositions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This blog presented a graph-based method for homophonic voice separation and
+    staff prediction in symbolic piano music. The new approach performs better than
+    existing deep-learning or heuristic-based systems. Finally, it includes a post-processing
+    step that can remove problematic predictions from the model that could result
+    in incorrect scores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/CPJKU/piano_svsep/?source=post_page-----0cab100629cf--------------------------------)
+    [## GitHub - CPJKU/piano_svsep: Code for the paper Cluster and Separate: A GNN
+    Approach to Voice and…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Code for the paper Cluster and Separate: A GNN Approach to Voice and Staff
+    Prediction for Score Engraving …'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/CPJKU/piano_svsep/?source=post_page-----0cab100629cf--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[all images are by the author]'
+  prefs: []
+  type: TYPE_NORMAL

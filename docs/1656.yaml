@@ -1,0 +1,446 @@
+- en: Understanding and Implementing Medprompt
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06](https://towardsdatascience.com/understanding-and-implementing-medprompt-77bbd2777c91?source=collection_archive---------0-----------------------#2024-07-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Digging into the details behind the prompting framework
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[![Anand
+    Subramanian](../Images/096dc5504d6ada2493e0ac26959e60f0.png)](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)
+    [Anand Subramanian](https://medium.com/@anand.subu10?source=post_page---byline--77bbd2777c91--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--77bbd2777c91--------------------------------)
+    ·14 min read·Jul 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/17dd8d46598db7fb9ab33ac9280bb740.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustration of the various components of the Medprompt Strategy (Image taken
+    from Fig:6 from the Medprompt paper [1] ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452))
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In my [first blog post](https://medium.com/towards-data-science/an-introduction-to-prompting-for-llms-61d36aec2048),
+    I explored prompting and its significance in the context of Large Language Models
+    (LLMs). Prompting is crucial for obtaining high-quality outputs from LLMs, as
+    it guides the model’s responses and ensures they are relevant to the task at hand.
+    Building on that foundation, two crucial questions often arise when trying to
+    solve a use case using LLMs: how far can you push performance with prompting alone,
+    and when do you bite the bullet and decide it might be more effective to fine-tune
+    a model instead?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When making design decisions about leveraging prompting, several considerations
+    come into play. Techniques like few-shot prompting and Chain-of-Thought (CoT)
+    [2] prompting can help in boosting the performance of LLMs for most tasks. Retrieval-Augmented
+    Generation (RAG) pipelines can further enhances LLM performance by adapting to
+    new domains without fine-tuning and providing controllability over grounding the
+    generated outputs while reducing hallucinations. Overall, we have a suite of tools
+    to push the needle in terms of LLM performance without explicitly resorting to
+    fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fine-tuning comes with its own set of challenges and complications, in terms
+    of labelled data requirements and the costs associated with training of LLMs and
+    their deployment. Fine-tuning may also increase the hallucinations of the LLM
+    in certain cases [3]. Putting this all together, we can see that there is significant
+    value in trying to optimize LLM performance for our task through prompting before
+    resorting to fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, how do we go about this? In this article, we explore Medprompt [1], a sophisticated
+    prompting strategy introduced by Microsoft. Medprompt ties together principles
+    from few-shot prompting, CoT prompting and RAG to enhance the performance of GPT-4
+    in the healthcare domain without any domain-specific fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Table of Contents:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[**MedPrompt Explained**](#90ba)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Components of MedPrompt**](#d584)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Implementing MedPrompt**](#6d10)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Evaluating Performance**](#b207)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**Conclusion**](#b79b)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[**References**](#2755)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: MedPrompt Explained
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LLMs have demonstrated impressive capabilities across various sectors, particularly
+    in healthcare. Last year, Google introduced MedPaLM [4] and MedPaLM-2 [5], LLMs
+    that not only excel in Medical Multiple-Choice Question Answering (MCQA) datasets
+    but also perform competitively and even outperform clinicians in open-ended medical
+    question answering . These models have been tailored specifically for the healthcare
+    domain through instruction fine-tuning and the use of clinician-written Chain-of-Thought
+    templates, significantly enhancing their performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this context, the paper **“Can Generalist Foundation Models Outcompete Special-Purpose
+    Tuning? Case Study in Medicine”** [1]from Microsoft raises a compelling question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can the performance of a generalist model like GPT-4 be improved for a specific
+    domain without relying on domain-specific fine-tuning or expert-crafted resources?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: As part of this study, the paper introduces **Medprompt**, an innovative prompting
+    strategy that not only improves the model’s performance but also surpasses specialized
+    models such as MedPaLM-2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/56bd75bc7bca6dbb22de6d88744d8ff5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison of various LLMs on medical knowledge benchmarks. GPT-4 with Medprompt
+    outperforms Med-PaLM 2 across all these datasets. (Image of Table 1 from the Medprompt
+    paper [1] ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPT-4 with Medprompt outperforms Med-PaLM 2 across all medical MCQA benchmarks
+    without any **domain-specific fine-tuning.** Let’s explore the components in Medprompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Components of Medprompt
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Medprompt ties together principles from few-shot prompting, CoT prompting and
+    RAG. Specifically there are 3 components in this pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dynamic Few-shot Selection`
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Few-shot prompting refers to utilizing example input-output pairs as context
+    for prompting the LLM. If these few-shot samples are static, the downside is that
+    they may not be the most relevant examples for the new input. **Dynamic Few-shot
+    Selection,** the first component in Medprompt, helps overcome this by selecting
+    the few-shot examples based on each new task input. This method involves training
+    a K-Nearest Neighbors (K-NN) algorithm on the training set, which then retrieves
+    the most similar training set examples to the test input based on cosine similarity
+    in an embedding space. This strategy efficiently utilizes the existing training
+    dataset to retrieve relevant few-shot examples for prompting the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Self-Generated CoT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As noted in the paper [1], CoT traditionally relies on manually crafted few-shot
+    exemplars that include detailed reasoning steps, as used with MedPaLM-2, where
+    such prompts were written by medical professionals. Medprompt introduces **Self-Generated
+    CoT** as the second module, where the LLM is used to produce detailed, step-by-step
+    explanations of its reasoning process, culminating in a final answer choice. By
+    automatically generating CoT reasoning steps for each training datapoint, the
+    need for manually crafted exemplars is bypassed. To ensure that only correct predictions
+    with reasoning steps are retained and incorrect responses are filtered out, the
+    answer generated by GPT-4 is cross-verified against the ground truth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Choice Shuffling Ensemble
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Choice Shuffling Ensemble technique is the third technique introduced by
+    Medprompt. It is designed to combat the inherent biases that may affect the model’s
+    decision-making process, particularly position bias in multiple-choice settings.
+    The ordering of the answer choices is shuffled, and this process is repeated k
+    times to create k variants of the same question with shuffled answer choices.
+    During inference, each variant is used to generate an answer, and a majority vote
+    is performed over all variants to pick the final predicted option.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How are these components used in the preprocessing and inference stage?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s now have a look at the preprocessing and inference stages in Medprompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preprocessing Stage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the preprocessing pipeline, we begin by taking each question from the training
+    dataset and incorporating detailed instructions within the prompt to guide the
+    generation of both an answer and its associated reasoning steps. The LLM is prompted
+    to generate the answer and reasoning steps. After obtaining the generated response,
+    we verify its accuracy by comparing the predicted answer to the ground truth for
+    that particular question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c963d79a34de678026ba379c9833720a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Medprompt Preprocessing Pipeline (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the prediction is incorrect, we exclude this instance from our database of
+    relevant questions. If the prediction is correct, we proceed by embedding the
+    question using a text embedding model. We then store the question, question embedding,
+    answer, and Chain of Thought (CoT) reasoning in a buffer. Once all questions have
+    been processed, we utilize the embeddings for training a KNN model. This trained
+    KNN model acts as our retriever in a RAG pipeline, enabling us to efficiently
+    query and retrieve the top-k similar data points based on cosine similarity within
+    the embedding space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Inference Pipeline**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: During the inference stage, each question from our test set is first embedded
+    using the text embedding model. We then utilize the KNN model to identify the
+    top-k most similar questions. For each retrieved data point, we have access to
+    the self-generated Chain of Thought (CoT) reasoning and the predicted answer.
+    We format these elements — question, CoT reasoning, and answer — into few-shot
+    examples for our eventual prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71c38445d50f25f5fca81cb0d6352615.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Medprompt Inference Pipline (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now perform **choice shuffling ensembling** by shuffling the order of answer
+    choices for each test question, creating multiple variants of the same question.
+    The LLM is then prompted with these variants, along with the corresponding few-shot
+    exemplars, to generate reasoning steps and an answer for each variant. Finally,
+    we perform a majority vote over the predictions from all variants and select the
+    final prediction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing Medprompt
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The code related to this implementation can be found at this [github repo link](https://github.com/anand-subu/blog_resources/tree/main/medprompt).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We use the MedQA [6] dataset for implementing and evaluating Medprompt. We first
+    define helper functions for parsing the jsonl files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing Self-Generated CoT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For our implementation, we utilize the training set from MedQA. We implement
+    a zero-shot CoT prompt and process all the training questions. We use **GPT-4o**
+    in our implementation. For each question, we generate the CoT and the corresponding
+    answer. We define a prompt which is based on the template provided in the Medprompt
+    paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also define helper functions for parsing the reasoning and the final answer
+    option from the LLM response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now process the questions in the training set of MedQA. We obtain CoT responses
+    and answers for all questions and store them to a folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now iterate across all the generated responses to check if they are valid
+    and adhere to the prediction format defined in the prompt. We discard responses
+    that do not conform to the required format. After that, we check the predicted
+    answers against the ground truth for each question and only retain questions for
+    which the predicted answers match the ground truth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the KNN model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Having processed the training set and obtained the CoT response for all these
+    questions, we now embed all questions using the **text-embedding-ada-002** from
+    OpenAI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now train a KNN model using these question embeddings. This acts as a retriever
+    at inference time, as it helps us to retrieve similar datapoints from the training
+    set that are most similar to the question from the test set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Implementing the Dynamic Few-Shot and Choice Shuffling Ensemble Logic
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can now run inference. We subsample 500 questions from the MedQA test set
+    for our evaluation. For each question, we retrieve the 5 most similar questions
+    from the train set using the KNN module, along with their respective CoT reasoning
+    steps and predicted answers. We construct a few-shot prompt using these examples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For each question, we also shuffle the order of the options 5 times to create
+    different variants. We then utilize the constructed few-shot prompt to get the
+    predicted answer for each of the variants with shuffled options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now evaluate the results of Medprompt over the test set. For each question,
+    we have five predictions generated through the ensemble logic. We take the mode,
+    or most frequently occurring prediction, for each question as the final prediction
+    and evaluate the performance. Two edge cases are possible here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Two different answer options are predicted two times each, with no clear winner.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: There is an error with the response generated, meaning that we don’t have a
+    predicted answer option.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: For both of these edge cases, we consider the question to be wrongly answered
+    by the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Evaluating Performance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We evaluate the performance of Medprompt with GPT-4o in terms of accuracy on
+    the MedQA test subset. Additionally, we benchmark the performance of Zero-shot
+    prompting, Random Few-Shot prompting, and Random Few-Shot with CoT prompting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5689439bdcd82036f6539f1e4fbd3b44.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of our evaluation (Image by Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We observe that Medprompt and Random Few-Shot CoT prompting outperform the
+    Zero and Few-Shot prompting baselines. However, surprisingly, we notice that Random
+    Few-Shot CoT outperforms our Medprompt performance. This could be due to a couple
+    of reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The original Medprompt paper benchmarked the performance of GPT-4\. We observe
+    that GPT-4o outperforms GPT-4T and GPT-4 on various text benchmarks significantly
+    ([https://openai.com/index/hello-gpt-4o/](https://openai.com/index/hello-gpt-4o/)),
+    indicating that Medprompt could have a lesser effect on a stronger model like
+    GPT-4o.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We restrict our evaluation to 500 questions subsampled from MedQA. The Medprompt
+    paper evaluates other Medical MCQA datasets and the full version of MedQA. Evaluating
+    GPT-4o on the complete versions of the datasets could give a better picture of
+    the overall performance.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Medprompt is an interesting framework for creating sophisticated prompting pipelines,
+    particularly for adapting a generalist LLM to a specific domain without the need
+    for fine-tuning. It also highlights the considerations involved in deciding between
+    prompting and fine-tuning for various use cases. Exploring how far prompting can
+    be pushed to enhance LLM performance is important, as it offers a resource and
+    cost-efficient alternative to fine-tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References:**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Nori, H., Lee, Y. T., Zhang, S., Carignan, D., Edgar, R., Fusi, N., … &
+    Horvitz, E. (2023). Can generalist foundation models outcompete special-purpose
+    tuning? case study in medicine. *arXiv preprint arXiv:2311.16452*. ([https://arxiv.org/abs/2311.16452](https://arxiv.org/abs/2311.16452))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Wei, J., Wang, X., Schuurmans, D., Bosma, M., Xia, F., Chi, E., … & Zhou,
+    D. (2022). Chain-of-thought prompting elicits reasoning in large language models.
+    *Advances in Neural Information Processing Systems*, *35*, 24824–24837\. ([https://openreview.net/pdf?id=_VjQlMeSB_J](https://openreview.net/pdf?id=_VjQlMeSB_J))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Gekhman, Z., Yona, G., Aharoni, R., Eyal, M., Feder, A., Reichart, R.,
+    & Herzig, J. (2024). Does Fine-Tuning LLMs on New Knowledge Encourage Hallucinations?.
+    *arXiv preprint arXiv:2405.05904*. ([https://arxiv.org/abs/2405.05904](https://arxiv.org/abs/2405.05904))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Singhal, K., Azizi, S., Tu, T., Mahdavi, S. S., Wei, J., Chung, H. W.,
+    … & Natarajan, V. (2023). Large language models encode clinical knowledge. *Nature*,
+    *620*(7972), 172–180\. ([https://www.nature.com/articles/s41586-023-06291-2](https://www.nature.com/articles/s41586-023-06291-2))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Singhal, K., Tu, T., Gottweis, J., Sayres, R., Wulczyn, E., Hou, L., …
+    & Natarajan, V. (2023). Towards expert-level medical question answering with large
+    language models. *arXiv preprint arXiv:2305.09617*. ([https://arxiv.org/abs/2305.09617](https://arxiv.org/abs/2305.09617))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] Jin, D., Pan, E., Oufattole, N., Weng, W. H., Fang, H., & Szolovits, P.
+    (2021). What disease does this patient have? a large-scale open domain question
+    answering dataset from medical exams. *Applied Sciences*, *11*(14), 6421\. ([https://arxiv.org/abs/2009.13081](https://arxiv.org/abs/2009.13081))
+    (Original dataset is released under a MIT License)'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,265 @@
+- en: Is ReFT All We Needed?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/is-reft-all-we-needed-1ab38e457320?source=collection_archive---------6-----------------------#2024-11-21](https://towardsdatascience.com/is-reft-all-we-needed-1ab38e457320?source=collection_archive---------6-----------------------#2024-11-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Representation Fintuning — Beyond the PEFT Techniques for fine-tuning LLMs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://mengliuz.medium.com/?source=post_page---byline--1ab38e457320--------------------------------)[![Mengliu
+    Zhao](../Images/0b950a0785fa065db3319ed5be4a91de.png)](https://mengliuz.medium.com/?source=post_page---byline--1ab38e457320--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1ab38e457320--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1ab38e457320--------------------------------)
+    [Mengliu Zhao](https://mengliuz.medium.com/?source=post_page---byline--1ab38e457320--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1ab38e457320--------------------------------)
+    ·6 min read·Nov 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hasn’t everyone started using ReFT yet?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Stanford published the paper [ReFT: Representation finetuning for language
+    models](https://arxiv.org/abs/2404.03592) in May 2024, which immediately showed
+    its great potential. In July 2024, [Oxen.ai presented an experiment](https://www.oxen.ai/blog/fine-tuning-llama-3-in-14-minutes-using-reft)
+    finetuning Llama3 (8B) on a single Nvidia A10 GPU within 14 mins, further demonstrating
+    this technique''s power.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike SOTA PEFT methods, which focus on modifying the model weights or input,
+    the ReFT technique is based on a previously proposed [distributed interchange
+    intervention (DII)](https://proceedings.mlr.press/v236/geiger24a.html) method.
+    The DII method first projects the embedding from the deep learning model to a
+    lower dimension subspace and then interferes through the subspace for fine-tuning
+    purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following, we’ll first walk the readers through SOTA fine-tuning PEFT
+    algorithms such as LoRA, prompt tuning, and prefix tuning; then we’ll discuss
+    the original DII method to provide a better context for understanding; lastly,
+    we’ll discuss the ReFT technique and present the results from the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d8eb5635422e951d302e37a6821c5af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://pxhere.com/en/photo/1377005](https://pxhere.com/en/photo/1377005)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PEFT — Parameter Efficient Finetuning Techniques
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Hugging Face has a [blog detailing different PEFT techniques](https://huggingface.co/blog/peft)
+    for fine-tuning LLMs. Here, we quickly recap these techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Proposed in 2021, **LoRA** has become one of the most successful techniques
+    for fine-tuning LLMs and diffusion models (e.g., [Time-varying LoRA](https://openreview.net/forum?id=SgODU2mx9T))
+    due to its simplicity and generalization ability. The idea is simple: instead
+    of fine-tuning the original weight parameters for each layer, the LoRA technique
+    adds two low-rank matrices and only finetunes the low-rank matrices. The trainable
+    parameters could be reduced to less than 0.3% during fine-tuning of the whole
+    network, which significantly speeds up the learning process and minimizes the
+    GPU memory.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1a201f9802d82fb7b293865603fc973a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'LoRA model update. Image source: [https://arxiv.org/pdf/2106.09685](https://arxiv.org/pdf/2106.09685)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of changing the pre-trained model’s inner layers, the **Prompt Tuning**
+    technique proposed to use “*soft prompts*,” a learnable task-specific prompt embedding
+    as a prefix. Given mixed-task batch prompts, the model could efficiently perform
+    multi-task prediction without extra task-specific model copy (as against the Model
+    Tuning in the following left sub-figure).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eda3db8789900b021b199fbfcbfdfe3e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Prompt tuning vs classical model finetuning. Image source: [https://arxiv.org/pdf/2104.08691](https://arxiv.org/pdf/2104.08691)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To provide universality for prompt tuning models at scales (e.g., over 10B parameters),
+    **Prefix Tuning (P-Tuning v2)** proposed to prefix trainable prompt embeddings
+    at different layers, which allows learning task-specific information at various
+    scales.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b57852181d21175d8ef208725dd0ec3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Multi-scale prompts for P-tuning v2\. Image source: [https://arxiv.org/pdf/2110.07602](https://arxiv.org/pdf/2110.07602)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Among all these PEFT techniques, LoRA is the most widely used in fine-tuning
+    LLMs for its robustness and efficiency. A detailed empirical analysis can be found
+    in this [paper](https://arxiv.org/pdf/2304.14999).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed Interchange Intervention (DII)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Causal abstraction is a robust artificial intelligence framework that uses the
+    intervention between a causal model (a **high-level** model) and a neural network
+    model (or a **low-level** model) to induce alignment estimation. If there exists
+    an alignment between the two models, we know the underlying mechanisms between
+    the causal model and the NN are the same. The approach of discovering the underlying
+    alignment by intervention is called interchange intervention (II), which is intuitively
+    explained in this [lecture video](https://www.youtube.com/watch?v=6pwpOOj33aw).
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, classical causal abstraction uses brute force to search through all
+    possible alignments of model states, which is less optimal. A **Distributed Interchange
+    Intervention (DII)** system first projects high-level and low-level models to
+    sub-spaces through a series of **orthogonal projections** and then produces an
+    intervened model using certain rotation operations. A fascinating intervention
+    experiment on vision models can be found [here](https://cs231n.stanford.edu/2024/papers/interchange-interventions-on-vision-models.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More specifically, the DII could be written as the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/640b4e88d605cc53e71eb4bd800c6b66.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Equation source: [https://arxiv.org/pdf/2404.03592](https://arxiv.org/pdf/2404.03592)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where R is a low-rank matrix with orthogonal rows, indicating orthogonal projections;
+    **b** and **s** are two different representations encoded by the model from two
+    different inputs; the intervention will happen on the low-rank space, e.g., the
+    space that contains **Rs** and **Rb**; the projection matrix **R** will be further
+    learnt by **distributed alignment search (DAS)**, which optimizes towards “[*the
+    subspace that would maximize the probability of expected counterfactual output
+    after intervention*](https://arxiv.org/pdf/2404.03592).”
+  prefs: []
+  type: TYPE_NORMAL
+- en: ReFT — Representation Fintuning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Thus, the ReFT technique could be seen as the intervention of the model''s
+    hidden representation in a lower dimension space, as illustrated below, where
+    \phi is the intervention and directly applied to the hidden representation at
+    layer L and position P:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a64d382d5a269f8b54c65bdb43a7026.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'ReFT intervention at a high level. Image source: [https://arxiv.org/pdf/2404.03592](https://arxiv.org/pdf/2404.03592)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Specifically, the paper further proposes a **Low-rank Linear Subspace Reft
+    (LoReFT)**, which further introduces a learnt projected source:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4146ee3e4a8c3d618db11b3db0fb2c43.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Equation source: [https://arxiv.org/pdf/2404.03592](https://arxiv.org/pdf/2404.03592)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where **h** is the hidden representation, (**Rs = Wh + b**) is the learnt protected
+    source, which *edits* the representation h in the projected low-dimension space
+    spanned by **R**. Now, we can illustrate the LoReFT in the original deep neural
+    network layer below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7ada2c72f3bc9e51286b05b717c2c7cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: [https://arxiv.org/pdf/2404.03592](https://arxiv.org/pdf/2404.03592)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When **fine-tuning on an LLM**, the parameters of the LM are kept frozen while
+    only the parameters of the projection **\phi={R, W, b}** are trained.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Experiments**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The original paper shows experiments comparing the LoReFT (and other techniques
+    from the ReFT family) to full fine-tuning (FT), LoRA, Prefix-tuning, etc., on
+    four types of benchmarks: common-sense reasoning, arithmetic reasoning, instruction
+    following, and natural language understanding. We can see that, compared to LoRA,
+    the ReFT techniques further reduce the parameters by at least 90% while achieving
+    higher performance by a large margin.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2e85eede1c29e56a1025e6da9700dacd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image souce: [https://arxiv.org/pdf/2404.03592](https://arxiv.org/pdf/2404.03592)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discussions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Why is ReFT so fascinating? Firstly, the technique provides convincing results
+    with Llama-family models on various benchmarks outperforming the SOTA fine-tuning
+    methods. Secondly, the technique is deeply rooted in the causal abstraction algorithm,
+    which offers further ground for model interpretation, especially from the hidden
+    representation’s perspective. As mentioned in the original paper, ReFT shows that
+    “*a linear subspace distributed across a set of neurons can achieve generalized
+    control over a vast number of tasks*,” which might further open doors for helping
+    us better understand large language models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Wu Z, Arora A, Wang Z, Geiger A, Jurafsky D, Manning CD, Potts C. Reft: Representation
+    finetuning for language models. arXiv preprint arXiv:2404.03592\. 2024 Apr 4.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Hu EJ, Shen Y, Wallis P, Allen-Zhu Z, Li Y, Wang S, Wang L, Chen W. Lora: Low-rank
+    adaptation of large language models. arXiv preprint arXiv:2106.09685\. 2021 Jun
+    17.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Zhuang Z, Zhang Y, Wang X, Lu J, Wei Y, Zhang Y. Time-Varying LoRA: Towards
+    Effective Cross-Domain Fine-Tuning of Diffusion Models. In The Thirty-eighth Annual
+    Conference on Neural Information Processing Systems 2024.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Liu X, Ji K, Fu Y, Tam WL, Du Z, Yang Z, Tang J. P-tuning v2: Prompt tuning
+    can be comparable to fine-tuning universally across scales and tasks. arXiv preprint
+    arXiv:2110.07602\. 2021 Oct 14.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Geiger A, Wu Z, Potts C, Icard T, Goodman N. Finding alignments between interpretable
+    causal variables and distributed neural representations. InCausal Learning and
+    Reasoning 2024 Mar 15 (pp. 160–187). PMLR.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Lester B, Al-Rfou R, Constant N. The power of scale for parameter-efficient
+    prompt tuning. arXiv preprint arXiv:2104.08691\. 2021 Apr 18.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Pu G, Jain A, Yin J, Kaplan R. Empirical analysis of the strengths and weaknesses
+    of PEFT techniques for LLMs. arXiv preprint arXiv:2304.14999\. 2023 Apr 28.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

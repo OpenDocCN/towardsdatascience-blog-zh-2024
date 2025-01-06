@@ -1,0 +1,222 @@
+- en: Statistical Method scDEED Detects Dubious t-SNE and UMAP Embeddings and Optimizes
+    Hyperparameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/statistical-method-scdeed-detects-dubious-t-sne-and-umap-embeddings-and-optimizes-hyperparameters-470fb9cb606f?source=collection_archive---------13-----------------------#2024-03-05](https://towardsdatascience.com/statistical-method-scdeed-detects-dubious-t-sne-and-umap-embeddings-and-optimizes-hyperparameters-470fb9cb606f?source=collection_archive---------13-----------------------#2024-03-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: scDEED assigns a reliability score to each 2D embedding to indicate how much
+    the data point’s mid-range neighbors change in the 2D space
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jsb.ucla?source=post_page---byline--470fb9cb606f--------------------------------)[![Jingyi
+    Jessica Li](../Images/60a8ac9adc41a6ec790d227af7fa3ebd.png)](https://medium.com/@jsb.ucla?source=post_page---byline--470fb9cb606f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--470fb9cb606f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--470fb9cb606f--------------------------------)
+    [Jingyi Jessica Li](https://medium.com/@jsb.ucla?source=post_page---byline--470fb9cb606f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--470fb9cb606f--------------------------------)
+    ·6 min read·Mar 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The article was written by Christy Lee, Ph.D. student of Statistics and Data
+    Science at UCLA. Christy is the co-first author of the scDEED Nature Communications
+    article.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ecb2fa51cc316498ea05c8cba6158d84.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Viktor Forgacs](https://unsplash.com/@sonance?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: t-SNE (t-Distributed Stochastic Neighbor Embedding) and UMAP (Uniform Manifold
+    Approximation and Projection) are non-linear dimensionality reduction techniques
+    for visualizing high-dimensional data, particularly in the context of single-cell
+    analysis for visualizing cell clusters. However, it is important to note that
+    t-SNE and UMAP may not always produce trustworthy representations of the relative
+    distances between cell clusters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our *Nature Communications* paper [1], we provide a framework for (1) identifying
+    data distortions in projection from a high-dimensional to two-dimensional (2D)
+    space and (2) optimizing hyperparameter settings in a 2D dimension-reduction method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d1a4c85065c3e14e97874202b2d2a32.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Xia, L., Lee, C. & Li, J.J. Statistical method scDEED for detecting dubious
+    2D single-cell embeddings and optimizing t-SNE and UMAP hyperparameters. *Nat
+    Commun* **15**, 1753 (2024). [https://doi.org/10.1038/s41467-024-45891-y](https://doi.org/10.1038/s41467-024-45891-y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider a 3-dimensional (3D) globe vs a 2-dimensional (2D) map. It is impossible
+    to represent an entire globe accurately in only 2D; distance may not be accurate,
+    and the size of some countries may be distorted. Typically, land masses at the
+    edge of the map, like Antarctica, are the most changed. Despite these distortions,
+    2D maps are useful for everyday use; students or the common traveler to the main
+    continents will not be affected by the distortion in Antarctica, but an intrepid
+    traveler to the poles will certainly require a different map.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, the representation of single-cell genomics data often requires moving
+    from a high-dimensional to 2D space, so-called 2D embedding. As with the conversion
+    of the globe, this can induce distortions. The 2D post-embedding space may not
+    accurately represent the pre-embedding space. Adding to the problem, popular 2D
+    embedding methods, like t-SNE and UMAP, are sensitive to hyperparameter selection.
+    While general guidelines exist to tailor hyperparameters like perplexity and n.neighbors
+    to the size of the dataset, these guidelines do not help answer the underlying
+    question– what parts of the visualization are misleading?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to cartographers selecting which landmasses to recreate faithfully and
+    which to distort, researchers must prioritize which aspects of the pre-embedding
+    space are most important to preserve post-embedding. Common uses of 2D visualization
+    include annotation and analysis of cell trajectories and clusters. Although cell
+    trajectories and clusters are generally calculated in the high-dimensional space,
+    their results are often visualized through 2D embeddings, in which cells with
+    similar gene expression are expected to be close to each other. Therefore, we
+    concluded that the most important aspect of preservation is the position of cells
+    relative to each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These ideas formed the motivation for scDEED, a single-cell dubious embedding
+    detector (Fig. 1). The key idea is that a cell’s pre- and post-embedding neighbors
+    should be similar. It is worth noting that the pre-embedding space is typically
+    20- to 50-dimensional in single-cell data analysis, usually the principal component
+    space. For each cell, we calculate a **reliability score** that reflects the visual
+    agreement between the neighbors found in the 2D-embedding space and the pre-embedding
+    space. Cells whose 2D embedding neighbors have been drastically changed through
+    the embedding process are called **‘dubious’**; the cell’s relative location is
+    misleading and does not reflect where the cell should be based on the pre-embedding
+    space. Identification of these cells provides a mechanism to optimize hyperparameters
+    by selecting the settings that result in the least amount of dubious cell embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6dfe18932372f7611510bd022a9fbfb0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 1\. Illustration of the two functionalities of scDEED.** Functionality
+    I decides whether each cell has a *trustworthy* or *dubious* embedding by calculating
+    a *reliability score*, which is defined as the Pearson correlation between the
+    cell’s distances to its closest 50% neighboring cells in the 2D-embedding space
+    and the same cell’s distances to its closest 50% neighboring cells in the pre-embedding
+    space. Enabled by functionality I, functionality II optimizes the hyperparameter
+    setting of an embedding method (e.g. t-SNE and UMAP) by minimizing the number
+    of dubious embeddings. The image was created by the authors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our paper [1], we use a variety of datasets to show how the identification
+    of dubious cells and optimization of hyperparameters can aid analysis. For example,
+    in the original visualization of the single-cell RNA-seq Hydra dataset [2], the
+    neuron ectodermal 1 (neuron ec1) cells are split into two clusters, one that scDEED
+    marked as dubious and the other trustworthy (Fig. 2a). As confirmed by the similarity
+    in gene expression (Fig. 2c) and the singular cell type assigned by the authors,
+    these two clusters are not biologically distinct, making their separation in the
+    t-SNE misleading. Further, if we compare the neuron ec1 cells to its neighboring
+    clusters, like the highlighted ectodermal epithelial cells (ecEP_sc), the gene
+    expression is very different, which is counterintuitive given their proximity
+    in the visualization. However, under the optimized perplexity found by scDEED
+    (Fig. 2b), the neuron ec1 cell type is now unified, further supporting that the
+    original split of the cell type into clusters was a result of hyperparameter settings.
+    Additionally, the neuron ec1 and ecEP_sc cells are now far apart, which is more
+    appropriate given their differences in gene expression. This highlights two uses
+    for scDEED: identification of dubious cells can help discern cells whose embedding
+    positions are misleading, and optimization of hyperparameters can result in a
+    more trustworthy visualization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/280c2dfe583492aea628e922bbbeed63.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 2\. Evaluation of t-SNE embeddings optimized by scDEED on the Hydra
+    dataset. a–b,** Comparative t-SNE plots with the *ecEP_sc (ectodermal epithelial_single
+    cell)*, *trustworthy cell embeddings in neuron ec1*, and *dubious cell embeddings
+    in neuron ec1* highlighted, at the original perplexity 40 (**a**) and the perplexity
+    230 optimized by scDEED (**b**). **C,** Gene expression heatmap of the highlighted
+    cells in **a** and **b**, where the cells are ordered by the default hierarchical
+    clustering found by the R function heatmap.2(). The image was created by the authors
+    and is in the article.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An interesting application is RNA velocity [3], a downstream analysis task that
+    relies on visualization. RNA velocity uses the amount of unspliced and spliced
+    mRNA to estimate gene velocity– the change in gene expression. The estimated gene
+    velocity can be used to calculate predicted gene expression for a future time
+    point, which can be visualized with an arrow from the cell to the cell’s predicted
+    state. For large datasets, it is not reasonable to plot each cell’s velocity vector;
+    rather, cells are grouped based on their 2D embeddings, and their velocity vectors
+    are aggregated. Changes to the 2D embedding will not affect the estimated gene
+    velocities or predicted expression for the individual cells, but it will change
+    the cell grouping for vector field calculations, and therefore affect the visualized
+    RNA velocities and analysis. Using scDEED to optimize the hyperparameter perplexity
+    of t-SNE (Fig. 3a) greatly enhanced the agreement among neighboring cells, and
+    provided clearer RNA velocity results than using the default hyperparameter value
+    (Fig. 3b). Additionally, the vectors are not exaggerated for the mature granules,
+    an expected result because the cells are fully differentiated. Optimization of
+    the hyperparameter enhanced only existing cell trajectories.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/81d52725a74c6b0c53fa4cf0891e610e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Fig. 3\. Velocity analysis of the dentate gyrus dataset [4]. a-b** Velocity
+    visualization using the embeddings at the original t-SNE perplexity of 30 (**a**)
+    and the perplexity 450 optimized by scDEED (**b**) with the default Velocyto [3]
+    settings.Abbreviations for cell types are as follows: Neuro1: Neuroblast1; Neuro2:
+    Neuroblast 2; nIPC: neuronal intermediate progenitor cells.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recent work [5,6] has highlighted geometric qualities, like geodesics, manifolds,
+    and distance, that cannot be fully recreated because the pre- and post-embedding
+    spaces are not homeomorphic. scDEED can help reduce the inconsistencies by finding
+    hyperparameter settings that accurately capture mid-range cell-cell relationships
+    for the most number of possible cells and identifying cells whose mid-range neighbors
+    have drastically changed. We hope that scDEED can be used as an add-on to existing
+    analysis pipelines to provide a more trustworthy 2D visualization. It is worth
+    pointing out that scDEED does not measure the preservation of all aspects of data;
+    as cartographers deemed it most important to preserve the 5 main continents, we
+    chose to prioritize the relative location of cells. With some adjustments to the
+    definition of the reliability score (one per cell embedding), researchers interested
+    in preserving other qualities of the pre-embedding space may still find the framework
+    of scDEED useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1\. Xia L, Lee C, Li JJ. Statistical method scDEED for detecting dubious 2D
+    single-cell embeddings and optimizing t-SNE and UMAP hyperparameters. Nat Commun.
+    2024;15: 1753\. doi:10.1038/s41467-024-45891-y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Siebert S, Farrell JA, Cazet JF, Abeykoon Y, Primack AS, Schnitzler CE,
+    et al. Stem cell differentiation trajectories in Hydra resolved at single-cell
+    resolution. Science. 2019;365\. doi:10.1126/science.aav9314
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3\. La Manno G, Soldatov R, Zeisel A, Braun E, Hochgerner H, Petukhov V, et
+    al. RNA velocity of single cells. Nature. 2018;560: 494–498.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. Hochgerner H, Zeisel A, Lönnerberg P, Linnarsson S. Conserved properties
+    of dentate gyrus neurogenesis across postnatal development revealed by single-cell
+    RNA sequencing. Nat Neurosci. 2018;21: 290–299.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '5\. Wang S, Sontag ED, Lauffenburger DA. What cannot be seen correctly in 2D
+    visualizations of single-cell ’omics data? Cell Syst. 2023;14: 723–731.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6\. Chari T, Pachter L. The specious art of single-cell genomics. PLoS Comput
+    Biol. 2023;19: e1011288.'
+  prefs: []
+  type: TYPE_NORMAL

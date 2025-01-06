@@ -1,0 +1,353 @@
+- en: Conditional Variational Autoencoders for Text to Image Generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/conditional-variational-autoencoders-for-text-to-image-generation-1996da9cefcb?source=collection_archive---------3-----------------------#2024-12-21](https://towardsdatascience.com/conditional-variational-autoencoders-for-text-to-image-generation-1996da9cefcb?source=collection_archive---------3-----------------------#2024-12-21)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Investigating an early generative architecture and applying it to image generation
+    from text input
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@rtdcunha?source=post_page---byline--1996da9cefcb--------------------------------)[![Ryan
+    D''Cunha](../Images/7a39859e2b5e5b09ef2c60aaf6bb75ac.png)](https://medium.com/@rtdcunha?source=post_page---byline--1996da9cefcb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1996da9cefcb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1996da9cefcb--------------------------------)
+    [Ryan D''Cunha](https://medium.com/@rtdcunha?source=post_page---byline--1996da9cefcb--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1996da9cefcb--------------------------------)
+    ·12 min read·Dec 21, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recently I was tasked with text-to-image synthesis using a conditional variational
+    autoencoder (CVAE). Being one of the earlier generative structures, it has its
+    limitations but is easily implementable. This article will cover CVAEs at a high
+    level, but the reader is presumed to have a high level understanding to cover
+    the applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generative modeling is a field within machine learning focused on learning the
+    underlying distributions responsible for creating data. Understanding these distributions
+    enables models to generalize across various datasets, facilitating knowledge transfer
+    and effectively addressing issues of data sparsity. We ideally want contiguous
+    encodings while still being distinct to allow for smooth interpolation to generate
+    new samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction to VAEs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While typical autoencoders are deterministic, VAEs are probabilistic models
+    due to modeling the latent space as a probability distribution. VAEs are unsupervised
+    models that encode input data *x* into a latent representation *z* and reconstruct
+    the input from this latent space. They technically don’t need to be implemented
+    with neural networks and can be constructed from generative probability models.
+    However, in our current state of deep learning, most are typically implemented
+    with neural networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60a6f0bb9af3df9b263f45f1d50c4c95.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example VAE framework with reparameterization trick. Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explained briefly, the reparameterization trick is used since we can’t backpropagate
+    on the probabilistic distribution of the latent space, but we need to update our
+    encoding distribution. Therefore, we define a differentiable and invertible function
+    so that we can differentiate with respect to lambda and *x* while still keeping
+    a probabilistic element.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb15e673b3172b4a80e27abb94b8b050.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Reparameterization trick for z. Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: VAEs are trained using an ELBO loss consisting of a reconstruction term and
+    a Kullback-Leibler Divergence (KLD) of the encoding model to the prior distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc52cd2b04c93b4d7697ae504602e3e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Loss function for VAE with KLD term on left and reconstruction term on righ
+    [1]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding a Conditional Input to VAE
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: CVAEs extend VAEs by incorporating additional information such as class labels
+    as conditional variables. This conditioning enables CVAEs to produce controlled
+    generations. The conditional input feature can be added at differing points in
+    the architecture, but it is commonly inserted with the encoder and the decoder.
+    The loss function with the conditional input is an adaptation of the ELBO loss
+    in the traditional VAE.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2b6e5854bf9987b4bb9ce4d79aa204b4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Loss function for VAE with KLD term on left and reconstruction term on right
+    [2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: To illustrate the difference between a VAE and CVAE, both networks were trained
+    on Fashion-MNIST using a convolutional encoder and decoder architecture. A tSNE
+    of the latent space of each network is shown.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c67ef17277457da060975b9d2a4e8cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Latent space manifold of VAE (left) and CVAE (right). Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The vanilla VAE shows distinct clusters while the CVAE has a more homogeneous
+    distribution. Vanilla VAE encodes class and class variation into the latent space
+    since there is no provided conditional signal. However, the CVAE does not need
+    to learn class distinction and the latent space can focus on the variation within
+    classes. Therefore, a CVAE can potentially learn more information as it does not
+    rely on having to learn basic class conditioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Architecture for CVAEs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Two model architectures were created to test image generation. The first architecture
+    was a convolutional CVAE with a concatenating conditional approach. All networks
+    were built for Fashion-MNIST images of size 28x28 (784 total pixels).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The CVAE encoder consists of 3 convolutional layers each followed by a ReLU
+    non-linearity. The output of the encoder is then flattened. The class number is
+    then passed through an embedding layer and added to the encoder output. The reparameterization
+    trick is then used with 2 linear layers to obtain a μ and σ in the latent space.
+    Once sampled, the output of the reparameterized latent space is passed to the
+    decoder now concatenated with the class number embedding layer output. The decoder
+    consists of 3 transposed convolutional layers. The first two contain a ReLU non-linearity
+    with the last layer containing a sigmoid non-linearity. The output of the decoder
+    is a 28x28 generated image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other model architecture follows the same approach but with adding the conditional
+    input instead of concatenating. A major question was if adding or concatenating
+    will lead to better reconstruction or generation results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The same loss function is used for all CVAEs from the equation shown above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In order to assess model-generated images, 3 quantitative metrics are commonly
+    used. Mean Squared Error (MSE) was calculated by summing the squares of the difference
+    between the generated image and a ground truth image pixel-wise. Structural Similarity
+    Index Measure (SSIM) is a metric that evaluates image quality by comparing two
+    images based on structural information, luminance, and contrast [3]. SSIM can
+    be used to compare images of any size while MSE is relative to pixel size. SSIM
+    score ranges from -1 to 1, where 1 indicates identical images. Frechet inception
+    distance (FID) is a metric for quantifying the realism and diversity of images
+    generated. As FID is a distance measure, lower scores are indicative of a better
+    reconstruction of a set of images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Short Text to Image from Fashion-MNIST
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before scaling up to full text to image, CVAEs image reconstruction and generation
+    on Fashion-MNIST. Fashion-MNIST is an MNIST-like dataset consisting of a training
+    set of 60,000 examples and a test set of 10,000 examples. Each example is a 28x28
+    grayscale image, associated with a label from 10 classes [4].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preprocessing functions were created to extract the relevant key word containing
+    the class name from the input short-text regular expression matching. Extra descriptors
+    (synonyms) were used for most classes to account for similar fashion items included
+    in each class (e.g. Coat & Jacket).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The class name was then converted to its class number and used as the conditional
+    input to the CVAE along. In order to generate an image, the class label extracted
+    from the short text description is passed into the decoder with random samples
+    from a Gaussian distribution to input the variable from the latent space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before testing generation, image reconstruction is tested to ensure the functionality
+    of the CVAE. Due to creating a convolutional network with 28x28 images, the network
+    can be trained in less than an hour with less than 100 epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/183a79e8aaa8367f5e79255acba2d555.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'CVAE reconstruction results with ground truth (left) and model output (right).
+    Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reconstructions contain the general shape of the ground truth images, but sharp,
+    high frequency features are missing from the image. Any text or intricate design
+    patterns are blurred in the model output. Inputting any short text containing
+    a class of Fashion-MNIST gives generated outputs resembling reconstructed images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28aa56efd802c265552db30458c473bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Generated images “dress” from CVAE Fashion-MNIST. Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The generated images have an MSE of 11 and a SSIM of 0.76\. These constitute
+    good generations signifying that in simple, small images, CVAEs can generate quality
+    images. GANs and DDPMs will produce higher quality images with complex features,
+    but CVAEs can handle simple cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Long Text to Image using CLIP and COCO
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When scaling up to image generation to text of any length, more robust methods
+    would be needed besides regular expression matching. To do this, Open AI’s CLIP
+    is used to convert text into a high dimensional embedding vector. The embedding
+    model is used in its ViT-B/32 configuration, which outputs embeddings of length
+    512\. A limitation of the CLIP model is that it has a maximum token length of
+    77, with studies showing an even smaller effective length of 20 [5]. Thus, in
+    instances where the input text contains multiple sentences, the text is split
+    up by sentence and passed through the CLIP encoder. The resulting embeddings are
+    averaged together to create the final output embedding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A long text model requires far more complicated training data than Fashion-MNIST,
+    so COCO dataset was used. COCO dataset has annotations (that are not completely
+    robust but that will be discussed later) that can be passed into CLIP to get embeddings.
+    However, COCO images are of size 640x480, meaning that even with cropping transforms,
+    a larger network is needed. Adding and concatenating conditional inputs architectures
+    are both tested for long text to image generation, but the concatenating approach
+    is shown here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another major point of investigation was image generation and reconstruction
+    on images of different sizes. Specifically, modifying COCO images to be of size
+    64x64, 128x128, and 256x256\. After training the network, reconstruction results
+    should first be tested.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b1c38dec6034d3615eacc75be851c892.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'CVAE reconstruction on COCO with different image sizes. Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All image sizes lead to reconstructed background with some feature outlines
+    and correct colors. However, as image size increases, more features are able to
+    be recovered. This makes sense as although it will take a lot longer to train
+    a model with a larger image size, there is more information that can be captured
+    and learned by the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With image generation, it is extremely difficult to generate high quality images.
+    Most images have backgrounds to some degree and blurred features in the image.
+    This would be expected for image generation from a CVAE. This occurs in both concatenation
+    and addition for the conditional input, but the concatenated approach performs
+    better. This is likely because concatenated conditional inputs will not interfere
+    with important features and ensures information is preserved distinctly. Conditions
+    can be ignored if they are irrelevant. However, additive conditional inputs can
+    interfere with existing features and completely mess up the network when updating
+    weights during backpropagation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fcd471faa0f0229c3e1e220ed0f71cae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Generated images by CVAE on COCO. Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of the COCO generated images have a far lower SSIM of about 0.4 compared
+    to the SSIM on Fashion-MNIST. MSE is proportional to image size, so it is difficult
+    to quanity differences. FID for COCO image generations are in the 200s for further
+    proof that COCO CVAE generated images are not robust.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Limitations of CVAEs for Image Generation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The biggest limitation in trying to use CVAEs for image generation is, well,
+    the CVAE. The amount of information that can be contained and reconstructed/generated
+    is extremely dependent on the size of the latent space. A latent space that is
+    too small won’t capture any meaningful information and is proportional to the
+    size of the output image. A 28x28 image needs a far smaller latent space than
+    a 64x64 image (as it proportionally squares from image size). However, a latent
+    space bigger than the actual image adds unnecessary info and at that point just
+    create a 1-to-1 mapping. For the COCO dataset, a latent space of at least 512
+    is needed to capture some features. And while CVAEs are generative models, a convolutional
+    encoder and decoder is a rather rudimentary network. The training style of a GAN
+    or the complex denoising process of a DDPM allows for far more complicated image
+    generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another major limitation in image generation is the dataset trained on. Although
+    the COCO dataset has annotations, the annotations are not extensively detailed.
+    In order to train complex generative models, a different dataset should be used
+    for training. COCO does not provide locations or excess information for background
+    details. A complex feature vector from the CLIP encoder can’t be effectively utilized
+    to a CVAE on COCO.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although CVAEs and image generation on COCO have their limitations, it creates
+    a workable image generation model. More code and details can be provided just
+    reach out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Kingma, Diederik P, et. al. “Auto-encoding variational bayes.” *arXiv:1312.6114*
+    (2013).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Sohn, Kihyuk, et. al. “Learning Structured Output Representation using
+    Deep Conditional Generative Models.” *NeurIPS Proceedings* (2015).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Nilsson, J., et. al. “Understanding ssim.” *arXiv:2102.12037* (2020).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Xiao, Han, et. al. “Fashion-mnist: a novel image dataset for benchmarking
+    machine learning algorithms.” *arXiv:2403.15378* (2024) (MIT license).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Zhang, B., et. al. “Long-clip: Unlocking the long-text capability of clip.”
+    *arXiv:2403.15378* (2024).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A reference to my group project partners Jake Hession (Deloitte Consultant),
+    Ashley Hong (Google SWE), and Julian Kuppel (Quant)!
+  prefs: []
+  type: TYPE_NORMAL

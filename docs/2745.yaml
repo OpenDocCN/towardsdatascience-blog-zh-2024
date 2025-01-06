@@ -1,0 +1,260 @@
+- en: Detecting Anomalies in Social Media Volume Time Series
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/detecting-anomalies-in-social-media-volume-time-series-9cae614a11d0?source=collection_archive---------5-----------------------#2024-11-11](https://towardsdatascience.com/detecting-anomalies-in-social-media-volume-time-series-9cae614a11d0?source=collection_archive---------5-----------------------#2024-11-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**How I detect anomalies in social Media volumes: A Residual-Based Approach**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)[![Lorenzo
+    Mezzini](../Images/e4df2ae1cd2e9bfde4c7fd636781de74.png)](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)
+    [Lorenzo Mezzini](https://medium.com/@lorenzo.mezzini?source=post_page---byline--9cae614a11d0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9cae614a11d0--------------------------------)
+    ·7 min read·Nov 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa6c46de491ac7955aced3b1c58d4cf0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Joshua Hoehne](https://unsplash.com/@joshua_hoehne?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the age of social media, analyzing conversation volumes has become crucial
+    for understanding user behaviours, detecting trends, and, most importantly, identifying
+    anomalies. Knowing when an anomaly is occurring can help management and marketing
+    respond in crisis scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we’ll explore a residual-based approach for detecting anomalies
+    in social media volume time series data, using a real-world example from Twitter.
+    For such a task, I am going to use data from [Numenta Anomaly Benchmark](https://github.com/numenta/NAB),
+    which provides volume data from Twitter posts with a 5-minute frame window amongst
+    its benchmarks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will analyze the data from two perspectives: as a first exercise we will
+    detect anomalies using the full dataset, and then we will detect anomalies in
+    a real-time scenario to check how responsive this method is.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Detecting anomalies with the full dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Analyzing a Sample Twitter Volume Dataset**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s start by loading and visualizing a sample Twitter volume dataset for
+    Apple:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/22c65890ffd6b0b6c1656361831c0dfa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Volume and log-Volume observed for AAPL Twitter volumes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: From this plot, we can see that there are several spikes (anomalies) in our
+    data. These spikes in volumes are the ones we want to identify.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the second plot (log-scale) we can see that the Twitter volume data
+    shows a clear daily cycle, with higher activity during the day and lower activity
+    at night. This seasonal pattern is common in social media data, as it reflects
+    the day-night activity of users. It also presents a weekly seasonality, but we
+    will ignore it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Removing Seasonal Trends
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We want to make sure that this cycle does not interfere with our conclusions,
+    thus we will remove it. To remove this seasonality, we’ll perform a seasonal decomposition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we’ll calculate the moving average (MA) of the volume, which will capture
+    the trend. Then, we’ll compute the ratio of the observed volume to the MA, which
+    gives us the multiplicative seasonal effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f501a6697ad6760f04208d3af5c9ae29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multiplicative effect of time on volumes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As expected, the seasonal trend follows a day/night cycle with its peak during
+    the day hours and its saddle at nighttime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To further proceed with the decomposition we need to calculate the expected
+    value of the volume given the multiplicative trend found before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c15e62b66dce0ae415eba2189620db1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Volume and log-Volume observed and expected for AAPL Twitter volumes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Analyzing Residuals and Detecting Anomalies**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The final component of the decomposition is the error resulting from the subtraction
+    between the expected value and the true value. We can consider this measure as
+    the de-meaned volume accounting for seasonality:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3b054b29c8ae1dff7458a90e29410cc8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Absolute Error and log-Error after seasonal decomposition of AAPL Twitter volumes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, the residual distribution closely follows a Pareto distribution.
+    This property allows us to use the Pareto distribution to set a threshold for
+    detecting anomalies, as we can flag any residuals that fall above a certain percentile
+    (e.g., 0.9995) as potential anomalies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cbf2d33f41a5ccc3349225eb0e711028.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Absolute Error and log-Error quantiles Vs Pareto quantiles
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, I have to do a big disclaimer: this property I am talking about is not
+    “True” per se. In my experience in social listening, I’ve observed that holds
+    true with most social data. Except for some right skewness in a dataset with many
+    anomalies.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this specific case, we have well over 15k observations, hence we will set
+    the p-value at 0.9995\. Given this threshold, roughly 5 anomalies for every 10.000
+    observations will be detected (assuming a perfect Pareto distribution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, if we check which observation in our data has an error whose p-value
+    is higher than 0.9995, we get the following signals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/825a02da7c854a300393682312658db1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Signals anomalies of AAPL Twitter volumes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: From this graph, we see that the observations with the highest volumes are highlighted
+    as anomalies. Of course, if we desire more or fewer signals, we can adjust the
+    selected p-value, keeping in mind that, as it decreases, it will increase the
+    number of signals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Real-Time Anomaly Detection**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now let’s switch to a real-time scenario. In this case, we will run the same
+    algorithm for every new observation and check both which signals are returned
+    and how quickly the signals are returned after the observation takes place:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/caf3d10fbb73d8281539f2b18a4b19ae.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Live Signals of AAPL Twitter volumes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can clearly see that this time, we have more signals. This is justified as
+    the Pareto curve we fit changes as the data at our disposal changes. The first
+    three signals can be considered anomalies if we check the data up to “2015–03–08”
+    but these are less important if we consider the entire dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'By construction, the code provided returns with a signal limiting itself to
+    the previous 24 hours. However, as we can see below, most of the signals are returned
+    as soon as the new observation is considered, with a few exceptions already bolded:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we can see, the algorithm is able to detect anomalies in real time, with
+    most signals being raised as soon as the new observation is considered. This allows
+    organizations to respond quickly to unexpected changes in social media conversation
+    volumes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions and Further Improvements
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The residual-based approach presented in this article provides a responsive
+    tool for detecting anomalies in social media volume time series. This method can
+    help companies and marketers identify important events, trends, and potential
+    crises as they happen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While this algorithm is already effective, there are several points that can
+    be further developed, such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dependence on a fixed window for real-time detection, as for now depends on
+    all previous data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Exploring different time granularities (e.g., hourly instead of 5-minute intervals)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Validating the Pareto distribution assumption using statistical tests
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: …
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Please leave some claps if you enjoyed the article and feel free to comment,
+    any suggestion and feedback is appreciated!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[*Here you can find a notebook with an implementation*](https://github.com/lorenzomezzini/MediumPosts/tree/main/AnomalyDetection)*.*'
+  prefs: []
+  type: TYPE_NORMAL

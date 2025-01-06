@@ -1,0 +1,438 @@
+- en: Performance Insights from Sigma Rule Detections in Spark Streaming
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/performance-insights-from-sigma-rule-detections-in-spark-streaming-fac8c67d37b8?source=collection_archive---------3-----------------------#2024-06-01](https://towardsdatascience.com/performance-insights-from-sigma-rule-detections-in-spark-streaming-fac8c67d37b8?source=collection_archive---------3-----------------------#2024-06-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Utilizing Sigma rules for anomaly detection in cybersecurity logs: A study
+    on performance optimization'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)[![Jean-Claude
+    Cote](../Images/aea2df9c7b95fc85cc336f64d64b0a76.png)](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------)
+    [Jean-Claude Cote](https://medium.com/@jean-claude.cote?source=post_page---byline--fac8c67d37b8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fac8c67d37b8--------------------------------)
+    ·14 min read·Jun 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/37046fd8ffe78e40feab09bcdfb16198.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by Ed Vazquez on Unsplash
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the roles of the [Canadian Centre for Cyber Security](https://www.cyber.gc.ca/en)
+    (CCCS) is to detect anomalies and issue mitigations as quickly as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While putting our Sigma rule detections into production, we made an interesting
+    observation in our Spark streaming application. Running a single large SQL statement
+    expressing 1000 Sigma detection rules was slower than running five separate queries,
+    each applying 200 Sigma rules. This was surprising, as running five queries forces
+    Spark to read the source data five times rather than once. For further details,
+    please refer to our series of articles:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/anomaly-detection-using-sigma-rules-part-1-leveraging-spark-sql-streaming-246900e95457?source=post_page-----fac8c67d37b8--------------------------------)
+    [## Anomaly Detection using Sigma Rules (Part 1): Leveraging Spark SQL Streaming'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sigma rules are used to detect anomalies in cyber security logs. We use Spark
+    structured streaming to evaluate Sigma…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/anomaly-detection-using-sigma-rules-part-1-leveraging-spark-sql-streaming-246900e95457?source=post_page-----fac8c67d37b8--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given the vast amount of telemetry data and detection rules we need to execute,
+    every gain in performance yields significant cost savings. Therefore, we decided
+    to investigate this peculiar observation, aiming to explain it and potentially
+    discover additional opportunities to improve performance. We learned a few things
+    along the way and wanted to share them with the broader community.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Our hunch was that we were reaching a limit in Spark’s code generation. So,
+    a little background on this topic is required. In 2014, Spark introduced code
+    generation to evaluate expressions of the form `(id > 1 and id > 2) and (id <
+    1000 or (id + id) = 12)`. This article from Databricks explains it very well:
+    [Exciting Performance Improvements on the Horizon for Spark SQL](https://www.databricks.com/blog/2014/06/02/exciting-performance-improvements-on-the-horizon-for-spark-sql.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Two years later, Spark introduced Whole-Stage Code Generation. This optimization
+    merges multiple operators together into a single Java function. Like expression
+    code generation, Whole-Stage Code Generation eliminates virtual function calls
+    and leverages CPU registers for intermediate data. However, rather than being
+    at the expression level, it is applied at the operator level. Operators are the
+    nodes in an execution plan. To find out more, read [Apache Spark as a Compiler:
+    Joining a Billion Rows per Second on a Laptop](https://www.databricks.com/blog/2016/05/23/apache-spark-as-a-compiler-joining-a-billion-rows-per-second-on-a-laptop.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To summarize these articles, let’s generate the plan for this simple query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this simple query, we are using two operators: Range to generate rows and
+    Select to perform a projection. We see these operators in the query’s physical
+    plan. Notice the asterisk (*) beside the nodes and their associated `[codegen
+    id : 1]`. This indicates that these two operators were merged into a single Java
+    function using Whole-Stage Code Generation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The generated code clearly shows the two operators being merged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `project_doConsume_0` function contains the code to evaluate `(id > 1 and
+    id > 2) and (id < 1000 or (id + id) = 12)`. Notice how this code is generated
+    to evaluate this specific expression. This is an illustration of expression code
+    generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The whole class is an operator with a `processNext` method. This generated operator
+    performs both the Projection and the Range operations. Inside the while loop at
+    line 117, we see the code to produce rows and a specific call (not a virtual function)
+    to `project_doConsume_0`. This illustrates what Whole-Stage Code Generation does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Breaking Down the Performance**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now that we have a better understanding of Spark’s code generation, let’s try
+    to explain why breaking a query doing 1000 Sigma rules into smaller ones performs
+    better. Let’s consider a SQL statement that evaluates two Sigma rules. These rules
+    are straightforward: Rule1 matches events with an `Imagepath` ending in ‘schtask.exe’,
+    and Rule2 matches an `Imagepath` starting with ‘d:’.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The select labeled #1 performs the detections and stores the results in new
+    columns named rule1 and rule2\. Select #2 regroups these columns under a single
+    `results_map`, and finally select #3 transforms the map into an array of matching
+    rules. It uses `map_filter` to keep only the entries of rules that actually matched,
+    and then `map_keys` is used to convert the map entries into a list of matching
+    rule names.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s print out the Spark execution plan for this query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that node Project (4) is not code generated. Node 4 has a lambda function,
+    does it prevent whole stage code generation? More on this later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This query is not quite what we want. We would like to produce a table of events
+    with a column indicating the rule that was matched. Something like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: That’s easy enough. We just need to explode the `matching_rules` column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This produces two additional operators: Generate (6) and Project (7). However,
+    there is also a new Filter (3).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `explode` function generates rows for every element in the array. When the
+    array is empty, `explode` does not produce any rows, effectively filtering out
+    rows where the array is empty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Spark has an optimization rule that detects the explode function and produces
+    this additional condition. The filter is an attempt by Spark to short-circuit
+    processing as much as possible. The source code for this rule, named `org.apache.spark.sql.catalyst.optimizer.InferFiltersFromGenerate`,
+    explains it like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Infers filters from Generate, such that rows that would have been removed by
+    this Generate can be removed earlier — before joins and in data sources.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: For more details on how Spark optimizes execution plans please refer to David
+    Vrba’s article [Mastering Query Plans in Spark 3.0](/mastering-query-plans-in-spark-3-0-f4c334663aa4)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another question arises: do we benefit from this additional filter? Notice
+    this additional filter is not whole-stage code generated either, presumably because
+    of the lambda function. Let’s try to express the same query but without using
+    a lambda function.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead, we can put the rule results in a map, explode the map, and filter out
+    the rows, thereby bypassing the need for `map_filter`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The select #3 operation explodes the map into two new columns. The `matched_rule`
+    column will hold the key, representing the rule name, while the `matched_result`
+    column will contain the result of the detection test. To filter the rows, we simply
+    keep only those with a positive `matched_result`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The physical plan indicates that all nodes are whole-stage code generated into
+    a single Java function, which is promising.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s conduct some tests to compare the performance of the query using `map_filter`
+    and the one using explode then filter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We ran these tests on a machine with 4 CPUs. We generated 1 million rows, each
+    with 100 rules, and each rule evaluating 5 expressions. These tests were run 5
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On average
+  prefs: []
+  type: TYPE_NORMAL
+- en: map_filter took 42.6 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: explode_then_filter took 51.2 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So, map_filter is slightly faster even though it’s not using whole-stage code
+    generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, in our production query, we execute many more Sigma rules — a total
+    of 1000 rules. This includes 29 regex expressions, 529 equals, 115 starts-with,
+    2352 ends-with, and 5838 contains expressions. Let’s test our query again, but
+    this time with a slight increase in the number of expressions, using 7 instead
+    of 5 per rule. Upon doing this, we encountered an error in our logs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We tried increasing `spark.sql.codegen.maxFields` and `spark.sql.codegen.hugeMethodLimit`,
+    but fundamentally, Java classes have a function size limit of 64 KB. Additionally,
+    the JVM JIT compiler limits itself to compiling functions smaller than 8 KB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the query still runs fine because Spark falls back to the Volcano execution
+    model for certain parts of the plan. WholeStageCodeGen is just an optimization
+    after all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the same test as before but with 7 expressions per rule rather than
+    5, explode_then_filter is much faster than map_filter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: map_filter took 68.3 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: explode_then_filter took 15.8 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Increasing the number of expressions causes parts of the explode_then_filter
+    to no longer be whole-stage code generated. In particular, the Filter operator
+    introduced by the rule `org.apache.spark.sql.catalyst.optimizer.InferFiltersFromGenerate`
+    is too big to be incorporated into whole-stage code generation. Let’s see what
+    happens if we exclude the InferFiltersFromGenerate rule:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: As expected, the physical plan of both queries no longer has an additional Filter
+    operator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Removing the rule indeed had a significant impact on performance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: map_filter took 22.49 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: explode_then_filter took 4.08 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Both queries benefited greatly from removing the rule. Given the improved performance,
+    we decided to increase the number of Sigma rules to 500 and the complexity to
+    21 expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: map_filter took 195.0 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: explode_then_filter took 25.09 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Despite the increased complexity, both queries still deliver pretty good performance,
+    with explode_then_filter significantly outperforming map_filter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s interesting to explore the different aspects of code generation employed
+    by Spark. While we may not currently benefit from whole-stage code generation,
+    we can still gain advantages from expression generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Expression generation doesn’t face the same limitations as whole-stage code
+    generation. Very large expression trees can be broken into smaller ones, and Spark’s
+    `spark.sql.codegen.methodSplitThreshold` controls how these are broken up. Although
+    we experimented with this property, we didn’t observe significant improvements.
+    The default setting seems satisfactory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Spark provides a debugging property named `spark.sql.codegen.factoryMode`,
+    which can be set to FALLBACK, CODEGEN_ONLY, or NO_CODEGEN. We can turn off expression
+    code generation by setting `spark.sql.codegen.factoryMode=NO_CODEGEN`, which results
+    in a drastic performance degradation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With 500 rules and 21 expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: map_filter took 1581 seconds
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: explode_then_filter took 122.31 seconds.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Even though not all operators participate in whole-stage code generation, we
+    still observe significant benefits from expression code generation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/e6090af0bc9f5f696f7d7887ded95d2b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: With our best case of 25.1 seconds to evaluate 10,500 expressions on 1 million
+    rows, we achieve a very respectable rate of 104 million expressions per second
+    per CPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The takeaway from this study is that when evaluating a large number of expressions,
+    we benefit from converting our queries that use `map_filter` to ones using an
+    explode then filter approach. Additionally, the `org.apache.spark.sql.catalyst.optimizer.InferFiltersFromGenerate`
+    rule does not seem beneficial in our use case, so we should exclude that rule
+    from our queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Does it Explain our Initial Observations?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Implementing these lessons learned in our production jobs yielded significant
+    benefits. However, even after these optimizations, splitting the large query into
+    multiple smaller ones continued to provide advantages. Upon further investigation,
+    we discovered that this was not solely due to code generation but rather a simpler
+    explanation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Spark streaming operates by running a micro-batch to completion and then checkpoints
+    its progress before starting a new micro-batch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During each micro-batch, Spark has to complete all its tasks, typically 200\.
+    However, not all tasks are created equal. Spark employs a round-robin strategy
+    to distribute rows among these tasks. So, on occasion, some tasks can contain
+    events with large attributes, for example, a very large command line, causing
+    certain tasks to finish quickly while others take much longer. For example here
+    the distribution of a micro-batch task execution time. The median task time is
+    14 seconds. However, the worst straggler is 1.6 minutes!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b9727dd12cf03571a89fcfbd3947a42.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This indeed sheds light on a different phenomenon. The fact that Spark waits
+    on a few straggler tasks during each micro-batch leaves many CPUs idle, which
+    explains why splitting the large query into multiple smaller ones resulted in
+    faster overall performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This picture shows 5 smaller queries running in parallel inside the same Spark
+    application. Batch3 is waiting on a straggler task while the other queries keep
+    progressing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a683d30843790b2d9984ffabbce854f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: During these periods of waiting, Spark can utilize the idle CPUs to tackle other
+    queries, thereby maximizing resource utilization and overall throughput.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this article, we provided an overview of Spark’s code generation process
+    and discussed how built-in optimizations may not always yield desirable results.
+    Additionally, we demonstrated that refactoring a query from using lambda functions
+    to one utilizing a simple explode operation resulted in performance improvements.
+    Finally, we concluded that while splitting a large statement did lead to performance
+    boosts, the primary factor driving these gains was the execution topology rather
+    than the queries themselves.
+  prefs: []
+  type: TYPE_NORMAL

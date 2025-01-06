@@ -1,0 +1,822 @@
+- en: Building a Custom AI Jira Agent
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/custom-ai-jira-agent-google-mesop-django-langchain-agent-co-star-chain-of-thought-cot-and-fb903468bff6?source=collection_archive---------0-----------------------#2024-12-25](https://towardsdatascience.com/custom-ai-jira-agent-google-mesop-django-langchain-agent-co-star-chain-of-thought-cot-and-fb903468bff6?source=collection_archive---------0-----------------------#2024-12-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How I used Google Mesop, Django, LangChain Agents, CO-STAR & Chain-of-Thought
+    (CoT) prompting combined with the Jira API to better automate Jira
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)[![Lewis
+    James | Data Science](../Images/fdbb8a326f6873a9776725ffaa0b4309.png)](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------)
+    [Lewis James | Data Science](https://medium.com/@ljamesdatascience?source=post_page---byline--fb903468bff6--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fb903468bff6--------------------------------)
+    ·19 min read·Dec 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3244eeafdbf9aec0882a5238b4395036.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Google DeepMind](https://unsplash.com/@googledeepmind?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/a-bonsai-tree-growing-out-of-a-concrete-block-K2V_fqM2RY8?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The inspiration for this project came from hosting a Jira ticket creation tool
+    on a web application I had developed for internal users. I also added automated
+    Jira ticket creation upon system errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Users and system errors often create similar tickets, so I wanted to see if
+    the reasoning capabilities of LLMs could be used to automatically triage tickets
+    by linking related issues, creating user stories, acceptance criteria, and priority.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, giving users and product/managerial stakeholders easier access
+    to interact directly with Jira in natural language without any technical competencies
+    was an interesting prospect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Jira](https://www.atlassian.com/software/jira) has become ubiquitous within
+    software development and is now a leading tool for project management.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concretely, advances in Large Language Model (LLM) and agentic research would
+    imply there is an opportunity to make significant productivity gains in this area.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jira-related tasks are a great candidate for automation since; tasks are in
+    the modality of text, are highly repetitive, relatively low risk and low complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the article below, I will present my open-source project — AI Jira Assistant:
+    a chat interface to interact with Jira via an AI agent, with a custom AI agent
+    tool to triage newly created Jira tickets.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: All code has been made available via the GitHub repo at the end of the article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The project makes use of LangChain agents, served via Django (with PostgreSQL)
+    and Google Mesop. Services are provided in Docker to be run locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The prompting strategy includes a CO-STAR system prompt, Chain-of-Thought (CoT)
+    reasoning with few-shot prompting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article will include the following sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Definitions
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Mesop interface: Streamlit or Mesop?'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Django REST framework
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Custom LangChain agent tool and prompting
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Jira API examples
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Next steps
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 1\. Definitions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Firstly, I wanted to cover some high-level definitions that are central to the
+    project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AI Jira Assistant
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The open source project presented here, when ran locally looks as the below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Including a chat interface for user prompts, example prompts to pre-populate
+    the chat interface, a box for displaying model responses and a button to clear
+    model responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code snippets for the major technical challenges throughout the project are
+    discussed in detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/536a02c183e1a1f86064776e5afc3c97.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AI Jira Assistant (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What is Google Mesop?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Mesop is a relatively recent (2023) Python web framework used at Google for
+    rapid AI app development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Mesop provides a versatile range of 30 components, from low-level building
+    blocks to high-level, AI-focused components. This flexibility lets you rapidly
+    prototype ML apps or build custom UIs, all within a single framework that adapts
+    to your project’s use case.” — [Mesop Homepage](https://google.github.io/mesop/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What is an AI Agent?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The origins of the Agent software paradigm comes from the word Agency, a software
+    program that can observe its environment and act upon it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “An artificial intelligence (AI) agent is a software program that can interact
+    with its environment, collect data, and use the data to perform self-determined
+    tasks to meet predetermined goals.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Humans set goals, but an AI agent independently chooses the best actions it
+    needs to perform to achieve those goals.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: AI agents are rational agents. They make rational decisions based on their perceptions
+    and data to produce optimal performance and results.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An AI agent senses its environment with physical or software interfaces.” —
+    [AWS Website](https://aws.amazon.com/what-is/ai-agents/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What is CO-STAR prompting?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This is a guide to the formatting of prompts such that the following headers
+    are included; context, objective, style, tone, audience and response. This is
+    widely accepted to improve model output for LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “The CO-STAR framework, a brainchild of GovTech Singapore’s Data Science & AI
+    team, is a handy template for structuring prompts.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It considers all the key aspects that influence the effectiveness and relevance
+    of an LLM’s response, leading to more optimal responses.” — [Sheila Teo’s Medium
+    Post](/how-i-won-singapores-gpt-4-prompt-engineering-competition-34c195a93d41)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What is Chain-of-Thought (CoT) prompting?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Originally proposed in a Google paper; [Wei et al. (2022).](https://arxiv.org/pdf/2201.11903)
+    Chain-of-Thought (CoT) prompting means to provide few-shot prompting examples
+    of intermediate reasoning steps. Which was proven to improve common-sense reasoning
+    of the model output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Django?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Django is one of the more sophisticated widely used Python frameworks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Django is a high-level Python web framework that encourages rapid development
+    and clean, pragmatic design. It’s free and open source.” — [Django Homepage](https://www.djangoproject.com/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What is LangChain?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: LangChain is one of the better know open source libraries for supporting a LLM
+    applications, up to and including agents and prompting relevant to this project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“LangChain’s flexible abstractions and AI-first toolkit make it the #1 choice
+    for developers when building with GenAI.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Join 1M+ builders standardizing their LLM app development in LangChain’s Python
+    and JavaScript frameworks.” — [LangChain website](https://www.langchain.com/langchain)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '2\. Mesop interface: Streamlit or Mesop?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/f457d98dc5446aeb5960d0d8e95a50c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Konsepta Studio](https://unsplash.com/@konseptastudio?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/black-framed-eyeglasses-on-white-surface-DSW79QZtjGM?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have used [Streamlit](https://streamlit.io/) extensively professionally for
+    hosting Generative AI applications, an example of my work can be found [here](https://wan-ifra.org/2024/10/how-uks-reach-is-using-ai-to-help-produce-more-content-faster/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: At a high level, Streamlit is a comparable open-source Python web framework
+  prefs: []
+  type: TYPE_NORMAL
+- en: For more on Streamlit, please see my other Medium article where it is discussed
+    at length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ljamesdatascience/ai-grant-application-writer-autogen-postgresql-rag-langchain-fastapi-and-streamlit-93ba439dcb7d?source=post_page-----fb903468bff6--------------------------------)
+    [## AI Grant Application Writer — AutoGen, PostgreSQL RAG, LangChain, FastAPI
+    and Streamlit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing grant applications can be time-consuming and tedious, Generative AI
+    seems like a natural solution though naive…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@ljamesdatascience/ai-grant-application-writer-autogen-postgresql-rag-langchain-fastapi-and-streamlit-93ba439dcb7d?source=post_page-----fb903468bff6--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This was the first opportunity to use Mesop in anger — so I thought a comparison
+    might be useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mesop is designed to give more fine-grained control over the CSS styling of
+    components and natively integrates with JS web comments. Mesop also has useful
+    debugging tools when running locally. I would also say from experience that the
+    multi-page app functionality is easier to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this does mean that there is a larger barrier to entry for say machine
+    learning practitioners less well-versed in CSS styling (myself included). Streamlit
+    also has a larger community for support.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the code snippet, we can set up different page routes. The project only
+    contains two pages. The main page and an error page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The error page includes a button to redirect to the homepage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a62ff27dc85ddaa92e445800afda8b06.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AI Jira Assistant Error Page (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code to trigger the redirect to the homepage is included here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We must also create the State class, this allows data to persist within the
+    event loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: To clear the model output from the interface, we can then assign the output
+    variable to an empty string. There are also different [button supported types](https://google.github.io/mesop/components/button/#overview),
+    as of writing are; default, raised, flat and stroked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: To automatically populate the chat interface with the example prompts provided,
+    we use the button onclick event, by updating the state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similarly, to send the request to the Django service we use the code snippet
+    below. We use a [Walrus Operator](https://www.geeksforgeeks.org/walrus-operator-in-python-3-8/)
+    (:=) to determine if the request has received a valid response as not None (status
+    code 200) and append the output to the state so it can be rendered in the UI,
+    otherwise we redirect the user to the error page as previously discussed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: For completeness, I have provided the request code to the Django endpoint for
+    running the AI Jira Agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: For this to run locally, I have included the relevant Docker and Docker compose
+    files.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This Docker file for running Mesop was provided via the Mesop project homepage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Docker compose file consists of three services. The back-end Django application,
+    the front-end Mesop application and a PostgreSQL database instance to be used
+    in conjunction with the Django application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I wanted to call out the environment variable being passed into the Mesop Docker
+    container, PYTHONUNBUFFERED=1 ensures Python output, stdout, and stderr streams
+    are sent to the terminal. Having used the recommended Docker image for Mesop applications
+    it took me some time to determine the root cause of not seeing any output from
+    the application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The DOCKER_RUNNING=true environment variable is a convention to simply determine
+    if the application is being run within Docker or for example within a virtual
+    environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is important to point out that environment variables will be populated via
+    the config file ‘config.ini’ within the config sub-directory referenced by the
+    env_file element in the Docker compose file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To run the project, you must populate this config file with your Open AI and
+    Jira credentials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Django REST framework
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/e4bf7b8e0f7357749d194a4ed4c9ca64.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Faisal](https://unsplash.com/@faisaldada?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/black-and-yellow-box-on-white-table-BI465ksrlWs?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Django is a Python web framework with lots of useful functionality out of the
+    box.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is comparable to frameworks such as Flask or FastAPI, though does require
+    some additional setup and a steeper learning curve to get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to learn more about Flask, please see my article below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/analytics-vidhya/canal-boat-pricing-with-catboost-machine-learning-5b2389999116?source=post_page-----fb903468bff6--------------------------------)
+    [## Canal Boat Pricing With Catboost Machine Learning'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the more interesting suggestions from the YouTube recommendation engine
+    combined with moving to fully remote…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/analytics-vidhya/canal-boat-pricing-with-catboost-machine-learning-5b2389999116?source=post_page-----fb903468bff6--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will cover apps, models, serializers, views and PostgreSQL
+    database integration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An app is a logically separated web application that has a specific purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our instance, we have named the app “api” and is created by running the following
+    command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Within the views.py file, we define our API endpoints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “A view function, or *view* for short, is a Python function that takes a web
+    request and returns a web response. This response can be the HTML contents of
+    a web page, or a redirect, or a 404 error, or an XML document, or an image . .
+    . or anything, really. The view itself contains whatever arbitrary logic is necessary
+    to return that response.” — [Django website](https://docs.djangoproject.com/en/5.1/topics/http/views/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The endpoint routes to Django views are defined in the app urls.py file as below.
+    The urls.py file is created at the initialization of the app. We have three endpoints
+    in this project; a health check endpoint, an endpoint for returning all records
+    stored within the database and an endpoint for handling the call out to the AI
+    agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The views are declared classes, which is the standard convention within Django.
+    Please see the file in its completeness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most of the code is self-explanatory though this snippet is significant as it
+    will saves the models data to the database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The snippet below returns all records in the DB from the ModelRequest model,
+    I will cover models next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: “A model is the single, definitive source of information about your data. It
+    contains the essential fields and behaviors of the data you’re storing. Generally,
+    each model maps to a single database table.” — [Django website](https://docs.djangoproject.com/en/5.1/topics/db/models/#:~:text=A%20model%20is%20the%20single,.db.models.Model%20.)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Our model for this project is simple as we only want to store the user request
+    and the final model output, both of which are text fields.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The __str__ method is a common Python convention which for example, is called
+    by default in the print function. The purpose of this method is to return a human-readable
+    string representation of an object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The serializer maps fields from the model to validate inputs and outputs and
+    turn more complex data types in Python data types. This can be seen in the views.py
+    detailed previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: “A ModelSerializer typically refers to a component of the Django REST framework
+    (DRF). The Django REST framework is a popular toolkit for building Web APIs in
+    Django applications. It provides a set of tools and libraries to simplify the
+    process of building APIs, including serializers.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The ModelSerializer class provides a shortcut that lets you automatically create
+    a Serializer class with fields that correspond to the Model fields.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The ModelSerializer class is the same as a regular Serializer class, except
+    that:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It will automatically generate a set of fields for you, based on the model.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It will automatically generate validators for the serializer, such as unique_together
+    validators.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It includes simple default implementations of .create() and .update().” — [Geeks
+    for geeks](https://www.geeksforgeeks.org/serializers-django-rest-framework/)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The complete serializers.py file for the project is as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the PostgreSQL database integration, the config within the settings.py file
+    must match the databse.ini file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The default database settings must be changed to point at the PostgreSQL database,
+    as this is not the default database integration for Django.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The database.ini file defines the config for the PostgreSQL database at initialization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To ensure database migrations are applied once the Docker container has been
+    run, we can use a bash script to apply the migrations and then run the server.
+    Running migrations automatically will mean that the database is always modified
+    with any change in definitions within source control for Django, which saves time
+    in the long run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The entry point to the Dockerfile is then changed to point at the bash script
+    using the CMD instruction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Custom LangChain agent tool and prompting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/8c59bb257dfadce27140c4cfc1f3da92.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Vlad Tchompalov](https://unsplash.com/@tchompalov?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/green-bird-kuTZUOVRpOo?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I’m using the existing LangChain agent functionality combined with the [Jira
+    toolkit](https://python.langchain.com/docs/integrations/tools/jira/), which is
+    a wrapper around the Atlassian Python API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The default library is quite useful out of the box, sometimes requiring some
+    trial and error on the prompt though I’d think it should improve over time as
+    research into the area progresses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this project however, I wanted to add some custom tooling to the agent.
+    This can be seen as the function ‘triage’ below with the @tool decorator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function type hints and comment description of the tool are necessary to
+    communicate to the agent what is expected when a call is made. The returned string
+    of the function is observed by the agent, in this instance, we simply return “Task
+    complete” such that the agent then ceases to conduct another step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The custom triage tool performs the following steps;
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get all unresolved Jira tickets for the project
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Get the description and summary for the Jira issue key the agent is conducting
+    the triage on
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Makes asynchronous LLM-based comparisons with all unresolved tickets and automatically
+    tags the ones that appear related from a text-to-text comparison, then uses the
+    Jira API to link them
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An LLM is then used to generate; user stories, acceptance criteria and priority,
+    leaving this model result as a comment on the primary ticket
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Both LLM tasks use a CO-STAR system prompt and chain-of-thought few-shot prompting
+    strategy. Therefore I have abstracted these tasks into an LLMTask class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They are instantiated in the following code snippet. Arguably, we could experiment
+    with different LLMs for each tasks though in the interest of time I have not done
+    any experimentation around this — please feel free to comment below if you do
+    pull the repo and have any experience to share.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: For the linking tasks, the CO-STAR system prompt is below. The headings of Context,
+    Objective, Style, Tone, Audience and Response are the standard headings for the
+    CO-STAR method. We define the context and outputs including the tagging of each
+    element of the model results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explicitly defining the audience, style and tone helps to ensure the model output
+    is appropriate for a business context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: For performing the product style ticket evaluation (user stories, acceptance
+    criteria, and priority), the system prompt is below. We explicitly define the
+    priority as either LOW, MEDIUM, or HIGH.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also dictate that the model has the style of a product owner/ manager for
+    which this task would have traditionally been conducted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: I will now provide the Chain-of-thought few-shot prompt for linking Jira tickets,
+    we append both the summary and description for both tickets in <issue1> and <issue2>
+    tags respectively. The thinking of the model is captured in the <thought> tags
+    in the model output, this constitutes the Chain-of-Thought element.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The few-shot designation comes from the point that multiple examples are being
+    fed into the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The <related> tags contain the determination if the two tickets provided are
+    related or not, if the model deems them to be related then a value of True is
+    returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We later regex parse the model output and have a helper function to link the
+    related tickets via the Jira API, all Jira API helper functions for this project
+    are provided later in the article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Similarly for ticket evaluation, the user story is provided in <user_stories>
+    tags, acceptance criteria in <acceptance_criteria> tags, and priority in <priority>
+    tags. The <thought> tags are also used for capturing the reasoning from the model
+    specifically in terms of the priority given.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of the examples were annotated manually by myself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: This code snippet uses a muti-threaded approach to linking Jira issues concurrently.
+    This will vastly reduce the time it takes to make pair comparisons with all the
+    open tickets within a project to determine if they are related.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: An example workflow of the tool, creating a ticket and triaging it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0f3c81d705a4d1f7191dadb25d8da9e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Working ticket creation and triage (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The result of these actions is captured in Jira ticket. Related tickets have
+    been linked automatically, the user stories, acceptance criteria, priority and
+    thought have been captured as a Jira comment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c890e01fb7882abe71c735539126e3e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Linked tickets, user stories, acceptance criteria and priority (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see the agent intermediate steps in the print statements of the Docker
+    container.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b69b00afcdbde221f214e9a7692fac6c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Agent output for triage step (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Jira API examples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/4a8dc1971040892936d3712169b7fea6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AI Jira Assitant finding in progress tickets (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: All examples in this project where I have explicitly used the [Jira REST API](https://developer.atlassian.com/server/jira/platform/rest/v10002/intro/#gettingstarted)
+    have been included below for visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The regex extraction helper function used to parse model results is also included.
+    There is also a Python SDK for Jira though I elected to use the requests library
+    in this instance such that is more easily translated into other programming languages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6\. Next steps
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The natural next step would be to include code generation by integrating with
+    source control for a near fully automated software development lifecycle, with
+    a human in the loop this could be a feasible solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can already see that AI code generation is making an impact on the enterprise
+    — if BAU tasks can be partially automated then software developers/product practitioners
+    can focus on more interesting and meaningful work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If there is a lot of interest on this article then perhaps I could look into
+    this as a follow-up project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------)
+    [## AI Now Writes Over 25% of Code at Google'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Google CEO Sundar Pichai says the company is using AI to write code, which is
+    then reviewed by engineers. But will that…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: uk.pcmag.com](https://uk.pcmag.com/ai/155094/ai-now-writes-over-25-of-code-at-google?source=post_page-----fb903468bff6--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you found this article insightful, as promised — you can find all the
+    code in the Github repo [here](https://github.com/lewisExternal/Custom-AI-Jira-Agent/tree/main),
+    and feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/lewisjames1/)
+    also.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[https://google.github.io/mesop/getting-started/quickstart/#starter-kit](https://google.github.io/mesop/getting-started/quickstart/#starter-kit)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://www.django-rest-framework.org/#example](https://www.django-rest-framework.org/#example)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[https://blog.logrocket.com/dockerizing-django-app/](https://blog.logrocket.com/dockerizing-django-app/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*All images, unless otherwise noted, are by the author.'
+  prefs: []
+  type: TYPE_NORMAL

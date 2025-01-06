@@ -1,0 +1,310 @@
+- en: Learning to Rank — Contextual Item Recommendations for User Pairs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/learning-to-rank-contextual-item-recommendations-for-user-pairs-dc4f56e24d94?source=collection_archive---------6-----------------------#2024-03-26](https://towardsdatascience.com/learning-to-rank-contextual-item-recommendations-for-user-pairs-dc4f56e24d94?source=collection_archive---------6-----------------------#2024-03-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Train a Machine Learning recommendation engine that learns the shared preferences
+    of groups of people
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)[![Jay
+    Franck](../Images/8a8bd2265c46453036916ebda2adf119.png)](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------)
+    [Jay Franck](https://medium.com/@franckjay?source=post_page---byline--dc4f56e24d94--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dc4f56e24d94--------------------------------)
+    ·6 min read·Mar 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/10746b4c52d60313deafae632ae91b48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Lucrezia Carnelos](https://unsplash.com/@ciabattespugnose?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This walkthrough is for…
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Anyone interested in DIY recommendations
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Engineers interested in basic PyTorch ranking models
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Coffee nerds
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This walkthrough is not for…
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Someone who wants to copy-paste code into their production system
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Folks that wanted a TensorFlow model
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Motivation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine you are sitting on your couch, friends or family present. You have your
+    preferred game console/streaming service/music app open, and each item is a glittering
+    jewel of possibility, tailored for you. But those personalized results may be
+    for the solo version of yourself, and do not reflect the version of yourself when
+    surrounded by this particular mix of others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This project truly started with coffee. I am enamored with roasting my own green
+    coffee sourced from Sweet Maria’s (no affiliation), as it has such a variety of
+    delicious possibilities. [Colombian](https://www.sweetmarias.com/colombia-honey-aponte-hugo-agreda-7759.html)?
+    [Java-beans](https://www.sweetmarias.com/java-dry-process-kuningan-robusta-7286.html)?
+    [Kenyan Peaberry](https://www.sweetmarias.com/kenya-kiambu-ngaita-peaberry-7241.html)?
+    Each description is more tantalizing than the last. It is so hard to choose even
+    for myself as an individual. What happens if you are buying green coffee for your
+    family or guests?
+  prefs: []
+  type: TYPE_NORMAL
+- en: I wanted to create a Learning to Rank (LTR) model that could potentially solve
+    this coffee conundrum. For this project, I began by building a simple [TensorFlow
+    Ranking](https://www.tensorflow.org/ranking) project to predict user-pair rankings
+    of different coffees. I had some experience with TFR, and so it seemed like a
+    natural fit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, I realized I had never made a ranking model from scratch before! I
+    set about constructing a very hacky PyTorch ranking model to see if I could throw
+    one together and learn something in the process. This is obviously not intended
+    for a production system, and I made a lot of shortcuts along the way, but it has
+    been an amazing pedagogical experience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/c39e6fe51959571e8377a161bee7b3cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Pritesh Sudra](https://unsplash.com/@pritesh557?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our supreme goal is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: develop a ranking model that learns the pairwise preferences of users
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: apply this to predict the listwise ranking of `k` items
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What signal might lie in user and item feature combinations to produce a set
+    of recommendations for that user pair?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To collect this data, I had to perform painful research of taste-testing amazing
+    coffees with my wife. Each of us then rated them on a 10-point scale. The target
+    value is simply the sum of our two scores (20 point maximum). The object of the
+    model is to Learn to Rank coffees that we will both enjoy, and not just one member
+    of any pair. The contextual data that we will be using is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ages of both users in the pair
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: user ids that will be turned into embeddings
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'SweetMarias.com provides a lot of item data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the origin of the coffee
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Processing and cultivation notes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: tasting descriptions
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: professional grading scores (100 point scale)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So for each training example, we will have the user data as the contextual information
+    and each item’s feature set will be concatenated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TensorFlow Ranking models are typically trained on data in [ELWC](https://www.tensorflow.org/ranking/tutorials/ranking_dnn_distributed#elwc_data_formats_for_ranking)
+    format: ExampleListWithContext. You can think of it like a dictionary with 2 keys:
+    CONTEXT and EXAMPLES (list). Inside each EXAMPLE is a dictionary of features per
+    item you wish to rank.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, let us assume that I was searching for a new coffee to try out,
+    and some candidate pool was presented to me of k=10 coffee varietals. An ELWC
+    would consist of the context/user information, as well as a list of 10 items,
+    each with its own feature set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I was no longer using TensorFlow Ranking, I made my own hacky ranking/list
+    building aspect of this project. I grabbed random samples of k items from which
+    we have scores and added them to a list. I split the first coffees I tried into
+    a training set, and later examples became a small validation set to evaluate the
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feature Intuition
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this toy example, we have a fairly rich dataset. Context-wise, we ostensibly
+    know the users’ age and can learn their respective preference embeddings. Through
+    subsequent layers inside the LTR, these contextual features can be compared and
+    contrasted. Does one user in the pair like dark, fruity flavors, while the other
+    enjoys invigorating citrus and fruity notes in their cup?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bd27ef43ea5e42371aedad3d073eac48.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Nathan Dumlao](https://unsplash.com/@nate_dumlao?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the item features, we have a generous helping of rich, descriptive text
+    of each coffee’s tasting notes, origin, etc. More on this later, but the general
+    idea is that we can capture the meaning of these descriptions and match the descriptions
+    with the context (user-pair) data. Finally, we have some numerical features like
+    the product expert tasting score per item that (should) have some semblance to
+    reality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Preprocessing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A stunning shift is underway in text embeddings from when I was starting out
+    in the ML industry. Long gone are the GLOVE and Word2Vec models that I used to
+    use to try to capture some semantic meaning from a word or phrase. If you head
+    on over to [https://huggingface.co/blog/mteb](https://huggingface.co/blog/mteb),
+    you can easily compare what the latest and greatest embedding models are for a
+    variety of purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the sake of simplicity and familiarity, we will be using [https://huggingface.co/BAAI/bge-base-en-v1.5](https://huggingface.co/BAAI/bge-base-en-v1.5)
+    embeddings to help us project our text features into something understandable
+    by a LTR model. Specifically we will use this for the product descriptions and
+    product names that Sweet Marias provides.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will also need to convert all of our user- and item-id values into an embedding
+    space. PyTorch handles this beautifully with the [Embedding](https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html)
+    Layers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally we do some scaling on our float features with a simple [RobustScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.RobustScaler.html).
+    This can all happen inside our Torch Dataset class which then gets dumped into
+    a DataLoader for training. The trick here is to separate out the different identifiers
+    that will get past into the `forward()` call for PyTorch. This [article](/deep-learning-using-pytorch-for-tabular-data-c68017d8b480)
+    by Offir Inbar really saved me some time by doing just that!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Building and Training
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The only interesting thing about the Torch training was ensuring that the 2
+    user embeddings (one for each rater) and the `k` coffees in the list for training
+    had the correct embeddings and dimensions to pass through our neural network.
+    With a few tweaks, I was able to get something out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This forward pushes each training example into a single concatenated list with
+    all of the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With so few data points (only 16 coffees were rated), it can be difficult to
+    train a robust NN model. I often build a simple `sklearn` model side by side so
+    that I can compare the results. Are we really learning anything?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the same data preparation techniques, I built a LogisticRegression multi-class
+    classifier model, and then dumped out the `.predict_proba()` scores to be used
+    as our rankings. What could our metrics say about the performance of these two
+    models?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For the metrics, I chose to track two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Top (`k=1`) accuracy
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[NDCG](https://en.wikipedia.org/wiki/Discounted_cumulative_gain#Normalized_DCG)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The goal, of course, is to get the ranking correct for these coffees. NDCG will
+    fit the bill nicely here. However, I suspected that the LogReg model might struggle
+    with the ranking aspect, so I thought I might throw a simple accuracy in there
+    as well. Sometimes you only want one really good cup of coffee and don’t need
+    a ranking!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without any significant investment in parameter tuning on my part, I achieved
+    very similar results between the two models. SKLearn had slightly worse NDCG on
+    the (tiny) validation set (0.9581 vs 0.950), but similar accuracy. I believe with
+    some hyper-parameter tuning on both the PyTorch model and the LogReg model, the
+    results could be very similar with so little data. But at least they broadly agree!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Future Work
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I have a new batch of 16 pounds of coffee to start ranking to add to the model,
+    and I deliberately added some lesser-known varietals to the mix. I hope to clean
+    up the repo a bit and make it less of a hack-job. Also I need to add a prediction
+    function for unseen coffees so that I can figure out what to buy next order!
+  prefs: []
+  type: TYPE_NORMAL
+- en: One thing to note is that if you are building a recommender for production,
+    it is often a good idea to use a real library built for ranking. TensorFlow Ranking,
+    XGBoost, LambdaRank, etc. are accepted in the industry and have lots of the pain
+    points ironed out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Please check out the repo [here](https://github.com/franckjay/UserPairRecommendationEngine)
+    and let me know if you catch any bugs! I hope you are inspired to train your own
+    User-Pair model for ranking.
+  prefs: []
+  type: TYPE_NORMAL

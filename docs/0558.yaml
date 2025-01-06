@@ -1,0 +1,331 @@
+- en: Improving LLM Inference Speeds on CPUs with Model Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/improving-llm-inference-latency-on-cpus-with-model-quantization-28aefb495657?source=collection_archive---------1-----------------------#2024-02-29](https://towardsdatascience.com/improving-llm-inference-latency-on-cpus-with-model-quantization-28aefb495657?source=collection_archive---------1-----------------------#2024-02-29)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/ba70dd27842dfef63454e83252c90ac1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image Property of Author — Create with Nightcafe
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discover how to significantly improve inference latency on CPUs using quantization
+    techniques for bf16, int8, and int4 precisions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://eduand-alvarez.medium.com/?source=post_page---byline--28aefb495657--------------------------------)[![Eduardo
+    Alvarez](../Images/8a51c754fdd3362aa82dee5acd2a68c5.png)](https://eduand-alvarez.medium.com/?source=post_page---byline--28aefb495657--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--28aefb495657--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--28aefb495657--------------------------------)
+    [Eduardo Alvarez](https://eduand-alvarez.medium.com/?source=post_page---byline--28aefb495657--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--28aefb495657--------------------------------)
+    ·9 min read·Feb 29, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the most significant challenges the AI space faces is the need for computing
+    resources to host large-scale production-grade LLM-based applications. At scale,
+    LLM applications require redundancy, scalability, and reliability, which have
+    historically been only possible on general computing platforms like CPUs. Still,
+    the prevailing narrative today is that CPUs cannot handle LLM inference at latencies
+    comparable with high-end GPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One open-source tool in the ecosystem that can help address inference latency
+    challenges on CPUs is the [Intel® Extension for PyTorch*](https://www.intel.com/content/www/us/en/developer/tools/oneapi/optimization-for-pytorch.html)
+    (IPEX), which provides up-to-date feature optimizations for an extra performance
+    boost on Intel hardware. IPEX delivers a variety of easy-to-implement optimizations
+    that make use of hardware-level instructions. This tutorial will dive into the
+    theory of model compression and the out-of-the-box model compression techniques
+    IPEX provides. These compression techniques directly impact LLM inference performance
+    on general computing platforms, like Intel 4th and 5th-generation CPUs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inference Latency in Application Development
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Second only to application safety and security, inference latency is one of
+    the most critical parameters of an AI application in production. Regarding LLM-based
+    applications, latency or throughput is often measured in tokens/second. As illustrated
+    in the simplified inference processing sequence below, tokens are processed by
+    the language model and then de-tokenized into natural language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2d4ae537a79c711aded3a1a056f8f26.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GIF 1\. of inference processing sequence — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Interpreting inference this way can sometimes lead us astray because we analyze
+    this component of AI applications in abstraction of the traditional production
+    software paradigm. Yes, AI apps have their nuances, but at the end of the day,
+    we are still talking about transactions per unit of time. If we start to think
+    about inference as a transaction, like any other, from an application design point
+    of view, the problem becomes less complex. For example, let’s say we have a chat
+    application that has the following requirements:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Average of **300 user sessions** per hour
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Average of **5 transactions** (LLM inference requests) per user per session
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Average **100 tokens** generated per transaction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each session has an average of **10,000ms (10s) overhead** for user authentication,
+    guardrailing, network latency, and pre/post-processing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Users take an average of **30,000ms (30s) to respond** when actively engaged
+    with the chatbot.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The average total active **session time goal is 3** minutes or less.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Below, you can see that with some simple napkin math, we can get some approximate
+    calculations for the required latency of our LLM inference engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e81ec3c2fcdaa2f85ed293707e29dd9d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1\. A simple equation to calculate the required transaction and token
+    latency based on various application requirements. — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Achieving required latency thresholds in production is a challenge, especially
+    if you need to do it without incurring additional compute infrastructure costs.
+    In the remainder of this article, we will explore one way that we can significantly
+    improve inference latency through model compression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Compression
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Model compression is a loaded term because it addresses a variety of techniques,
+    such as model quantization, distillation, pruning, and more. At their core, the
+    chief aim of these techniques is to reduce the computational complexity of neural
+    networks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a063d0f1575e7dbbb20b419bc28230c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GIF 2\. Illustration of inference processing sequence — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The method we will focus on today is model quantization, which involves reducing
+    the byte precision of the weights and, at times, the activations, reducing the
+    computational load of matrix operations and the memory burden of moving around
+    larger, higher precision values. The figure below illustrates the process of quantifying
+    fp32 weights to int8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/82cd0e972f9a9a49ad1b4eff1cc721db.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig 2\. Visual representation of model quantization going from full precision
+    at FP32 down to quarter precision at INT8, theoretically reducing the model complexity
+    by a factor of 4\. — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth mentioning that the reduction of complexity by a factor of 4 that
+    results from quantizing from fp32 (full precision) to int8 (quarter precision)
+    does not result in a 4x latency reduction during inference because inference latency
+    involves more factors beyond just model-centric properties.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Like with many things, there is no one-size-fits-all approach, and in this
+    article, we will explore three of my favorite techniques for quantizing models
+    using IPEX:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Inference at bf16 or fp32**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This technique quantizes the weights in the neural network down to a user defined
+    precision. This technique is ideal for smaller models, like the <1B LLMs of the
+    world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8ad85dbaf7f150a475f67a5031c129d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig 3\. Simple illustration of bf16/fp32, showing FP32 weights in orange and
+    half-precision quantized bf16 weights in green. — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The implementation is quite straightforward: using hugging face transformers,
+    a model can be loaded into memory and optimized using the IPEX llm-specific optimization
+    function `ipex.llm.optimize(model, dtype=dtype)` by setting `dtype = torch.bfloat16,`
+    we can activate the half-prevision inference capability, which improves the inference
+    latency over full-precision (fp32) and stock.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Of the three compression techniques we will explore, this is the easiest to
+    implement (measured by unique lines of code) and offers the smallest net improvement
+    over a non-quantized baseline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**SmoothQuant (int8)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This technique addresses the core challenges of quantizing LLMs, which include
+    handling large-magnitude outliers in activation channels across all layers and
+    tokens, a common issue that traditional quantization techniques struggle to manage
+    effectively. This technique employs a joint mathematical transformation on both
+    weights and activations within the model. The transformation strategically reduces
+    the disparity between outlier and non-outlier values for activations, albeit at
+    the cost of increasing this ratio for weights. This adjustment renders the Transformer
+    layers “quantization-friendly,” enabling the successful application of int8 quantization
+    without degrading model quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c723f913c23b0e8577171ad521f992c9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Fig 4\. Simple illustration of SmoothQuant showing weights as circles and activations
+    as triangles. The diagram depicts the two main steps: (1) the application of scaler
+    for smoothing and (2) the quantization to int8 — Image by Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below, you’ll find a simple SmoothQuant implementation — omitting the code for
+    creating the DataLoader, which is a common and well-documented PyTorch principle.
+    SmoothQuant is an accuracy-aware post-training quantization recipe, meaning that
+    by providing a calibration dataset and model you will be able to provide a baseline
+    and limit the language modeling degradation. The calibration model generates a
+    quantization configuration, which is then passed to `ipex.llm.optimize()` along
+    with the SmoothQuant mapping. Upon execution, the SmoothQuant is applied, and
+    the model can be tested using the `.generate()` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: SmoothQuant is a powerful model compression technique and helps significantly
+    improve inference latency over full-precision models. Still, it requires a little
+    upfront work to prepare a calibration dataset and model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Weight-Only Quantization (int8 and int4)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Compared to traditional int8 quantization applied to both activation and weight,
+    weight-only quantization (WOQ) offers a better balance between performance and
+    accuracy. It is worth noting that int4 WOQ requires dequantizing to bf16/fp16
+    before computation (Figure 4), which introduces an overhead in compute. A basic
+    WOQ technique, tensor-wise asymmetric Round To Nearest (RTN) quantization, presents
+    challenges and often leads to reduced accuracy ([source](https://huggingface.co/blog/intel-starcoder-quantization)).
+    However, literature (Zhewei Yao, 2022) suggests that groupwise quantizing the
+    model’s weights helps maintain accuracy. Since the weights are only dequantized
+    for computation, a significant memory advantage remains despite this extra step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/159691607f7555e9159295d849f92e4f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Fig 5\. Simple illustration of weight-only quantization, with pre-quantized
+    weights in orange and the quantized weights in green. Note that this depicts the
+    initial quantization to int4/int8 and dequantization to fp16/bf16 for the computation
+    step. — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The WOQ implementation below showcases the few lines of code required to quantize
+    a model from Hugging Face with this technique. As with the previous implementations,
+    we start by loading a model and tokenizer from Hugging Face. We can use the `get_weight_only_quant_qconfig_mapping()`
+    method to configure the WOQ recipe. The recipe is then passed to the `ipex.llm.optimize()`
+    function along with the model for optimization and quantization. The quantized
+    model can then be used for inference with the `.generate()` method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, WOQ provides a powerful way to compress models down to a fraction
+    of their original size with limited impact on language modeling capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion and Discussion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As an engineer at Intel, I’ve worked closely with the IPEX engineering team
+    at Intel. This has afforded me a unique insight into its advantages and development
+    roadmap, making IPEX a preferred tool. However, for developers seeking simplicity
+    without the need to manage an extra dependency, PyTorch offers [three quantization
+    recipes](https://pytorch.org/docs/stable/quantization.html): Eager Mode, FX Graph
+    Mode (under maintenance), and PyTorch 2 Export Quantization, providing strong,
+    less specialized alternatives.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No matter what technique you choose, model compression techniques will result
+    in some degree of language modeling performance loss, albeit in <1% in many cases.
+    For this reason, it’s essential to evaluate the application’s fault tolerance
+    and establish a baseline for model performance at full (FP32) and/or half-precision
+    (BF16/FP16) before pursuing quantization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In applications that leverage some degree of in-context learning, like Retrieval
+    Augmented Generation (RAG), model compression might be an excellent choice. In
+    these cases, the mission-critical knowledge is spoon-fed to the model at the time
+    of inference, so the risk is heavily reduced even with low-fault-tolerant applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantization is an excellent way to address LLM inference latency concerns without
+    upgrading or expanding compute infrastructure. It is worth exploring regardless
+    of your use case, and IPEX provides a good option to start with just a few lines
+    of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A few exciting things to try would be:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test the sample code in this tutorial on the Intel Developer Cloud’s [free Jupyter
+    Environment](https://console.idcservice.net/training).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Take an existing model that you’re running on an accelerator at complete precision
+    and test it out on a CPU at int4/int8
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Explore all three techniques and determine which works best for your use case.
+    Make sure to compare the loss of language modeling performance, not just latency.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Upload your quantized model to the Hugging Face Model Hub](https://github.com/intel/ai-innovation-bridge/blob/master/workshops/ai-workloads-with-huggingface/6%20-%20Uploading%20and%20Sharing%20Models%20on%20Hugging%20Face%20Hub%20with%20Intel%20Optimizations.ipynb)!
+    If you do, let me know — I’d love to check it out!'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Thank you for reading! Don’t forget to follow*** [***my profile for more
+    articles***](https://eduand-alvarez.medium.com/) ***like this!***'
+  prefs: []
+  type: TYPE_NORMAL

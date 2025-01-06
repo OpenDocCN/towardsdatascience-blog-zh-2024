@@ -1,0 +1,754 @@
+- en: A Sharp and Solid Outline of 3D Grid Neighborhoods
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-sharp-and-solid-outline-of-3d-grid-neighborhoods-1b0f264e7c11?source=collection_archive---------3-----------------------#2024-03-08](https://towardsdatascience.com/a-sharp-and-solid-outline-of-3d-grid-neighborhoods-1b0f264e7c11?source=collection_archive---------3-----------------------#2024-03-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How 2D grid-based algorithms can be brought into the 3D world
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@rhys.goldstein?source=post_page---byline--1b0f264e7c11--------------------------------)[![Rhys
+    Goldstein](../Images/75dafe578e93f357d5cfd6822b274373.png)](https://medium.com/@rhys.goldstein?source=post_page---byline--1b0f264e7c11--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b0f264e7c11--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1b0f264e7c11--------------------------------)
+    [Rhys Goldstein](https://medium.com/@rhys.goldstein?source=post_page---byline--1b0f264e7c11--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b0f264e7c11--------------------------------)
+    ·20 min read·Mar 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f060f791dcb2e8c13912b577f52a19e2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Closeup of the triangular 50-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In my previous two articles, [A Short and Direct Walk with Pascal’s Triangle](/a-short-and-direct-walk-with-pascals-triangle-26a86d76f75f)
+    and [A Quick and Clear Look at Grid-Based Visibility](/a-quick-and-clear-look-at-grid-based-visibility-bf63769fbc78),
+    we saw how easy it is to generate decent-looking travel paths and compute visible
+    regions using grid-based algorithms. The techniques I shared in those posts can
+    be used for video games, mobile robotics, and architectural design, though our
+    examples were limited to two dimensions. In this third and final installment of
+    the series, we take what we know about 2D grid-based algorithms and add the third
+    dimension. Read on to discover five 3D grid neighborhoods you can use to solve
+    AI problems like navigation and visibility in 3D.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3D Navigation and Visibility Problems
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Since the world is 3D, it’s no surprise that video games, mobile robotics challenges,
+    and architectural design tools often require 3D variants of pathfinding and visibility
+    algorithms. For example, the image below shows what a person can see from a certain
+    point in a 3D model of a city. An architect might use this kind of 3D visibility
+    analysis to design a large building while allowing nearby pedestrians to see as
+    much of the sky as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/132e399cb44f2355ad549d7592144194.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of 3D visibility by [Kean Walmsley](https://through-the-interface.typepad.com/through_the_interface/about-the-author.html)
+    on [Through the Interface](https://www.keanw.com/2023/10/using-vasa-with-forma-part-2.html).
+    (Used with permission)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This next image gives us an X-ray view of the route a person might walk between
+    two points on different floors of a building.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a5c80ec26afd238023088d63ee30b0b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of 3D pathfinding by [Kean Walmsley](https://through-the-interface.typepad.com/through_the_interface/about-the-author.html)
+    on [Through the Interface](https://www.keanw.com/2021/10/streamlines-in-the-forge-viewer.html).
+    (Used with permission)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above example is typical of 3D pathfinding in that the path is constrained
+    to walkable surfaces such as staircases and floors. Another type of 3D navigation
+    problem arises when generating a flight path for an aerial robot such as a quadcopter
+    drone. In that case, the path may go straight through the air instead of adhering
+    to surfaces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As in the previous articles, we are interested in solving navigation and visibility
+    problems using grid-based algorithms**.** This means that every time a grid point
+    is visited, information may flow only to neighboring grid points. The set of grid
+    points considered to be “neighbors” is given by the **grid neighborhood**. There
+    are many possible grid neighborhoods, but the ones depicted in the image below
+    are the five smallest **standard 2D grid neighborhoods** [1]. Notice that as the
+    neighborhoods increase in size from 4 to 16 neighbors, they alternate between
+    rectangular and triangular grids. Generally speaking, algorithms that use larger
+    neighborhoods take longer to run but produce more accurate results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2eb92480d8f720af9a57326b84011511.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Rectangular and triangular 2D grid neighborhoods. (Image by [Autodesk Research](https://www.research.autodesk.com/)
+    [1], used with permission)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What interests us now is the following question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What do these 2D neighborhoods look like in 3D?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The 3D equivalent of the 4-neighborhood and the 8-neighborhood are described
+    in the journal paper “[Path Counting for Grid-Based Navigation](https://www.jair.org/index.php/jair/article/view/13544)”
+    and elsewhere in the literature, but I had difficulty finding the 3D versions
+    of the other three neighborhoods. I eventually decided to work them out myself
+    so that I could present the complete set. Before we go through them one by one,
+    here’s a sneak peek at the five smallest **standard 3D grid neighborhoods**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ecab56499e51e27b28777ecb25c11b1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The five smallest standard grid neighborhoods in 3D. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To demonstrate these five neighborhoods, we’ll solve the 3D visibility problem
+    with each of them and compare the five solutions for accuracy. The reason we’re
+    focusing on grid-based visibility is because it’s one of the simplest grid-based
+    algorithms — simple enough for us to take a good look at the code. Once you’ve
+    seen how grid-based visibility can be implemented in 3D, you can use your choice
+    of 3D grid neighborhood to solve 3D pathfinding problems and other AI challenges
+    that arise in the 3D world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rectangular 6-Neighborhood
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We’ll start with the neighborhoods defined on a **3D rectangular grid**, which
+    is simply the set of points [x, y, z] where x, y, and z are integers. These grids
+    are widely used. They can be represented on a computer using a standard 3D array.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb84b12179c6d509b0b5d7c69c77f66e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A 3x3x3 slice of a 3D rectangular grid. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first 3D grid neighborhood is nearly ubiquitous, but we’ll present it anyway
+    for the sake of completeness. When the rectangular 4-neighborhood in 2D is extended
+    to 3D, we end up with the **rectangular 6-neighborhood** illustrated below. To
+    interpret the image, imagine that the two vertical arrows point up and down while
+    the remaining arrows point north, east, south, and west.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/805464f757c3dc9ce175d72d25dc45e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The rectangular 6-neighborhood represented with vectors. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we’ll apply the rectangular 6-neighborhood to solve the 3D visibility problem
+    using Python. In the code below, the function `grid_visibility` inputs a 3D array
+    named `grid0` representing the environment. Cells in this initial grid with a
+    value of 1 represent empty space, and cells with a value of 0 represent an obstacle.
+    The function computes the visibility results in a separate 3D array named `grid`.
+    Cells in this output grid with a value of 1 are considered visible from a viewpoint
+    at [0, 0, 0], and cells with a value of 0 are considered blocked.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The reason the viewpoint is fixed at [0, 0, 0] is just to simplify the code.
+    If you want the viewpoint to be located somewhere else, such as the center of
+    the grid, the [previous article](/a-quick-and-clear-look-at-grid-based-visibility-bf63769fbc78)
+    solves that problem in 2D with an array indexing trick that will also work in
+    3D.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To test our 3D grid-based visibility solver, we’ll use the scenario shown below.
+    The input grid is 40x40x40 and features a spherical obstacle with center at [10,
+    20, 16] and radius 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0a0030f8b428dfb572f4ddc0f583f9b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The test scenario. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This problem is simple enough to solve analytically, allowing us to test the
+    accuracy of the grid-based solution. The red dots in the animation below indicate
+    the grid points that have been misclassified using our 6-neighbor grid-based approach.
+    Notice that the vast majority of the 40x40x40 grid points have no red dot, meaning
+    that they are correctly classified. The errors occur near the boundary of the
+    obstacle’s “shadow”, where grid points are either barely visible or barely obstructed.
+    I find that errors such as these are usually tolerable, though it depends on the
+    application. I’ll provide the testing and visualization code near the end of the
+    article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d3a755e13c69176dedca4e79efdd4efc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Grid-based visibility classification errors using the 6-neighborhood. (Animation
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we are going to rewrite our grid-based visibility algorithm in a way that
+    accommodates the larger 3D grid neighborhoods. The key is to solve the visibility
+    problem within a cone bracketed by a set of vectors. In the [previous article](/a-quick-and-clear-look-at-grid-based-visibility-bf63769fbc78),
+    we defined a 2D `visibility_within_cone` function that required two vectors to
+    specify a triangular cone. In 3D, the function requires three vectors to define
+    a tetrahedral cone.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below is an alternative illustration of the 6-neighborhood showing the triangular
+    faces associated with each cone. Represented in this fashion, the 6-neighborhood
+    appears as an octahedron.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4601851dfbbb5639aa34b1241e03d191.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The rectangular 6-neighborhood represented with triangular faces. (Image by
+    author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we slice the octahedron in half, we can see the rectangular 6-neighborhood’s
+    2D counterpart: the 4-neighborhood.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92ac9ce07cb930dd4dca23aaa6e3d1dd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The 3D 6-neighborhood cut in half to reveal the 2D 4-neighborhood. (Image by
+    author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at the full octahedron again, and project one of the triangles away
+    from the origin to help us visualize a tetrahedral cone. The 6-neighborhood has
+    8 such cones in total, one for each 3D octant of the domain. Note that each cone
+    extends to infinity, taking up its entire octant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8d576426c956f300bf649e37f1253cec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of a cone in the rectangular 6-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is a plot of just one octant of the 6-neighborhood, with its single cone.
+    The plot makes it easy to read off the coordinates of the bracketing vectors,
+    which we’ll need in order to reimplement the grid-based algorithm. In this case
+    the bracketing vectors are `[1,0,0]`, `[0,1,0]`, `[0,0,1]`, the corners of the
+    triangle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/865ba5e86babf689fae45bcdb7a3925e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of a cone in one octant of the rectangular 6-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is our new implementation of 6-neighbor 3D grid-based visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The new `grid6-visibility` function produces exactly the same results as the
+    `grid-visibility` function we saw earlier, but our refactoring efforts will help
+    us tackle the larger 3D neighborhoods which have many more cones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rectangular 26-Neighborhood
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When the rectangular 8-neighborhood in 2D is extended to 3D, we get the **rectangular
+    26-neighborhood** shown below. The neighborhood appears as a 2x2x2 cube with each
+    side tessellated into triangles representing cones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d23900bcdc3fca8be0bf65a743a8771b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The rectangular 26-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As before, we can cut the neighborhood in half to see its 2D counterpart: the
+    8-neighborhood.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8d17575956761aebe87c798ee9503c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The 3D 26-neighborhood cut in half to reveal the 2D 8-neighborhood. (Image by
+    author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rectangular 26-neighborhood is well known, though it is rarely shown in
+    a way that identifies its 48 tetrahedral cones. The illustration below highlights
+    one of these cones.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/415826e69252c7b41127b750dc1bfc6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of a cone in the rectangular 26-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following plot helps us to read off the coordinates of the 6 cones within
+    one octant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e9b8272550bfd7a08d7b9c87baa67539.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of the 6 cones in one octant of the rectangular 26-neighborhood. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s our implementation of 26-neighbor 3D grid-based visibility. Notice that
+    we call `visibility_within_cone` once for each triangle in the plot above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The visibility results we obtain with the 26-neighborhood contain fewer errors
+    than with the 6-neighborhood. You can see below that the red dots are sparser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c98d5a0f0de79e315d2f44e3fd9cebc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classification errors using the 6-neighborhood (left) and 26-neighborhood (right).
+    (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 26-neighborhood is common, though it is usually presented without identifying
+    the 48 tetrahedral cones. In theory these cones aren’t needed for pathfinding
+    or visibility, but they allow us to adopt faster algorithms. For example, it is
+    widely understood among computer scientists that one can find shortest grid paths
+    in 3D by applying Dijkstra’s algorithm using 26 neighbors on a rectangular grid.
+    Dijkstra’s algorithm does not require us to know how those neighbors are grouped
+    into cones. However, if we have identified the cones, we can adopt a faster pathfinding
+    method called [3D Jump Point Search](https://ojs.aaai.org/index.php/SOCS/article/view/21762)
+    [2]. If you’re looking for a challenge, try implementing Jump Point Search with
+    your choice of 3D grid neighborhood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rectangular 74-Neighborhood
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The previous two 3D grid neighborhoods are reasonably well established, but
+    now we must venture into unknown territory. When the rectangular 16-neighborhood
+    in 2D is extended to 3D, we get the **rectangular 74-neighborhood**. I’m not sure
+    how to describe the shape of the 74-neighborhood, but this is what it looks like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/45691df1c6421f1a8af489a7989592e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The rectangular 74-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: And here it is again, this time sliced in half to reveal the 16-neighborhood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2341320c37a99e203d94a1be913b7f4b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The 3D 74-neighborhood cut in half to reveal the 2D 16-neighborhood. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The rectangular 74-neighborhood has 144 cones in total. Below is a plot representing
+    the 18 cones in one octant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b25a575a10d1756dd0883cafb5828091.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of the 18 cones in one octant of the rectangular 74-neighborhood. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reading off the coordinates of each triangle in the plot, we can now implement
+    74-neighbor 3D grid-based visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below are the errors for all three of our 3D rectangular grid neighborhoods
+    applied to the test scenario. The 74-neighbor solution contains the fewest misclassified
+    points.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2cdc619389de8f9fe56d6011a46490ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classification errors using the 6-neighborhood (left), 26-neighborhood (center),
+    and 74-neighborhood (right). (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Triangular 18-Neighborhood
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'With the 3D rectangular neighborhoods taken care of, it’s time to see what
+    the triangular neighborhoods look like in 3D. They’re surprisingly hard to visualize!
+    A good way to start is by asking the following question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What solid objects have faces that are equilateral triangles, and can be used
+    to fill 3D space?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Aristotle took a stab at answering that question over 2000 years ago. He famously
+    taught that regular tetrahedra fill space [3]. He was wrong. If you have a whole
+    bunch of regular tetrahedra and try putting them together, you will necessarily
+    end up with gaps. The same can be said for regular octahedra: they also do not
+    fill space. But as shown below, you ***can*** fill space using ***both*** tetrahedra
+    and octahedra.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f9f13e329e4c69b00575c0456a102498.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Octahedrons (blue) and tetrahedrons (red) filling space](https://commons.wikimedia.org/wiki/File:HC_P1-P3.png),
+    by [TED-43](https://commons.wikimedia.org/wiki/User:TED-43) on [Wikipedia](https://en.wikipedia.org/wiki/Tetrahedral-octahedral_honeycomb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the space-filling arrangement above, notice that the vertices of the tetrahedra
+    and octahedra occur at regularly spaced points. These are the points of a **face-centered
+    cubic lattice**, which we’ll refer to as a **3D triangular grid**. If one of these
+    points is located at [0, 0, 0], we can scale and orient the 3D triangular grid
+    so that its points coincide with every ***alternate*** point on a 3D rectangular
+    grid. The plot below shows a 3D triangular grid with this configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3ff387818d893a0e70a19e3c14ccb3ff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A 3x3x3 slice of a 3D triangular grid. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To represent these grids on a computer, we’ll adopt the same kind of arrays
+    that we employed for 3D rectangular grids. However, in the case of a 3D triangular
+    grid, only half of the array elements will ever get used. An array element at
+    [x, y, z] will be used only if (x + y + z) is an even number. If (x + y + z) is
+    odd, the element will be initialized to 0 and will always remain 0.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now know how points in a 3D triangular grid can be arranged, but what does
+    a **triangular grid cell** look like in 3D? When I use the term “grid cell”, I’m
+    referring to a space filling shape that is centered on a grid point. In 2D, a
+    triangular grid cell is not a triangle, but rather a hexagon. The [Red Blog Games](https://www.redblobgames.com/)
+    tutorial on [Hexagonal Grids](https://www.redblobgames.com/grids/hexagons/) makes
+    this easy to see. It turns out that in 3D, a triangular grid cell is called a
+    **rhombic dodecahedron**. Rhombic dodecahedra fill 3D space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8336f6f13341ff3cb42b31ca9eb4c2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Rhombic dodecahedron](https://commons.wikimedia.org/wiki/File:Rhombicdodecahedron.jpg)
+    by [Cyp](https://en.wikipedia.org/wiki/User:Cyp) on [Wikipedia](https://en.wikipedia.org/wiki/Rhombic_dodecahedron)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dual of a polyhedron is the shape you get when you replace each face with
+    a vertex and each vertex with a face. The dual of a **rhombic dodecahedron** is
+    called a **cuboctahedron**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90a249fbea0e531c2486bcbc414bf176.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Cuboctahedron](https://commons.wikimedia.org/wiki/File:Cuboctahedron.jpg)
+    by [Cyp](https://en.wikipedia.org/wiki/User:Cyp) on [Wikipedia](https://en.wikipedia.org/wiki/Cuboctahedron)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we center a cuboctahedron on a 3D triangular grid point, we can scale and
+    orient it so that its 12 vertices coincide with the nearest neighboring grid points.
+    In other words, the cuboctahedron is a viable 3D grid neighborhood. I would not
+    consider this 12-neighborhood to be a ***standard*** 3D grid neighborhood, however,
+    for the simple reason that some its faces are squares rather than triangles. There
+    is a grid-based visibility algorithm from the urban design community that could
+    be adapted to work with the square faces of the 12-neighborhood [4], but we will
+    stick with our current algorithm requiring triangular faces.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The smallest 3D triangular neighborhood that meets our criteria is the **triangular
+    18-neighborhood**. It appears as an octahedron with each side tessellated into
+    triangles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/94986125756c1fc93f346a866d21f56a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The triangular 18-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we slice the 18-neighborhood at an angle, we can see that it extends the
+    2D triangular 6-neighborhood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/780f03018e6ec7d9e521833c47129193.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The 3D 18-neighborhood cut in half to reveal the 2D 6-neighborhood. (Image by
+    author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The triangular 18-neighborhood has 32 cones, 4 cones per octant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0148e8b82a3b960add5cca3f0ec545be.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of the 4 cones in one octant of the triangular 18-neighborhood. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s our 18-neighbor implementation of grid-based visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: And here are the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d3a398590890cf6e6fd53b29a404dd9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classification errors using the 18-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: At first glance it may seem that the 18-neighborhood has yielded greater accuracy
+    than the three rectangular neighborhoods, even the ones with more neighbors and
+    cones. However, the main reason the red dots are sparser here than in previous
+    plots is because, for 3D triangular grids, we only evaluate every alternate point
+    [x, y, z].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Triangular 50-Neighborhood
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The fifth and final neighborhood in our collection is the **triangular 50-neighborhood**.
+    Its overall shape is known as a stellated octahedron, which is basically an octahedron
+    with a tetrahedron glued onto each face. In the case of the 50-neighborhood, each
+    face of the stellated octahedron is tessellated into 4 triangles, as shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ac92c81dc500e7b563c6b875a2d2e215.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The triangular 50-neighborhood. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The 50-neighborhood extends the 2D triangular 12-neighborhood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e609b885e180fa601046e14f97af99fd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The 3D 50-neighborhood cut in half to reveal the 2D 12-neighborhood. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It has 96 cones, 12 per octant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/086820635761d7c5fc6a2eb62ef60e7b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plot of the 12 cones in one octant of the triangular 50-neighborhood. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is 50-neighbor grid-based visibility.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: And finally, here are the results for both of our 3D triangular grid neighborhoods.
+    It may be hard to tell at a glance, but the 50-neighbor results contain fewer
+    errors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5b298d1761c7f05c869e290ce8e75c1c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classification errors using the 18-neighborhood (left) and 50-neighborhood (right).
+    (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Comparison of Neighborhoods
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The table below lists the five presented 3D grid neighborhoods, their properties,
+    and the accuracy obtained when applying each neighborhood to our test problem.
+    The accuracy values are calculated by taking the number of grid points correctly
+    classified as visible or not visible, and dividing by the total number of evaluated
+    grid points. As we’d expect, the accuracy scores increase with the number of neighbors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1362e61553064817460ee59bef9139cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: List of 3D grid neighborhoods, their properties, and accuracy results. (Image
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This analysis is mostly for illustrative purposes. If our goal were to perform
+    a rigorous comparison of these five 3D grid neighborhoods, we would not be satisfied
+    with our single test scenario. Instead we would want to apply each neighborhood
+    to a large set of test scenarios, and average the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I should also point out that in this article and the [previous one](/a-quick-and-clear-look-at-grid-based-visibility-bf63769fbc78),
+    I have taken a shortcut both literally and figuratively when implementing grid-based
+    visibility for large neighborhoods. The proper formula, which you can find in
+    the journal paper “[Path Counting for Grid-Based Navigation](https://www.jair.org/index.php/jair/article/view/13544)”
+    [1], requires a line-of-sight test between every pair of neighboring grid points.
+    To illustrate, consider the following 2D scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1a5e7e7569249bf6ed02e5e3faf23acd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Two labelled cells on a 2D rectangular grid. (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we’re using the 4-neighborhood or the 8-neighborhood, then cells **A** and
+    **B** in the above example are not neighbors. But if we’re using the 16-neighborhood,
+    then these two points ***are*** neighbors and so we should technically perform
+    a line-of-sight test between them. The algorithms in this article series alleviate
+    the need for line-of-sight checks between distant grid points, though it is still
+    best to precompute these checks over the short distances between neighbors. If
+    we draw a line between the centers of cells **A** and **B**, the line will pass
+    through a blocked cell. This suggests that the visibility algorithm should probably
+    ***not*** propagate information directly from **A** to **B**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The literal and figurative shortcut I’ve been taking is to assume two neighboring
+    cells are mutually visible as long as they’re both empty. This works perfectly
+    well for the 4-neighborhood in 2D and the 6-neighborhood in 3D, but it isn’t quite
+    right for the larger neighborhoods. In the example above, a 16-neighbor version
+    of my Python code would treat cells **A** and **B** as mutually visible. It would
+    happily propagate information from one to the other, essentially taking a “shortcut”
+    through the obstacle.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This shortcut I’m describing isn’t such a big deal if our obstacles are sufficiently
+    wide compared with the grid spacing. In our test results, the larger 3D neighborhoods
+    achieved greater accuracy than the smaller ones despite this flaw. But if you
+    plan to use large 2D or 3D grid neighborhoods in your own work, I encourage you
+    to carefully consider which neighboring grid points should and should not be treated
+    as direct pathways for information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing and Visualization Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Please skip this section and [proceed to the conclusion](#6036) if you are ***not***
+    interested in running the Python code presented in this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you ***are*** interested in running the code, follow these steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure you have Python installed along with the NumPy and Matplotlib libraries.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create an empty text file named `grid_visibility_3D.py`. Starting from the top,
+    copy into this text file all of the code blocks that have appeared in this article
+    until this point.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create another text file named `test_grid_visibility_3D.py` and copy in the
+    long code block that appears below these instructions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: On the command prompt, run `python test_grid_visibility_3D.py`. You should see
+    the same accuracy scores that were reported in the [Comparison of Neighborhoods](#2d42)
+    table. You should also see a 3D visualization of the test scenario.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Close the visualization window and run the command `python test_grid_visibility_3D.py
+    6`. You should see the same output except with red dots appearing in the 3D visualization.
+    You can drag the cursor on the plot to rotate it and get a better view. These
+    dots are the errors associated with the 6-neighbor visibility algorithm. Run the
+    code again with the command line argument `6` changed to `18`, `26`, `50`, or
+    `74` to see the errors associated with the other 3D grid neighborhoods.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thank you for reading my articles on pathfinding and visibility in both 2D and
+    3D. I hope this series has expanded your view of what can be done using simple
+    grid-based algorithms. By counting paths (see [part 1](/a-short-and-direct-walk-with-pascals-triangle-26a86d76f75f)),
+    employing linear interpolation (see [part 2](/a-quick-and-clear-look-at-grid-based-visibility-bf63769fbc78)),
+    selecting a larger grid neighborhood (as in this article — part 3), or simply
+    choosing a finer grid resolution, we can overcome the perceived limitations of
+    grids and achieve highly satisfactory results. The next time you encounter an
+    AI problem that is usually tackled with brute force ray casting or cumbersome
+    analytic calculations, remember what you can accomplish with a grid-based method
+    and your neighborhood of choice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] R. Goldstein, K. Walmsley, J. Bibliowicz, A. Tessier, S. Breslav, A. Khan,
+    [Path Counting for Grid-Based Navigation](https://www.jair.org/index.php/jair/article/view/13544)
+    (2022), Journal of Artificial Intelligence Research, vol. 74, pp. 917–955'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] T. K. Nobes, D. D. Harabor, M. Wybrow, S. D. C. Walsh, [The Jump Point
+    Search Pathfinding System in 3D](https://ojs.aaai.org/index.php/SOCS/article/view/21762)
+    (2022), Proceedings of the International Symposium on Combinatorial Search (SoCS)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] C. L. Jeffrey, C. Zong, [Mysteries in Packing Regular Tetrahedra](https://www.ams.org/journals/notices/201211/rtx121101540p.pdf)
+    (2012), Notices of the American Mathematical Society, vol. 59, no. 11, pp. 1540–1549'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] D. Fisher-Gewirtzman, A. Shashkov, Y. Doytsher, [Voxel Based Volumetric
+    Visibility Analysis of Urban Environments](https://www.tandfonline.com/doi/abs/10.1179/1752270613Y.0000000059)
+    (2013), Survey Review, vol. 45, no. 333, pp. 451–461'
+  prefs: []
+  type: TYPE_NORMAL

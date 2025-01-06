@@ -1,0 +1,317 @@
+- en: Adapted Prediction Intervals by Means of Conformal Predictions and a Custom
+    Non-Conformity Score
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/use-case-adapted-prediction-intervals-by-means-of-conformal-predictions-and-a-custom-non-conformity-b4fb28d2a4f7?source=collection_archive---------3-----------------------#2024-01-24](https://towardsdatascience.com/use-case-adapted-prediction-intervals-by-means-of-conformal-predictions-and-a-custom-non-conformity-b4fb28d2a4f7?source=collection_archive---------3-----------------------#2024-01-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How confident should I be in a machine learning model’s prediction for a new
+    data point? Could I get a range of likely values?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)[![Arnaud
+    Capitaine](../Images/3d2ef4ffd67289732c79b59c37771b70.png)](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------)
+    [Arnaud Capitaine](https://medium.com/@arnaud.gc.capitaine?source=post_page---byline--b4fb28d2a4f7--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b4fb28d2a4f7--------------------------------)
+    ·9 min read·Jan 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a98c53a6c2c214aed040c14db0e4ced.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: When working on a supervised task, machine learning models can be used to predict
+    the outcome for new samples. However, it is likely that **the prediction from
+    a new data point is incorrect**. This is particularly true for a regression task
+    where the outcome may take an infinite number of values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order to get a more insightful prediction, we may be interested in (or even
+    need) a prediction interval instead of a single point. **Well informed decisions
+    should be made by taking into account uncertainty.** For instance, as a property
+    investor, I would not offer the same amount if the prediction interval is [100000–10000
+    ; 100000+10000] as if it is [100000–1000 ; 100000+1000] (even though the single
+    point predictions are the same, i.e. 100000). I may trust the single prediction
+    for the second interval but I would probably take a deep dive into the first case
+    because the interval is quite wide, so is the profitability, and the final price
+    may significantly differs from the single point prediction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prediction interval vs confidence interval
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before continuing, I first would like to clarify the difference between these
+    two definitions. It was not obvious for me when I started to learn conformal prediction.
+    Since I may not be the only one being confused, this is why I would like to give
+    additional explanation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A (1-α) **confidence interval** [[1](https://en.wikipedia.org/wiki/Confidence_interval)]
+    is an interval based on 2 statistics, ŝ_{lb} and ŝ_{ub}, which has a probability
+    greater than (1-α) to contain the actual parameter that we try to estimate. Here
+    θ is a parameter (not a random variable).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ℙ([ŝ_{lb} ; ŝ_{ub}] ∋ θ) ≥ 1-α
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'A (1-α) **prediction interval** [[2](https://en.wikipedia.org/wiki/Prediction_interval)]
+    is an interval based on 2 statistics, ŝ_{lb} and ŝ_{ub}, which has the following
+    property: the target random variable has a probability greater than (1-α) of being
+    inside this prediction interval. Here Y is a random variable (not a parameter).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: ℙ(Y∈[ŝ_{lb} ; ŝ_{ub}]) ≥ (1-α)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Let’s consider an example to illustrate the difference. Let’s consider a n-sample
+    of parent distribution N(μ, σ²). ŝ is the unbiased estimator of σ. <Xn> is the
+    mean of the n-sample. I noted q the 1-α/2 quantile of the Student distribution
+    of n-1 degree of freedom (to limit the length of the formula).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The symmetric **confidence interval** for μ is:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[<Xn>-q*ŝ/√(n) ; <Xn>+q*ŝ/√(n)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The symmetric **prediction interval** for X(n+1), a (n+1)th random variable
+    from the same distribution N(μ, σ²), is:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[<Xn>-q*ŝ*√(1+1/n)) ; <Xn>+q*ŝ*√(1+1/n)]'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Now that we have clarified these definitions, let’s come back to our goal:
+    design insightful prediction intervals to make well informed decisions. There
+    are many ways to design prediction intervals [[2](https://en.wikipedia.org/wiki/Prediction_interval)]
+    [[3](https://medium.com/@heinrichpeters/prediction-intervals-in-machine-learning-a2faa36b320c)].
+    We are going to focus on conformal predictions [[4](https://en.wikipedia.org/wiki/Conformal_prediction)].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conformal predictions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Conformal prediction has been introduced to generate prediction intervals with
+    weak theoretical guarantees. It only requires that the points are exchangeable,
+    which is weaker than i.i.d. assumption (independent and identically distributed
+    random variables). There is no assumption on the data distribution nor on the
+    model. By splitting the data between a training and a calibration set, it is possible
+    to get a trained model and some non-conformity scores that we could use to build
+    a prediction interval on a new data point (with theoretical coverage guarantee
+    provided that the exchangeability assumption is true).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now consider an example. I would like to get some prediction intervals
+    for house prices. I have considered the house_price dataset from OpenML [[5](https://www.openml.org/search?type=data&sort=runs&id=42165&status=active)].
+    I have used the library MAPIE [[6](https://github.com/scikit-learn-contrib/MAPIE)]
+    that implements conformal predictions. I have trained a model (I did not spend
+    some time optimizing it since it is not the purpose of the post). I have displayed
+    below the prediction points and intervals for the test set as well as the actual
+    price.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are 3 subplots:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- The 1st one displays the single point predictions (blue points) as well as
+    the predictions intervals (vertical blue lines) against the true value (on abscissa).
+    The red diagonal is the identity line. If a vertical line crosses the red line,
+    the prediction interval does contain the actual value, otherwise it does not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- The 2nd one displays the prediction interval widths.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- The 3rd one displays the global and local coverages. The coverage is the
+    ratio between the number of samples falling inside the prediction intervals divided
+    by the total number of samples. The global coverage is the ratio over all the
+    points of the test set. The local coverages are the ratios over subsets of points
+    of the test set. The buckets are created by means of quantiles of the actual prices.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a40e31c43df8e167081d1baea69df2e1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that prediction width is almost the same for all the predictions.
+    The coverage is 94%, close to the chosen value 95%. However, even though the global
+    coverage is (close to) the desired one, if we look at (what I call) the local
+    coverages (coverage for a subset of data points with almost the same price) we
+    can see that **coverage is bad for expensive houses** (expensive regarding my
+    dataset). Conversely, it is good for cheap ones (cheap regarding my dataset).
+    However, **the insights for cheap houses are really poor**. For instance, the
+    prediction interval may be [0 ; 180000] for a cheap house, which is not really
+    helpful to make a decision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instinctively, I would like to get prediction intervals which width is proportional
+    to the prediction value so that the prediction widths scale to the predictions.
+    This is why I have looked at other non conformity scores, more adapted to my use
+    case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conformal predictions with custom non conformity score
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Even though I am not a real estate expert, I have some expectations regarding
+    the prediction intervals. As said previously, I would like them to be, kind of,
+    proportional to the predicted value. I would like a small prediction interval
+    when the price is low and I expect a bigger one when the price is high.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consequently, for this use case I am going to implement two non conformity scores
+    that respect the conditions that a non conformity score must fulfill [[7](https://proceedings.mlr.press/v204/cordier23a/cordier23a.pdf)]
+    (3.1 and Appendix C.). I have created two classes from the interface *ConformityScore*
+    which requires to implement at least two methods *get_signed_conformity_scores*
+    and *get_estimation_distribution*. *get_signed_conformity_scores* computes the
+    non conformity scores from the predictions and the observed values. *get_estimation_distribution*
+    computes the estimated distribution that is then used to get the prediction interval
+    (after providing a chosen coverage). I decided to name my first non conformity
+    score *PoissonConformityScore* because it is intuitively linked to the Poisson
+    regression. When considering a Poisson regression, (Y-μ)/√μ has 0 mean and a variance
+    of 1\. Similarly, for the *TweedieConformityScore* class, when considering a Tweedie
+    regression, (Y-μ)/(μ^(p/2)) has 0 mean and a variance of σ² (which is assumed
+    to be the same for all observations). In both classes, *sym=False* because the
+    non conformity scores are not expected to be symmetrical. Besides, *consistency_check=False*
+    because I know that the two methods are consistent and fulfill the necessary requirements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: I have then taken the same example as previously. In addition to the default
+    non conformity scores, that I named *AbsoluteConformityScore* in my plot, I have
+    also considered these two additional non conformity scores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e4221fa85633ecfec2a22305d8c4bb59.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see, the global coverages are all close to the chosen one, 95%. I
+    think the small variations are due to luck during the random split between the
+    training set and test one. However, the prediction interval widths differ significantly
+    from an approach to another, as well as the local coverages. Once again, I am
+    not a real estate expert, but I think the prediction intervals are more realistic
+    for the last non conformity score (3rd column in the figure). For the new two
+    non conformity scores, the prediction intervals are quite narrow (with a good
+    coverage, even if slightly below 95%) for cheap houses and they are quite wide
+    for expensive houses. This is necessary to (almost) reach the chosen coverage
+    (95%). **Our new prediction intervals from the *TweedieConformityScore* non conformity
+    socre have good local coverages over the entire range of prices and are more insightful
+    since prediction intervals are not unnecessarily wide.**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Prediction intervals may be useful to make well informed decisions. Conformal
+    prediction is a tool, among others, to build predictions intervals with theoretical
+    coverage guarantee and only a weak assumption (data exchangeability). When considering
+    the commonly used non conformity score, even though the global coverage is the
+    desired one, local coverages may significantly differ from the chosen one, depending
+    on the use case. This is why I finally considered other non conformity scores,
+    adapted to the considered use case. I showed how to implement it in the conformal
+    prediction library MAPIE and the benefits of doing so. An appropriate non conformity
+    score helps to get more insightful prediction intervals (with good local coverages
+    over the range of target values).
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[](https://en.wikipedia.org/wiki/Confidence_interval?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [## Confidence interval - Wikipedia'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In frequentist statistics, a confidence interval ( CI) is a range of estimates
+    for an unknown parameter. A confidence…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: en.wikipedia.org](https://en.wikipedia.org/wiki/Confidence_interval?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [](https://en.wikipedia.org/wiki/Prediction_interval?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [## Prediction interval - Wikipedia
+  prefs: []
+  type: TYPE_NORMAL
+- en: In statistical inference, specifically predictive inference, a prediction interval
+    is an estimate of an interval in…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: en.wikipedia.org](https://en.wikipedia.org/wiki/Prediction_interval?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [](https://medium.com/@heinrichpeters/prediction-intervals-in-machine-learning-a2faa36b320c?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [## Prediction Intervals in Machine Learning
+  prefs: []
+  type: TYPE_NORMAL
+- en: Machine learning models are powerful tools — but how can we quantify the uncertainty
+    that is associated with their…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@heinrichpeters/prediction-intervals-in-machine-learning-a2faa36b320c?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [](https://en.wikipedia.org/wiki/Conformal_prediction?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [## Conformal prediction - Wikipedia
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conformal prediction (CP) is a machine learning framework for uncertainty quantification
+    that can produce prediction…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: en.wikipedia.org](https://en.wikipedia.org/wiki/Conformal_prediction?source=post_page-----b4fb28d2a4f7--------------------------------)  [##
+    OpenML
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenML is an open platform for sharing datasets, algorithms, and experiments
+    - to learn how to learn better, together.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: 'www.openml.org](https://www.openml.org/search?type=data&sort=runs&id=42165&status=active&source=post_page-----b4fb28d2a4f7--------------------------------)
+    [](https://github.com/scikit-learn-contrib/MAPIE?source=post_page-----b4fb28d2a4f7--------------------------------)
+    [## GitHub - scikit-learn-contrib/MAPIE: A scikit-learn-compatible module for
+    estimating prediction…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A scikit-learn-compatible module for estimating prediction intervals. - GitHub
+    - scikit-learn-contrib/MAPIE: A…'
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/scikit-learn-contrib/MAPIE?source=post_page-----b4fb28d2a4f7--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

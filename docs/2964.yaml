@@ -1,0 +1,500 @@
+- en: 'Unlocking Hidden Potential: Exploring Second-Round Purchasers'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/unlocking-hidden-potential-exploring-second-round-purchasers-d47958c4d61c?source=collection_archive---------4-----------------------#2024-12-09](https://towardsdatascience.com/unlocking-hidden-potential-exploring-second-round-purchasers-d47958c4d61c?source=collection_archive---------4-----------------------#2024-12-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Finding customer segments for optimal retargetting using LLM embeddings and
+    ML model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@iqbal.hamdi?source=post_page---byline--d47958c4d61c--------------------------------)[![Iqbal
+    Hamdi](../Images/6e6fe77bd1be3cb9a7f74e0a855cd503.png)](https://medium.com/@iqbal.hamdi?source=post_page---byline--d47958c4d61c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d47958c4d61c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d47958c4d61c--------------------------------)
+    [Iqbal Hamdi](https://medium.com/@iqbal.hamdi?source=post_page---byline--d47958c4d61c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d47958c4d61c--------------------------------)
+    ·14 min read·Dec 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this article, we are talking about a method of finding the customer segments
+    within a binary classification dataset which have the maximum potential to tip
+    over into the wanted class. This method can be employed for different use-cases
+    such as selective targetting of customers in the second round of a promotional
+    campaign, or finding nodes in a network, which are providing less-than-desirable
+    experience, with the highest potential to move over into the desirable category.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Essentially, the method provides a way to prioritise a segment of the dataset
+    which can provide the maximum bang for the buck.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/872319a92573f15f30b9ec40eb58443c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The context
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In this case, we are looking at a bank dataset. The bank is actively trying
+    to sell loan products to the potential customers by runnign a campaign. This dataset
+    is in public domain provided at Kaggle:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.kaggle.com/datasets/itsmesunil/bank-loan-modelling?source=post_page-----d47958c4d61c--------------------------------)
+    [## Bank_Loan_modelling'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Personal Loan classification problem
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.kaggle.com](https://www.kaggle.com/datasets/itsmesunil/bank-loan-modelling?source=post_page-----d47958c4d61c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The description of the problem given above is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “The majority of Thera-Bank’s customers are depositors. The number of customers
+    who are also borrowers (asset customers) is quite small, and the bank is interested
+    in quickly expanding this base to do more loan business while earning more through
+    loan interest. In particular, management wants to look for ways to convert its
+    liability customers into retail loan customers while keeping them as depositors.
+    A campaign the bank ran last year for deposit customers showed a conversion rate
+    of over 9.6% success. This has prompted the retail marketing department to develop
+    campaigns with better target marketing to increase the success rate with a minimal
+    budget.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above problem deals with classifying the customers and helping to prioritise
+    new customers. But what if we can use the data collected in the first round to
+    target customers who did not purchase the loan in the first round but are most
+    likely to purchase in the second round, given that at least one attribute or feature
+    about them changes. Preferably, this would be the feature which is easiest to
+    change through manual interventions or which can change by itself over time (for
+    example, income generally tends to increase over time or family size or education
+    level attained).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Solution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here is an overview of how this problem is approached in this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d04020542b11d40f2d32e95dfcb4b2c4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: High Level Process Flow
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step -1a : Loading the ML Model'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are numerous notebooks on Kaggle/Github which provide solutions to do
+    model tuning using the above dataset. We will start our discussion with the assumption
+    that the model is already tuned and will load it up from our MLFlow repository.
+    This is a XGBoost model with F1 Score of 0.99 and AUC of 0.99\. The dependent
+    variable (y_label) in this case is ‘Personal Loan’ column.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step-1b: Loading the data'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we would load up the dataset. This is the dataset which has been used
+    for training the model, which means all the rows with missing data or the ones
+    which are considered outliers are already removed from the dataset. We would also
+    calculate the probabilities for each of the customers in the dataset to purchase
+    the loan (given by the column ‘Personal Loan). We will then filter out the customers
+    with probabilities greater than 0.5 but which did not purchase the loan (‘Personal
+    Loan’ = 0). These are the customers which should have purchased the Loan as per
+    the prediction model but they did not in the first round, due to factors not captured
+    by the features in the dataset. These are also the cases wrongly predicted by
+    the model and which have contributed to a lower than 1 Accuracy and F1 figures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3a1edb90bee5a763115a73c23341bb50.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Confusion Matrix
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we set out for round 2 campaign, these customers would serve as the basis
+    for the targetted marketing approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We see that there are only 4 such cases which get added to potential customers
+    table and are removed from the main dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8075ff4e1ff2698365321d93b51fa2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Step-2: Generating SHAP values'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We are now going to generate the Shapely values to determine the local importance
+    of the features and extract the Tipping feature ie. the feature whose variation
+    can move over the customer from unwanted class (‘Personal Loan’ = 0) to the wanted
+    class (‘Personal Loan’ = 1). Details about Shapely values can be found here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html?source=post_page-----d47958c4d61c--------------------------------)
+    [## An introduction to explainable AI with Shapley values - SHAP latest documentation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an introduction to explaining machine learning models with Shapley values.
+    Shapley values are a widely used…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: shap.readthedocs.io](https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html?source=post_page-----d47958c4d61c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will have a look at some of the important features as well to have an idea
+    about the correlation with the dependent variable (‘Personal Loan’). The three
+    features we have shortlisted for this purpose are ‘Income’, ‘Family’ (Family Size)
+    and ‘Education’. As we will see later on, these are the features which we would
+    want to keep our focus on to get the probability changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/fc77f60e99929f9070ade1c6bada755a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Purchase of Personal Loan increases with Income
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5c73c268902fd4bb8cf469d0ba786c89.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Purchase of Personal Loan increases with Family Size
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/33025fac6f8347d947fe642dde9cadc1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Purchase of Personal Loan increases with Education
+  prefs: []
+  type: TYPE_NORMAL
+- en: We see that for all 3 features, the purchase of Personal Loan increase as the
+    feature value tends to increase, with Shap values of greater than 0 as the feature
+    value increases indicating a positive impact of these features on the tendency
+    to purchase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will now store the shap values for each of the customers in a dataframe so
+    we can access the locally most important feature for later processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step-3 : Creating Vector Embeddings:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As the next step, we move on to create the vector embeddings for our dataset
+    using LLM model. The main purpose for this is to be able to do vector similarity
+    search. We intend to find the customers in the dataset, who did not purchase the
+    loan, who are closest to the customers in the dataset, who did purchase the loan.
+    We would then pick the top closest customers and see how the probability changes
+    for these once we change the values for the most important feature for these customers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are a number of steps involved in creating the vector embeddings using
+    LLM and they are not described in detail here. For a good understanding of these
+    processes, I would suggest to go through the below post by Damian Gill:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/mastering-customer-segmentation-with-llm-3d9008235f41?source=post_page-----d47958c4d61c--------------------------------)
+    [## Mastering Customer Segmentation with LLM'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlock advanced customer segmentation techniques using LLMs, and improve your
+    clustering models with advanced…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/mastering-customer-segmentation-with-llm-3d9008235f41?source=post_page-----d47958c4d61c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, we are using the sentence transformer SBERT model available at
+    Hugging Face. Here are the details of the model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://huggingface.co/sentence-transformers?source=post_page-----d47958c4d61c--------------------------------)
+    [## sentence-transformers (Sentence Transformers)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following you find models tuned to be used for sentence / text embedding
+    generation. They can be used with the…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: huggingface.co](https://huggingface.co/sentence-transformers?source=post_page-----d47958c4d61c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For us to get better vector embeddings, we would want to provide as much details
+    about the data in words as possible. For the bank dataset, the details of each
+    of the columns are provided in ‘Description’ sheet of the Excel file ‘Bank_Personal_Loan_Modelling.xlsx’.
+    We use this description for the column names. Additionally, we convert the values
+    with a little more description than just having numbers in there. For example,
+    we replace column name **‘Family’** with **‘Family size of the customer’** and
+    the values in this column from integers such as **2** to string such as **‘2 persons’.**
+    Here is a sample of the dataset after making these conversions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dc4daaad782a43332fcc5b98e9664246.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We will create two separate datasets — one for customers who purchased the loans
+    and one for those who didn’t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will create vector embeddings for both of these cases. Before we pass on
+    the dataset to sentence transformer, here is what each row of the bank customer
+    dataset would look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cd7490c99fcc4c43e81e44b49fc895da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of one customer input to Sentence Transformer
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step-4+5: Doing the Vector Search'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we will be doing the Approximate Nearest Neighbor similarity search using
+    Euclidean Distance L2 with Facebook AI Similarity Search (FAISS) and will create
+    FAISS indexes for these vector datasets. The idea is to search for customers in
+    the ‘Personal Loan = 0’ dataset which are most similar to the ones in the ‘Personal
+    Loan = 1’ dataset. Basically we are looking for customers who did not purchase
+    the loan but are most similar in nature to the ones who purchased the loan. In
+    this case, we are doing the search for one ‘false’ customer for each ‘true’ customer
+    by setting k=1 (one approximate nearest neighbor) and then sorting the results
+    based on their distances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Details about FAISS similarity search can be found here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/facebookresearch/faiss?source=post_page-----d47958c4d61c--------------------------------)
+    [## GitHub - facebookresearch/faiss: A library for efficient similarity search
+    and clustering of dense…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A library for efficient similarity search and clustering of dense vectors. -
+    facebookresearch/faiss
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/facebookresearch/faiss?source=post_page-----d47958c4d61c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is another article which explains the use of L2 with FAISS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/loopio-tech/how-to-use-faiss-to-build-your-first-similarity-search-bf0f708aa772?source=post_page-----d47958c4d61c--------------------------------)
+    [## How to Use FAISS to Build Your First Similarity Search'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At Loopio, we use Facebook AI Similarity Search (FAISS) to efficiently search
+    for similar text. Finding items that are…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/loopio-tech/how-to-use-faiss-to-build-your-first-similarity-search-bf0f708aa772?source=post_page-----d47958c4d61c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gives us the list of customers most similar to the ones who purchased the
+    loan and most likely to purchase in the second round, given the most important
+    feature which was holding them back in the first round, gets slightly changed.
+    This customer list can now be prioritized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/517fc3e6711b65a1af25c1dfff5666d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Step-6: A comparison with other method'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: At this point, we would like to assess if the above methodology is worth the
+    time and if there can be another efficient way of extracting the same information?
+    For example, we can think of getting the ‘False’ customers with the highest probabilities
+    as the ones which have the highest potential for second round purchases. A comparison
+    of such a list with the above list can be helpful to see if that can be a faster
+    way of deriving conclusions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For this, we simply load up our dataset with the probabilities that we created
+    earlier and pick the top 10 ‘False’ customers with the highest probabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/12754683785469e14e1a4253b42614b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How effective this list is as compared to our first list and how to measure
+    that? For this, we would like to think of the effectiveness of the list as the
+    percentage of customers which we are able to tip over into the wanted category
+    with minimal change in the most important feature by calculating new probability
+    values after making slight change in the most important feature. For our analysis,
+    we will only focus on the features Education and Family — the features which are
+    likely to change over time. Even though Income can also be included in this category,
+    for simplification purposes, we will not consider it for now. We will shortlist
+    the top 10 candidates from both lists which have these as the Tipping_Feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This will give us the below 2 lists:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'List_A: This is the list we get using the similarity search method'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'List_B: This is the list we get through sorting the False cases using their
+    probabilities'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dd9a198419251c8ee26655618f8578cc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We will convert List_A into the original format which can be then used by the
+    ML Model to calculate the probabilities. This would require a reference back to
+    the original df_pred dataset and here is a function which can be used for that
+    purpose.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/a46b24ed72d5b99d3d6e1c8f09a5a5f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Potential Candidates List_A: Extracted using the similarity Search method'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Below is how we will get List_B by putting in the required filters on the original
+    df_pred dataframe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c7a092ed639944ca1253c7d0cbe1d207.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Potential Candidates List_B: Extracted by sorting the probabilities of purchasing
+    the loan in the first round'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For evaluation, I have created a function which does a grid search on the values
+    of Family or Education depending upon the Tipping_Feature for that customer from
+    minimum value (which would be the current value) to the maximum value (which is
+    the maximum value seen in the entire dataset for that feature) till the probability
+    increases beyond 0.5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/6b6dae91482d6dc8abf1bb9191ed61c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: List B Probabilities after changing the value for the Tipping_Feature
+  prefs: []
+  type: TYPE_NORMAL
+- en: We see that with List B, the candidates which we got through the use of probabilities,
+    there was one candidate which couldn’t move into the wanted category after changing
+    the tipping_values. At the same time, there were 4 candidates (highlighted in
+    red) which show very high probability of purchasing the loan after the tipping
+    feature changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We run this again for the candidates in List A.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/fc764e69368b576dcfc7cd2fd91ca11f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: List A Probabilities after changing the value for the Tipping_Feature
+  prefs: []
+  type: TYPE_NORMAL
+- en: For List A, we see that while there is one candidate which couldn’t tip over
+    into the wanted category, there are 6 candidates (highlighted in red) which show
+    very high probability once the tipping feature value is changed. We can also see
+    that these candidates originally had very low probabilities of purchasing the
+    loan and without the use of similarity search, these potential candidates would
+    have been missed out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: While there can be other methods to search for potential candidates, similarity
+    search using LLM vector embeddings can highlight candidates which would most likely
+    not get prioritized otherwise. The method can have various usage and in this case
+    was combined with the probabilities calculated with the help of XGBoost model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless stated otherwise, all images are by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

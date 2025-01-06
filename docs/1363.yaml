@@ -1,0 +1,606 @@
+- en: Deep Dive into Anthropic’s Sparse Autoencoders by Hand ✍️
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/deep-dive-into-anthropics-sparse-autoencoders-by-hand-%EF%B8%8F-eebe0ef59709?source=collection_archive---------1-----------------------#2024-05-31](https://towardsdatascience.com/deep-dive-into-anthropics-sparse-autoencoders-by-hand-%EF%B8%8F-eebe0ef59709?source=collection_archive---------1-----------------------#2024-05-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Explore the concepts behind the interpretability quest for LLMs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@srijanie.dey?source=post_page---byline--eebe0ef59709--------------------------------)[![Srijanie
+    Dey, PhD](../Images/2b3292a3b22d712d91d0bfc14df64446.png)](https://medium.com/@srijanie.dey?source=post_page---byline--eebe0ef59709--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--eebe0ef59709--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--eebe0ef59709--------------------------------)
+    [Srijanie Dey, PhD](https://medium.com/@srijanie.dey?source=post_page---byline--eebe0ef59709--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--eebe0ef59709--------------------------------)
+    ·11 min read·May 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/81130790966487c80fb82406f9fe2482.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author (Zephyra, the protector of Lumaria by my 4-year old)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“In the mystical lands of Lumaria, where ancient magic filled the air, lived
+    Zephyra, the Ethereal Griffin. With the body of a lion and the wings of an eagle,
+    Zephyra was the revered protector of the Codex of Truths, an ancient script holding
+    the universe’s secrets.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Nestled in a sacred cave, the Codex was safeguarded by Zephyra’s viridescent
+    eyes, which could see through deception to unveil pure truths. One day, a dark
+    sorcerer descended on the lands of Lumaria and sought to shroud the world in ignorance
+    by concealing the Codex. The villagers called upon Zephyra, who soared through
+    the skies, as a beacon of hope. With a majestic sweep of the wings, Zephyra created
+    a protective barrier of light around the grove, repelling the sorcerer and exposing
+    the truths.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*After a long duel, it was concluded that the dark sorcerer was no match to
+    Zephyra’s light. Through her courage and vigilance, the true light kept shining
+    over Lumaria. And as time went by, Lumaria was guided to prosperity under Zephyra’s
+    protection and its path stayed illuminated by the truths Zephyra safeguarded.
+    And this is how Zephyra’s legend lived on!”*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Anthropic’s journey ‘towards extracting interpretable features’
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Following the story of Zephyra, Anthropic AI delved into the expedition of extracting
+    meaningful features in a model. The idea behind this investigation lies in understanding
+    how different components in a neural network interact with one another and what
+    role each component plays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'According to the paper **“**[**Towards Monosemanticity: Decomposing Language
+    Models With Dictionary Learning**](https://transformer-circuits.pub/2023/monosemantic-features/index.html)**”**
+    a Sparse Autoencoder is able to successfully extract meaningful features from
+    a model. In other words, Sparse Autoencoders help break down the problem of ‘polysemanticity’
+    — neural activations that correspond to several meanings/interpretations at once
+    by focusing on sparsely activating features that hold a single interpretation
+    — in other words, are more one-directional.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand how all of it is done, we have these beautiful handiworks on [Autoencoders](https://lnkd.in/g2rM9iV2)
+    and [Sparse Autoencoders](https://www.linkedin.com/posts/tom-yeh_claude-autoencoder-aibyhand-activity-7199774212759183362-msKU/?)
+    by Prof. [Tom Yeh](https://www.linkedin.com/in/tom-yeh/) that explain the behind-the-scenes
+    workings of these phenomenal mechanisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (All the images below, unless otherwise noted, are by Prof. Tom Yeh from the
+    above-mentioned LinkedIn posts, which I have edited with his permission. )
+  prefs: []
+  type: TYPE_NORMAL
+- en: To begin, let us first let us first explore what an Autoencoder is and how it
+    works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is an Autoencoder?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine a writer has his desk strewn with different papers — some are his notes
+    for the story he is writing, some are copies of final drafts, some are again illustrations
+    for his action-packed story. Now amidst this chaos, it is hard to find the important
+    parts — more so when the writer is in a hurry and the publisher is on the phone
+    demanding a book in two days. Thankfully, the writer has a very efficient assistant
+    — this assistant makes sure the cluttered desk is cleaned regularly, grouping
+    similar items, organizing and putting things into their right place. And as and
+    when needed, the assistant would retrieve the correct items for the writer, helping
+    him meet the deadlines set by his publisher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, the name of this assistant is Autoencoder. It mainly has two functions
+    — encoding and decoding. Encoding refers to condensing input data and extracting
+    the essential features (organization). Decoding is the process of reconstructing
+    original data from encoded representation while aiming to minimize information
+    loss (retrieval).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s look at how this assistant works.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How does an Autoencoder Work?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Given : Four training examples **X1, X2, X3, X4.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Auto'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first step is to copy the training examples to targets **Y’**. The Autoencoder’s
+    work is to reconstruct these training examples. Since the targets are the training
+    examples themselves, the word ***‘Auto’*** is used which is Greek for ***‘self’***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Encoder : Layer 1 +ReLU'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we have seen in all our previous models, a simple weight and bias matrix
+    coupled with ReLU is powerful and is able to do wonders. Thus, by using the first
+    Encoding layer we reduce the size of the original feature set from 4x4 to 3x4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2c2896b0761620ef71f79dd24b7de1a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A quick recap:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Linear transformation** : The input embedding vector is multiplied by the
+    weight matrix W and then added with the bias vector **b**,'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: z = **W**x+**b**, where **W** is the weight matrix, x is our word embedding
+    and **b** is the bias vector.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**ReLU activation function** : Next, we apply the ReLU to this intermediate
+    z.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ReLU returns the element-wise maximum of the input and zero. Mathematically,
+    **h** = max{0,z}.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[3] Encoder : Layer 2 + ReLU'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The output of the previous layer is processed by the second Encoder layer which
+    reduces the input size further to 2x3\. This is where the extraction of relevant
+    features occurs. This layer is also called the ‘bottleneck’ since the outputs
+    in this layer have much lower features than the input features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/486e9e67fbbfac831061f662d28f156c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[4] Decoder : Layer 1 + ReLU'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once the encoding process is complete, the next step is to decode the relevant
+    features to build ‘back’ the final output. To do so, we multiply the features
+    from the last step with corresponding weights and biases and apply the ReLU layer.
+    The result is a 3x4 matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9f9ffd4521b3c28b6eba26be3b1c2100.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[5] Decoder : Layer 2 + ReLU'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A second Decoder layer (weight, biases + ReLU) applies on the previous output
+    to give the final result which is the reconstructed 4x4 matrix. We do so to get
+    back to original dimension in order to compare the results with our original target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47b3bd18b0209d34df20b5cb9f242b97.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[6] Loss Gradients & BackPropagation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once the output from the decoder layer is obtained, we calculate the gradients
+    of the Mean Square Error (MSE) between the **outputs (Y)** and the **targets (Y’)**.
+    To do so, we find **2*(Y-Y’)** , which gives us the final gradients that activate
+    the backpropagation process and updates the weights and biases accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/286ca27d2139e0c693ec2fdcee1050b0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now that we understand how the Autoencoder works, it’s time to explore how its
+    **sparse variation** is able to achieve interpretability for large language models
+    (LLMs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sparse Autoencoder — How does it work?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To start with, suppose we are given:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The output of a transformer after the feed-forward layer has processed it, i.e.
+    let us assume we have the model activations for five tokens (X). They are good
+    but they do not shed light on how the model arrives at its decision or makes the
+    predictions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/5c01141ce07bd9ff3330b673178216f6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The prime question here is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is it possible to map each activation (3D) to a higher-dimension space (6D)
+    that will help with the understanding?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[1] Encoder : Linear Layer'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first step in the Encoder layer is to multiply the input **X** with encoder
+    weights and add biases (as done in the first step of an Autoencoder).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/312068c487f5a71ba089baf15668d291.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[2] Encoder : ReLU'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next sub-step is to apply the ReLU activation function to add non-linearity
+    and suppress negative activations. This suppression leads to many features being
+    set to 0 which enables the concept of sparsity — outputting sparse and interpretable
+    features ***f.***
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interpretability happens when we have only one or two positive features. If
+    we examine ***f6***, we can see **X2** and **X3** are positive, and may say that
+    both have ‘Mountain’ in common.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b8b7f37cd47ccde17cf92263a8a113b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[3] Decoder : Reconstruction'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once we are done with the encoder, we proceed to the decoder step. We multiply
+    ***f***with decoder weights and add biases. This outputs **X’**, which is the
+    reconstruction of **X** from interpretable features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ef0969dd32ed6d5a1a46041619c2efe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As done in an Autoencoder, we want **X’** to be as close to **X** as possible.
+    To ensure that, further training is essential.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Decoder : Weights'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As an intermediary step, we compute the L2 norm for each of the weights in this
+    step. We keep them aside to be used later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9208c5b6e536090638fa96455a2dc40b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**L2-norm**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Also known as Euclidean norm, L2-norm calculates the magnitude of a vector
+    using the formula: ||x||₂ = √(Σᵢ xᵢ²).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In other words, it sums the squares of each component and then takes the square
+    root over the result. This norm provides a straightforward way to quantify the
+    length or distance of a vector in Euclidean space.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Training
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As mentioned earlier, a Sparse Autoencoder instils extensive training to get
+    the reconstructed **X’** closer to **X**. To illustrate that, we proceed to the
+    next steps below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Sparsity : L1 Loss'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The goal here is to obtain as many values close to zero / zero as possible.
+    We do so by invoking **L1 sparsity** to penalize the absolute values of the weights
+    — the core idea being that we want to make the sum as small as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8aa5583bdaebc8564e7bd8b44ddd399.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**L1-loss**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The L1-loss is calculated as the sum of the absolute values of the weights:
+    L1 = λΣ|w|, where λ is a regularization parameter.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This encourages many weights to become zero, simplifying the model and thus
+    enhancing **interpretability**.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In other words, L1 helps build the focus on the most relevant features while
+    also preventing overfitting, improving model generalization, and reducing computational
+    complexity.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[6] Sparsity : Gradient'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The next step is to calculate **L1**’s gradients which -1 for positive values.
+    Thus, for all values of ***f >0*** , the result will be set to -1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5e85338940e15e3475ce8be719ff40e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**How does L1 penalty push weights towards zero?**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The gradient of the L1 penalty pushes weights towards zero through a process
+    that applies a constant force, regardless of the weight’s current value. Here’s
+    how it works (all images in this sub-section are by author):'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The L1 penalty is expressed as:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/04df48be6e16080c94467c08c9f248ef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The gradient of this penalty with respect to a weight ***w*** is:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/52a15cda96d611eb04f7e52d79a4a817.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'where ***sign(w)*** is:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/5d0377f88ae46308b533ea7284c90ab7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'During gradient descent, the update rule for weights is:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/c4cf2e8036e3f8abe10def8af14ab467.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: where 𝞰 is the learning rate.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The **constant subtraction (or addition)** of **λ** from the weight value (depending
+    on its sign) decreases the absolute value of the weight. If the weight is small
+    enough, this process can drive it to exactly zero.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[7] Sparsity : Zero'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For all other values that are already zero, we keep them unchanged since they
+    have already been zeroed out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35dcfe7c72319bdffd087a7baa4fe776.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[8] Sparsity : Weight'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We multiple each row of the gradient matrix obtained in Step 6 by the corresponding
+    decoder weights obtained in Step 4\. This step is crucial as it prevents the model
+    from learning large weights which would add incorrect information while reconstructing
+    the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/306a1ce823111e9d815e4b7f1fd15802.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[9] Reconstruction : MSE Loss'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We use the Mean Square Error or the **L2** loss function to calculate the difference
+    between **X’** and **X**. The goal as seen previously is to minimize the error
+    to the lowest value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f4383312900f938f95dc354d99c296fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[10] Reconstruction : Gradient'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The gradient of **L2** loss is **2*(X’-X)**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And hence as seen for the original Autoencoders, we run backpropagation to update
+    the weights and the biases. The catch here is finding a good balance between sparsity
+    and reconstruction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8b70731a04ecd7810360275f13324e41.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: And with this, we come to the end of this very clever and intuitive way of learning
+    how a model understands an idea and the direction it takes to generate a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To summarize:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'An **Autoencoder** overall consists of two parts : **Encoder** and **Decoder**.
+    The **Encoder** uses weights and biases coupled with the ReLU activation function
+    to compress the initial input features into a lower dimension, trying to capture
+    only the relevant parts. The **Decoder** on the other hand takes the output of
+    the Encoder and works to reconstruct the input features back to their original
+    state. Since the targets in an Autoencoder are the initial features themselves,
+    hence the use of the word ‘auto’. The aim, as is for standard neural networks,
+    is to achieve the lowest error (difference) between the target and the input features
+    — and it is achieved by propagating the gradient of the error through the network
+    while updating the weights and biases.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'A **Sparse Autoencoder** consists of all the components as a standard Autoencoder
+    along with a few more additions. The key here is the different approach in the
+    training step. Since the aim here is to retrieve the interpretable features, we
+    want to zero out those values which hold relatively less meaning. Once the encoder
+    uses ReLU to suppress the negative values, we go a step further and use L1-Loss
+    on the result to encourage sparsity by penalizing the absolute values of the weights.
+    This is achieved by adding a penalty term to the loss function, which is the sum
+    of the absolute values of the weights: λΣ|w|. The weights that remain non-zero
+    are those that are crucial for the model’s performance.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Extracting Interpretable features using Sparsity
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As humans, our brains activate only a small subset of neurons in response to
+    specific stimuli. Likewise, Sparse Autoencoders learn a sparse representation
+    of the input by leveraging sparsity constraints like **L1** regularization. By
+    doing so, a Sparse Autoencoder is able to extract interpretable features from
+    complex data thus enhancing the simplicity and interpretability of the learned
+    features. This selective activation mirroring biological neural processes helps
+    focus on the most relevant aspects of the input data making the models more robust
+    and efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With Anthropic’s endeavor to understand interpretability in AI models, their
+    initiative highlights the need for transparent and understandable AI systems,
+    especially as they become more integrated into critical decision-making processes.
+    By focusing on creating models that are both powerful and interpretable, Anthropic
+    contributes to the development of AI that can be trusted and effectively utilized
+    in real-world applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, **Sparse Autoencoders** are vital for extracting interpretable
+    features, enhancing model robustness, and ensuring efficiency. The ongoing work
+    on understanding these powerful models and how they make inferences underscore
+    the growing importance of interpretability in AI, paving the way for more transparent
+    AI systems. It remains to see how these concepts evolve and driving us towards
+    a future that entails a safe integration of AI in our lives!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*P.S. If you would like to work through this exercise on your own, here is
+    a link to a blank template for your use.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Blank Template for hand-exercise](https://drive.google.com/file/d/1xiAjdlWCAzhj-I-YOb7wSMeroUOQzdlE/view?usp=sharing)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now go have fun and help Zephyr keep the Codex of Truth safe!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb16ec0901108e38f05e6bac5825305e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Once again special thanks to* [*Prof. Tom Yeh*](https://www.linkedin.com/in/tom-yeh/)
+    *for supporting this work!*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'References:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] Towards Monosemanticity: Decomposing Language Models With Dictionary Learning,
+    Bricken et al. Oct 2023 [https://transformer-circuits.pub/2023/monosemantic-features/index.html](https://transformer-circuits.pub/2023/monosemantic-features/index.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Scaling Monosemanticity: Extracting Interpretable Features from Claude
+    3 Sonnet, Templeton et al. May 2024 [https://transformer-circuits.pub/2024/scaling-monosemanticity/](https://transformer-circuits.pub/2024/scaling-monosemanticity/)'
+  prefs: []
+  type: TYPE_NORMAL

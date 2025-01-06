@@ -1,0 +1,304 @@
+- en: Creating an Assistant with OpenAI Assistant API and Streamlit
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/creating-an-assistant-with-openai-assistant-api-and-streamlit-282d9be9f03e?source=collection_archive---------4-----------------------#2024-06-18](https://towardsdatascience.com/creating-an-assistant-with-openai-assistant-api-and-streamlit-282d9be9f03e?source=collection_archive---------4-----------------------#2024-06-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step guide
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)[![Shuyang
+    Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------)
+    [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--282d9be9f03e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--282d9be9f03e--------------------------------)
+    ·6 min read·Jun 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c668f6173825f0585d7ec25aca505ba6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: assistant done with assistant api and streamlit'
+  prefs: []
+  type: TYPE_NORMAL
+- en: OpenAI Assistant API
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'OpenAI has recently introduced new features that showcase an agent-like architecture,
+    such as the Assistant API. According to OpenAI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Assistants API allows you to build AI assistants within your own applications.
+    An Assistant has instructions and can leverage models, tools, and files to respond
+    to user queries. The Assistants API currently supports three types of tools: Code
+    Interpreter, File Search, and Function calling.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: While these advancements are promising, they still lag behind LangChain. LangChain
+    enables the creation of agent-like systems powered by LLMs with greater flexibility
+    in processing natural language input and executing context-based actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this is only the beginning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At a high level, interaction with the Assistant API can be envisioned as a
+    loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a user input, an LLM is called to determine whether to provide a response
+    or take specific actions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the LLM’s decision suffices to answer the query, the loop ends.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If an action leads to a new observation, this observation is included in the
+    prompt, and the LLM is called again.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The loop then restarts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/070f496f4c9531b9c9a982299f110bdf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: LLM agent loop'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, despite the announced advantages, I found the documentation for
+    the API to be poorly done, especially regarding interactions with custom function
+    calls and building apps using frameworks like Streamlit.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, I will guide you through building an AI assistant using the
+    OpenAI Assistant API with custom function calls, paired with a Streamlit interface,
+    to help those interested in effectively using the Assistant API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use case: Tax Computation Assistant'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this blog post, I will demonstrate a simple example: an AI assistant capable
+    of calculating tax based on a given revenue. Langchain users can easily come into
+    mind implementing this by creating an [agent](https://python.langchain.com/v0.1/docs/modules/agents/)
+    with a “tax computation” tool.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This tool would include the necessary computation steps and a well-designed
+    prompt to ensure the LLM knows when to call the tool whenever a question involves
+    revenue or tax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this process is not exactly the same with the OpenAI Assistant API.
+    While the code interpreter and file search tools can be used directly in a straightforward
+    manner according to [OpenAI’s documentation](https://platform.openai.com/docs/assistants/how-it-works/creating-assistants),
+    custom tools require a slightly different approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s break it down step by step. We aim to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Define a function that computes tax based on given revenue.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Develop a tool using this function.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create an assistant that can access this tool and call it whenever tax computation
+    is needed.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Tax Computation Function for Assistant Integration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Please note that the tax computation tool described in the following paragraph
+    is designed as a toy example to demonstrate how to use the API discussed in the
+    post. It should not be used for actual tax calculations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider the following piecewise function, which returns the tax value for
+    a given revenue. Note that the input is set as a string for simpler parsing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we define the assistant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, the essential point:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How does the assistant use the function when “calculate_tax” is called? This
+    part is poorly documented in the OpenAI assistant, and many users might get confused
+    the first time using it. To handle this, we need to define an `EventHandler` to
+    manage different events in the response stream, specifically how to handle the
+    event when the "calculate_tax" tool is called.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code above works as follows: For each tool call that requires action:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Check if the function name is “calculate_tax”.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extract the revenue value from the tool parameters.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Call the `calculate_tax` function with the revenue to compute the tax. (This
+    is where the real interaction happens.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: After processing all tool calls, submit the collected results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Talking to the assistant
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'You can now interact with the assistant following these standard steps documented
+    by OpenAI (for that reason, I will not provide many details in this section):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Create a thread:** This represents a conversation between a user and the
+    assistant.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Add user messages:** These can include both text and files, which are added
+    to the thread.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Create a run:** Utilize the model and tools associated with the assistant
+    to generate a response. This response is then added back to the thread.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The code snippet below demonstrates how to run the assistant in my specific
+    use case: The code sets up a streaming interaction with an assistant using specific
+    parameters, including a thread ID and an assistant ID. An `EventHandler` instance
+    manages events during the stream. The `stream.until_done()` method keeps the stream
+    active until all interactions are complete. The `with` statement ensures that
+    the stream is properly closed afterward.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Streamlit interface
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While my post could end here, I’ve noticed numerous inquiries on the Streamlit
+    forum ([like this one](https://discuss.streamlit.io/t/openai-assistants-api-streaming/64690/3))
+    where users struggle to get streaming to work on the interface, even though it
+    functions perfectly in the terminal. This prompted me to delve deeper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To successfully integrate streaming into your app, you’ll need to extend the
+    functionality of the EventHandler class mentioned earlier, specifically focusing
+    on handling text creation, text deltas, and text completion. Here are the three
+    key steps required to display text in the Streamlit interface while managing chat
+    history:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Handling Text Creation (**`**on_text_created**`**):** Initiates and displays
+    a new text box for each response from the assistant, updating the UI to reflect
+    the status of preceding actions.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Handling Text Delta (**`**on_text_delta**`**):** Dynamically updates the
+    current text box as the assistant generates text, enabling incremental changes
+    without refreshing the entire UI.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Handling Text Completion (**`**on_text_done**`**):** Finalizes each interaction
+    segment by adding a new empty text box, preparing for the next interaction. Additionally,
+    it records completed conversation segments in `chat_history`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For instance, consider the following code snippet for managing text deltas:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This code accomplishes three main tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Clearing the Latest Text Box:** Empties the content of the most recent text
+    box (`st.session_state.text_boxes[-1]`) to prepare it for new input.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Appending Delta Value to Assistant Text:** If new text (`delta.value`) is
+    present, it appends this to the ongoing assistant text stored in `st.session_state.assistant_text[-1]`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Re-displaying Updated Assistant Text:** Updates the content of the latest
+    text box to reflect the combined content of all assistant text accumulated so
+    far (`st.session_state["assistant_text"][-1]`).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Video by author: the assistant done in this post'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This blog post demonstrated how to use the OpenAI Assistant API and Streamlit
+    to build an AI assistant capable of calculating tax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I did this simple project to highlight the capabilities of the Assistant API,
+    despite its less-than-clear documentation. My goal was to clarify ambiguities
+    and provide some guidance for those interested in using the Assistant API. I hope
+    this post has been helpful and encourages you to explore further possibilities
+    with this powerful tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Due to space constraints, I have tried to avoid including unnecessary code snippets.
+    However, if needed, please visit my [Github repository](https://github.com/ShuyangenFrance/openai_assistant)
+    to view the complete implementation.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,507 @@
+- en: How to Build a Streaming Agent with Burr, FastAPI, and React
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-build-a-streaming-agent-with-burr-fastapi-and-react-e2459ef527a8?source=collection_archive---------3-----------------------#2024-07-25](https://towardsdatascience.com/how-to-build-a-streaming-agent-with-burr-fastapi-and-react-e2459ef527a8?source=collection_archive---------3-----------------------#2024-07-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An overview of how to leverage streaming using open source tools applied to
+    building a simple agentic chat bot
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)[![Stefan
+    Krawczyk](../Images/150405abaad9590e1dc2589168ed2fa3.png)](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------)
+    [Stefan Krawczyk](https://medium.com/@stefan.krawczyk?source=post_page---byline--e2459ef527a8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e2459ef527a8--------------------------------)
+    ·12 min read·Jul 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f76e421b3ba109b434f51c1d43eb0ba0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The model of our agentic application. We’ll show how you can build this with
+    streaming so you can create a great user experience. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post we will go over how to build an agentic chatbot that streams responses
+    to the user, leveraging [Burr](https://github.com/dagworks-inc/burr)’s (I’m an
+    author) streaming capabilities, [FastAPI’s](https://fastapi.tiangolo.com/) [StreamingResponse](https://fastapi.tiangolo.com/advanced/custom-response/?h=streamingresponse#using-streamingresponse-with-file-like-objects),
+    and server-sent-events (SSEs) queried by [React](https://react.dev/). All of these
+    are open source tools. This is aimed at those who want to learn more about streaming
+    in Python and how to add interactivity to their agent/application. While the tools
+    we use will be fairly specific, the lessons should be applicable to a wide range
+    of streaming response implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we’ll talk about why streaming is important. Then we’ll go over the open-source
+    tooling we use. We’ll walk through an example, and point you out to code that
+    you can use to get started, then share more resources and alternate implementations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can follow along with the Burr + FastAPI code [here](https://github.com/DAGWorks-Inc/burr/tree/main/examples/streaming-fastapi)
+    and the frontend code [here](https://github.com/DAGWorks-Inc/burr/blob/main/telemetry/ui/src/examples/StreamingChatbot.tsx).
+    You can also run this example (you’ll need an OPENAI_API_KEY env variable) by
+    running `pip install “burr[start]” && burr`, then navigating to localhost:7241/demos/streaming-chatbot;
+    the browser will open automatically, just click demos/streaming-chatbot on the
+    left. Note this example requires `burr>=0.23.0`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Streaming?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While streaming media through the web is a technology from [the 90s](https://en.wikipedia.org/wiki/Streaming_media#:~:text=Online%20streaming%20was%20initially%20popularised,being%20offered%20since%20the%202010s.),
+    and is now ubiquitous (video games, streaming TV, music, etc…), the recent surge
+    in generative AI applications has seen an interest in serving and rendering streaming
+    text, word by word.
+  prefs: []
+  type: TYPE_NORMAL
+- en: LLMs are a fun technology (perhaps even useful), but relatively slow to run,
+    and users don’t like waiting. Luckily, it is possible to stream the results so
+    that a user sees an LLM’s response as it is being generated. Furthermore, given
+    the generally robotic and stuffy nature of LLMs, streaming can make them appear
+    more interactive, almost as if they’re thinking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A proper implementation will allow streaming communication across multiple service
+    boundaries, enabling intermediate proxies to augment/store the streaming data
+    as it is presented to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9f99df7ca53e3a575dacdc8d977ef642.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simple display of a chatbot architecture. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While none of this is rocket science, the same tools that make web development
+    easy and largely standardized (OpenAPI / FastAPI / React + friends, etc…) all
+    have varying degrees of support, meaning that you often have multiple choices
+    that are different than what you’re used to. Streaming is often an afterthought
+    in framework design, leading to various limitations that you might not know until
+    you’re halfway through building.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s go over some of the tools we’ll use to implement the stack above, then
+    walk through an example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Open Source Tools
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The tools we’ll leverage to build this are nicely decoupled from each other
+    — you can swap like with like if you want and still apply the same lessons/code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Burr
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Burr](https://github.com/DAGWorks-Inc/burr/) is a lightweight Python library
+    you use to build applications as state machines. You construct your application
+    out of a series of actions (these can be either decorated functions or objects),
+    which declare inputs from state, as well as inputs from the user. These specify
+    custom logic (delegating to any framework), as well as instructions on how to
+    update state. State is immutable, which allows you to inspect it at any given
+    point. Burr handles orchestration, monitoring, persistence, etc…).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: You run your Burr actions as part of an application — this allows you to string
+    them together with a series of (optionally) conditional transitions from action
+    to action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Burr comes with a user-interface that enables monitoring/telemetry, as well
+    as hooks to persist state/execute arbitrary code during execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can visualize this as a flow chart, i.e. graph / state machine:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f987bc5eedaa49d7f5a17e860b10a6e0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Burr gives you this image for free. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And monitor it using the local telemetry debugger:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/daf833de5eef0cfd6bd0b09cdb576096.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The OS telemetry UI tells you the state of your application at any given point
+    in time. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While the above example is a simple illustration, Burr is commonly used for
+    Agents (like in this example), RAG applications, and human-in-the-loop AI interfaces.
+    See the repository [examples](https://github.com/DAGWorks-Inc/burr/tree/main/examples)
+    for a (more exhaustive) set of use-cases. We’ll go over streaming and a few more
+    powerful features a little later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: FastAPI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[FastAPI](https://fastapi.tiangolo.com/) is a framework that lets you expose
+    python functions in a REST API. It has a simple interface — you write your functions
+    then decorate them, and run your script — turning it into a server with self-documenting
+    endpoints through [OpenAPI](https://www.openapis.org/).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: FastAPI provides a myriad of benefits. It is async native, supplies documentation
+    through OpenAPI, and is easy to deploy on any cloud provider. It is infrastructure
+    agnostic and can generally scale horizontally (so long as consideration into state
+    management is done). See [this page](https://fastapi.tiangolo.com/deployment/cloud/?h=deploy)
+    for more information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: React
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: React needs no introduction — it is an extremely popular tool that powers much
+    of the internet. Even recent popular tools (such as next.js/remix) build on top
+    of it. For more reading, see [react.dev](http://react.dev/). We will be using
+    React along with [typescript](https://www.typescriptlang.org/) and [tailwind](https://tailwindcss.com/),
+    but you can generally replace with your favorite frontend tools and be able to
+    reuse much of this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a simple Agentic chatbot
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s build a simple *agentic* chatbot — it will be *agentic* as it actually
+    makes two LLM calls:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A call to determine the model to query. Our model will have a few “modes” —
+    generate a poem, answer a question, etc…
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A call to the actual model (in this case prompt + model combination)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: With the OpenAI API this is more of a toy example — their models are impressive
+    jacks of all trades. That said, this pattern of tool delegation shows up in a
+    wide variety of AI systems, and this example can be extrapolated cleanly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Modeling the Agent in Burr
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Modeling as a State Machine
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To leverage Burr, we model our agentic application as a state machine. The
+    basic flow of logic looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f76e421b3ba109b434f51c1d43eb0ba0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We start at a user prompt input (top). Then we check for safety, and if it’s
+    not safe, we go the specific response for “unsafe”. Otherwise we decide on the
+    mode, and switch based on the value of the state field *mode*. Each of these returns
+    a streaming response. Once they are done streaming, it circles back to prompt
+    and waits for another user input… Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To model this with Burr, we will first create corresponding actions, using the
+    [streaming API](https://burr.dagworks.io/concepts/streaming-actions/). Then we’ll
+    tie them together as an [application](https://burr.dagworks.io/concepts/state-machine/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streaming Actions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In Burr, actions can leverage both a synchronous and asynchronous API. In this
+    case we’ll be using [async](https://docs.python.org/3/library/asyncio.html). Streaming
+    functions in Burr can also be mixed and match with non-streaming actions, but
+    to simplify we will implement everything as streaming. So, whether it’s streaming
+    from OpenAPI (which has its own [async streaming interface](https://www.asyncapi.com/tools/generator)),
+    or returning a fixed *Sorry I cannot answer this question* response, it will still
+    be implemented as a generator.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For those who are unfamiliar, [generators](https://wiki.python.org/moin/Generators)
+    are a Python construct that enables efficient, lazy evaluation over a sequence
+    of values. They are created by the `yield` keyword, which cedes control from the
+    function back to the caller, until the next item is needed. [Async generators](https://peps.python.org/pep-0525/)
+    function similarly, except they also cede control of the event loop on yield.
+    Read more about [synchronous generators](https://wiki.python.org/moin/Generators)
+    and [asynchronous generators](https://peps.python.org/pep-0525/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Streaming actions in Burr are implemented as a generator that yields tuples,
+    consisting of:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The intermediate result (in this case, delta token in the message)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The final state update, if it is complete, or None if it is still generating
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Thus the final yield will indicate that the stream is complete, and output
+    a final result for storage/debugging later. A basic response that proxies to OpenAI
+    with some custom prompt manipulation looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the example, we also have a few other streaming actions — these will represent
+    the “terminal” actions — actions that will trigger the workflow to pause when
+    the state machine completes them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building an Application
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To build the application, we’re first going to build a graph. We’ll be using
+    the [Graph API](https://burr.dagworks.io/concepts/state-machine/#graph-api) for
+    Burr, allowing us to decouple the shape of the graph from other application concerns.
+    In a web service the graph API is a very clean way to express state machine logic.
+    You can build it once, globally, then reuse it per individual application instances.
+    The graph builder looks like this — note it refers to the function *chat_response*
+    from above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, we can add this together in an Application — which exposes the right
+    execution methods for the server to interact with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we want to run it, we can call out to [astream_results](https://burr.dagworks.io/concepts/streaming-actions/#usage).
+    This takes in a set of *halting conditions*, and returns an [AsyncStreamingResultContainer](https://burr.dagworks.io/reference/actions/#burr.core.action.AsyncStreamingResultContainer)(a
+    generator that caches the result and ensures Burr tracking is called), as well
+    as the action that triggered the halt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exposing in a Web Server
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have the Burr application, we’ll want to integrate with FastAPI’s
+    [streaming response API](https://fastapi.tiangolo.com/advanced/custom-response/#streamingresponse)
+    using server-sent-events (SSEs). While we won’t dig too much into SSEs, the TL;DR
+    is that they function as a one way (server → client) version of web-sockets. You
+    can read more in the links at the end.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use these in FastAPI, we declare an endpoint as a function that returns
+    a StreamingResponse — a class that wraps a generator. The standard is to provide
+    streaming responses in a special shape, “data: <contents> \n\n”. Read more about
+    why [here](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events).
+    While this is largely meant for the [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource)
+    API (which we will be bypassing in favor of fetch and [getReader()](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream/getReader)),
+    we will keep this format for standards (and so that anyone using the EventSource
+    API can reuse this code).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have separately implemented `_get_application`, a utility function to get/load
+    an application by ID.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The function will be a POST endpoint, as we are adding data to the server, although
+    could easily be a PUT as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that we define a generator inside the function that wraps the Burr result
+    and turns it into SSE-friendly outputs. This allows us to impose some structure
+    on the result, which we will use on the frontend. Unfortunately, we will have
+    to parse it on our own, as fastAPI does not enable strict typing of a StreamingResponse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, we actually yield the entire state at the beginning, prior to execution.
+    While this is not strictly necessary (we can also have a separate API for chat
+    history), it will make rendering easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To test this you can use the requests library [Response.iter_lines](https://requests.readthedocs.io/en/latest/user/advanced/#body-content-workflow)
+    API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Building a UI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have a server, our state machine, and our LLM lined up, let’s make
+    it look nice! This is where it all ties together. While you can download and play
+    with the entirety of the code in [the example](https://github.com/DAGWorks-Inc/burr/tree/main/examples/streaming-fastapi),
+    we will be focusing in on the function that queries the API when you click “send”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a31aeb84cbc323ece54bc65f05a68bad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This is what the UI looks like. You can run this via the packaged Telemetry
+    UI that Burr comes with. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, let’s query our API using fetch (obviously adjust this to your endpoint,
+    in this case we’re proxying all /api calls to another server…):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This looks like a plain old API call, leveraging the typescript [async API](https://blog.logrocket.com/async-await-typescript/).
+    This extracts a *reader* object, which will help us stream results as they come
+    in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s define some data types to leverage the structure we created above. In
+    addition to the `ChatItem` data types (which was generated using [openapi-typescript-codegen](https://www.npmjs.com/package/openapi-typescript-codegen)),
+    we’ll also define two classes, which correspond to the data types returned by
+    the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we’ll iterate through the reader and parse. This assumes the following
+    state variables in react:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`setCurrentResponse`/`currentResponse`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`setDisplayedChatHistory`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We read through, splitting on “data:”, then looping through splits and parsing/reacting
+    depending on the event type.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ve left out some cleanup/error handling code (to clear, initialize the state
+    variables before/after requests, handle failure, etc…) — you can see more in the
+    example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we can render it (note this refers to additional state variables that
+    are set/unset outside of the code above, as well as a ChatMessage react component
+    that simply displays a chat message with the appropriate icon.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: We finally have our whole app! For all the [code click here](https://github.com/DAGWorks-Inc/burr/tree/main/examples/streaming-fastapi).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternate SSE Tooling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Note that what we presented above is just one approach to streaming with FastAPI/react/Burr.
+    There are a host of other tools you can use, including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [EventSource](https://developer.mozilla.org/en-US/docs/Web/API/EventSource)
+    API — standard but limited to get/ requests
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [FetchEventSource](https://github.com/Azure/fetch-event-source) API (appears
+    unmaintained, but well built)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As well as a host of other blog posts (that are awesome! I read these to get
+    started). These will give you a better sense of architecture as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Stream OpenAI with FastAPI and Consuming it with React.js](https://medium.com/@hxu296/serving-openai-stream-with-fastapi-and-consuming-with-react-js-part-1-8d482eb89702)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Streaming with FastAPI](https://www.vidavolta.io/streaming-with-fastapi/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Wrapping Up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we covered a lot — we went over Burr, FastAPI, and React, talked
+    about how to build a streaming *agentic* chatbot using the OpenAI API, built out
+    the entire stack, and streamed data all the way through! While you may not use
+    every one of the technologies, the individual pieces should be able to work on
+    their own.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To download and play with this example, you can run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note you’ll need an [API key from OpenAI](http://platform.openai.com/) for this
+    specific demo. You will find the Burr + FastAPI code [here](https://github.com/DAGWorks-Inc/hamilton/tree/main/examples/streaming-fastapi)
+    and the frontend code [here](https://github.com/DAGWorks-Inc/hamilton/tree/main/telemetry/ui/src/examples/StreamingChatbot.tsx).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Github repository for Burr](http://github.com/dagworks-inc/burr) (give us
+    a star if you like what you see!)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[FastAPI guide](https://fastapi.tiangolo.com/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Example + README](https://github.com/DAGWorks-Inc/burr/tree/main/examples/streaming-fastapi)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

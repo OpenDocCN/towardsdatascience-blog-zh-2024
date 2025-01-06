@@ -1,0 +1,269 @@
+- en: Terraforming Dataform
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/terraforming-dataform-fa7a80990596?source=collection_archive---------7-----------------------#2024-05-31](https://towardsdatascience.com/terraforming-dataform-fa7a80990596?source=collection_archive---------7-----------------------#2024-05-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'MLOps: Datapipeline Orchestration'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Dataform 101, Part 2: Provisioning with Least Privilege Access Control'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://koakande.medium.com/?source=post_page---byline--fa7a80990596--------------------------------)[![Kabeer
+    Akande](../Images/5e1f083e75741690ae27b00d1e5f1dd3.png)](https://koakande.medium.com/?source=post_page---byline--fa7a80990596--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fa7a80990596--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fa7a80990596--------------------------------)
+    [Kabeer Akande](https://koakande.medium.com/?source=post_page---byline--fa7a80990596--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fa7a80990596--------------------------------)
+    ·7 min read·May 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b3afbfd5e7ff061d52a5ae68268fab7e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A typical positioning of Dataform in a data pipeline [Image by author]
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the concluding part of Dataform 101 showing the fundamentals of setting
+    up Dataform with a focus on its authentication flow. This second part focussed
+    on terraform implementation of the flow explained in [part 1](https://medium.com/towards-data-science/understanding-dataform-terminologies-and-authentication-flow-aa98c2fbcdfb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataform Provisioning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Dataform can be set up via the GCP console, but Terraform provides an elegant
+    approach to provisioning and managing infrastructure such as Dataform. The use
+    of Terraform offers portability, reusability and infrastructure versioning along
+    with many other benefits. As a result, Terraform knowledge is required to follow
+    along in this section. If you are familiar with Terraform, head over to the [GitHub
+    repo](https://github.com/kbakande/dataform-001) and download all the code. If
+    not, Google cloud skills boost has good [resources](https://www.cloudskillsboost.google/course_templates/443)
+    to get started.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a6e0ddfc9883b7c5ae7423967a91a66b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An architecture flow for a single repo, multi-environment Dataform
+  prefs: []
+  type: TYPE_NORMAL
+- en: Environments setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We start by setting up the two environments, `prod` and `staging` , as reflected
+    in the architecture flow diagram above. It should be noted that the code development
+    is done on macOS system, and as such, a window system user might need some adjustments
+    to follow along.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Set up staging files**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: All the initial codes are written within the `staging` directory. This is because
+    the proposed architecture provisions Dataform within the staging environment and
+    only few resources are provisioned in the production environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start by provisioning a remote bucket to store the Terraform state in
+    remote backend. This bit would be done manually and we wouldnt bring the bucket
+    under terraform management. It is a bit of a chicken-and-egg case whether the
+    bucket in which the Terraform state is stored should be managed by the same Terraform.
+    What you call a catch-22\. So we manually create a bucket named *dataform-staging-terraform-state*
+    within the staging environment by adding the following in the `staging` directory:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, add resource providers to the code base.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then create a variable file to define all the variables used for the infrastructure
+    provisioning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `auto.tfvars` file is added to ensure the variables are auto-discoverable.
+    Ensure to substitute appropriately for the variable placeholders in the file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is followed by secret provisioning where the machine user token is stored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: After provisioning the secret, a `data` resource is added to the terraform codebase
+    for dynamically reading the stored secret value so Dataform has access to the
+    machine user GitHub credentials when provisioned. The `data` resource is conditioned
+    on the secret resource to ensure that it only runs when the secret has already
+    been provisioned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We proceed to provision the required service account for the staging environment
+    along with granting the required permissions for manifesting data to BigQuery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: And the BQ permissions
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is crunch time, as we have all the required infrastructure to provision Dataform
+    in the staging environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The *google_dataform_repository* resource provisions a dataform repository where
+    the target remote repo is specified along with the token to access the repo. Then
+    we provision the release configuration stating which remote repo branch to generate
+    the compilation from and configuring the time with cron schedule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, workflow configuration is provisioned with a schedule slightly staggered
+    ahead of the release configuration to ensure that the latest compilation is available
+    when workflow configuration runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the Dataform is provisioned, a default service account is created along
+    with it in the format *service-{project_number}@gcp-sa-dataform.iam.gserviceaccount.com*.
+    This default service account would need to impersonate both the staging and prod
+    service accounts to materialise data in those environments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We modify the `iam.tf` file in the staging environment to grant the required
+    roles for Dataform default service account to impersonate the service account
+    in the staging environment and access the provisioned secret.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Based on the principle of **least privilege access control**, the IAM binding
+    for targeted resource is used to grant fine-grained access to the default service
+    account.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In order not to prolong this post more than necessary, the terraform code for
+    provisioning resources in prod environment is available in [GitHub repo](https://github.com/kbakande/dataform-001).
+    We only need to provision remote backend bucket and the service account (along
+    with fine grained permissions for default service account) in production environment.
+    If the provisioning is successful, the dataform status in the staging environment
+    should look similar to the image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ee94aeb09f5d4904218684464d849ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Dataform status after successful provisioning in GCP
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some pros and cons of the proposed architecture are highlighted as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pros
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Follows the principle of version control. The proposed architecture has only
+    one version but the code can be materialised in multiple environments.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Experimentation is confined within the staging environment which mitigate the
+    chance of an unintended modification of production data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cons
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Concern that default service account might make unintended change in the production
+    environment but this is mitigated with the least privilege access control.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Multiple developers working concurrently within the staging environment might
+    override data. Though not shown in this post, the scenario can be mitigated with
+    [workspace compilation override](https://cloud.google.com/dataform/docs/workspace-compilation-overrides)
+    and [schema suffix features](https://cloud.google.com/dataform/docs/workspace-compilation-overrides#:~:text=When%20you%20set%20%24%7BworkspaceName%7D%20as%20the%20schema%20suffix%2C%20Dataform,workspace%20in%20the%20dedicated%20schema.)
+    of Dataform.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As with any architecture, there are pros and cons. The ultimate decision should
+    be based on circumstances within the organisation. Hopefully, this post contributes
+    towards making that decision.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In [part 1](https://medium.com/towards-data-science/understanding-dataform-terminologies-and-authentication-flow-aa98c2fbcdfb),
+    We have gone over some terminologies used within GCP Dataform and a walkthrough
+    of the authentication flow for a single repo, multi environment Dataform set up.
+    Terraform code is then provided in this part 2 along with the approach to implement
+    least privilege access control for the service accounts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope you find the post helpful in your understanding of Dataform. Lets connect
+    on [Linkedln](https://www.linkedin.com/in/koakande/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Image credit*: All images in this post have been created by the Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://medium.com/towards-data-science/understanding-dataform-terminologies-and-authentication-flow-aa98c2fbcdfb](https://medium.com/towards-data-science/understanding-dataform-terminologies-and-authentication-flow-aa98c2fbcdfb)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[https://github.com/kbakande/terraforming-dataform](https://github.com/kbakande/terraforming-dataform)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[https://www.cloudskillsboost.google/course_templates/443](https://www.cloudskillsboost.google/course_templates/443)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[https://cloud.google.com/dataform/docs/workspace-compilation-overrides](https://cloud.google.com/dataform/docs/workspace-compilation-overrides)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

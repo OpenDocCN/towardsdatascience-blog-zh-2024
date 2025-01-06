@@ -1,0 +1,266 @@
+- en: Drawing From a Random Distribution in SQL
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09](https://towardsdatascience.com/drawing-from-a-random-distribution-in-sql-b6c97c89e45c?source=collection_archive---------10-----------------------#2024-02-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: From a probability density function to random samples
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[![Sami
+    Abboud](../Images/546a33fe92a194068816e6173eaa854a.png)](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)
+    [Sami Abboud](https://medium.com/@samiabboud?source=post_page---byline--b6c97c89e45c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b6c97c89e45c--------------------------------)
+    ·8 min read·Feb 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/22d2395939286048baeef0d7e72e1687.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Moritz Kindler](https://unsplash.com/@moritz_photography?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/white-and-black-polka-dot-ceramic-mug-with-water-okiy0SxOaBg?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are different methods for updating a reinforcement learning agent’s policy
+    at each iteration. A few weeks ago we started experimenting with replacing our
+    current method with a Bayesian inference step. Some of the data workloads within
+    our agent are written in SQL that is executed on GCP’s BigQuery engine. We use
+    this stack because it provides scalable computational capabilities, ML packages
+    and a straightforward SQL interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Bayesian inference step we looked to implement uses one of the [alternative
+    parametrizations of a beta distribution](https://en.wikipedia.org/wiki/Beta_distribution#Mean_and_sample_size).
+    Which means that we will need to be able to draw from a beta distribution in SQL.
+    While working on this, I discovered that drawing from the random distribution
+    in SQL is a topic with very few well documented examples. So I’m writing about
+    it here..
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: How hard could it be?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: BigQuery doesn’t have a beta distribution. It doesn’t have the capability to
+    draw from *any* random distribution. So my first intuition was to take the definition
+    of the beta distribution, write it in SQL, set the parameters using a CTA, draw
+    a random number between 0 and 1 and compute the value of that function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But it’s 2024, so I asked ChatGPT how it would do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Me**: “​How do you create random draws from a beta distribution in BigQuery?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ChatGPT**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Me** *thinking to myself*: Right, so that clearly won’t work.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Do you see the problem in the code? ChatGPT draws two *different* x values
+    for the presumed beta distribution PDF. I fixed this, cleaned up the query a little
+    and sampled 1,000 values. And here’s the SQL code for doing that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Thank you all, that’s a wrap 🎁 See you in the next post!
+  prefs: []
+  type: TYPE_NORMAL
+- en: WRONG! 🔴
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take a trusted implementation of drawing from a beta distribution using
+    the same parameters and compare the results. I’ve used SciPy’s `beta.rvs()` in
+    Python and here are two 100-bin histograms that will allow comparing the two drawn
+    distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8fd72857adf2b4861d92580c4316de1f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(**Left)**: Naive draws using BigQuery. (**Right**): Draws using SciPy’s beta.rvs()'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, it doesn’t take a magnifying glass to realize that the distributions are
+    different. I went back the beta distribution definition and realized that it might
+    be because the beta distribution also has a scaling constant which depends on
+    the [gamma function](https://en.wikipedia.org/wiki/Gamma_function) that I didn’t
+    include in the calculation 🤦.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Problem:** the gamma function does not have a [closed-form expression](https://en.wikipedia.org/wiki/Closed-form_expression),
+    and BigQuery doesn’t provide an implementation that approximates it. So at this
+    point I decided to switch to Python, a language that I’m more familiar with and
+    will make my experimentation more efficient. The thinking was that if I nail it
+    down in Python, I’ll be able to translate it to SQL. I would still need some way
+    to approximate a gamma function, but one step at a time.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: What does drawing from a random distribution actually mean?'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s implement a manual draw from a beta distribution in Python, but now with
+    the correct constant using SciPy’s gamma function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s examine the distribution using a 100-bin histogram again:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/de29f9bc9661da1f062515f5e5ea0db7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Naive draws using Python
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first thing we notice is that the scale is now different, but the distribution
+    still looks like the one drawn in BigQuery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*… something is wrong…* it’s time for a short walk to think 🚶'
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*After a short walk:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What does drawing from a random distribution actually mean? What I’ve implemented
+    so far is randomly sampling from the beta probability density function (PDF) and
+    it wasn’t working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So I had to dig up some statistics classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are a couple of good refreshers on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Probability Density Functions (PDFs) and Cumulative Distribution Functions
+    (CDFs) for Continuous Random Variables](https://stats.libretexts.org/Courses/Saint_Mary''s_College_Notre_Dame/MATH_345__-_Probability_(Kuter)/4%3A_Continuous_Random_Variables/4.1%3A_Probability_Density_Functions_(PDFs)_and_Cumulative_Distribution_Functions_(CDFs)_for_Continuous_Random_Variables),
+    and'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Generating Samples from Probability Distributions](https://web.mit.edu/urban_or_book/www/book/chapter7/7.1.3.html)
+    that I found helpful.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In short, the conclusion is that drawing from a random variable actually means
+    **sampling from the inverse cumulative distribution function (CDF)**, not from
+    the probability density function (PDF) like I was doing so far.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course 🤦. My [probability professor](https://web.iem.technion.ac.il/dmitry-dima-ioffe-1963-2020/),
+    who I just learned had passed away from illness in 2020, would have encouraged
+    me to “review the basics” at this point..
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Ok. Let’s revisit the Python code, now drawing samples from the inverse CDF
+    (which is also called [the quantile function](https://en.wikipedia.org/wiki/Quantile_function))
+    of our beta distribution, and compare it to the distribution drawn using SciPy’s
+    beta.rvs():'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*phew* this looks much better:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb08d3d0bc8cb8c045eba5cf4cbc73fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An overlay of two histograms comparing a 1,000 draws using SciPy’s beta.rvs()
+    and a manual draw
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Back to SQL'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve got drawing samples from a random variable straight, it’s time
+    to move back to SQL. For the sake of simplicity, and because BigQuery does not
+    readily come with an implementation of a Gamma function¹ I’m going to draw from
+    the [logistic distribution](https://en.wikipedia.org/wiki/Logistic_distribution)
+    (with parameters a=0 and b=1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s now compare the distributions of the three sampling methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SciPy’s `logistic.rvs()`
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Manually sampling the logistic distribution PDF in Python and drawing a random
+    sample as per Step 2 above
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Doing the same in SQL
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/48e0f6a2ad13082a144664db8a95f8dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An overlay of three histograms comparing 1,000 draws using SciPy’s beta.rvs(),
+    a manual draw in Python and a manual draw in SQL
+  prefs: []
+  type: TYPE_NORMAL
+- en: This looks like a success to me! 💪
+  prefs: []
+  type: TYPE_NORMAL
+- en: This SQL code above samples from the logistic distribution, but it should work
+    on any distribution where you are able to get a discrete representation of the
+    PDF by sampling it at consistent intervals!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] I did go looking for an approximation of the Gamma function in SQL and
+    eventually gave up. It is most probably possible to code an approximation of the
+    Gamma function in SQL but that will need more research than I had time allocated.
+    Beware of naively copy/pasting an approximation (e.g. translating one the of snippets
+    in Rosetta Code to SQL) because those make assumptions on the gamma parameter
+    that are not always obvious. For example, the Python snippet (translated from
+    Ada) is only accurate for small gamma values.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: —
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**This is the kind of work we do to keep improving Aampe, a reinforcement learning
+    agent that personalizes emails, web/push notifications, SMS and WhatsApp messages
+    for users.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless stated otherwise, all images are by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,1074 @@
+- en: 'Rainbow: The Colorful Evolution of Deep Q-Networks 🌈'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/rainbow-the-colorful-evolution-of-deep-q-networks-37e662ab99b2?source=collection_archive---------8-----------------------#2024-07-12](https://towardsdatascience.com/rainbow-the-colorful-evolution-of-deep-q-networks-37e662ab99b2?source=collection_archive---------8-----------------------#2024-07-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Everything you need to assemble the DQN Megazord in JAX.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ryanpegoud?source=post_page---byline--37e662ab99b2--------------------------------)[![Ryan
+    Pégoud](../Images/9314b76c2be56bda8b73b4badf9e3e4d.png)](https://medium.com/@ryanpegoud?source=post_page---byline--37e662ab99b2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--37e662ab99b2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--37e662ab99b2--------------------------------)
+    [Ryan Pégoud](https://medium.com/@ryanpegoud?source=post_page---byline--37e662ab99b2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--37e662ab99b2--------------------------------)
+    ·17 min read·Jul 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9c3ff5fae978b121c7db85b75b3e992f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: “The Rainbow Megazord”, Dall-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2013, the introduction of Deep Q-Networks (DQN) by *Mnih et al.*[1]marked
+    the first breakthrough in Deep Reinforcement Learning, surpassing expert human
+    players in three Atari games. Over the years, several variants of DQN were published,
+    each improving on specific weaknesses of the original algorithm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In 2017, *Hessel et al.*[2]made the best out of the DQN palette by combining
+    6 of its powerful variants, crafting what could be called the DQN Megazord: Rainbow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we’ll break down the individual components that make up Rainbow,
+    while reviewing their JAX implementations in the [**Stoix library.**](https://github.com/EdanToledo/Stoix)
+  prefs: []
+  type: TYPE_NORMAL
+- en: DQN
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The fundamental building block of Rainbow is DQN, an extension of Q-learning
+    using a neural network with parameters **θ** to approximate the Q-function (i.e.
+    action-value function). In particular, DQN uses convolutional layers to extract
+    features from images and a linear layer to produce a scalar estimate of the Q-value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During training, the network parameterized by **θ**, referred to as the *“online
+    network”* is used to select actions while the *“target network”* parameterized
+    by **θ-** is a delayed copy of the online network used to provide stable targets.
+    This way, the targets are not dependent on the parameters being updated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, DQN uses a replay buffer ***D*** to sample past transitions (observations,
+    reward, and done flag tuples) to train on at fixed intervals.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At each iteration ***i***, DQN samples a transition ***j*** and takes a gradient
+    step on the following loss:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b62e326d7b69d832ec425e3d753b56e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: DQN loss function, all images are made by the author, unless specified otherwise
+  prefs: []
+  type: TYPE_NORMAL
+- en: This loss aims at minimizing the expectation of the squared temporal-difference
+    (TD) error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that DQN is an **off-policy** algorithm because it learns the optimal policy
+    defined by the **maximum Q-value** term while following a different behavior policy,
+    such as an epsilon-greedy policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the DQN algorithm in detail:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/baf5816cef9399a587418e16b013d99a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: DQN algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: DQN in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As mentioned above, we’ll reference code snippets from the Stoix library to
+    illustrate the core parts of DQN and Rainbow *(some of the code was slightly edited
+    or commented for pedagogical purposes)*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s start with the neural network: Stoix lets us break down our model architecture
+    into a pre-processor and a post-processor, referred to as **torso** and **head**
+    respectively. In the case of DQN, the torso would be a multi-layer perceptron
+    (MLP) or convolutional neural network (CNN) and the head an epsilon greedy policy,
+    both implemented as [**Flax**](https://flax.readthedocs.io/en/latest/index.html)
+    modules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Q-Network, defined as a CNN Torso and an Epsilon-Greedy policy in Stoix
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Additionally, DQN uses the following loss (*note that Stoix follows the* [***Rlax***](https://github.com/google-deepmind/rlax)*naming
+    conventions, therefore tm1 is equivalent to timestep t in the above equations,
+    while t refers to timestep t+1*):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Q-learning loss used in the context of DQN
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Rainbow blueprint
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have laid the foundations for DQN, we’ll review each part of the
+    algorithm in more detail, while identifying potential weaknesses and how they
+    are addressed by Rainbow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In particular, we’ll cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Double DQN and the overestimation bias
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Dueling DQN and the state-value / advantage prediction
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Distributional DQN and the return distribution
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Multi-step learning
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Noisy DQN and flexible exploration strategies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Prioritized Experience Replay and learning potential
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/20275c2f4f6e79e1dc782a0d2beb1f50.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Rainbow Blueprint, Dall-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Double DQN
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Source:** [*Deep Reinforcement Learning with Double Q-learning*](http://arxiv.org/abs/1509.06461)[3]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improvement:** Reduced overestimation bias'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The overestimation bias
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'One issue with the loss function used in vanilla DQN arises from the Q-target.
+    Remember that we define the target as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3bd664e7d9b3dd60aff3bb4a501b9bb6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Objective in the DQN loss
+  prefs: []
+  type: TYPE_NORMAL
+- en: This objective may lead to an **overestimation bias**. Indeed, as DQN uses bootstrapping
+    (learning estimates from estimates), the max term may select overestimated values
+    to update the Q-function, leading to overestimated Q-values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As an example, consider the following figure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Q-values predicted by the network are represented in blue.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The true Q-values are represented in purple.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The gap between the predictions and true values is represented by red arrows.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this case, action 0 has the highest predicted Q-value because of a large
+    prediction error. This value will therefore be used to construct the target.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the action with the highest true value is action 2\. This illustration
+    shows how the max term in the target favors **large positive estimation errors**,
+    inducing an overestimation bias.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bf3d33b853a2c71019024eae646b567.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustration of the overestimation bias.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decoupling action selection and evaluation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To solve this problem, *Hasselt et al.* (2015)[3] propose a new target where
+    the action is selected by the online network, while its value is estimated by
+    the target network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c377edbece9356607e4a8a0b5723f2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Double DQN target
+  prefs: []
+  type: TYPE_NORMAL
+- en: By decoupling action selection and evaluation, the estimation bias is significantly
+    reduced, leading to better value estimates and improved performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/be824709136eed9f80431b6882ad92c8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Double DQN provides stable and accurate value estimates, leading to improved
+    performance. Source: Hasselt et al. (2015), Figure 3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Double DQN in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'As expected, implementing Double DQN only requires us to modify the loss function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dueling DQN
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Source:** [*Dueling Network Architectures for Deep Reinforcement Learning*](http://arxiv.org/abs/1511.06581)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improvement:** Separation of the value and advantage computation'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: State value, Q-value, and advantage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In RL, we use several functions to estimate the value of a given state, action,
+    or sequence of actions from a given state:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State-value V(s):** The state value corresponds to the expected return when
+    starting in a given state **s** and following a policy **π** thereafter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Q-value Q(s, a):** Similarly, the Q-value corresponds to the expected return
+    when starting in a given state **s**, taking action **a,** and following a policy
+    **π** thereafter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Advantage A(s, a):** The advantage is defined as the difference between the
+    Q-value and the state-value in a given state **s** for an action **a**. It represents
+    the inherent value of action **a** in the current state.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The following figure attempts to represent the differences between these value
+    functions on a backup diagram (*note that the state value is weighted by the probability
+    of taking each action under policy* **π**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cba2c32f4c583fd964850468b441292f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualization of the state value (in purple), state-action value (Q-function,
+    in blue), and the advantage (in pink) on a backup diagram.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Usually, DQN estimates the Q-value directly, using a feed-forward neural network.
+    This implies that DQN has to learn the Q-values for each action in each state
+    independently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dueling architecture
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Introduced by *Wang et al*.[4] in 2016, Dueling DQN uses a neural network with
+    two separate streams of computation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **state value stream** predicts the scalar value of a given state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The **advantage stream** predicts to predict the advantage of each action for
+    a given state.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This decoupling enables the **independent estimation** of the state value and
+    advantages, which has several benefits. For instance, the network can learn state
+    values without having to update the action values regularly. Additionally, it
+    can better generalize to unseen actions in familiar states.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These improvements lead to stabler and faster convergence, especially in environments
+    with many similar-valued actions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, a dueling network uses a **common representation** (i.e. a shared
+    linear or convolutional layer) parameterized by parameters **θ** before splitting
+    into two streams, consisting of linear layers with parameters **α** and **β**
+    respectively. The state value stream outputs a scalar value while the advantage
+    stream returns a scalar value for each available action.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding the outputs of the two streams allows us to reconstruct the Q-value for
+    each action as **Q(s, a) = V(s) + A(s, a)**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An important detail is that the mean is usually subtracted from the advantages.
+    Indeed, the advantages need to have **zero mean**, otherwise, it would be impossible
+    to decompose Q into V and A, making the problem ill-defined. With this constraint,
+    **V** represents the value of the state while **A** represents how much better
+    or worse each action is compared to the average action in that state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/af7d67549d33c0babd85d701ffa5900e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustration of a dueling network
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dueling Network in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Here’s the Stoix implementation of a Q-network:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributional DQN
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Source:** [A distributional perspective on Reinforcement Learning](http://arxiv.org/abs/1707.06887)[5]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improvement:** Richer value estimates'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The return distribution
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most RL systems model the expectation of the return, however, a promising body
+    of literature approaches RL from a distributional perspective. In this setting,
+    the goal becomes to model the **return distribution**, which allows us to consider
+    other statistics than the mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In 2017, *Bellemare et al.*[5] published a distributional version of DQN called
+    C51 predicting the return distribution for each action, reaching new state-of-the-art
+    performances on the Atari benchmark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/194c16ae2151c70103d4d1834a0a919b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Illustrated comparison between DQN and C51\. Source [5']
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take a step back and review the theory behind C51.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In traditional RL, we evaluate a policy using the **Bellman Equation**, which
+    allows us to define the Q-function in a recursive form. Alternatively, we can
+    use a distributional version of the Bellman equation, which accounts for randomness
+    in the returns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef036b8c95c7be0d0c6ab34ccfdafdb7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Standard and Distributional versions of the Bellman Equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, **ρ** is the transition function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main difference between those functions is that **Q** **is a numerical value**,
+    summing expectations over random variables. In contrast, **Z is a random variable**,
+    summing the reward distribution and the discounted distribution of future returns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The following illustration helps visualize how to derive **Z** from the distributional
+    Bellman equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider the distribution of returns **Z** at a given timestep and the transition
+    operator **Pπ.** **PπZ** is the distribution of future returns **Z(s’, a’)**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Multiplying this by the discount factor **γ** contracts the distribution towards
+    0 (as **γ** is less than 1).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Adding the reward distribution shifts the previous distribution by a set amount
+    *(Note that the figure assumes a constant reward for simplicity. In practice,
+    adding the reward distribution would shift but also modify the discounted return*).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, the distribution is projected on a discrete support using an L2 projection
+    operator **Φ**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/97a3aac37d854dcd502775572e175e3b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Illustration of the distributional Bellman equation. Source: [5]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This fixed support is a vector of ***N*** atoms separated by a constant gap
+    within a set interval:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1aa87d6a69d5414ec7ebb7e17c72596a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Definition of the discrete support **z**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At inference time, the Q-network returns an approximating distribution **dt**
+    defined on this support with the probability mass **pθ(st, at)** on each atom
+    ***i*** such that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/da3c5c9967c24aea64b82f9e9891c613.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Predicted return distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The goal is to update **θ** such that the distribution closely matches the
+    true distribution of returns. To learn the probability masses, the target distribution
+    is built using a **distributional variant of Bellman’s optimality equation**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/81ad365cd4b43af4ea6fd2e4388e975e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Target return distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be able to compare the distribution predicted by our neural network and the
+    target distribution, we need to discretize the target distribution and project
+    it on the same support **z**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To this end, we use an L2 projection (*a projection onto* ***z*** *such that
+    the difference between the original and projected distribution is minimized in
+    terms of the L2 norm*):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c58835a895b9ebeba742c78533a5f1a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: L2 projection of the target distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we need to define a loss function that minimizes the difference between
+    the two distributions. As we’re dealing with distributions, we can’t simply subtract
+    the prediction from the target, as we did previously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Instead, we minimize the Kullback-Leibler divergence between **dt** and **d’t**
+    (in practice, this is implemented as a cross-entropy loss):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4e6e7171841467790558b6c6ce556321.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: KL divergence between the projected target and the predicted return distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For a more exhaustive description of Distributional DQN, you can refer to
+    Massimiliano Tomassoli’s article[8] as well as Pascal Poupart’s video on the topic[11].*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: C51 in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The key components of C51 in Stoix are the Distributional head and the categorical
+    loss, which uses double Q-learning by default as introduced previously. The choice
+    of defining the C51 network as a head lets us use an MLP or a CNN torso interchangeably
+    depending on the use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Noisy DQN
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Source:** [Noisy Networks for Exploration](http://arxiv.org/abs/1706.10295)[6]'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improvement:** Learnable and state-dependent exploration mechanism'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Noisy parameterization of Neural Networks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As many off-policy algorithms, DQN relies on an epsilon-greedy policy as its
+    main exploration mechanism. Therefore, the algorithm will behave greedily with
+    respect to the Q-values most of the time and select random actions with a predefined
+    probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Fortunato et al.*[6] introduce NoisyNets as a more flexible alternative. NoisyNets
+    are neural networks whose weights and biases are **perturbed** by a **parametric
+    function of Gaussian noise**. Similarly to an epsilon-greedy policy, such noise
+    injects randomness in the agent’s action selection, thus encouraging exploration.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, this noise is scaled and offset by **learned parameters**, allowing
+    the level of noise to be adapted state-by-state. This way, the balance between
+    exploration and exploitation is optimized *dynamically* during training. Eventually,
+    the network may learn to ignore the noise, but will do so at **different rates**
+    in **different parts of the state space**, leading to more flexible exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A network parameterized by a vector of noisy parameters is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e34ae4ce245756ebcea722260869dc66.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Neural Network parameterized by Noisy parameters
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, a linear layer **y = wx + b** becomes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0c00383ff99930448d0296b65faca5ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Noisy linear layer
+  prefs: []
+  type: TYPE_NORMAL
+- en: For performance, the noise is generated at inference time using **Factorized
+    Gaussian Noise**. For a linear layer with **M** inputs and **N** outputs, a noise
+    matrix of shape (**M x N**) is generated as a combination of two noise vectors
+    with size **M** and **N**. This methods reduces the number of required random
+    variables from **M x N** to **M + N**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The noise matrix is defined as the outer product of the noise vectors, each
+    scaled by a function **f**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c2930b27127318d9c7088beb98339ab8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Noise generation using Factorised Gaussian Noise
+  prefs: []
+  type: TYPE_NORMAL
+- en: Improved exploration
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The improved exploration induced by noisy networks allow a wide range of algorithms,
+    such as DQN, Dueling DQN and A3C to benefit from improved performances with a
+    reasonably low amount of extra parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0546839f96938a710ebdd383e8aee747.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'NoisyNets improve the performance of several algorithms on the Atari benchmark.
+    Source: [6]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Noisy DQN in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In Stoix, we implement a noisy layer as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: All the linear layers in Rainbow are replaced with their noisy equivalent
+    (see the* ***“Assembling Rainbow”*** *section for more details).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prioritized Experience Replay
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Source:** Prioritized Experience Replay[7]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Improvement:** Prioritization of experiences with higher learning potential'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Estimating the Learning Potential
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After taking an environment step, vanilla DQN uniformly samples a batch of experiences
+    (also called *transitions*) from a replay buffer and performs a gradient descent
+    step on this batch. Although this approach produces satisfying results, some specific
+    experiences might be more valuable from a learning perspective than others. Therefore,
+    we could potentially speed up the training process by sampling such experiences
+    more often.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is precisely the idea explored in the Prioritized Experience Replay (PER)
+    paper published by *Schaul et al.*[7] in 2016\. However, the main question remains:
+    how to approximate the **expected learning potential** of a transition?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One idealized criterion would be the amount the RL agent can learn from a transition
+    in its current state (expected learning progress). While this measure is not directly
+    accessible, a reasonable proxy is the magnitude of a transition’s TD error δ,
+    which indicates how ‘surprising’ or unexpected the transition is: specifically,
+    how far the value is from its next-step bootstrap estimate (Andre et al., 1998).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Prioritized Experience Replay, Schaul et al. (2016)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'As a reminder, the TD error is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47087938e81974e308d2a37b8fcb400a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The temporal-difference error
+  prefs: []
+  type: TYPE_NORMAL
+- en: This metric is a decent estimate of the learning potential of a specific transition,
+    as a high TD error indicates a large difference between the predicted and actual
+    outcomes, meaning that the agent would benefit from updating its beliefs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, it is worth noting that alternative prioritization metrics are still
+    being studied. For instance, *Lahire et al.*[9] (2022) argue that the optimal
+    sampling scheme is distributed according to the per-sample gradient norms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ae86716a279e2c41dbbd7f9dc33b80a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Per-sample gradient norms
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, let’s continue with the TD error, as Rainbow uses this metric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Deriving Sampling Probabilities
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Once we have selected the prioritization criterion, we can derive the probabilities
+    of sampling each transition from it. In Prioritized Experience Replay, two alternatives
+    are showcased:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Proportional**: Here the probability of replaying a transition is equal to
+    the absolute value of the associated TD error. A small positive constant is added
+    to prevent transitions not being revisited once their error is zero.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Rank-based**: In this mode, transitions are ranked in descending order according
+    to their absolute TD error, and their probability is defined based on their rank.
+    This option is supposed to be more robust as it is insensible to outliers.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The sampling probabilities are then normalized and raised to the power **α**,
+    a hyperparameter determining the degree of prioritization (**α=0** is the uniform
+    case).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd93373aeafc0258d8097ddcc8b98e69.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Prioritization modes and probability normalization
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importance sampling and bias annealing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In RL, the estimation of the expected value of the return relies on the assumption
+    that the updates correspond to the same distribution as the expectation (i.e.,
+    the uniform distribution). However, PER introduces bias as we now sample experiences
+    according to their TD error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To rectify this bias, we use **importance sampling**, a statistical method used
+    to *estimate the properties of a distribution while sampling from a different
+    distribution*. Importance sampling re-weights samples so that the estimates remain
+    unbiased and accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Typically, the correcting weights are defined as the ratio of the two probabilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/df361e74e24201fc048a33e4eaf8cc51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Importance sampling ratio
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this case, the target distribution is the uniform distribution, where every
+    transition has a probability of being sampled equal to 1/**N**, with **N** being
+    the size of the replay buffer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, the importance sampling coefficient in the context of PER is defined
+    by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8c435485dea322925507c5bc7a38e668.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Importance sampling weight used in PER
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With **β** a coefficient adjusting the amount of bias correction (the bias
+    is fully corrected for **β=1**). Finally, the weights are normalized for stability:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/868b56f8913a40c593f78675c09d784e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Normalization of the importance sampling weights
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To summarize, here’s the full algorithm for Prioritized Experience Replay (the
+    update and training steps are identical to DQN):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e4e0192fa820ff77f9ef36d510c7fc91.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Prioritized Experience Replay algorithm
+  prefs: []
+  type: TYPE_NORMAL
+- en: Increased convergence speed with PER
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The following plots highlight the performance benefits of PER. Indeed, the proportional
+    and rank-based prioritization mechanisms enable DQN to reach the same baseline
+    performances roughly twice as fast on the Atari benchmark.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d4585c6368905c2144be046608fdc86f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Normalized maximum and average scores (in terms of Double DQN performance) on
+    57 Atari games. Source:[7]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prioritized Experience Replay in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Stoix seamlessly integrates the [Flashbax](https://github.com/instadeepai/flashbax)
+    library which provides a variety of replay buffers. Here are the relevant code
+    snippets used to instantiate the replay buffer, compute the sampling probabilities
+    from the TD error, and update the buffer’s priorities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-step Learning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Source:** [Reinforcement Learning: an Introduction, chapter 7](https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improvement:** Enhanced reward signal and sample efficiency, reduced variance'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Multi-step learning is an improvement on traditional one-step temporal difference
+    learning which allows us to consider the return over **n** steps when building
+    our targets. For instance, instead of considering the reward at the next timestep,
+    we’ll consider the n-step truncated rewards (see the below equation). This process
+    has several advantages, among which:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Immediate feedback:** considering a larger time horizon allows the agent
+    to learn the value of state-action pairs much faster, especially in environments
+    where rewards are delayed and specific actions might not pay out immediately.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Sample efficiency:** Each update in multi-step learning incorporates information
+    from multiple time steps, making each sample more informative. This improves sample
+    efficiency, meaning the agent can learn more from fewer experiences.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Balancing Bias and Variance:** Multi-step methods offer a trade-off between
+    bias and variance. One-step methods have low bias but high variance, while multi-step
+    methods have higher bias but lower variance. By tuning the number of steps, one
+    can find a balance that works best for the given environment.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The multi-step distributional loss used in Rainbow is defined as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f2b412a351afc3dfa642272ce6a1fa6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Multi-step target return distribution
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In practice, using n-step returns implies a few adjustments to our code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We now sample trajectories of **n** experiences, instead of individual experiences
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The reward is replaced with the n-step discounted returns
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The done flag is set to True if any of the **n** done flag is True
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The next state **s(t+1)** is replaced by the last observation of the trajectory
+    **s(t+n)**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Multi-Step learning in practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, we can reuse the categorical loss function used in C51 with these
+    updated inputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Assembling Rainbow
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Congratulations on making it this far! We now have a better understanding of
+    all the moving pieces that constitute Rainbow. Here’s a summary of the Rainbow
+    agent:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Neural Network Architecture:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: — **Torso:** A convolutional neural network (CNN) or multi-layer perceptron
+    (MLP) base that creates embeddings for the head network.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: — **Head:** Combines Dueling DQN and C51\. The value stream outputs the state
+    value distribution over atoms, while the advantage stream outputs the advantage
+    distribution over actions and atoms. These streams are aggregated, and Q-values
+    are computed as the weighted sum of atom values and their respective probabilities.
+    An action is selected using an epsilon-greedy policy.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: — **Noisy Layers:** All linear layers are replaced with their noisy equivalents
+    to aid in exploration.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Loss Function:** Uses a distributional loss modeling the n-step returns,
+    where targets are computed using Double Q-learning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Replay Buffer:** Employs a prioritization mechanism based on the TD error
+    to improve learning efficiency.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Here’s the network used for the Rainbow head:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Performances and ablations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To conclude this article, let’s take a closer look at Rainbow’s performances
+    on the Atari benchmark, as well as the ablation study.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following figure compares Rainbow with the other DQN baselines we studied.
+    The measured metric is the median human-normalized score. In other words, the
+    median human performance on Atari games is set to 100%, which enables us to quickly
+    spot algorithms achieving a human level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Three of the DQN baselines reach this level after 200 million frames:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Distributional DQN**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Dueling DQN**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Prioritized Double DQN**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interestingly, Rainbow reaches the same level after only 44 million frames,
+    making it **roughly 5 times more sample efficient** than the best baselines. At
+    the end of training, it exceeds **200%** of the median human-normalized score.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea23c893a795be0c7bd8eced1e0d9c2c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Median human-normalized performance across 57 Atari games. Each line represents
+    a DQN baseline. Source: [2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This second figure represents the ablation study, which represents the performances
+    of Rainbow without one of its components. These results allow us to make several
+    observations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The three most crucial components of Rainbow are the distributional head, the
+    use of multi-step learning, and the prioritization of the replay buffer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Noisy layers contribute significantly to the overall performance. Using standard
+    layers with an epsilon-greedy policy doesn’t allow the agent to reach the 200%
+    score in 200 million frames.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Despite achieving strong performances on their own, the dueling structure and
+    double Q-learning only provide marginal improvements in the context of Rainbow.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/848c4c480a1e32c78e5393a9567b2c89.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Median human-normalized performance across 57 Atari games. Each line represents
+    an ablation of Rainbow. Source: [2]'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you very much for reading this article, I hope it provided you with a
+    comprehensive introduction to Rainbow and its components. I highly advise reading
+    through the [**Stoix implementation of Rainbow**](https://github.com/EdanToledo/Stoix/blob/main/stoix/systems/q_learning/ff_rainbow.py)
+    for a more detailed description of the training process and the Rainbow architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Until next time 👋
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bibliography
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Mnih, V., Kavukcuoglu, K., Silver, D., Graves, A., Antonoglou, I., Wierstra,
+    D., & Riedmiller, M. (2013). [***Playing Atari with Deep Reinforcement Learning***](http://arxiv.org/abs/1312.5602),
+    arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Hessel, M., Modayil, J., van Hasselt, H., Schaul, T., Ostrovski, G., Dabney,
+    W., Horgan, D., Piot, B., Azar, M., & Silver, D. (2017). [***Rainbow: Combining
+    Improvements in Deep Reinforcement Learning***](http://arxiv.org/abs/1710.02298),
+    arXiv.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] van Hasselt, H., Guez, A., & Silver, D. (2015). [***Deep Reinforcement
+    Learning with Double Q-learning***](http://arxiv.org/abs/1509.06461), arXiv.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] Wang, Z., Schaul, T., Hessel, M., van Hasselt, H., Lanctot, M., & de Freitas,
+    N. (2016). [***Dueling Network Architectures for Deep Reinforcement Learning***](http://arxiv.org/abs/1511.06581)
+    (No. arXiv:1511.06581), arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] Bellemare, M. G., Dabney, W., & Munos, R. (2017). [***A Distributional
+    Perspective on Reinforcement Learning***](http://arxiv.org/abs/1707.06887), arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5''] Dabney, W., Ostrovski, G., Silver, D., & Munos, R. (2018). [***Implicit
+    Quantile Networks for Distributional Reinforcement Learning***](http://arxiv.org/abs/1806.06923),
+    arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[[6]](http://arxiv.org/abs/1806.06923](http://arxiv.org/abs/1806.06923)[6])
+    Fortunato, M., Azar, M. G., Piot, B., Menick, J., Osband, I., Graves, A., Mnih,
+    V., Munos, R., Hassabis, D., Pietquin, O., Blundell, C., & Legg, S. (2019). [***Noisy
+    Networks for Exploration***](http://arxiv.org/abs/1706.10295), arXiv.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Schaul, T., Quan, J., Antonoglou, I., & Silver, D. (2016). [***Prioritized
+    Experience Replay***](http://arxiv.org/abs/1511.05952)***,*** arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional resources
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[8] Massimiliano Tomassoli, [***Distributional RL: An intuitive explanation
+    of Distributional RL***](https://mtomassoli.github.io/2017/12/08/distributional_rl/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[9] Lahire, T., Geist, M., & Rachelson, E. (2022). [***Large Batch Experience
+    Replay***](http://arxiv.org/abs/2110.01528), arXiv.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[10] Sutton, R. S., & Barto, A. G. (1998). ***Reinforcement Learning: An Introduction***.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[11] Pascal Poupart, [***CS885 Module 5: Distributional RL***](https://youtu.be/r-Yk6-jagDU?si=9lqQHHNaQz8Uiclw)***,***
+    YouTube'
+  prefs: []
+  type: TYPE_NORMAL

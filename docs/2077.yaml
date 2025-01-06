@@ -1,0 +1,270 @@
+- en: 'Advanced Retrieval Techniques in a World of 2M Token Context Windows: Part
+    2 on Re-rankers'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/advanced-retrieval-techniques-in-a-world-of-2m-token-context-windows-part-2-on-re-rankers-a0dfa03ba325?source=collection_archive---------7-----------------------#2024-08-26](https://towardsdatascience.com/advanced-retrieval-techniques-in-a-world-of-2m-token-context-windows-part-2-on-re-rankers-a0dfa03ba325?source=collection_archive---------7-----------------------#2024-08-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/d563caf69cb0e3c037f66913efe18f14.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualising AI project launched by Google DeepMind. From [Unsplash](https://unsplash.com/photos/a-close-up-of-a-group-of-different-colored-objects-_aU_AxlS04E)
+    image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Exploring RAG techniques to improve retrieval accuracy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@meghanheintz?source=post_page---byline--a0dfa03ba325--------------------------------)[![Meghan
+    Heintz](../Images/9eaae6d3d8168086d83ff7100329c51f.png)](https://medium.com/@meghanheintz?source=post_page---byline--a0dfa03ba325--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a0dfa03ba325--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a0dfa03ba325--------------------------------)
+    [Meghan Heintz](https://medium.com/@meghanheintz?source=post_page---byline--a0dfa03ba325--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a0dfa03ba325--------------------------------)
+    ·7 min read·Aug 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: In [Part 1](https://medium.com/p/2edc0266aabe), we dove into improving RAG (retrieval
+    augmented generation) outcomes by re-writing queries before performing retrieval.
+    This time we will learn about how re-ranking results from vector database retrievals
+    helps performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While I highly recommend experimenting with promising proprietary options like
+    Cohere’s [Re-Rank 3](https://cohere.com/blog/rerank-3), we’ll focus mainly on
+    understanding what researchers have shared on the topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Re-Ranking, what’s the point?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First of all, why rerank at all? Results from vector databases return “similarity”
+    scores based on the embeddings of the query and document. These scores can already
+    be used to sort the results and since this is already a semantic similarity scoring
+    of the document and query, why would we need another step?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are a few reasons why we would take this approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Document embeddings are “lossy”. Documents are compressed in vector format before
+    seeing the query, which means the document vector is not tailored to the query
+    vector. Re-ranking allows us to better understand the **document’s meaning specific
+    to the query**.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Two-stage systems have become standard in traditional search and recommender
+    systems. They offer improvements in scalability, flexibility, and accuracy. **Retrieval
+    models are very fast, whereas ranking models are slow.** By building a hybrid
+    system, we can balance the speed and accuracy trade-offs between each stage.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Re-ranking allows us to reduce the number of documents we stuff into the context
+    window which **a) reduces costs** and **b) reduces the chances of relevant data
+    being “lost in the haystack”.**
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Traditional Methods of Re-Ranking
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Informational retrieval is not a new field. Before LLMs employed RAG to improve
+    generation, search engines used re-ranking methods to improve search results.
+    Two popular methodologies are TF-IDF (term frequency–inverse document frequency)
+    and BM25 (Best Match 25).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Karen Spärck Jones](https://en.wikipedia.org/wiki/Karen_Sp%C3%A4rck_Jones)
+    conceived of the concept of IDF (of TF-IDF), inverse document frequency, as a
+    statistical interpretation of term-specificity in the 1970s. The general concept
+    is that the specificity of a term can be quantified as an inverse function of
+    the number of documents in which it occurs. A toy example is the frequency of
+    terms in Shakespearean plays. Because the term “Romeo” only appears in one play,
+    we believe it is more informative to the subject of the play than the word “sweet”
+    because that term occurs in all plays.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BM25 or Okapi BM25 was developed by both Karen Spärck Jones and [Stephen Robertson](https://en.wikipedia.org/wiki/Stephen_Robertson_(computer_scientist))
+    as an improvement to TF-IDF. BM25 is a “bag-of-words” retrieval function that
+    ranks a set of documents based on the query terms appearing in each document,
+    regardless of their proximity within the document. This method expands on TF-IDF
+    in a few important ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'BM25 uses a saturation function where the importance of a term increases with
+    frequency but with diminishing returns. (Side note: This was important for protecting
+    accuracy when search engine optimization (SEO) became higher stakes. You can’t
+    just spam your keyword with this improvement.)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: BM25 includes document length normalization to ensure that longer documents
+    are not unfairly advantaged. (Another improvement to thwart would-be SEO gamers.)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Both of these methods can be used to re-rank results from vector databases before
+    documents are used in the context of generation. This would be called “feature”
+    based re-ranking.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neural Re-Ranking Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Something you should notice about the traditional methods is that they focus
+    on exact term matches. These methods will struggle when documents use semantically
+    similar but different terms. Neural re-ranking methods like SBERT ([Sentence Transformers](https://arxiv.org/pdf/1908.10084))
+    seek to overcome this limitation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: SBERT is a fine-tuned BERT (Bidirectional Encoder Representations from Transformers)
+    model with a siamese / triplet network architecture which greatly improves the
+    computation efficiency and latency for calculating sentence similarity. Transformers
+    like [SBERT](https://arxiv.org/pdf/1908.10084) (Sentence-BERT) use the context
+    in which terms are used, allowing the model to handle synonyms and words with
+    multiple meanings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d654e0e6d8d456ab557a95ef07dc4080.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'SBERT architecture at inference, for example, to compute similarity scores.
+    This architecture is also used with the regression objective function. From [Sentence-BERT:
+    Sentence Embeddings using Siamese BERT-Networks by Nils Reimers and Iryna Gurevych](https://arxiv.org/pdf/1908.10084)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: SBERT tends to perform better for semantic similarity ranking due to its specialization.
+    However, using SBERT comes with the downside that you will need to manage the
+    models locally versus calling an API, such as with OpenAI’s embedding models.
+    Pick your poison wisely!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cross-Encoder Re-Ranking
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The top K results from a vector database search are the most similar document
+    vectors compared to the query vector. Another way of describing this ranking method
+    is to say it is a “bi-encoder” ranking. Vectors are calculated up front and approximate
+    nearest neighbors algorithms (ANNs) select the most similar documents making this
+    a highly efficient ranking method. But that efficiency comes at the expense of
+    some accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, cross-encoders use a classification mechanism on data pairs to
+    calculate similarity. This means you need a pair for each document and query.
+    This approach can yield much more accurate results but it’s highly inefficient.
+    That is why cross-encoders are best implemented through a hybrid approach where
+    the number of documents is first pruned using a “bi-encoder” top K result before
+    ranking with a cross-encoder. You can read more about using bi-encoders and cross-encoders
+    together in the [SBERT documentation](https://www.sbert.net/examples/applications/retrieve_rerank/README.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e87d3746696f5d9c5fd2179ff3fb8756.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Information Retrieval / Question Answering Retrieval Diagram explaining how
+    to use Bi-Encoders and Cross-Encoders together from the [SBERT documentation](https://www.sbert.net/examples/applications/retrieve_rerank/README.html),
+    full citation below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Prompt-based Re-Ranking (PBR)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Until now, we have focused on using vectors or other numeric methods to rerank
+    our RAG results. But does that mean we are underleveraging the LLM? Feeding the
+    document and the query back to the LLM for scoring can be an effective way to
+    score the document; there is approximately no information loss when you take this
+    approach. If the LLM is prompted to return only a single token (the score), the
+    latency incurred is often acceptable (although this is one of the more expensive
+    approaches to scale). This is considered to be “zero-shot” re-ranking and research
+    is still limited on this topic but we know it must be sensitive to the quality
+    of the prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another version of (PBR) is the [**DSLR Framework**](https://ar5iv.labs.arxiv.org/html/2407.03627v4)
+    (Document Refinement with Sentence-Level Re-ranking and Reconstruction). DSLR
+    proposes an unsupervised method that decomposes retrieved documents into sentences,
+    re-ranks them based on relevance, and reconstructs them into coherent passages
+    before passing them to the LLM. This approach contrasts with traditional methods
+    that rely on fixed-size passages, which may include redundant or irrelevant information.
+    Pruning non-relevant sentences before generating a response can reduce hallucinations
+    and improve overall accuracy. Below you can see an example of how DSLR refinement
+    improves the LLMs response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f1b8b5cb97f9535858ebec79376c3e32.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Example DSLR refinement from [DSLR: Document Refinement with Sentence-Level
+    Re-ranking and Reconstruction to Enhance Retrieval-Augmented Generation by Taeho
+    Hwang, Soyeong Jeong, Sukmin Cho, SeungYoon Han, Jong C. Park at the School of
+    Computing Korea Advanced Institute of Science and Technology](https://ar5iv.labs.arxiv.org/html/2407.03627v4)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph-based Reranking
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Sometimes the answer is not going to fit cleanly inside a single document chunk.
+    Books and papers are written with the expectation that they’ll be read linearly
+    or at least the reader will be able to easily refer back to earlier passages.
+    For example, you could be asked to refer back to an earlier chapter on BM25 when
+    reading about SBERT. In a basic RAG application, this would be impossible because
+    your retrieved document would have no connections to the previous chapters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[G-RAG](https://arxiv.org/pdf/2405.18414), an approach proposed by researchers
+    at Google and UCLA, hopes to alleviate this issue. G-RAG is a re-ranker that leverages
+    graph neural networks (GNNs) to consider connections between retrieved documents.
+    Documents are represented as nodes and edges are shared concepts between documents.
+    These graphs are generated as Abstract Meaning Representation (AMR) Graphs which
+    can be created with tools like [https://github.com/goodbai-nlp/AMRBART](https://github.com/goodbai-nlp/AMRBART)
+    (MIT License).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experiments with [Natural Question (NQ)](https://aclanthology.org/Q19-1026/)
+    and [TriviaQA (TQA) datasets](https://paperswithcode.com/dataset/triviaqa) showed
+    this approach made improvements to Mean Tied Reciprocal Ranking (MTRR) and Tied
+    Mean Hits@10 (TMHits@10) over other state-of-the-art approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1e26c1544a15d9add1ba755fd03236a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[From UCLA and Google researchers](https://arxiv.org/pdf/2405.18414): G-RAG
+    uses two graphs for re-ranking documents: The Abstract Meaning Representation
+    (AMR) graph is used as feature for the document-level graph. Document graph is
+    then used for document reranking'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I hope you’ve enjoyed this overview of techniques you can use to improve the
+    performance of your RAG applications. I look forward to continued advancements
+    in this field. I know there will be many considering the blistering pace of research
+    at the moment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let me know in the comments section if you have favorite re-ranking methods
+    not covered in this article.
+  prefs: []
+  type: TYPE_NORMAL

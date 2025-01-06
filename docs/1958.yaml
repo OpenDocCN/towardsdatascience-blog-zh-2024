@@ -1,0 +1,473 @@
+- en: The Poisson Bootstrap
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-poisson-bootstrap-d0fd045e28c3?source=collection_archive---------4-----------------------#2024-08-12](https://towardsdatascience.com/the-poisson-bootstrap-d0fd045e28c3?source=collection_archive---------4-----------------------#2024-08-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Bootstrapping over large datasets
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)[![David
+    Clarance](../Images/02cf7cdde9576cdf3af30a79da4db747.png)](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)
+    [David Clarance](https://medium.com/@davidclarance?source=post_page---byline--d0fd045e28c3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d0fd045e28c3--------------------------------)
+    ·10 min read·Aug 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/362b9f899eae79f29c0c2de80db3e201.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Bootstrapping is a useful technique to infer statistical features (think mean,
+    decile, confidence intervals) of a population based on a sample collected. Implementing
+    it at scale can be hard and in use cases with streaming data, very complicated.
+    When trying to learn how to bootstrap at scale, I [came across a Google blog](https://www.unofficialgoogledatascience.com/2015/08/an-introduction-to-poisson-bootstrap26.html)
+    (almost a decade old) that introduces Poisson bootstrapping. Since then I’ve discovered
+    an even older paper, [Hanley and MacGibbon (2006),](http://www.med.mcgill.ca/epidemiology/Hanley/Reprints/bootstrap-hanley-macgibbon2006.pdf)
+    that outlines a version of this technique. This post is an attempt to make sure
+    I’ve understood the logic well enough to explain it to someone else. We’ll start
+    with a description of classical bootstrapping first to motivate why Poisson bootstrapping
+    is neat.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classical bootstrapping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Suppose we wanted to calculate the mean age of students in a school. We could
+    repeatedly draw samples of 100 students, calculate the means and store them. Then
+    we could take a final mean of those sample means. This final mean is an estimate
+    of the population mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, it’s often not possible to draw repeated samples from a population.
+    This is where bootstrapping comes in. Bootstrapping sort of mimics this process.
+    Instead of drawing samples from the population we draw samples (with replacement)
+    from the one sample we collected. The psuedo-samples are referred to as resamples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b44df36fb0cc158f61146e63ccec36a4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Turns out this is extremely effective. It’s more computationally expensive than
+    a closed form solution but does not make strong assumptions about the distribution
+    of the population. Additionally, it’s cheaper than repeating sample collections.
+    In practice, it’s used a lot in industry because in many cases either closed form
+    solutions don’t exist or are hard to get right—for instance, when inferring deciles
+    of a population.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Why does bootstrapping work?**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Bootstrapping feels wrong. Or at least the first time I learned about it, it
+    didn’t feel right. Why should one sample contain so much information?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sampling with replacement from the original sample you drew is just a way for
+    you to mimic drawing from the population. The original sample you drew, on average,
+    looks like your population. So when you resample from it, you’re essentially drawing
+    samples from the same probability distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What if you just happen to draw a weird sample? That’s possible and that’s why
+    we resample. Resampling helps us learn about the distribution of the sample itself.
+    What if you original sample is too small? As the number of observations in the
+    sample grow, bootstrapping estimates converge to population values. However, there
+    are no guarantees over finite samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are problems but given the constraints we operate in, it is the best possible
+    information we have on the population. We don’t have to assume the population
+    has a specific shape. Given that computation is fairly cheap, bootstrapping becomes
+    a very powerful tool to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Demonstrating classical bootstrapping
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ll explain bootstrapping with two examples. The first is a tiny dataset where
+    the idea is that you can do the math in your head. The second is a larger dataset
+    for which I’ll write down code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 1: Determining the mean age of students in a school'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’re tasked to determine the mean age of students in a school. We sample 5
+    students randomly. The idea is to use those 5 students to infer the average age
+    of all the students in the school. This is silly (and statistically improper)
+    but bear with me.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We now sample from this list with replacement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: For each resample, calculate the mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Take a mean of those means.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This mean then becomes your estimate of the population mean. You can do the
+    same thing over any statistical property: Confidence intervals, deviations etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Example 2: Determining the 95th percentile for ‘time to process payment’'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Customers on a food delivery app make payments on the app. After a payment is
+    successful, an order is placed with the restaurant. The **time to process payment**
+    calculated as the time between when a customer presses the ‘Make Payment’ button
+    and when feedback is delivered (payment successful, payment failed) is a critical
+    metric that reflects platform reliability. Millions of customers make payments
+    on the app every day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’re tasked to estimate the 95% percentile of the distribution to be able to
+    rapidly detect issues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/697e2ed7307420edafbc50ae8501324a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We illustrate classical bootstrapping in the following way:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We assume that there’s some population that has a million observations. In the
+    real world, we never observe this data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We randomly sample 1/10th of this population. So we take 10,000 observations.
+    In reality this is the only data we observe.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We then apply the same procedure we discussed above. We resample observations
+    from our observed data with replacement. We do this many, many times.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each time when we resample, we calculate the 95th percentile of that distribution.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally we take the mean of the 95th percentile values and find confidence intervals
+    around it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We get the graph below. Magically, we find that the confidence intervals we
+    just generated contain the true 95th percentile (from our population).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/02a0e7d6d65ce0ea23924ba32c7af027.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We can see the same data at the level of the bootstrapped statistic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/98883bf48ba626d1ad7b8883b440e252.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The code to generate the above is below, give it a try yourself!
+  prefs: []
+  type: TYPE_NORMAL
+- en: This all works great, what’s next?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve established that classical bootstrapping actually works we’ll
+    try and establish what’s happening from a mathematical perspective. Usually texts
+    will just tell you to skip this part if you’re not interested. I’ll encourage
+    you to stick around though because this is where the real fun is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a break
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s think through a game now. Imagine you had a bag filled with 5 balls:
+    A red, blue, yellow, green and purple ball. You need to draw 5 balls from the
+    bag, one at a time. After you draw a ball, you put it back into the bag and then
+    draw again. So each time you choose a ball, you have 5 differently coloured balls
+    to choose from. After each round you record the ball that was chosen in a empty
+    slot (as shown below).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d478a2b8c87df6bed4de1028d26ed8d1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now, if I were to ask you, what’s the probability of each ball being chosen
+    for a each slot that we have to fill?
+  prefs: []
+  type: TYPE_NORMAL
+- en: For slot 1,
+  prefs: []
+  type: TYPE_NORMAL
+- en: The red ball can be chosen with probability 1/5
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The purple ball can be chosen with probability 1/5
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The green ball can be chosen with probability 1/5
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The blue ball can be chosen with probability 1/5
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The yellow ball can be chosen with probability 1/5
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The same case extends to slot 2, 3, 4 and 5
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2569fd8533d3132b4165839df65e2463.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Lets focus on the red ball for a bit. It can be chosen a minimum of zero times
+    (it isn’t chosen at all) and a maximum of 5 times. The probability distribution
+    of the occurrence of the red ball is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Red ball chosen 0 times: This can only happen in 1 way.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Red ball chosen 1 time: This can happen in 5 ways. Red ball is chosen for slot
+    1, Red ball is chosen for slot 2 … (you get the drift).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Red ball chosen 2 times: This can happen in 10 ways. Fix the red ball on slot
+    1, there are 4 options. Fix the red ball on slot 2, there are 3 new options, …'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Red ball chosen 3 times: This can happen in 10 ways. This is exactly similar
+    to the logic above.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Red ball chosen 4 times: The can happen in 5 ways. Similar to being chosen
+    once.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Red ball is chosen 5 times. This can happen in 1 way.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is just *5 choose k,* where *k = {0, 1, 2, 3, 4, 5}*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f44799433b3904d01972724bb36abbb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let’s put these two facts together just for the red balls
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cf7c18b2bf40366a2c329c5a7dc5fc6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: What we just described is the binomial distribution where *n = 5* and *p = 1/5*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a58cafe59eb24671a885b95498ec906.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Or more generally,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bd4e71c21265967e5c1ce12381eac823.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Now just substitute balls for observations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d7ff38abd29b853d514634a901f828f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So when we bootstrap, we essentially are drawing each observation from a binomial
+    distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In classical bootstrapping, when we resample, **each observation follows the
+    binomial distribution with n = n, k = {0, …, n} and p = 1/n.** This is also expressed
+    as Binomial(n , 1/n).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Now, a very interesting property of the binomial distribution is that as n turns
+    larger and larger, and p turns smaller and smaller, the binomial distribution
+    converges to a Poisson distribution with *Poisson(n/p).* Some day I’ll write an
+    intuitive explanation of why this happens but for now if you’re interested, you
+    can read [this very well written piece](https://medium.com/@andrew.chamberlain/deriving-the-poisson-distribution-from-the-binomial-distribution-840cc1668239).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28c914ca657495fc27919637fb2ead76.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This works for any n and p such that n/p is constant. In the gif below we show
+    this for lambda (n/p) = 5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/66d28ee9af5fe78fc9a31d4be7b77a90.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In our special case, we’ll just converge to *Poisson(1)* as p is just 1/n.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/63f7b13b66d69f61400258f46ffa639c.png)![](../Images/a74eae72db90e67f5e234adff9898efe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Then it follow that another way to resample would be to draw each observation
+    from a Poisson(1) distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Poisson bootstrapping means that we use a Poisson(1) process to generate resamples
+    for bootstrapping a statistic.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/54d8d6426197e99a039058d8cd9b486f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Big deal, why is this useful?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There are two stages of bootstrapping a statistic of interest. The first stage
+    is to create resamples, the second stage is to calculate the statistic on each
+    resample. Classical and Poisson bootstrapping are identical on the second stage
+    but different on the first stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two ways in which this is useful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Poisson bootstrapping reduces the number of passes we need to make over data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Poisson bootstrapping works in cases where we don’t have a fixed n. For instance,
+    when we’re streaming data in.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reducing the number of passes while resampling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Poisson bootstrap allows for significant computation gains while creating
+    resamples. The best way to look at this is in code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Compare line (8) above, with the equivalent line in the classical bootstrap:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the classical bootstrap, you need to know *data*, while in the Poisson bootstrap
+    you don’t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implications for this are very significant for cases where data is very
+    large (think 100s of millions of observations). This is because mathematically,
+    generating resamples reduces to generating counts for each observation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In classical bootstrapping, the counts for each observation follow a *Binomial(n,
+    1/n)*. Together they [follow a *Multinomial(n, 1/n, 1/n, …, 1/n)*](https://en.wikipedia.org/wiki/Multinomial_distribution).
+    This means when you generate a count for an observation, this impacts the count
+    for the other observations. For instance, in our ball example, once you’ve generated
+    the count for a red ball, this has a direct impact on the counts for the other
+    balls. For instance, if the count for the red ball is 2, then we know that we
+    only have 3 more balls we can choose.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In Poisson bootstrapping, the counts for each observation are independent on
+    each other. So if you need 1000 resamples, you just generate 1000 Poisson(1) draws
+    for the red ball. Then you’re done and you can move on to the next observation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Resampling when n is unknown
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are cases where n is effectively unknown. For instance, in cases where
+    you’re streaming in payment data or where data is so large that is lives across
+    multiple storage instances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a3d05c7d86d1e5c06ab5be4649278069.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In classical bootstrapping every time we observe an increased n, we have to
+    redo the resampling process again (as we sample with replacement). This renders
+    this method quite computationally expensive and wasteful. In the Poisson bootstrap
+    we can just save our *Poisson(1)* draws for each instance. Every time a new instance
+    is added all we need to do is to generate the *Poisson(1)* draws for this new
+    instance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/362b9f899eae79f29c0c2de80db3e201.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Classical bootstrapping is a very effective technique for learning the distribution
+    of a statistic from a sample collected. In practice, it can be prohibitively expensive
+    for very large datasets. Poisson bootstrapping is a version of bootstrapping that
+    enables efficient parallel computation of resamples. This is because of two reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resampling under Poisson bootstraps means we only make one pass over each observation.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In streaming data cases, Poisson bootstraps allow us to process new resamples
+    incrementally rather than having to resample over the entire dataset in one go.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*I hope you’ve found this useful. I’m always open to feedback and corrections.
+    The images in this post are mine. Feel free to use them!*'
+  prefs: []
+  type: TYPE_NORMAL

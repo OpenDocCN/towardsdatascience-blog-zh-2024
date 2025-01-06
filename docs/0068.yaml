@@ -1,0 +1,272 @@
+- en: 'Understand Data Warehouse: Query Performance'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08](https://towardsdatascience.com/understand-data-warehouse-query-performance-23f53a30cc9f?source=collection_archive---------7-----------------------#2024-01-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Deciphering SQL Query Performance: A Practical Analysis in Data Warehousing
+    and Database Management Systems'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[![Richard
+    Tang](../Images/0b9acf81a5ffa0ad3c215bfcfc9984d8.png)](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)
+    [Richard Tang](https://medium.com/@richard_79568?source=post_page---byline--23f53a30cc9f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--23f53a30cc9f--------------------------------)
+    ·7 min read·Jan 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f62c15593db2326dafdaca72d280cb7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Manuel Geissinger](https://www.pexels.com/@artunchained/) on [Pexels](https://www.pexels.com/photo/black-server-racks-on-a-room-325229/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unlike Python and other imperative programming languages, which require the
+    explicit detailing of algorithms in a step-by-step manner to optimize, SQL is
+    a declarative programming language that focuses not on the sequence of operations,
+    but rather on expressing the logic of what you want to achieve. How a query is
+    executed in the database depends on the database system itself, particularly on
+    a component called the query planner (or optimizer) which decides the best way
+    to execute the query. That’s why an almost identical query can be executed very
+    differently in data warehouses compared to traditional DBMSs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For most data workers, it’s usually not so important to be concerned about the
+    difference, as long as the query is able to retrieve the correct data. However,
+    this changes when creating interactive dashboards or machine learning pipelines.
+    In these cases, frequently run queries can significantly impact query efficiency
+    and cost. Well-designed queries can save users time in loading data and metrics,
+    and can also save the company thousands of dollars on BigQuery or Snowflake bills.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Today, we will focus on a common use case: comparing multiple query syntaxes
+    and databases. We’ll see and understand the differences between how these databases
+    approach retrieving and calculating data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a common question: Finding out active doctors last year? Suppose there
+    is a ‘doctors’ table that records doctors’ information, and a ‘patient admissions’
+    table that records instances of patients being admitted by doctors. The goal is
+    to filter out those doctors who had at least one patient admission in the last
+    year (this could be a dynamic time period in machine learning pipelines or interactive
+    dashboards).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Practically, there’s three common ways to write this query: EXIST, IN, and
+    JOIN. We will analyze them and run experiments on Bigquery and PostgreSQL, to
+    validate our analysis.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First approach: IN'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For Python users, the IN operator might be the most intuitive approach. This
+    involves first filtering out the admission records from the last year, and then
+    checking if the doctors are listed in those records. We’ll also test out whether
+    adding a DISTINCT will increase performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Second approach EXISTS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another approach involves using the EXISTS operator, which filters the results
+    to include only those for which the subquery returns at least one record. EXISTS
+    operates on the concept of a ‘Semi JOIN,’ meaning that it doesn’t actually perform
+    a join on the right-hand side; instead, it merely checks if a join would yield
+    results for any given tuple. When it finds one it stops. This could offer some
+    performance advantages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Third approach:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The third approach involves using JOIN, which is the most classic method in
+    relational database philosophy. There are some frequent disputes in forums about
+    when to filter and whether to use a subquery or a Common Table Expression (CTE).
+    We have included these considerations in our experiment as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: JOIN after filter in subquery
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Filter and GROUP BY after JOIN
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: CTE filter before JOIN
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we have six queries to test. They all get the same result from the database
+    but have slight differences in logic or syntax.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q1: IN'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q2: IN with DISTINCT in subquery'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q3: EXISTS'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q4: JOIN with a subquery that filters the time range'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q5: JOIN before any filter, then use GROUP BY to deduplicate'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q6: JOIN with a CTE that filters the time range'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Experiment result:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/2f84ee5d52b3aa8a5873585d4f6fcbd9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Image by author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We executed each query 10 times in a generated test dataset, shifting the time
+    range by 1 day for each test. By using BigQuery execution details and the EXPLAIN
+    ANALYZE command in PostgreSQL, we obtained detailed information on execution times
+    and plans. The test results are clear. If this is for a real-world use case, we
+    can simply select the best-performing option and move on. However, in this blog,
+    we will dig a bit deeper and ask: Why?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Dig into Planner:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The answer could be found in the execution plan, which reveals the true approach
+    the database engine is calculating the query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bigquery:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The execution plans for Q1 ‘IN’ and Q3 ‘EXISTS’ are exactly the same. The two-step
+    execution first filtered in the subquery, then used a SEMI JOIN to identify doctors
+    with at least one patient admission. This was a perfect example of what we mentioned
+    earlier: SQL is a declarative language that describes what you need, and BigQuery
+    figures out how to execute it. Even if the SQL logic differed in its approach
+    to the problem, BigQuery recognized that they required the same result and decided
+    to use the same execution approach to optimize them.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4b57d9f23f01a9f9afccccd7b2980a19.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Image by author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Adding DISTINCT in the IN subquery resulted in a much worse performance. It
+    was quite interesting to observe that adding a single DISTINCT could have such
+    a significant impact on the query running speed. When we looked into the query
+    execution plan, we could see that a single DISTINCT causes two additional steps
+    in the query execution. This led to more temporary tables being saved in the process,
+    resulting in a significantly slower execution time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Among the three JOIN methods, it was surprising that Q5 ‘JOIN before filter’
+    demonstrates the best performance, while the two other approaches trying to optimize
+    filter and JOIN sequence, Q4 ‘JOIN with subquery’ and Q6 ‘JOIN with CTE’, exhibit
+    poor performance. Upon examining the planner, it appeared that BigQuery actually
+    recognized that executing the filter before the JOIN can optimize efficiency.
+    However, when we tried to manually control the sequence by forcing the filter
+    to occur before the JOIN, it resulted in more steps in the execution plan and
+    significantly slower execution times. Interestingly, the subquery and the CTE
+    approaches had the exact same execution plan, which is also very similar to the
+    Q2 ‘IN with DISTINCT’ plan. The only difference was that in the final step, it
+    used an INNER JOIN instead of a SEMI JOIN.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PostgreSQL:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Regarding Postgres, the difference in query time among the six queries we analyzed
+    was relatively minor. This could be because the testing dataset was not large
+    enough to significantly highlight the differences. As the dataset increases in
+    size, the performance differences between the approaches are likely to become
+    more substantial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our analysis was based on results from ‘EXPLAIN ANALYZE.’ This tool is invaluable
+    for understanding the performance characteristics of a PostgreSQL query. ‘EXPLAIN’
+    provides the execution plan that the PostgreSQL query planner generates for a
+    given statement, while the ‘ANALYZE’ option actually executes the statement, allowing
+    for a more accurate assessment of performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q1 ‘IN’ and Q3 ‘EXISTS’ had the same execution plan with the lowest cost. Similar
+    to BigQuery, PostgreSQL also recognized that the two queries required the same
+    data and optimized for them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Q2, Q4, and Q6 all have the exact same execution plan with a slightly higher
+    cost. Despite the queries are different in logic or syntax, the Postgres planner
+    decided to run the same execution: Filter -> Group by(DISTINCT) -> JOIN,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f7326db08785b9e7a709edf06dcd43d2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Image by author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Q5 ‘JOIN before filter’ had the highest-cost execution plan. Although the PostgreSQL
+    planner still managed to apply the filter before the JOIN, the deduplication process
+    was applied to the larger table, resulting in a higher cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conclusion:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our experiment, approaches such as forcing a filter before a JOIN or adding
+    the DISTINCT option for the IN operator did not increase our query performance;
+    instead, they made it slower. Comparing BigQuery to Postgres, it’s evident that
+    they each have their own niches and strengths. Their planners are also optimized
+    for different goals using different approaches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s being said, optimizing efficiency in a declarative language like SQL
+    is not solely determined by your query. Equally important is how the database
+    engine interprets, plans, and executes it. This process can greatly depend on
+    the database’s design, as well as the structure and indexing of your data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The experiment we conducted for the blog is specific to certain use cases and
+    datasets. The most effective way to understand performance is to run your own
+    queries, examine the query execution plan, and see what it’s going to do. Do Not
+    to over-optimize based on theoretical assumptions. Practical testing and observation
+    should always be your guiding principles in query optimization.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,312 @@
+- en: Turn Llama 3 into an Embedding Model with LLM2Vec
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/turn-llama-3-into-an-embedding-model-with-llm2vec-8448005f99aa?source=collection_archive---------1-----------------------#2024-05-03](https://towardsdatascience.com/turn-llama-3-into-an-embedding-model-with-llm2vec-8448005f99aa?source=collection_archive---------1-----------------------#2024-05-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: RAG with Llama 3 for the generation and the retrieval
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@bnjmn_marie?source=post_page---byline--8448005f99aa--------------------------------)[![Benjamin
+    Marie](../Images/3ea1ad230cb1e67610418a8e36a5e5dd.png)](https://medium.com/@bnjmn_marie?source=post_page---byline--8448005f99aa--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8448005f99aa--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8448005f99aa--------------------------------)
+    [Benjamin Marie](https://medium.com/@bnjmn_marie?source=post_page---byline--8448005f99aa--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8448005f99aa--------------------------------)
+    ·7 min read·May 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aa3e5f5e3c663da28873ad33454491ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Generated with DALL-E
+  prefs: []
+  type: TYPE_NORMAL
+- en: The embedding model is a critical component of retrieval-augmented generation
+    (RAG) for large language models (LLMs). They encode the knowledge base and the
+    query written by the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using an embedding model trained or fine-tuned for the same domain as the LLM
+    can significantly improve a RAG system. However, finding or training such an embedding
+    model is often a difficult task as in-domain data are usually scarce.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I show how to turn an LLM into a text embedding model using
+    LLM2Vec. We will see how to do it with Llama 3 to create a RAG system that doesn’t
+    need any other models than Llama 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'LLM2Vec: Your LLM is Also an Embedding Model'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'LLM2Vec is presented in this paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[LLM2Vec: Large Language Models Are Secretly Powerful Text Encoders](https://arxiv.org/pdf/2404.05961.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The official implementation is available on GitHub:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[McGill-NLP/llm2vec](https://github.com/McGill-NLP/llm2vec) (MIT license)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*How does LLM2Vec work?*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'LLMs are trained with a causal language modeling loss. They are trained to
+    predict the next token given a sequence of tokens. Since the training examples
+    are entire sequences of tokens, a causal attention mask is applied to the sequence
+    so that when the model learns to predict a token, all the following tokens in
+    the sequence are masked and don’t influence the attention computation. For instance,
+    if we have the following sequence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'During training the following attention masks will be successively applied
+    (under the mask, I only show the tokens that are not masked):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The zeroes indicate that the token will not be considered for the attention
+    computation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the other hand, text embedding models are trained to encode entire sequence
+    tokens and are bidirectional, i.e., they encode a sequence from left to right
+    and right to left.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The initial step in the LLM2Vec method to convert an LLM into an embedding model
+    involves substituting the causal attention mask used in decoder-only LLMs with
+    a matrix of all-ones. This alteration allows each token in the sequence to interact
+    with all other tokens, effectively transforming it into a bidirectional LLM. However,
+    decoder-only LLMs were not trained to encode future tokens, and thus, this straightforward
+    modification degrades the quality of the representations. Nonetheless, it is possible
+    to train the model to effectively use its new bidirectional attention capabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: They suggest employing a new masked next token prediction (MNTP) objective.
+    MNTP merges the next token prediction objective with the masked language modeling
+    used by BERT. To implement this, we take an arbitrary sequence x = (x1, x2, .
+    . . , xN), mask a subset of the input tokens, and then train the model to predict
+    these masked tokens using both past and future contexts. Importantly, when predicting
+    a token that has been masked at position i, the loss is calculated using the logits
+    from the token representation at the preceding position i − 1, rather than from
+    the masked position itself as we will do for a BERT model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting the LLM into a bidirectional model followed by MNTP training can
+    adapt any decoder-only LLM into an encoder. However, these steps may not adequately
+    address the need for sequence representations. Indeed, bidirectional encoders
+    like BERT usually also incorporate a next-sentence prediction task in their pre-training
+    while LLMs were not trained for this task. LLM2Vec addresses this missing capability
+    by processing each input sequence twice through the model, each time with different
+    randomly selected dropout masks, producing two distinct representations of the
+    same sequence. The training objective is to improve the similarity between these
+    two representations while reducing their similarity to representations of different
+    sequences within the same training batch. They call this last step “Unsupervised
+    Contrastive Learning” (SimCSE).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full process behind LLM2Vec is illustrated by this figure in the paper:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8f30670da68e07a279a68d6d8c488f4d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[source](https://arxiv.org/abs/2404.05961) (CC-BY)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: They evaluated the models produced by LLM2Vec in various tasks and showed that
+    they can outperform standard text embedding models. You will find the results
+    in the sections 3 and 4 of the paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Turning Llama 3 into a Text Embedding Model with LLM2Vec
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'My notebook showing how to convert Llama 3 into an embedding model is available
+    here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Get the notebook (#65)](https://newsletter.kaitchup.com/p/notebooks)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting an LLM to a text embedding model with LLM2Vec is fairly simple.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, install the following packages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The llm2vec package will convert the LLM to an embedding model. flash-attn is
+    the package for FlashAttention. It is not required but speeds up the training
+    with MNTP. It works only with recent GPUs from the Ampere generation (RTX 3xxx/4xxx,
+    A100, H100, etc.).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, the conversion itself is performed by the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: “torch_dtype=torch.bfloat16” is necessary to be able to run the conversion on
+    a 24 GB GPU. If you don’t set it the model will be larger than the original model
+    with float32 parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I pushed this model to the hub in case you don’t want to do this conversion
+    by yourself:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[kaitchup/Llama-3-8B-llm2vec-Emb](https://huggingface.co/kaitchup/Llama-3-8B-llm2vec-Emb)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This model is ready to be used. You can plug it into a RAG pipeline. However,
+    it won’t perform as well as a standard embedding model (in most cases).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to train Llama 3 8B with the MNTP objective. The authors also provide
+    a script to do it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[experiments/run_mntp.py](https://github.com/McGill-NLP/llm2vec/blob/main/experiments/run_mntp.py)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It currently supports models with the Llama and Mistral architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To use it, clone the repository locally:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The script expects one argument which is a configuration file in the JSON format.
+    They propose several examples here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[train_configs/mntp](https://github.com/McGill-NLP/llm2vec/tree/main/train_configs/mntp)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'For Llama 3 8B, I made the following configuration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The script loads the model with bfloat16 parameters. I set the batch sizes per
+    device to one so that the training can fit on a 24 GB GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we can start MNTP training:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: This should take 4 days using a 24 GB GPU, such as the L4 of Google Colab, for
+    three epochs. One epoch could be enough if you can’t wait that long.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After MNTP training, the model should yield much better results, especially
+    for retrieval tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the last step which is SimCSE training, the authors didn’t release their
+    code yet but mentioned that they will.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting up Llama 3 Text Embedding Model for RAG
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The embedding model created in the previous section is ready to be used in a
+    RAG pipeline. For instance, you can load it with [sentence-transformers](https://github.com/UKPLab/sentence-transformers)
+    (Apache 2.0 license).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If you use [LlamaIndex](https://github.com/run-llama/llama_index) (MIT license),
+    you can set the HuggingFaceEmbedding model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: I set device=’cpu’ but using the CPU makes the RAG system slower. You can remove
+    this argument to run it on the GPU. However, note that the model is loaded in
+    full precision. It doesn’t fit on a consumer GPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I explain in detail how to set up a RAG system with LlamaIndex in this tutorial:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://newsletter.kaitchup.com/p/rag-for-mistral-7b-instruct-with?source=post_page-----8448005f99aa--------------------------------)
+    [## RAG for Mistral 7B Instruct with LlamaIndex and Transformers'
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAG on budget
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: newsletter.kaitchup.com](https://newsletter.kaitchup.com/p/rag-for-mistral-7b-instruct-with?source=post_page-----8448005f99aa--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With LLM2Vec, we can now use an LLM as a text embedding model. The conversion
+    is simple and fast. Using one single model for both the generation and the retrieval
+    in a RAG system is appealing as we don’t need to search for an additional embedding
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, embedding models simply extracted from LLMs tend to underperform regular
+    embedding models. The authors of LLM2Vec propose new training objectives, MNTP
+    and SimCSE, to train the embedding model extracted from LLMs. I found this training
+    to be costly but can yield significantly better embedding models according to
+    the authors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To support my work, consider subscribing to my newsletter for more articles/tutorials
+    on recent advances in AI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://newsletter.kaitchup.com/?source=post_page-----8448005f99aa--------------------------------)
+    [## The Kaitchup - AI on a Budget | Benjamin Marie | Substack'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weekly tutorials, tips, and news on fine-tuning, running, and serving large
+    language models on your computer. The…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: newsletter.kaitchup.com](https://newsletter.kaitchup.com/?source=post_page-----8448005f99aa--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,489 @@
+- en: Unsupervised LLM Evaluations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/open-ended-evaluations-with-llms-385beded97a4?source=collection_archive---------2-----------------------#2024-11-02](https://towardsdatascience.com/open-ended-evaluations-with-llms-385beded97a4?source=collection_archive---------2-----------------------#2024-11-02)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Practitioners guide to judging outputs of large language models**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@volkot?source=post_page---byline--385beded97a4--------------------------------)[![Daniel
+    Kharitonov](../Images/7d81129c1f88e4a0700462a342137227.png)](https://medium.com/@volkot?source=post_page---byline--385beded97a4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--385beded97a4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--385beded97a4--------------------------------)
+    [Daniel Kharitonov](https://medium.com/@volkot?source=post_page---byline--385beded97a4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--385beded97a4--------------------------------)
+    ·12 min read·Nov 2, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: <TLDR>
+  prefs: []
+  type: TYPE_NORMAL
+- en: Evaluating AI-generated outputs is critical for building robust applications
+    of large language models because it allows complex AI applications to be split
+    into simple stages with built-in error control.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It is relatively straightforward to evaluate generative outputs in a supervised
+    mode, where the “right answers” can be computed or hinted by human evaluators.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: At the same time, in many practical LLM applications the supervised approach
+    is too restrictive, and there is a need for evaluations capable of tackling open-ended
+    questions. The simplest way to build an unsupervised evaluator is to ask an LLM
+    to evaluate itself. However, the ability of generative models to detect errors
+    in their own output is not well understood.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**We demonstrate that the quality of self-evaluations can be improved with
+    iterative self-reflection**. Similar to the “Chain of Thought” technique, this
+    method trades compute at inference for the robustness of the final result.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: </TLDR>
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Link to Google Colab notebook with examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://colab.research.google.com/drive/1q_dChQBMbnUXZ377JVwYsjvn7lZ_7qlZ?usp=sharing](https://colab.research.google.com/drive/1q_dChQBMbnUXZ377JVwYsjvn7lZ_7qlZ?usp=sharing)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/931a0e4ac56180b865ec6e8ed07dbc43.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image source: Flux 1\. Pro model prompted for “robot evaluating other robots”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When building processing pipelines using large language models, the often-mentioned
+    issue is the quality of generated outputs. If a good evaluation process is in
+    place, it can highlight cases of poor performance and trigger LLM fine-tuning,
+    prompt adjustments, escalation to human agents — or all these actions at once.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a typical workflow that uses evaluations for training: an LLM goes
+    over the input dataset, and any output discrepancies detected by the evaluator
+    are used to generate synthetic data to fine-tune the model. The application is
+    deployed only when the target quality metrics are met.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a18dcaad57946ae5cada9bd8d2dea6c7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by the author: Evaluation loop for LLM fine-tuning'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using LLM evaluators in production is very similar — except that detected discrepancies
+    are usually sent to a human agent to ensure the workflow can continue despite
+    raising an error flag.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, building a good LLM evaluator is not trivial. The complexity of this
+    problem stems from two practical restrictions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**First**, it is highly desirable to minimize human involvement in evaluations.
+    For example, imagine a chatbot interacting with a user and missing a common colloquial
+    pattern of ellipsis (using one word instead of the full output sentence):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Bot:* Is that correct?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*User:* correct'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Bot:* Sorry, I didn’t get that. Please try again.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*User:* yes it is correct'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Given this dialog section, a human should easily highlight deficiencies in the
+    chatbot’s response and suggest a fine-tuning course. However, in order to find
+    this problem, an evaluator would have to read the entire dialog (which can be
+    very long). This approach does not work at scale–which means we should strive
+    for **evaluation without humans**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Second**, the process of judging the LLM output without knowing the “ground
+    truth” is comparable in complexity to the original task. This means a state-of-the-art
+    LLM can (at most) employ an evaluator with similar capabilities (most likely itself),
+    thus raising questions about the **validity** of such evaluation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Supervised evaluations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If we look at the well-studied to evaluate LLMs today, we will notice they mostly
+    center on supervised or semi-supervised use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the training dataset comes with “ground truth” answers, evaluation becomes
+    trivial — and can even drive optimization frameworks like [DSPy](https://github.com/stanfordnlp/dspy).
+    The same is true when testing an enterprise LLM app against historical cases handled
+    by human agents, where the “ground truth” equates to the judgments of those agents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another opportunity to check the output against the “ground truth” comes when
+    the LLM output can be formally verified on its own — such as computer code that
+    can be compiled and tested. Despite the fact that a computer program can be written
+    in many different ways, the correct code should pass the tests regardless of the
+    chosen implementation path.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cases where the generative output cannot be formally verified usually require
+    adding a human into the loop. For example, [RLHF](https://proceedings.neurips.cc/paper_files/paper/2017/hash/d5e2c0adad503c91f91df240d0cd4e49-Abstract.html)
+    can be used to rate LLM outputs according to ordinal human preferences and thus
+    steer the network toward complicated and nuanced policies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unsupervised self-evaluations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Meanwhile, there are many open-ended evaluation cases where “ground truth” approach
+    cannot be implemented, and RLHF is too lengthy or too costly. This explains the
+    interest in unsupervised self-evaluation techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, assuming we have an open-ended LLM evaluation question that would normally
+    require human involvement — like “*how can this chatbot improve*” — what can be
+    done to automate?
+  prefs: []
+  type: TYPE_NORMAL
+- en: An economical evaluation harness can be built if we assume that contemporary
+    large language models with rich semantic representations are inherently capable
+    of self-evaluations. This means you can simply ask the model to evaluate its own
+    output, or use another LLM for the same task to avoid cross-contamination in their
+    training sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Unfortunately, a naïve implementation of LLM self-judging may fail.** There
+    are two possible reasons for this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The first reason** is the most obvious: an **LLM is not guaranteed to produce
+    coherent outputs on subjects not reflected in its training set** or unreachable
+    for retrieval tools (like web search). For example, consider this Google map snippet,
+    which depicts an unincorporated town called Mineral in California and a small
+    body of water (*Martin Creek*) that runs through it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5bdabfab93fe992dbe76ecf0dbb730e8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Mineral, CA vicinity (source: Google maps)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The town of Mineral does not have its own Wikipedia page, and most LLMs do
+    not use GIS data in training, so when asked which creek passes through the town,
+    an LLM can easily hallucinate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/399f7e82f5db8d091fac0196657dd68b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GPT-4o hallucination example
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Mill Creek* is a real water body that skirts the (much larger) census-designated
+    place of which Mineral is a part. However, *Mill Creek* does not pass through
+    the town of Mineral proper, so GPT-4o’s answer is incorrect.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intuitively, it feels like a failure in plain LLM inference due to the subject
+    being outside of the knowledge set and unreachable via common tools (like web
+    search) should not be easily self-detectable.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'The **second** reason for failing self-evals is somewhat more subtle and is
+    driven by **probabilistic nature of LLM outputs**. It is easy to demonstrate in
+    cases where evaluation should include multiple observations. For example, consider
+    this dialog between the user and chatbot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Bot:* I am a chatbot to help you find the best mobile phone plan.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*User:* I need at least 500Gb of data and priced below $50'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Bot:* The “Ultimate Freedom” plan delivers uncapped Internet access for $79.99'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*User:* This might actually work.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Bot:* Do you want to change the current plan?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*User:* Is “Ultimate Freedom” domestic only ? Can I have international roaming?'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Bot:* Sorry, I didn’t get that. Please try again.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*User:* I am done for now. Please do not make any changes.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*Bot:* I am a chatbot to help you find the best mobile phone plan.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'If we repeatedly ask an LLM to list the improvements that can be made to the
+    bot based on this dialog, we will notice the output list is not stable between
+    runs. One version may look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'While another may look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Even though there is significant overlap between these two answers, it is clear
+    that an exhaustive list of suggestions (similar to what a human expert would produce)
+    was not generated in either case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The unexpected power of self-reflection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once we outline the typical failure modes for evaluations, it may seem like
+    using an LLM to judge itself is a bad idea. After all, this sounds like asking
+    a diligent student to re-check their own answers. Since a good student does not
+    make many typos, re-checking merely reflects existing knowledge and should not
+    result in improvements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*However, this is where our intuition about LLMs may go awfully wrong.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**In fact, most LLMs are capable of corrective self-evaluation, even when the
+    subject lies outside of their knowledge base**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To illustrate this phenomenon, let us return to GPT-4o example hallucinating
+    about the body of water crossing the town of Mineral*,* CA. Interestingly enough,
+    this particular hallucination can be dispelled during self-evaluation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/41f9009c7df5bb633369a78802a7b35d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Self-evaluation in GPT-4o is capable of reversing hallucinations
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**So where is the magic?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, the LLM does not have the knowledge or the tools to get the
+    correct answer, so it hallucinates the “most plausible” completion. However, when
+    asked to evaluate itself, it arrives at the conclusion that the facts it can access
+    do not corroborate previous statement. Even though GPT-4o does not know the correct
+    answer, it can dismiss the incorrect one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A more sophisticated model (like GPT-4o1) may be slightly harder to treat in
+    the same way because it tends to produce more nuanced responses:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/021034203126a41c3695f70bef6a4b23.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Hallucination in GPT-4o1 is more nuanced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Instead of hallucinating a completion on the subject it cannot verify, GPT-4o1
+    may choose to answer the question it was never asked — like “*Which primary body
+    of water runs near Mineral, CA?”*. This evasion means that a direct self-evaluation
+    prompt along the lines of “*evaluate as True or False*” may fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, a more deliberative way of asking for self-evaluation can still be
+    successful, even if it takes multiple iterations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/62ffba261147d669cf855fc565785bc2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This ability of LLMs to self-reflect in an iterative way is, of course, well-known
+    and is somewhat taken for granted in applications like code generation. Here we
+    are just extending the same technique to self-evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The “expected” power of memoization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The same idea of iterative reflection is also applicable to LLM tasks that tend
+    to produce incomplete outputs. If we revisit the bot dialog example and allow
+    an LLM to iterate on a memoized list of improvements, we will observe the model
+    is rarely “satisfied” with the result at first shot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In other words, if we formulate a prompt like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then it would typically take 2–4 passes over the list of improvements until
+    the LLM converges on recommendations and declares the evaluation task to be successful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: After this initial “warm-up” over one dialog, we can feed the model with more
+    sample dialogs and see what happens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In a manner similar to what a human evaluator would do, the GPT-4o model considers
+    that many dialog samples are not worth producing new recommendations (just one
+    model run is enough)–yet some may trigger much longer deliberation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9632e0145ef5a5bbe01f4aae0ff708e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Number of LLM invocations per first 50 dialogs from [ExpBot dataset](https://radar.kit.edu/radar/en/dataset/FdJmclKpjHzLfExE.ExpBot%2B-%2BA%2Bdataset%2Bof%2B79%2Bdialogs%2Bwith%2Ban%2Bexperimental%2Bcustomer%2Bservice%2Bchatbot)
+    until convergence (chart by the author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The final result will be a fairly exhaustive list of recommendations on improving
+    the chatbot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Some technical notes on this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For simplicity, we have combined the evaluation and generation into one prompt
+    which relies on [OpenAI’s structured outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    to produce the desired result.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The inherent limitation of memoization is a requirement to process samples sequentially.
+    This can take some time on a long dataset, and also blocks us from using cheap
+    inference via [call batching](https://cookbook.openai.com/examples/batch_processing).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: To further improve the performance, we can take advantage of the fact that most
+    samples in a dataset do not generate new insights. This means we can produce the
+    initial list of recommendations by iterating over a small subset of samples sequentially,
+    and serve the rest of the dataset in parallel via [DataChain library](https://github.com/iterative/datachain)
+    (or in a batch with [OpenAI API](https://cookbook.openai.com/examples/batch_processing))
+    to flag the “interesting” cases and shave 30–50% off the time (or expense) budgets
+    based on your preferences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LLMs can and should be used for unsupervised evaluations (including self-evaluations).
+    The fine-print is that it requires a well-thought approach–which often resolves
+    to an iterative way to improve and refine the judgements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a link to the sample implementation in Google Colab:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://colab.research.google.com/drive/1q_dChQBMbnUXZ377JVwYsjvn7lZ_7qlZ?usp=sharing](https://colab.research.google.com/drive/1q_dChQBMbnUXZ377JVwYsjvn7lZ_7qlZ?usp=sharing)'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,418 @@
+- en: 'TensorFlow Transform: Ensuring Seamless Data Preparation in Production'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/tensorflow-transform-ensuring-seamless-data-preparation-in-production-99ffcf49f535?source=collection_archive---------7-----------------------#2024-07-08](https://towardsdatascience.com/tensorflow-transform-ensuring-seamless-data-preparation-in-production-99ffcf49f535?source=collection_archive---------7-----------------------#2024-07-08)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Leveraging TensorFlow Transform for scaling data pipelines for production environments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)[![Akila
+    Somasundaram](../Images/5f3c58de8057c9c7ef42f6f5729fb395.png)](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------)
+    [Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--99ffcf49f535--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99ffcf49f535--------------------------------)
+    ·10 min read·Jul 8, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/95b3c8120fb4d55756d5e7eb9f7f8d50.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Suzanne D. Williams](https://unsplash.com/@scw1217?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data pre-processing is one of the major steps in any Machine Learning pipeline.
+    Tensorflow Transform helps us achieve it in a distributed environment over a huge
+    dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before going further into Data Transformation, Data Validation is the first
+    step of the production pipeline process, which has been covered in my article
+    [Validating Data in a Production Pipeline: The TFX Way](https://medium.com/towards-data-science/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce).
+    Have a look at this article to gain better understanding of this article.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have used Colab for this demo, as it is much easier (and faster) to configure
+    the environment. If you are in the exploration phase, I would recommend Colab
+    as well, as it would help you concentrate on the more important things.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ML Pipeline operations begins with data ingestion and validation, followed by
+    transformation. The transformed data is trained and deployed. I have covered the
+    validation part in my earlier [article](https://medium.com/towards-data-science/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce),
+    and now we will be covering the transformation section. To get a better understanding
+    of pipelines in Tensorflow, have a look at the below article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.tensorflow.org/tfx?source=post_page-----99ffcf49f535--------------------------------)
+    [## TFX | ML Production Pipelines | TensorFlow'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build and manage end-to-end production ML pipelines. TFX components enable scalable,
+    high-performance data processing…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.tensorflow.org](https://www.tensorflow.org/tfx?source=post_page-----99ffcf49f535--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As established earlier, we will be using Colab. So we just need to install the
+    tfx library and we are good to go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: After installation restart the session to proceed.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/9e7831e0446e0018e3319cf4a224a3cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Next come the imports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will be using the spaceship titanic dataset from Kaggle, as in the data validation
+    article. This dataset is free to use for commercial and non-commercial purposes.
+    You can access it from [here](https://www.kaggle.com/competitions/spaceship-titanic).
+    A description of the dataset is shown in the below figure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7f72d9f83df9040e86e6d07ea33beac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In order to begin with the data transformation part, it is recommended to create
+    folders where the pipeline components would be placed (else they will be placed
+    in the default directory). I have created two folders, one for the pipeline components
+    and the other for our training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we create the InteractiveContext, and pass the path to the pipeline directory.
+    This process also creates a sqlite database for storing the metadata of the pipeline
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: InteractiveContext is meant for exploring each stage of the process. At each
+    point, we can have a view of the artifacts that are created. When in a production
+    environment, we will ideally be using a pipeline creation framework like Apache
+    Beam, where this entire process will be executed automatically, without intervention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we start with data ingestion. If your data is stored as a csv file, we
+    can use CsvExampleGen, and pass the path to the directory where the data files
+    are stored.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Make sure the folder contains only the training data and nothing else. If your
+    training data is divided into multiple files, ensure they have the same header.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: TFX currently supports csv, tf.Record, BigQuery and some custom executors. More
+    about it in the below link.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.tensorflow.org/tfx/guide/examplegen?source=post_page-----99ffcf49f535--------------------------------)
+    [## The ExampleGen TFX Pipeline Component | TensorFlow'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The ExampleGen TFX Pipeline component ingests data into TFX pipelines. It consumes
+    external files/services to generate…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.tensorflow.org](https://www.tensorflow.org/tfx/guide/examplegen?source=post_page-----99ffcf49f535--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: To execute the ExampleGen component, use context.run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: After running the component, this will be our output. It provides the execution_id,
+    component details and where the component’s outputs are saved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f0b4d3c3cf0fc4c129d54772f83d7180.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: On expanding, we should be able to see these details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/49e56a8f1feee2d880ff89ff157e3530.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The directory structure looks like the below image. All these artifacts have
+    been created for us by TFX. They are automatically versioned as well, and the
+    details are stored in metadata.sqlite. The sqlite file helps maintain data provenance
+    or data lineage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2cb0dfd4007f0e3b58d2557279ec9744.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To explore these artifacts programatically, use the below code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output would be the name of the files and the uri.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/26670b069b3c950fdfe9b6c7e8b2bb55.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let us copy the train uri and have a look at the details inside the file. The
+    file is stored as a zip file and is stored in TFRecordDataset format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The below code is obtained from Tensorflow, it is the standard code that can
+    be used to pick up records from TFRecordDataset and returns the results for us
+    to examine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: We requested for 3 records, and the output looks like this. Every record and
+    its metadata are stored in dictionary format.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e08f502cbd1f52b2f642b0b57efee07.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Next, we move ahead to the subsequent process, which is to generate the statistics
+    for the data using StatisticsGen. We pass the outputs from the example_gen object
+    as the argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We execute the component using statistics.run, with statistics_gen as the argument.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can use context.show to view the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that it is very similar to the statistics generation that we have
+    discussed in the TFDV article. The reason is, TFX uses TFDV under the hood to
+    perform these operations. Getting familiar with TFDV will help understand these
+    processes better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ae1ebef42a6b57be00552e36e651e490.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Next step is to create the schema. This is done using the SchemaGen by passing
+    the statistics_gen object. Run the component and visualize it using context.show.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: The output shows details about the underlying schema of the data. Again, same
+    as in TFDV.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1f0aa75e2731fff473b691354d3683a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If you need to make modifications to the schema presented here, make them using
+    tfdv, and create a schema file. You can pass it using the ImportSchemaGen and
+    ask tfx to use the new file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we validate the examples using the ExampleValidator. We pass the statistics_gen
+    and schema_gen as arguments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: This should be your ideal output to show that all is well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c53b89c5ea10cc197c14f557d20ba447.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: At this point, our directory structure looks like the below image. We can see
+    that for every step in the process, the corresponding artifacts are created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/764a04c84ebe42ad48477cbab52d717c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let us move to the actual transformation part. We will now create the constants.py
+    file to add all the constants that are required for the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will create all the constants and write it to the constants.py file. See
+    the “%%writefile {_constants_module_file}”, this command does not let the code
+    run, instead, it writes all the code in the given cell into the specified file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let us create the transform.py file, which will contain the actual code for
+    transforming the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here, we will be using the tensorflow_transform library. The code for transformation
+    process will be written under the preprocessing_fn function. It is mandatory we
+    use the same name, as tfx internally searches for it during the transformation
+    process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have used a few standard scaling and encoding functions for this demo. The
+    transform library actually hosts a whole lot of functions. Explore them here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.tensorflow.org/tfx/transform/api_docs/python/tft?source=post_page-----99ffcf49f535--------------------------------)
+    [## Module: tft | TFX | TensorFlow'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Init module for TF.Transform.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.tensorflow.org](https://www.tensorflow.org/tfx/transform/api_docs/python/tft?source=post_page-----99ffcf49f535--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now it is time to see the transformation process in action. We create a Transform
+    object, and pass example_gen and schema_gen objects, along with the path to the
+    transform.py we created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Run it and the transformation part is complete!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a look at the transformed data shown in the below image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1303ef6e4514391c58823b9c199134b4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Why not just use scikit-learn library or pandas to do this?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is your question now, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: This process is not meant for an individual wanting to preprocess their data
+    and get going with model training. It is meant to be applied on large amounts
+    of data (data that mandates distributed processing) and an automated production
+    pipeline that can’t afford to break.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After applying the transform, your folder structure looks like this
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/605cd1b6d460c9c789304a9f8bd56bc8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It contains pre and post transform details. Further, a transform graph is also
+    created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember, we scaled our numerical features using tft.scale_to_0_1\. Functions
+    like this requires computing details that require analysis of the entire data
+    (like the mean, minimum and maximum values in a feature). Analyzing data distributed
+    over multiple machines, to get these details is performance intensive (especially
+    if done multiple times). Such details are calculated once and maintained in the
+    transform_graph. Any time a function needs them, it is directly fetched from the
+    transform_graph. It also aids in applying transforms created during the training
+    phase directly to serving data, ensuring consistency in the pre-processing phase.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another major advantage is of using Tensorflow Transform libraries is that every
+    phase is recorded as artifacts, hence data lineage is maintained. Data Versioning
+    is also automatically done when the data changes. Hence it makes experimentation,
+    deployment and rollback easy in a production environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s all to it. If you have any questions please jot them down in the comments
+    section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can download the notebook and the data files used in this article from my
+    GitHub repository using this [link](https://github.com/akila29/TF_Transform_Demo)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What Next?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To get a better understanding of the pipeline components, read the below article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.tensorflow.org/tfx/guide/understanding_tfx_pipelines?source=post_page-----99ffcf49f535--------------------------------)
+    [## Understanding TFX Pipelines | TensorFlow'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MLOps is the practice of applying DevOps practices to help automate, manage,
+    and audit machine learning (ML) workflows…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.tensorflow.org](https://www.tensorflow.org/tfx/guide/understanding_tfx_pipelines?source=post_page-----99ffcf49f535--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading my article. If you like it, please encourage by giving me
+    a few claps, and if you are in the other end of the spectrum, let me know what
+    can be improved in the comments. Ciao.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL

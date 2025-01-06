@@ -1,0 +1,389 @@
+- en: How To Log Databricks Workflows with the Elastic (ELK) Stack
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30](https://towardsdatascience.com/how-to-log-databricks-workflows-with-the-elastic-elk-stack-a03f940cbc88?source=collection_archive---------7-----------------------#2024-07-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A practical example of setting up observability for a data pipeline using best
+    practices from SWE world
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[![Yury
+    Kalbaska](../Images/d07ddfd82b958b22fba3cbda925d1cb0.png)](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)
+    [Yury Kalbaska](https://medium.com/@yury-kalbaska?source=post_page---byline--a03f940cbc88--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--a03f940cbc88--------------------------------)
+    ·8 min read·Jul 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4152c7a9407ea80e056dfcd8ed7c1a1d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [ThisisEngineering](https://unsplash.com/@thisisengineering?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: At the time of this writing (July 2024) Databricks has become a standard platform
+    for data engineering in the cloud, this rise to prominence highlights the importance
+    of features that support robust data operations (DataOps). Among these features,
+    observability capabilities — logging, monitoring, and alerting — are essential
+    for a mature and production-ready data engineering tool.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many tools to log, monitor, and alert the Databricks workflows including
+    built-in native Databricks Dashboards, Azure Monitor, DataDog among others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, one common scenario that is not obviously covered by the above is the
+    need to integrate with an existing enterprise monitoring and alerting stack rather
+    than using the dedicated tools mentioned above. More often than not, this will
+    be Elastic stack (aka ELK) — a de-facto standard for logging and monitoring in
+    the software development world.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Components of the ELK stack?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'ELK stands for Elasticsearch, Logstash, and Kibana — three products from Elastic
+    that offer end-to-end observability solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Elasticsearch — for log storage and retrieval
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Logstash — for log ingestion
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Kibana — for visualizations and alerting
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The following sections will present a practical example of how to integrate
+    the ELK Stack with Databricks to achieve a robust end-to-end observability solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A practical example
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Prerequisites
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we move on to implementation, ensure the following is in place:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Elastic cluster** — A running Elastic cluster is required. For simpler use
+    cases, this can be a single-node setup. However, one of the key advantages of
+    the ELK is that it is fully distributed so in a larger organization you’ll probably
+    deal with a cluster running in Kubernetes. Alternatively, an instance of Elastic
+    Cloud can be used, which is equivalent for the purposes of this example.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If you are experimenting, refer to the [excellent guide by DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-install-elasticsearch-logstash-and-kibana-elastic-stack-on-ubuntu-22-04)
+    on how to deploy an Elastic cluster to a local (or cloud) VM.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Databricks workspace** — ensure you have permissions to configure cluster-scoped
+    init scripts. Administrator rights are required if you intend to set up global
+    init scripts.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Storage
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For log storage, we will use Elasticsearch’s own storage capabilities. We start
+    by setting up. In Elasticsearch data is organized in indices. Each index contains
+    multiple documents, which are JSON-formatted data structures. Before storing logs,
+    an index must be created. This task is sometimes handled by an organization’s
+    infrastructure or operations team, but if not, it can be accomplished with the
+    following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Further customization of the index can be done as needed. For detailed configuration
+    options, refer to the REST API Reference: [https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html](https://www.elastic.co/guide/en/elasticsearch/reference/current/indices-create-index.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Once the index is set up documents can be added with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To retrieve documents, use:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: This covers the essential functionality of Elasticsearch for our purposes. Next,
+    we will set up the log ingestion process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transport / Ingestion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the ELK stack, Logstash is the component that is responsible for ingesting
+    logs into Elasticsearch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The functionality of Logstash is organized into *pipelines*, which manage the
+    flow of data from ingestion to output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Each pipeline can consist of three main stages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Input**: Logstash can ingest data from various sources. In this example,
+    we will use Filebeat, a lightweight shipper, as our input source to collect and
+    forward log data — more on this later.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Filter**: This stage processes the incoming data. While Logstash supports
+    various filters for parsing and transforming logs, we will not be implementing
+    any filters in this scenario.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Output**: The final stage sends the processed data to one or more destinations.
+    Here, the output destination will be an Elasticsearch cluster.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Pipeline configurations are defined in YAML files and stored in the `/etc/logstash/conf.d/`
+    directory. Upon starting the Logstash service, these configuration files are automatically
+    loaded and executed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can refer to [Logstash documentation](https://www.elastic.co/guide/en/logstash/current/configuration.html)
+    on how to set up one. An example of a minimal pipeline configuration is provided
+    below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, ensure the configuration is correct:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Collecting application logs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There is one more component in ELK — Beats. Beats are lightweight agents (shippers)
+    that are used to deliver log (and other) data into either Logstash or Elasticsearch
+    directly. There’s a number of Beats — each for its individual use case but we’ll
+    concentrate on **Filebeat** — by far the most popular one — which is used to collect
+    log *files*, process them, and push to Logstash or Elasticsearch directly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Beats must be installed on the machines where logs are generated. In Databricks
+    we’ll need to setup Filebeat on every cluster that we want to log from — either
+    All-Purpose (for prototyping, debugging in notebooks and similar) or Job (for
+    actual workloads). Installing Filebeat involves three steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Installation itself — download and execute distributable package for your operating
+    system (Databricks clusters are running Ubuntu — so a Debian package should be
+    used)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Configure the installed instance
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Starting the service via system.d and asserting it’s active status
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'This can be achieved with the help of Init scripts. A minimal example Init
+    script is suggested below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Timestamp Issue
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Notice how in the configuration above we set up a processor to extract timestamps.
+    This is done to address a common problem with Filebeat — by default it will populate
+    logs @timestamp field with a timestamp when logs were harvested from the designated
+    directory — not with the timestamp of the actual event. Although the difference
+    is rarely more than 2–3 seconds for a lot of applications, this can mess up the
+    logs real bad — more specifically, it can mess up the order of records as they
+    are coming in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To address this, we will overwrite the default @timestamp field with values
+    from log themselves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Logging
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once Filebeat is installed and running, it will automatically collect all logs
+    output to the designated directory, forwarding them to Logstash and subsequently
+    down the pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before this can occur, we need to configure the Python logging library.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first necessary modification would be to set up FileHandler to output logs
+    as files to the designated directory. Default logging FileHandler will work just
+    fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then we need to format the logs into NDJSON, which is required for proper parsing
+    by Filebeat. Since this format is not natively supported by the standard Python
+    library, we will need to implement a custom `Formatter`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will also use the custom Formatter to address the timestamp issue we discussed
+    earlier. In the configuration above a new field *timestamp* is added to the `LogRecord`
+    object that will conatain a copy of the event timestamp. This field may be used
+    in timestamp processor in Filebeat to replace the actual @timestamp field in the
+    published logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also use the Formatter to add extra fields — which may be useful for
+    distinguishing logs if your organization uses one index to collect logs from multiple
+    applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additional modifications can be made as per your requirements. Once the Logger
+    has been set up we can use the standard Python logging API — `.info()` and `.debug()`,
+    to write logs to the log file and they will automatically propagate to Filebeat,
+    then to Logstash, then to Elasticsearch and finally we will be able to access
+    those in Kibana (or any other client of our choice).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Visualization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the ELK stack, Kibana is a component responsible for visualizing the logs
+    (or any other). For the purpose of this example, we’ll just use it as a glorified
+    search client for Elasticsearch. It can however (and is intended to) be set up
+    as a full-featured monitoring and alerting solution given its rich data presentation
+    toolset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to finally see our log data in Kibana, we need to set up Index Patterns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Navigate to Kibana.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Open the “Burger Menu” (≡).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Go to **Management** -> **Stack Management** -> **Kibana** -> **Index Patterns**.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on **Create Index Pattern**.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/26cdd8d0af5b3c2eef5a551b8b5ce17d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Kibana index pattern creation interfact
+  prefs: []
+  type: TYPE_NORMAL
+- en: Kibana will helpfully suggest names of the available sources for the Index Patterns.
+    Type out a name that will capture the names of the sources. In this example it
+    can be e.g. `*filebeat**`, then click **Create index pattern**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once selected, proceed to Discover menu, select the newly created index pattern
+    on the left drop-down menu, adjust time interval (a common pitfall — it is set
+    up to last 15 minutes by default) and start with your own first KQL query to retrieve
+    the logs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4bfda8d3fb470c7a06ffb5a585baa0cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Log stream visualized in Kibana
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have now successfully completed the multi-step journey from generating a
+    log entry in a Python application hosted on Databricks to to visualizing and monitoring
+    this data using a client interface.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'While this article has covered the introductory aspects of setting up a robust
+    logging and monitoring solution using the ELK Stack in conjunction with Databricks,
+    there are additional considerations and advanced topics that suggest further exploration:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Choosing Between Logstash and Direct Ingestion**: Evaluating whether to use
+    Logstash for additional data processing capabilities versus directly forwarding
+    logs from Filebeat to Elasticsearch.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Schema Considerations**: Deciding on the adoption of the Elastic Common Schema
+    (ECS) versus implementing custom field structures for log data.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Exploring Alternative Solutions**: Investigating other tools such as Azure
+    EventHubs and other potential log shippers that may better fit specific use cases.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Broadening the Scope**: Extending these practices to encompass other data
+    engineering tools and platforms, ensuring comprehensive observability across the
+    entire data pipeline.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These topics will be explored in further articles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless otherwise noted, all images are by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

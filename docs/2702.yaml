@@ -1,0 +1,477 @@
+- en: While Using RLS When Manipulating Relationships in Power BI, What Can Go Wrong?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/while-using-rls-when-manipulating-relationships-in-power-bi-what-can-go-wrong-708c0996038a?source=collection_archive---------13-----------------------#2024-11-05](https://towardsdatascience.com/while-using-rls-when-manipulating-relationships-in-power-bi-what-can-go-wrong-708c0996038a?source=collection_archive---------13-----------------------#2024-11-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*When we have RLS in place, there are some restrictions when we try to manipulate
+    Relationships. However, Microsoft’s documentation doesn’t provide many details
+    on this topic. So, let’s dissect this. You will experience a big surprise.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari?source=post_page---byline--708c0996038a--------------------------------)[![Salvatore
+    Cagliari](../Images/a24b0cefab6e707cfee06cde9e857559.png)](https://medium.com/@salvatorecagliari?source=post_page---byline--708c0996038a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--708c0996038a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--708c0996038a--------------------------------)
+    [Salvatore Cagliari](https://medium.com/@salvatorecagliari?source=post_page---byline--708c0996038a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--708c0996038a--------------------------------)
+    ·7 min read·Nov 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5efb2e912c9c5b78fcb5e90615781dde.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Joseph Corl](https://unsplash.com/@jcorl?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In DAX, when we want to manipulate Relationships between tables, we can use
+    one of these functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[CROSSFILTER()](https://learn.microsoft.com/en-us/dax/crossfilter-function-dax)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[USERELATIONSHIP()](https://learn.microsoft.com/en-us/dax/userelationship-function-dax)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We can find the following sentences in the Microsoft documentation about the
+    interaction between these two functions and RLS:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ccc119a5d33c6fedb55b68406cc69334.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — Part of MS Documentation about CROSSFILTER() and USERELATIONSHIP()
+    and RLS (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While the sentence is unclear for [CROSSFILTER()](https://dax.guide/crossfilter/),
+    it is much clearer for [USERELATIONSHIP()](https://dax.guide/userelationship/):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: These functions don’t work correctly when manipulating relationships between
+    tables affected by RLS rules.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But what does this mean?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at it in more detail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Data model and the Report
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'For this example, I work with the following data model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f4b854c9d0373760fad5a2d530ce9691.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Data model used for this example (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Three things are important:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The table ‘Date’ has three Relationships to ‘Online Sales’: Order, Due, and
+    Ship Date.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The ‘Geography’ table has Relationships to the ‘Store’ and ‘Customer’ tables,
+    but only the Relationship to the ‘Store’ table is active.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The table ‘AccessByCountry’ contains some users with an assigned country. It
+    controls each user’s permissions.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'The Report contains the following Visuals:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/04756c605685827204b8b44f053a5eb6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Report used for the Example (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I added an RLS Rule to the table ‘AccessByCountry’:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/73383c5375272d882c77f9f0bf1277f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4 — Add an RLS role to the table ‘AccessByCountry’ to check for the current
+    User (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manipulate the relationships
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I use the USERELATIONSHIP() function for two new Measures, ‘Sum Online Sales
+    by Ship Date’ and ‘Sum Online Sales (By Customer Location)’:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This way, I activate the Disabled Relationships while calculating the Measure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Later on, I will create a Measure using the CROSSFILTER() function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, it’s essential to understand which Measure uses which Relationship and
+    if it’s affected by the RLS role:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Measure ‘Sales by Ship Date’ manipulates the Relationship to the Date table.
+    No RLS role is set up on either of these tables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Measure ‘Sum Online Sales (By Customer Location)’ manipulates the relationship
+    between ‘Customer’ and ‘Geography’.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The RLS role is set up on the table ‘AccessByCountry’, which filters the ‘Geography’
+    table.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The RLS indirectly filters the ‘Online Sales’ table through the ‘Store’ and
+    ‘Customer’ tables.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Test Measures with RLS using USERELATIONSHIP()
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now, I test the RLS role by using the ‘View as’ feature:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aceb47bca4a8b0ab3b44f9b7d0b1ee12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 5 — Test the RLS role using the Email-address for david2@contoso.com,
+    which has access to Germany (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As soon as I click on OK, the RLS role is activated, and I see what happens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a2e6ad32e3ffcbad7fc440e225ec54cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 6 — Error for the Visual using the Measure which manipulates the relationship
+    with the Geography table, but no error for the one using the Date table (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the Measure using the Ship Date still works, as no RLS role
+    affects the Date table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the measure that manipulates the relationship to the ‘Geography’ table
+    no longer works. Please note that both functions (USERELATIONSHIP() and CROSSFILTER())
+    are mentioned in the error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reason is that the USERELATIONSHIP() function has the potential to circumvent
+    the RLS role, rendering it ineffective.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is why it is not allowed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, the Measure, which manipulates the Relationships to the Date
+    table, still works, even though the Measure still affects how the data in the
+    ‘Online Sales’ table is filtered. Power BI recognizes that no RLS role affects
+    the ‘Date’ table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Test Measures with RLS using CROSSFILTER()
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now, let’s try something different:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I want to calculate the ‘Sales by Customer Location’ percentage related to Sales
+    in all Regions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For this, I create the following Measure:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is the Result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c36103ae2255ea117f09aecc0e2de986.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 7 — Result of the new Measure to get the Ratio of Sales vs all Stores
+    from all Regions and with the Customer Type column from the Customer table (Figure
+    by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This measure works without problems, even when tested with the RLS role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As there is only one Store in each Country and City, the result, when using
+    the RLS Role, always returns 100%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Syntax above can be changed by using the [CROSSFILTER()](https://dax.guide/crossfilter/)
+    function. By setting the Relationship between the ‘Store’ and ‘Geography’ tables
+    to None:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The result is precisely the same as before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But when testing the RLS role, we get a surprise:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3682bd6123fa9643f299bb604bc2964.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 8 — Result of the new Measure when testing the RLS role. (Figure by the
+    Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This result is weird!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To understand what happens, let’s add a Measure without the Division, only
+    with the second part of the Measure above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fc06adcafae3e7e24f942a2b4e5fa2d6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9 — Result of the Measure calculating all Sales for all Regions using
+    CROSSFILTER() and while testing the RLS role. (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we add some more Measures to compare the results, we can see what happens:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/047dc104af5f9d04edbac89ae69f22e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 10 — Analyzing the Results by adding more Measures and without activating
+    the RLS testing (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the Sales for Germany calculated by the Customer’s Geography
+    (See above for the Measure) are precisely the same as the result of the Measure,
+    which uses CROSSFILTER() to deactivate the Relationship between Store and Geography.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This means the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I use CROSSFILTER() to Disable the Relationship between the tables ‘Store’ and
+    ‘Geography’.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I test the RLS role. The RLS expression filters the ‘Geography’ table.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Power BI detects the (inactive) relationship between ‘Geography’ and ‘Customer’
+    and activates it to calculate the result.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This leads to unexpected, misleading, and wrong results, which must be avoided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While using USERELATIONSHIP() causes an error, using CROSSFILTER() can change
+    the result unexpectedly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above example is not very practical, as using REMOVEFILTER() is more straightforward.
+    I only wanted to give you an example to show you what happens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solving the problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This scenario is not uncommon, although I do not recommend building a data model
+    in this way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In such a specific scenario, I recommend integrating the columns from the Geography
+    table into the Store and Customer tables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, adding Relationships from the ‘AccessByCountry’ table to both tables,
+    ‘Store’ and ‘Customer’, is impossible. This will create ambiguity, which Power
+    BI will not allow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, I must duplicate this table and connect each of them to the two
+    tables, ‘Store’ and ‘Customer’ individually:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b6f73bbdfe2cdc3ec3187f2d365cb1f0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 11 — Modified data model (Figure by the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, I can set up the RLS role to filter both tables. I can even set up different
+    rules to allow separate access to the Stores and Customer’s Geographies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I can set up my Measures as needed and manipulate the filter without restrictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I no longer need to separate Measures, for example, by Store Geography or Customer
+    Geography, as I must only use the columns from the correct table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: OK, now I have the same content twice (Each Geography column for both tables,
+    ‘Store’ and ‘Customer’). However, they are each in their separate table, so this
+    shouldn’t be a problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/39510df365a038ab121e7f3fe9e4d63f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 12 — Result after remodeling and while testing the RLS role (Figure by
+    the Author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You must pay extra attention when using RLS roles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While using USERELATIONSHIP() and CROSSFILTER() is common in several scenarios;
+    this can cause issues when RLS roles are set up in the data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you have seen above, using them is no problem when the relationship is unaffected
+    by any RLS role.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But as soon as you try to manipulate a Relationship affected by an RLS role,
+    you can have issues, especially when using CROSSFILTER().
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weirdly, you get potentially unexpected results instead of an error message.
+    These results can be challenging to explain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In my example, the results are OK when the (inactive) relationship between Geography
+    and Customer is removed. The behavior shown above is specific to my data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: But, as you have seen, all problems disappear with some tweaks in the data model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As I have stated multiple times in previous pieces, a good data model is the
+    base for a good solution in Power BI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0933f1330a314ae8411b5a6c74c78d82.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Jakub Żerdzicki](https://unsplash.com/@jakubzerdzicki?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Like in my previous articles, I use the Contoso sample dataset. You can download
+    the ContosoRetailDW Dataset for free from Microsoft [here](https://www.microsoft.com/en-us/download/details.aspx?id=18279).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Contoso Data can be freely used under the MIT License, as described [here](https://github.com/microsoft/Power-BI-Embedded-Contoso-Sales-Demo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: I changed the dataset to shift the data to contemporary dates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----708c0996038a--------------------------------)
+    [## Get an email whenever Salvatore Cagliari publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Salvatore Cagliari publishes. By signing up, you will
+    create a Medium account if you don't…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@salvatorecagliari/subscribe?source=post_page-----708c0996038a--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I make my articles accessible to everyone, even though Medium has a paywall.
+    This allows me to earn a little for each reader, but I turn it off so you can
+    read my pieces without cost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I write these pieces in the evenings and at the weekends, which is a lot of
+    work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can support my work through
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://buymeacoffee.com/salvatorecagliari](https://buymeacoffee.com/salvatorecagliari)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Or scan this QR Code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7ac062070dcd7a00dcf995ad7e95434.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Any support is greatly appreciated and helps me find more time to create more
+    content for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you a lot.
+  prefs: []
+  type: TYPE_NORMAL

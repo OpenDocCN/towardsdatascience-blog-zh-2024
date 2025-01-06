@@ -1,0 +1,263 @@
+- en: Can Neural Networks Formulate Shock Wave?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04](https://towardsdatascience.com/can-neural-networks-formulate-shock-wave-147bb75d0715?source=collection_archive---------4-----------------------#2024-04-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How we build a PINN for inviscid Burgers Equation with shock formulation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[![Shuyang
+    Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)
+    [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--147bb75d0715--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--147bb75d0715--------------------------------)
+    ·6 min read·Apr 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: PINN on Shock Waves
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Physics-informed neural networks** (**PINNs**) are a special type of neural
+    networks. They estimate solutions to partial differential equations by incorporating
+    the governing physical laws of a given dataset into the learning process.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: An example of such an equation is the inviscid Burgers’ equation, a prototype
+    for conservation laws that can develop shock waves.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/db32daff6b729cd7c952efddb61d7dbc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image from [wikipedia](https://en.wikipedia.org/wiki/Burgers%27_equation):
+    Inviscid Burgers Equation in two space variables up until the time of shock formation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The current literature struggles to effectively tackle this issue. As shock
+    waves are not continuous solutions, they only satisfy the equations in a weak
+    sense. **Continuous Time Models** that depend solely on training samples, like
+    the algorithmic differentiation method, cannot capture shock waves. These methods
+    are only applicable to cases of functional regularity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One could attempt to use **Discrete Time Models** where neural networks and
+    time discretization work together to help the model formulate shocks. However,
+    this method somewhat diminishes the advantages of Physics-informed Neural Networks
+    (PINNs) and reverts to traditional numerical methods. This can be challenging
+    for someone who understands equations but is not familiar with numerical solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will address the limitations of existing Continuous Time
+    Models of PINN methods for the Burgers equation. I will introduce calculations
+    for discontinuity and weak solutions based on algorithmic differentiation, enabling
+    the equation to capture shocks. This article might inspire those who are interested
+    in the intersection of neural networks and physics-based modeling, especially
+    in domains related to conservation laws.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, it should be noted that this method has only shown promising results
+    for one of the simplest one-dimensional hyperbolic equations. Whether it can be
+    extended to higher dimensions or more complex equations is an aspect that the
+    author has not explored, and I invite readers to contribute their own ideas and
+    resources on this topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PINN: Continuous Time Models for Burgers'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'According to the original [paper](https://arxiv.org/pdf/1711.10561.pdf): “Physics
+    Informed Neural Networks (PINNs) are trained to solve supervised learning tasks
+    whilst respecting any given laws of physics, described by general nonlinear partial
+    differential equations (PDEs). ”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These PDEs take the following form in general [1]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ut + N [u] = 0, x ∈ Ω, t ∈ [0, T],
+  prefs: []
+  type: TYPE_NORMAL
+- en: where u(t, x) represents the solution, N [·] is a nonlinear differential operator,
+    and Ω is a subset of the d-dimensional space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s denote by
+  prefs: []
+  type: TYPE_NORMAL
+- en: L(u) = ut + N [u].
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can be immediately seen that f=0 if u is the solution of the equation. We
+    will construct the solution u as a neural network
+  prefs: []
+  type: TYPE_NORMAL
+- en: u = neural_net(t,x;weights)
+  prefs: []
+  type: TYPE_NORMAL
+- en: where the inputs are the time and space variables. We determine the weights
+    by minimizing the mean square error of f (as is said before, L(u) should be close
+    to 0 if u is the solution of the equation) and certain initial and boundary conditions.
+    For more details, please refer to the original paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s consider the 1-dimensional inviscid Burgers Equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/438341126c6d5a88b69547e4c5d5b42f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Inviscid burgers equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution to the equation, adhering to the initial condition, can be constructed
+    implicitly using the [method of characteristics](https://en.wikipedia.org/wiki/Method_of_characteristics),
+    that is, u=f(x-ut) with the characteristic curve x(t)= x0+f(x0)t. We see from
+    the formula that the characteristics x(t) are straight lines without the same
+    slope, so if there exists two points x1, x2 such that x1+f(x1)t= x2+f(x2)t at
+    a finite time t, we will see the intersectfion of two characteristics and the
+    wave breaks [2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following code is inspired by the git repository [pinn-burgers](https://github.com/okada39/pinn_burgers).
+    Here, a viscous Burgers’ equation is considered for 𝜈>0\. The equation is proven
+    to have a globally defined smooth solution, given that the initial condition is
+    a smooth function growing like o(|x|) at infinity [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/53cc03415a2a21967c67c8870036a817.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: viscous Burgers’ equation
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will express u(t,x) as neural_net(t,x;weights) with the aim to minimize
+    the mean square error of L(u) (in this case, ut+uux) and the initial and boundary
+    condition. If the solution to the equation is smooth, TensorFlow can be naturally
+    used to write the following code to compute the desired unknowns:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The L(u) (in the code, we call it u_eqn) will be define simply as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The issue is that the equation ut + uux only holds true in the weak sense. This
+    means that it may not be useful to consider the values of ut and ux when shock
+    waves form as they will explode. The equation only applies in an integrated form.
+    Common Python packages like TensorFlow or PyTorch provide APIs for neural networks
+    and differentiation algorithms but don’t offer weak sense solutions. Therefore,
+    we need to reconfigure the formula of L(u) to compel the neural network to form
+    the shock wave.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction of Shock
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We’re introducing the Rankine–Hugoniot conditions, also known as Rankine–Hugoniot
+    jump conditions or relations. These describe the relationship between states on
+    either side of a shock wave. For the Burgers equation, the Rankine–Hugoniot condition
+    appears as: 1/2[[𝑢²]]=𝑠[[𝑢]]. The brackets [[ ]] represent the difference between
+    the right-hand side and left-hand side values, while ‘s’ is the shock propagation
+    velocity.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Considering a specific space variable ‘x’, we aim to closely examine the left
+    or right limits, i.e., u(x±) in cases of discontinuity. Here’s the relevant code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We define a small delta and calculate the value of the solution on both the
+    left and right sides of the space variable x, up to a delta.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Following this, we redefine the function L(u) as :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use the regular form of the equation when the value of du_dt is finite (specifically,
+    smaller than a sufficiently large value), and we use the Rankine–Hugoniot condition
+    when the value of du_dt is infinite.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Experiment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s consider the Burgers equation with an initial condition of sin(πx) on
+    the interval [-1, 1]. The solution can be expressed as u=sin(π(x-ut)), and a shock
+    forms when t=1\. Using formula (1), we derive the following solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/091063661f41358dd888e4c627d52a52.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Solution of Burgers Equation using formula (1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The model has struggled to find the correct answer without being informed about
+    what a shock is. However, if we switch to formula (2), we obtain the following
+    solution:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ce521d21ba2d9a221ac0677dd8dbf1cc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Solution of Burgers Equation using formula (2)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see that the model successfully captures the shock wave at t=1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Physics-informed neural networks (PINNs) can estimate solutions to partial differential
+    equations by incorporating physical laws into their learning process. However,
+    they often have difficulties with discontinuous solutions such as shock waves.
+    I propose calculations for weak solutions that allow the Burgers equation to capture
+    shocks. It’s important to note that while the 1-D Burgers Equation is a simple
+    use case, this method may not be applicable to more complex equations without
+    deeper consideration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] M. Raissi, P. Perdikaris, G.E. Karniadakis,'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Physics-informed neural networks: A deep learning framework for solving forward
+    and inverse problems involving nonlinear partial differential equations, Journal
+    of Computational Physics,Volume 378,2019, Pages 686–707.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] A. Salih, Inviscid Burgers’ Equation. Lecture notes. Department of Aerospace
+    Engineering Indian Institute of Space Science and Technology.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] J Unterberger, Global existence for strong solutions of viscous Burgers
+    equation. March 2015\. Control and Cybernetics 46(2).'
+  prefs: []
+  type: TYPE_NORMAL

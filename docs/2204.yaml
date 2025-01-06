@@ -1,0 +1,741 @@
+- en: Is Multi-Collinearity Destroying Your Causal Inferences In Marketing Mix Modelling?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/is-multi-collinearity-destroying-your-causal-inferences-in-marketing-mix-modelling-78cb56017c73?source=collection_archive---------1-----------------------#2024-09-10](https://towardsdatascience.com/is-multi-collinearity-destroying-your-causal-inferences-in-marketing-mix-modelling-78cb56017c73?source=collection_archive---------1-----------------------#2024-09-10)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Causal AI, exploring the integration of causal reasoning into machine learning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)[![Ryan
+    O''Sullivan](../Images/7cd161d38d67d2c0b7da2d8f3e7d33fe.png)](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------)
+    [Ryan O''Sullivan](https://medium.com/@raz1470?source=post_page---byline--78cb56017c73--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--78cb56017c73--------------------------------)
+    ·16 min read·Sep 10, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/40d69b0f59c481ffa0a18c4d63f0e25c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [NOAA](https://unsplash.com/@noaa?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is this series about?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Welcome to my series on Causal AI, where we will explore the integration of
+    causal reasoning into machine learning models. Expect to explore a number of practical
+    applications across different business contexts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the last article we covered *powering experiments with CUPED and double machine
+    learning*. Today, we shift our focus to understanding how multi-collinearity can
+    damage the causal inferences you make, particularly in marketing mix modelling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you missed the last article on powering experiments with CUPED and double
+    machine learning, check it out here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=post_page-----78cb56017c73--------------------------------)
+    [## Powering Experiments with CUPED and Double Machine Learning'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Causal AI, exploring the integration of causal reasoning into machine learning
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/powering-experiments-with-cuped-and-double-machine-learning-34dc2f3d3284?source=post_page-----78cb56017c73--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In this article, we will explore how damaging multi-collinearity can be and
+    evaluate some methods we can use to address it. The following aspects will be
+    covered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is multi-collinearity?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why is it a problem in causal inference?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Why is it so common in marketing mix modelling?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How can we detect it?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How can we address it?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: An introduction to Bayesian priors.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A Python case study exploring how Bayesian priors and random budget adjustments
+    can help alleviate multi-collinearity.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The full notebook can be found here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/raz1470/causal_ai/blob/main/notebooks/is%20multi-collinearity%20destroying%20your%20mmm.ipynb?source=post_page-----78cb56017c73--------------------------------)
+    [## causal_ai/notebooks/is multi-collinearity destroying your mmm.ipynb at main
+    · raz1470/causal_ai'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This project introduces Causal AI and how it can drive business value. - causal_ai/notebooks/is
+    multi-collinearity…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/raz1470/causal_ai/blob/main/notebooks/is%20multi-collinearity%20destroying%20your%20mmm.ipynb?source=post_page-----78cb56017c73--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is multi-collinearity?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Multi-collinearity occurs when two or more independent variables in a regression
+    model are highly correlated with each other. This high correlation means they
+    provide overlapping information, making it difficult for the model to distinguish
+    the individual effect of each variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s take an example from marketing. You sell a product where demand is highly
+    seasonal — therefore, it makes sense to spend more on marketing during peak periods
+    when demand is high. However, if both TV and social media spend follow the same
+    seasonal pattern, it becomes difficult for the model to accurately determine the
+    individual contribution of each channel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f9efd582aef0ef90cd4d3f990247a86.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is it a problem in causal inference?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Multi-collinearity can lead to the coefficients of the correlated variables
+    becoming unstable and biased. When multi-collinearity is present, the standard
+    errors of the regression coefficients tend to inflate. This means that the uncertainty
+    around the estimates increases, making it harder to tell if a variable is truly
+    significant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s go back to our marketing example, even if TV advertising and social media
+    both drive sales, the model might struggle to separate their impacts because the
+    inflated standard errors make the coefficient estimates unreliable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can simulate some examples in python to get a better understanding. Pay attention
+    to how we set the coefficient for social spend and tv spend as 0.10 and 0.20 respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Example 1 — Marketing spend on each channel is equal, resulting in biased
+    coefficients:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dce34bbbf08e16494d4361304dea2ba1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Example 2 — Marketing spend on each channel follows the same trend, this
+    time resulting in a coefficient sign flip:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/ada2358ce580c187767d675ea8067ab4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Example 3 — The addition of random noise allows the model to estimate the
+    correct coefficients:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/c515596d8efc79fa0dfaff399b6ec728.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, multi-collinearity can cause a phenomenon known as sign flipping,
+    where the direction of the effect (positive or negative) of a variable can reverse
+    unexpectedly. For instance, even though you know social media advertising should
+    positively impact sales, the model might show a negative coefficient simply because
+    of its high correlation with TV spend. We can see this in example 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why is it so common in marketing mix modelling?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We’ve already touched upon one key issue: marketing teams often have a strong
+    understanding of demand patterns and use this knowledge to set budgets. Typically,
+    they increase spending across multiple channels during peak demand periods. While
+    this makes sense from a strategic perspective, it can inadvertently create a multi-collinearity
+    problem.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even for products where demand is fairly constant, if the marketing team upweight
+    or downweight each channel by the same percentage each week/month, then this will
+    also leave us with a multi-collinearity problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The other reason I’ve seen for multi-collinearity in MMM is poorly specified
+    causal graphs (DAGs). If we just throw everything into a flat regression, it’s
+    likely we will have a multi-collinearity problem. Take the example below — If
+    paid search impressions can be explained using TV and Social spend, then including
+    it alongside TV and Social in a flat linear regression model is likely going to
+    lead to multi-collinearity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bee63d262db8e900adee635716473865.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we detect it?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Detecting multi-collinearity is crucial to prevent it from skewing causal inferences.
+    Here are some common methods to identify it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Correlation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A simple and effective way to detect multi-collinearity is by examining the
+    correlation matrix. This matrix shows pairwise correlations between all variables
+    in the dataset. If two predictors have a correlation coefficient close to +1 or
+    -1, they are highly correlated, which could indicate multi-collinearity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Variance inflation factor (VIF)**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Quantifies how much the variance of a regression coefficient is inflated due
+    to multi-collinearity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dbdeadc19a78f363cf86b8cc91c7a39b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: The R-squared is obtained by regressing all of the other independent variables
+    on the chosen variable. If the R-squared is high this means the chosen variable
+    can be predicted using the other independent variables (which results in a high
+    VIF for the chosen variable).
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are some rule-of-thumb cut-offs for VIF in terms of detecting multi-collinearity
+    – However, I’ve not found any convincing resources backing them up so I will not
+    quote them here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Standard errors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The standard error of a regression coefficient tells you how precisely that
+    coefficient is estimated. It is calculated as the square root of the variance
+    of the coefficient estimate. High standard errors may indicate multi-collinearity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simulations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Also the knowing the 3 approaches highlighted above is useful, it can still
+    be hard to quantify whether you have a serious problem with multi-collinearity.
+    Another approach you could take is running a simulation with known coefficients
+    and then seeing how well you can estimate them with your model. Let’s illustrate
+    using an MMM example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Extract channel spend and sales data as normal.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Create data generating process, setting a coefficient for each channel.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Train model and compare estimated coefficients to those set in the last step.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we know how we can identify multi-collinearity, let’s move on and explore
+    how we can address it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: How can we address it?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'There are several strategies to address multi-collinearity:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Removing one of the correlated variables**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This is a straightforward way to reduce redundancy. However, removing a variable
+    blindly can be risky — especially if the removed variable is a confounder. A helpful
+    step is determining the causal graph (DAG). Understanding the causal relationships
+    allows you to assess whether dropping a correlated variable still enables valid
+    inferences.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Combining variables**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: When two or more variables provide similar information, you can combine them.
+    This method reduces the dimensionality of the model, mitigating multi-collinearity
+    risk while preserving as much information as possible. As with the previous approach,
+    understanding the causal structure of the data is crucial.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Regularization techniques**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Regularization methods such as Ridge or Lasso regression are powerful tools
+    to counteract multi-collinearity. These techniques add a penalty to the model’s
+    complexity, shrinking the coefficients of correlated predictors. Ridge focuses
+    on reducing the magnitude of all coefficients, while Lasso can drive some coefficients
+    to zero, effectively selecting a subset of predictors.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Bayesian priors**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using Bayesian regression techniques, you can introduce prior distributions
+    for the parameters based on existing knowledge. This allows the model to “regularize”
+    based on these priors, reducing the impact of multi-collinearity. By informing
+    the model about reasonable ranges for parameter values, it prevents overfitting
+    to highly correlated variables. We’ll delve into this method in the case study
+    to illustrate its effectiveness.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Random budget adjustments**'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Another strategy, particularly useful in marketing mix modeling (MMM), is introducing
+    random adjustments to your marketing budgets at a channel level. By randomly altering
+    the budgets you can start to observe the isolated effects of each. There are two
+    main challenges with this method (1) Buy-in from the marketing team and (2) Once
+    up and running it could take months or even years to collect enough data for your
+    model. We will also cover this one off in the case study with some simulations.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We will test some of these strategies out in the case study next.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An introduction to Bayesian priors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A deep dive into Bayesian priors is beyond the scope of this article, but let’s
+    cover some of the intuition behind them to ensure we can follow the case study.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bayesian priors represent our initial beliefs about the values of parameters
+    before we observe any data. In a Bayesian approach, we combine these priors with
+    actual data (via a likelihood function) to update our understanding and calculate
+    the posterior distribution, which reflects both the prior information and the
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To simplify: when building an MMM, we need to feed the model some prior beliefs
+    about the coefficients of each variable. Instead of supplying a fixed upper and
+    lower bound, we provide a distribution. The model then searches within this distribution
+    and, using the data, calculates the posterior distribution. Typically, we use
+    the mean of this posterior distribution to get our coefficient estimates.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, there’s more to Bayesian priors than this, but the explanation above
+    serves as a solid starting point!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Case study
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You’ve recently joined a start-up who have been running their marketing strategy
+    for a couple of years now. They want to start measuring it using MMM, but their
+    early attempts gave unintuitive results (TV had a negative contribution!). It
+    seems their problem stems from the fact that each marketing channel owner is setting
+    their budget based on the demand forecast, leading to a problem with multi-collinearity.
+    You are tasked with assessing the situation and recommending next steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data-generating-process
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s start by creating a data-generating function in python with the following
+    properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Demand is made up of 3 components: trend, seasonality and noise.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The demand forecast model comes from the data science team and can accurately
+    predict within +/- 5% accuracy.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This demand forecast is used by the marketing team to set the budget for social
+    and TV spend — We can add some random variation to these budgets using the spend_rand_change
+    parameter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The marketing team spend twice as much on TV compared to social media.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sales are driven by a linear combination of demand, social media spend and TV
+    spend.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The coefficients for social media and TV spend can be set using the true_coef
+    parameter.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Initial assessment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now let’s simulate some data with no random variation applied to how the marketing
+    team set the budget — We will try and estimate the true coefficients. The function
+    below is used to train the regression model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b67455771d7ccc09c657dc107ed4ebde.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see that the coefficient for social spend is underestimated whilst the
+    coefficient for tv spend is overestimated. Good job you didn’t give the marketing
+    team this model to optimise their budgets — It would have ended in disaster!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the short-term, could using Bayesian priors give less biased coefficients?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the long-term, would random budget adjustments create a dataset which doesn’t
+    suffer from multi-collinearity?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s try and find out!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bayesian priors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s start with exploring Bayesian priors…
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will be using my favourite MMM implementation pymc marketing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[## Guide - pymc-marketing 0.8.0 documentation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Edit description
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.pymc-marketing.io](https://www.pymc-marketing.io/en/stable/guide/index.html?source=post_page-----78cb56017c73--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We will use the same data we generated in the initial assessment:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Before we get into the modelling lets have a look at the contribution for each
+    variable:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9e9c1b03eb82816012b3f54d1f83d85f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bayesian (default) priors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s see what result we get if we use the default priors. Below you can see
+    that there are a lot of priors! This is because we have to supply priors for the
+    intercept, ad stock and saturation transformation amongst other things. It’s the
+    saturation beta we are interested in – This is the equivalent of the variable
+    coefficients we are trying to estimate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/993475b7375f50b9e26666de97bda68a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have to supply a distribution. The HalfNormal is a sensible choice for channel
+    coefficients as we know they can’t be negative. Below we visualise what the distribution
+    looks like to bring it to life:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/6518eafb76d33b0992832a1d80355f98.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we are ready to train the model and extract the contributions of each channel.
+    As before our coefficients are biased (we know this as the contributions for each
+    channel aren’t correct — social media should be 50% and TV should be 35%). However,
+    interestingly they are much closer to the true contribution compared to when we
+    ran linear regression before. This would actually be a reasonable starting point
+    for the marketing team!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8817a5d2dfce6f12cf8a7d22899540ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: Bayesian (custom) priors
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we move on, let’s take the opportunity to think about custom priors.
+    One (very bold) assumption we can make is that each channel has a similar return
+    on investment (or in our case where we don’t have revenue, cost per sale). We
+    can therefore use the spend distribution across channel to set some custom priors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As the MMM class does feature scaling in both the target and features, priors
+    also need to be supplied in the scaled space. This actually makes it quite easy
+    for us to do as you can see in the below code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7acd357f45c30cf3fcc649125f2df86a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then need to feed the custom priors into the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/124cb5d9d63721ef1666330967f0af0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we train the model and extract the coefficients we see that the priors
+    have come into play, with tv now having the highest contribution (because we spent
+    more than social). However, this is very wrong and illustrates why we have to
+    be so careful when setting priors! The marketing team should really think about
+    running some experiments to help them set priors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/a835f00a98e53d3d699a913e41cfc76a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Random budget adjustments
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we have our short-term plan in place, let’s think about the longer term
+    plan. If we could persuade the marketing team to apply small random adjustments
+    to their marketing channel budgets each month, would this create a dataset without
+    multi-collinearity?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code below uses the data generator function and simulates a range of random
+    spend adjustments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see from the results that just a small random adjustment to the budget
+    for each channel can break free of the multi-collinearity curse!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ca3eef8ed2ee2feb125463410751a119.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: User generated image
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s worth noting that if I change the random seed (almost like resampling),
+    the starting point for the coefficients varies — However, whatever seed I used
+    the coefficients stabilised after a 1% random change in spend. I’m sure this will
+    vary depending on your data-generating process so make sure you test it out using
+    your own data!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Final thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Although the focus of this article was multi-collinearity, the big take away
+    is the importance of simulating data and then trying to estimate the known coefficients
+    (remember you set them yourself so you know them) — It’s an essential step if
+    you want to have confidence in your results!
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When it comes to MMM, it can be useful to use your actual spend and sales data
+    as the base for your simulation — This will help you understand if you have a
+    multi-collinearity problem.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you use actual spend and sales data you can also carry out a random budget
+    adjustment simulation to help come up with a suitable randomisation strategy for
+    the marketing team. Keep in mind my simulation was simplistic to illustrate a
+    point — We could design a much more effective strategy e.g. testing different
+    areas of the response curve for each channel.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bayesian can be a steep learning curve — The other approach we could take is
+    using a constrained regression in which you set upper and lower bounds for each
+    channel coefficient based on prior knowledge.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If you are setting Bayesian priors, it’s super important to be transparent about
+    how they work and how they were selected. If you go down the route of using the
+    channel spend distribution, the assumption that each channel has a similar ROI
+    needs signing off from the relevant stakeholders.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Bayesian priors are not magic! Ideally you would use results from experiments
+    to set your priors — It’s worth checking out how the pymc marketing have approached
+    this:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html?source=post_page-----78cb56017c73--------------------------------)
+    [## Lift Test Calibration - pymc-marketing 0.8.0 documentation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may have heard of the phrase "all models are wrong; some models are useful."
+    This is true in many areas, and it's…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.pymc-marketing.io](https://www.pymc-marketing.io/en/stable/notebooks/mmm/mmm_lift_test.html?source=post_page-----78cb56017c73--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: That is it, hope you enjoyed this instalment! Follow me if you want to continue
+    this journey into Causal AI – In the next article we will immerse ourselves in
+    the topic of *bad controls*!
+  prefs: []
+  type: TYPE_NORMAL

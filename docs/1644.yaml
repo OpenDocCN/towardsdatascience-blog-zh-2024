@@ -1,0 +1,438 @@
+- en: Diffusion Model from Scratch in Pytorch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/diffusion-model-from-scratch-in-pytorch-ddpm-9d9760528946?source=collection_archive---------0-----------------------#2024-07-04](https://towardsdatascience.com/diffusion-model-from-scratch-in-pytorch-ddpm-9d9760528946?source=collection_archive---------0-----------------------#2024-07-04)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implementation of Denoising Diffusion Probabilistic Models (DDPM)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@nickd16718?source=post_page---byline--9d9760528946--------------------------------)[![Nicholas
+    DiSalvo](../Images/481fbbf016523bfee37ac5b11d46de41.png)](https://medium.com/@nickd16718?source=post_page---byline--9d9760528946--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9d9760528946--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9d9760528946--------------------------------)
+    [Nicholas DiSalvo](https://medium.com/@nickd16718?source=post_page---byline--9d9760528946--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9d9760528946--------------------------------)
+    ·13 min read·Jul 4, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0c8310a9e682e4d713961c2b785c6878.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: DDPM Example on MNIST — Image by the Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Introduction**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A diffusion model in general terms is a type of generative deep learning model
+    that creates data from a learned denoising process. There are many variations
+    of diffusion models with the most popular ones usually being text conditional
+    models that can generate a certain image based on a prompt. Some diffusion models
+    (Control-Net) can even blend images with certain artistic styles. Here is an example
+    below here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3d4c1a771b4f06566e9e6fdc589124bb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the Author using finetuned MonsterLabs’ QR Monster V2
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you don’t know what's so special about the image, try moving farther away
+    from the screen or squinting your eyes to see the secret hidden in the image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many different applications and types of diffusion models, but in
+    this tutorial we are going to build the foundational unconditional diffusion model,
+    DDPM (Denoising Diffusion Probabilistic Models) [1]. We will start by looking
+    into how the algorithm works intuitively under the hood, and then we will build
+    it from scratch in PyTorch. Also, this tutorial will focus primarily on the intuitive
+    idea behind the algorithm and the specific implementation details. For the mathematical
+    derivations and background, this book [2] is a great reference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Last Notes: This implementation was built for workflows that contain a single
+    GPU with CUDA compatibility. In addition, the complete code repository can be
+    found here [https://github.com/nickd16/Diffusion-Models-from-Scratch](https://github.com/nickd16/Diffusion-Models-from-Scratch)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: How it Works -> The Forward and Reverse Process
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/a1d50f21f5b1addc7f55a20411b1ad15.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image from [2] Understand Deep Learning by Simon J.D. Prince
+  prefs: []
+  type: TYPE_NORMAL
+- en: The diffusion process includes a forward and a reverse process. The forward
+    process is a predetermined Markov chain based on a noise schedule. The noise schedule
+    is a set of variances B1, B2, … BT that govern the conditional normal distributions
+    that make up the Markov chain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a2db63a9761fb56a563371fb873ec51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Forward Process Markov Chain — Image from [2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: This formula is the mathematical representation of the forward process, but
+    intuitively we can understand it as a sequence where we gradually map our data
+    examples X to pure noise. Our first term in the forward process is just our initial
+    data example. At an intermediate time step t, we have a noised version of X, and
+    at our final time step T, we arrive at pure noise that is approximately governed
+    by a standard normal distribution. When we build a diffusion model, we choose
+    our noise schedule. In DDPM for example, our noise schedule features 1000 time
+    steps of linearly increasing variances starting at 1e-4 to 0.02\. It is also important
+    to note that our forward process is static, meaning we choose our noise schedule
+    as a hyperparameter to our diffusion model and we do not train the forward process
+    as it is already defined explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The final key detail we have to know about the forward process is that because
+    the distributions are normal, we can mathematically derive a distribution known
+    as the “Diffusion Kernel” which is the distribution of any intermediate value
+    in our forward process given our initial data point. This allows us to bypass
+    all of the intermediate steps of iteratively adding t-1 levels of noise in the
+    forward process to get an image with t noise which will come in handy later when
+    we train our model. This is mathematically represented as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c6a311fdfd54b18fdd204519a6cc1f90.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The Diffusion Kernel — Image from [2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: where alpha at time t is defined as the cumulative product (1-B) from our initial
+    time step to our current time step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The reverse process is the key to a diffusion model. The reverse process is
+    essentially the undoing of the forward process by gradually removing amounts of
+    noise from a pure noisy image to generate new images. We do this by starting at
+    purely noised data, and for each time step t we subtract the amount of noise that
+    would have theoretically been added by the forward process for that time step.
+    We keep removing noise until eventually we have something that resembles our original
+    data distribution. The bulk of our work is training a model to carefully approximate
+    the forward process in order to estimate a reverse process that can generate new
+    samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Algorithm and Training Objective
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To train such a model to estimate the reverse diffusion process, we can follow
+    the algorithm in the image defined below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a randomly sampled data point from our training dataset
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Select a random timestep on our noise (variance) schedule
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Add the noise from that time step to our data, simulating the forward diffusion
+    process through the “diffusion kernel”
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Pass our defused image into our model to predict the noise we added
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Compute the mean squared error between the predicted noise and the actual noise
+    and optimize our model’s parameters through that objective function
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: And repeat!
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/d35924b68d26c2d976d2a34f8aa5d1b5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: DDPM Training Algorithm — Image from [2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mathematically, the exact formula in the algorithm might look a little strange
+    at first without seeing the full derivation, but intuitively its a reparameterization
+    of the diffusion kernel based on the alpha values of our noise schedule and its
+    simply the squared difference of predicted noise and the actual noise we added
+    to an image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If our model can successfully predict the amount of noise based on a specific
+    time step of our forward process, we can iteratively start from noise at time
+    step T and gradually remove noise based on each time step until we recover data
+    that resembles a generated sample from our original data distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The sampling algorithm is summarized in the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate random noise from a standard normal distribution
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For each timestep starting from our last timestep and moving backwards:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Update Z by estimating the reverse process distribution with mean parameterized
+    by Z from the previous step and variance parameterized by the noise our model
+    estimates at that timestep
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Add a small amount of the noise back for stability (explanation below)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. And repeat until we arrive at time step 0, our recovered image!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1bcc7f5c7ee37512339bb6c5504bf081.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: DDPM Sampling Algorithm — Image from [2]
+  prefs: []
+  type: TYPE_NORMAL
+- en: The algorithm to then sample and generate images might look mathematically complicated
+    but it intuitively boils down to an iterative process where we start with pure
+    noise, estimate the noise that theoretically was added at time step t, and subtract
+    it. We do this until we arrive at our generated sample. The only small detail
+    we should be mindful of is after we subtract the estimated noise, we add back
+    a small amount of it to keep the process stable. For example, estimating and subtracting
+    the total amount of noise in the beginning of the iterative process all at once
+    leads to very incoherent samples, so in practice adding a bit of the noise back
+    and iterating through every time step has empirically been shown to generate better
+    samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The UNET
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The authors of the DDPM paper used the UNET architecture originally designed
+    for medical image segmentation to build a model to predict the noise for the diffusion
+    reverse process. The model we are going to use in this tutorial is meant for 32x32
+    images perfect for datasets such as MNIST, but the model can be scaled to also
+    handle data of much higher resolutions. There are many variations of the UNET,
+    but the overview of the model architecture we will build is in the image below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/edfac73b9b54f51677bdb2ed90f537cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: UNET for Diffusion — Image by the Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The UNET for DDPM is similar to the classic UNET because it contains both a
+    down sampling stream and an up sampling stream that lightens the computational
+    burden of the network, while also having skip connections between the two streams
+    to merge the information from both the shallow and deep features of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main differences between the DDPM UNET and the classic UNET is that the
+    DDPM UNET features attention in the 16x16 dimensional layers and sinusoidal transformer
+    embeddings in every residual block. The meaning behind the sinusoidal embeddings
+    is to tell the model which time step we are trying to predict the noise. This
+    helps the model predict the noise at each time step by injecting positional information
+    on where the model is on our noise schedule. For example, if we had a schedule
+    of noise that had a lot of noise in certain time steps, the model understanding
+    what time step it has to predict can help the model’s prediction on that noise
+    for the corresponding time step. More general information on attention and embeddings
+    can be found here [3] for those not already familiar with them from the transformer
+    architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our implementation of the model, we will start by defining our imports (possible
+    pip install commands commented for reference) and coding our sinusoidal time step
+    embeddings. Intuitively, the sinusoidal embeddings are different sin and cos frequencies
+    that can be added directly to our inputs to give the model additional positional/sequential
+    understanding. As you can see from the image below, each sinusoidal wave is unique
+    which will give the model awareness on its location in our noise schedule.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7b837ad03871bd70590fcc4b8a30a5ff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sinusoidal Embeddings — Image from [3]
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The residual blocks in each layer of the UNET will be equivalent to the ones
+    used in the original DDPM paper. Each residual block will have a sequence of group-norm,
+    the ReLU activation, a 3x3 “same” convolution, dropout, and a skip-connection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In DDPM, the authors used 2 residual blocks per layer (resolution scale) of
+    the UNET and for the 16x16 dimension layers, we include the classic transformer
+    attention mechanism between the two residual blocks. We will now implement the
+    attention mechanism for the UNET:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The attention implementation is straight forward. We reshape our data such
+    that the h*w dimensions are combined into a “sequence” dimension like the classic
+    input for a transformer model and the channel dimension turns into the embedding
+    feature dimension. In this implementation we utilize torch.nn.functional.scaled_dot_product_attention
+    because this implementation contains flash attention, which is an optimized version
+    of attention which is still mathematically equivalent to classic transformer attention.
+    For more information on flash attention you can refer to these papers: [4], [5].'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally at this point, we can define a complete layer of the UNET:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Each layer in DDPM as previously discussed has 2 residual blocks and may contain
+    an attention mechanism, and we additionally pass our embeddings into each residual
+    block. Also, we return both the downsampled or upsampled value as well as the
+    value prior which we will store and use for our residual concatenated skip connections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, we can finish the UNET Class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The implementation is straight forward based on the classes we have already
+    created. The only difference in this implementation is that our channels for the
+    up-stream are slightly larger than the typical channels of the UNET. I found that
+    this architecture trained more efficiently on a single GPU with 16GB of VRAM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Scheduler
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Coding the noise/variance scheduler for DDPM is also very straightforward. In
+    DDPM, our schedule will start, as previously mentioned, at 1e-4 and end at 0.02
+    and increase linearly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: We return both the beta (variance) values and the alpha values since we the
+    formulas for training and sampling use both based on their mathematical derivations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally (not required) this function defines a training seed. This means
+    that if you want to reproduce a specific training instance you can use a set seed
+    such that the random weight and optimizer initializations are the same each time
+    you use the same seed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For our implementation, we will create a model to generate MNIST data (hand
+    written digits). Since these images are 28x28 by default in pytorch, we pad the
+    images to 32x32 to follow the original paper trained on 32x32 images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For optimization, we use Adam with initial learning rate of 2e-5\. We also use
+    EMA (Exponential Moving Average) to aid in generation quality. EMA is a weighted
+    average of the model’s parameters that in inference time can create smoother,
+    less noisy samples. For this implementation I use the library timm’s EMAV3 out
+    of the box implementation with weight 0.9999 as used in the DDPM paper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To summarize our training, we simply follow the psuedo-code above. We pick random
+    time steps for our batch, noise our data in the batch based on our schedule at
+    those time steps, and we input that batch of noised images into the UNET along
+    with the time steps themselves to guide the sinusoidal embeddings. We use the
+    formulas in the pseudo-code based on the “diffusion kernel” to noise the images.
+    We then take our model’s prediction of how much noise we added and compare to
+    the actual noise we added and optimize the mean squared error of the noise. We
+    also implemented basic checkpointing to pause and resume training on different
+    epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: For inference, we exactly follow again the other part of the pseudo code. Intuitively,
+    we are just reversing the forward process. We are starting from pure noise, and
+    our now trained model can predict the estimated noise at each time step and can
+    then generate brand new samples iteratively. Each different starting point for
+    the noise, we can generate a different unique sample that is similar to our original
+    data distribution but unique. The formulas for inference were not derived in this
+    article but the reference linked in the beginning can help guide readers who want
+    a deeper understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also note, I included a helper function to view the diffused images so you can
+    visualize how well the model learned the reverse process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'After training for 75 epochs with the experimental details listed above, we
+    obtain these results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f5a91a14e2033f82cf00696c6a413e72.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by the Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point we have just coded DDPM from scratch in PyTorch!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] [DDPM https://arxiv.org/abs/2006.11239](https://arxiv.org/abs/2006.11239)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] [Understanding Deep Learning https://udlbook.github.io/udlbook/](https://udlbook.github.io/udlbook/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [Attention is All You Need https://arxiv.org/abs/1706.03762](https://arxiv.org/abs/1706.03762)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [Flash Attention https://arxiv.org/abs/2205.14135](https://arxiv.org/abs/2205.14135)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] [Flash Attention 2 https://arxiv.org/abs/2307.08691](https://arxiv.org/abs/2307.08691)'
+  prefs: []
+  type: TYPE_NORMAL

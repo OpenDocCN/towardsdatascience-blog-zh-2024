@@ -1,0 +1,462 @@
+- en: How to Build a RAG System with a Self-Querying Retriever in LangChain
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad?source=collection_archive---------0-----------------------#2024-04-25](https://towardsdatascience.com/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad?source=collection_archive---------0-----------------------#2024-04-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: RAG + Filtering with Metadata = Great Movie Recommendations 🍿
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)[![Ed
+    Izaguirre](../Images/c9eded1f06c47571baa662107428483f.png)](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------)
+    [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--16b4fa23e9ad--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--16b4fa23e9ad--------------------------------)
+    ·12 min read·Apr 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f25989e1bd8f991ca2ce6d84a27ab9ef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image of a person watching television. Image created in DALL·E 3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table of Contents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Retrieving the data](#86c4)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Upload documents to Pinecone](#53e3)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Creating the self-querying retriever](#21a7)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Creating the chat model](#409b)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Demonstration](#3817)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Links
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Edit: I have updated Film Search and rebranded it as Rosebud. I have also made
+    it free to use! [Check out the website here.](https://filmsearch.azurewebsites.net/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Also check out my new article improving this app! [Link.](/productionizing-a-rag-app-04c857e0966e)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Link to GitHub with code](https://github.com/EdIzaguirre/Rosebud)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Recently, I was browsing Max trying to find a movie to watch. Typically this
+    involves browsing through the various lists presented to me, reading a few descriptions,
+    and then picking something that sounds vaguely interesting. Sometimes it is a
+    hit, sometimes not so much. I usually only touch the search function if I know
+    the title of a film I am trying to watch or know the name of an actor I want.
+    Otherwise searching is just not very useful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I was suddenly hit with an idea: why can’t I use natural language to query
+    a movie based more on the *vibe* or the *substance* of a movie, rather than just
+    a title or actor? For example, why can’t I fire up Max, Netflix, or Hulu and type
+    one of the following queries into the search bar:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Find me drama movies in English that are less than 2 hours long and feature
+    pets.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Recommend zombie movies, but make sure they are funny.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*I liked ‘Everything Everywhere all at Once’. Give me a similar film, but darker.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The beauty of this approach goes beyond a more natural way to search for films.
+    This approach also preserves a user’s privacy. Rather than mine a user’s actions,
+    likes, and dislikes to feed to a recommender system, **this system uses no user
+    data at all.** The only thing required is a query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So I built Film Search. This is a RAG-based system that takes in a user’s query,
+    embeds it, and does a similarity search to find similar films. But it goes beyond
+    vanilla RAG. This system uses what is called a **self-querying retriever.** What
+    this allows for is filtering movies by their metadata, before doing a similarity
+    search. So if a user has a query like “*Recommend horror movies made after 1980
+    that features lots of explosions*”, the search will first filter out all films
+    that are not “horror movies made after the year 1980” before doing a similarity
+    search for films that “feature lots of explosions”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will provide a high-level overview of how I made this system.
+    The full code is provided in the links above if you want to go deeper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s dive in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving the data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The data for this project came from [The Movie Database (TMDB)](https://developer.themoviedb.org/docs/getting-started),
+    with permission from the owner. Their API was simple to use, well maintained,
+    and not heavily rate limited. I pulled the following film attributes from their
+    API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Title
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Runtime (minutes)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Language
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Overview
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Release Year
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Genre
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Keywords describing the film
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Actors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Directors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Places to stream
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Places to buy
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Places to rent
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: List of Production Companies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Below is a snippet of how data was pulled using the TMDB API and the response
+    library from Python:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the query requires movie IDs (which were also obtained using TMDB),
+    as well as `append_to_response`, which allows me to pull several types of data
+    e.g. keywords, watch providers, credits (directors and actors) in additional to
+    some basic information about the film. There is also some basic scaffolding code
+    in case I hit a rate limit, although this was never observed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We then have to parse the JSON response. Here is a snippet showing how this
+    was done for parsing the actors and directors who worked on a film:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that I limited the number of actors to the top five in a film. I also had
+    to specify that I was only interested in directors, as the response included other
+    types of crew members such as editors, costume designers, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of this data was then compiled into CSV files. Each attribute listed above
+    became a column, and each row now represents a particular film. Below is a short
+    snippet of films from the `2008_movie_collection_data.csv` file that was created
+    programatically. For this project I got roughly the 100 top films from the years
+    1920–2023.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Snippet of movie data for demonstration purposes. By author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Believe it or not, I still have not seen Kung Fu Panda. Perhaps I’ll have to
+    after this project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Upload documents to Pinecone
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Next I had to upload the csv data to Pinecone. Typically chunking is important
+    in a RAG system, but here each “document” (row of a CSV file) is fairly short,
+    so chunking was not a concern. I first had to convert each CSV file to a LangChain
+    document, and then specify which fields should be the primary content and which
+    fields should be the metadata.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a snippet of code used to construct these documents:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`DirectoryLoader` from LangChain takes care of loading all csv files into documents.
+    Then I need to specify what should be `page_content` and what should be `metadata`
+    . This is an important decision. `page_content` will be embedded and used in similarity
+    search during the retrieval phase. `metadata` will be used solely for filtering
+    purposes before similarity search is done. I decided to take the `overview` and
+    `keywords` properties and embed those, and the rest of the properties would be
+    metadata. Further tweaking should be done to see if perhaps `title` should also
+    be included in `page_content`, but I found this configuration works well for most
+    user queries.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then the documents have to be uploaded to Pinecone. This is a fairly straightforward
+    process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I’ll just highlight a few things here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using an `SQLRecordManager` ensures that duplicate documents are not uploaded
+    to Pinecone if this code is run multiple times. If a document is modified, only
+    that document is modified in the vector store.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We are using the classic `text-embedding-ada-002` from OpenAI as our embedding
+    model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Creating the self-querying retriever
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The self-querying retriever will allow us to filter the movies that are retrieved
+    during RAG via the metadata we defined earlier. This will dramatically increase
+    the usefulness of our film recommender.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One important consideration when choosing your vector store is to make sure
+    that it supports filtering by metadata, because not all do. [Here is a list of
+    databases](https://python.langchain.com/docs/integrations/retrievers/self_query)
+    by LangChain that support self-querying retrieval. Another important consideration
+    is what types of comparators are allowed for each vector store. Comparators are
+    the method by which we filter via metadata. For example, we can use the `eq` comparator
+    to make sure that our film falls under the science fiction genre: `eq(''Genre'',
+    ''Science Fiction'')` . Not all vector stores allow for all comparators. As an
+    example, check out the [allowed comparators in Weaviate](https://weaviate.io/developers/weaviate/api/graphql/filters#filter-structure)
+    and how they vary from the [comparators in Pinecone](https://docs.pinecone.io/guides/data/filtering-with-metadata#metadata-query-language).
+    We need to tell the model about what comparators are allowed to prevent it from
+    accidentally writing a forbidden query.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to telling the model what comparators exist, we can also feed the
+    model examples of user queries and corresponding filters. This is known as **few-shot
+    learning**, and it is invaluable to help guide your model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To see where this helps, take a look at the following two user queries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“Recommend some films by Yorgos Lanthimos.”*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*“Films similar to Yorgos Lanthmios movies.”*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is easy for my metadata filtering model to write the same filter query for
+    each of these examples, even though I want them to be treated differently. The
+    first should yield only films directed **by** Lanthimos, while the second should
+    yield films that have a similar **vibe** to Lanthimos films. To ensure this behavior,
+    I spoon-feed the model examples of my desired behavior. The beauty with language
+    models is that they can use their “reasoning” abilities and world knowledge to
+    generalize from these few-shot examples to other user queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In addition to examples, the model also has to know a description of each metadata
+    field. This helps it understand what metadata filtering is possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we construct our chain. Here `query_model` is an instance of GPT-4
+    Turbo using the OpenAI API. I recommend using GPT-4 instead of 3.5 for writing
+    these metadata filter queries, since this is a critical step and one that 3.5
+    messes up on more frequently. `search_kwargs={'k':10}` tells the retriever to
+    pull up the ten most similar films based on the user query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating the chat model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Finally, after building the self-querying retriever we can build the standard
+    RAG model on top of it. We begin by defining our chat model. This is what I call
+    a summary model because it takes in a context (retrieved films + system message)
+    and responds with a summary of each recommendation. This model can be GPT-3.5
+    Turbo if you are trying to keep costs down, or GPT-4 Turbo if you want the absolute
+    best results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the system message I tell the bot what its goal is, and provide a series
+    of recommendations and restrictions, the **most important of which is to not recommend
+    a film that is not provided to it by the self-querying retriever.** In testing,
+    I was having issues when a user query yielded no films from the database. For
+    example, the query: *“Recommend some horror films starring Matt Damon directed
+    by Wes Anderson made before 1980”* would cause the self-querying retriever to
+    retrieve no films (because as awesome as it sounds that movie doesn’t exist).
+    Presented with no film data in its context, the model would use its own (faulty)
+    memory to try and recommend some films. This is not good behavior. I don’t want
+    a Netflix recommender to discuss films that are not in the database. The system
+    message below managed to stop this behavior. I did notice that GPT-4 is better
+    at following instructions than GPT-3.5, which is expected.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '`format_docs` is used to format the information presented to the model so that
+    it is easy to understand and parse. We present to the model both the `page_content`
+    (overview and keywords) as well as the `metadata` (all other movie properties);
+    anything it might need to better recommend a film to the user.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`rag_chain_from_docs` is a chain that takes the retrieved documents, formats
+    them using `format_docs` , feeds the formatted documents into the context that
+    the model then uses to answer the question. Finally we create `rag_chain_with_source`
+    , which is a `RunnableParallel` that, as its name suggests, runs two operations
+    in parallel: the self-querying retriever goes off to retrieve similar documents
+    while the the query is simply passed to the model via `RunnablePassthrough()`
+    . The results from the parallel components are then combined, and `rag_chain_from_docs`
+    is used to generate the answer. Here `source` refers to the retriever, which access
+    to all ‘source’ documents.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Because I want the answer to be streamed (e.g. presented to the user chunk
+    by chunk like ChatGPT), we use the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Demonstration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Now to the fun part: playing with the model. As mentioned previously, Streamlit
+    was used to create the frontend and for hosting the app. I won’t discuss the code
+    for the UI here; please see the raw code for details on the implementation. It
+    is fairly straightforward, and there are lots of other examples on the [Streamlit
+    website](https://docs.streamlit.io/knowledge-base/tutorials/build-conversational-apps).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/02b3a62862751b327a753fd250ba3e74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Film Search UI. By author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several suggestions you can use, but let’s try our own query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7ad4d1b3125c7faf549f71d8c1afbacf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example query and model response. By author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Behind the scenes, the self-querying retriever made sure to filter out any
+    films that were not in the French language. Then, it performed a similarity search
+    for “coming of age stories”, resulting in ten films in the context. Finally the
+    summarizer bot selected five films for recommendation. Note the range of films
+    suggested: some with release dates as early as 1959 to as late as 2012\. For convenience
+    I ensure the bot includes the film’s runtime, release year, streaming providers,
+    and a brief recommendation handcrafted by the bot.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(Side note: If you haven’t seen* [*The 400 Blows*](https://en.wikipedia.org/wiki/The_400_Blows)*,
+    stop whatever you are doing, and go* [*watch it immediately*](https://www.youtube.com/watch?v=PvjUhgtn_-U)*.)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Qualities that normally are seen as negatives in a large language model, such
+    as the non-deterministic nature of its responses, are now positive. Ask the model
+    the same question twice and you may get slightly different recommendations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It is important to note some limitations of the current implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is no saving of recommendations. Users likely would want to revisit old
+    recommendations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Manual updating of raw data from The Movie Database. Automating this and having
+    it update weekly would be a good idea.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bad metadata filtering by the self-querying retrieval. For example the query
+    “Ben Affleck films” could be problematic. This could mean films where Ben Affleck
+    is the **star** or films that have been **directed** by Ben Affleck. This is an
+    example where clarification of the query would be helpful.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Possible improvements to this project could be to perform a [re-ranking of documents](https://python.langchain.com/docs/integrations/retrievers/cohere-reranker)
+    after retrieval. It could also be interesting to have a chat model that you can
+    converse with in multi-turn conversations, rather then just a QA bot. One could
+    also create an [agent recommender](https://python.langchain.com/docs/integrations/tools/human_tools)
+    that prompts the user with a clarifying question if the query is not clear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have fun searching for films!
+  prefs: []
+  type: TYPE_NORMAL

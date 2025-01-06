@@ -1,0 +1,379 @@
+- en: Sparsifying Knowledge-Graph Using Target Information
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/sparsifying-knowledge-graph-using-target-information-8fb1014cbb0f?source=collection_archive---------4-----------------------#2024-05-05](https://towardsdatascience.com/sparsifying-knowledge-graph-using-target-information-8fb1014cbb0f?source=collection_archive---------4-----------------------#2024-05-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Sparsifying knowledge graphs for supervised tasks, using PMI to remove irrelevant
+    edges; with concrete example using medical data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)[![Sria
+    Louis](../Images/d65b17e9d4ace7e0222118abc70f3954.png)](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)
+    [Sria Louis](https://medium.com/@sria.louis?source=post_page---byline--8fb1014cbb0f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8fb1014cbb0f--------------------------------)
+    ·9 min read·May 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a430bc1553d17b8fb14bf3bc2602599b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: “Medical Knowledge Graph” — generated at deepai.org
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following is a simplified snippet from a research project I conducted while
+    working at Microsoft Research, under the guidance of Professor Elad Yom-Tov.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Prerequisites**: Familiarity with supervised machine learning and a basic
+    grasp of Knowledge Graphs, including their utilization in Feature Engineering.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TL;DR
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You have a Supervised ML task, predicting a target variable *y* from high-dimension
+    binary feature-space, and you want to utilise a knowledge graph where each node
+    represents one feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The problem is that the knowledge graph is dense. Specifically, there are many
+    irrelevant edges (anecdote: [Wikipedia overlink crisis](https://en.wikipedia.org/wiki/Wikipedia:Overlink_crisis)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The trick**: Assess the relevance of each edge by measuring Pointwise Mutual
+    Information (PMI) between its occurrence and the target variable. Eliminate edges
+    with low relevance. Voilà!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s move into the details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First off, in the first chapter we will explore the need of graph sparsification.
+    In Chapter 2 we’ll make it concrete using an example from the medical domain.
+    Then, in the final chapter, we’ll delve into the core topic: graph sparsification
+    using PMI. Enjoy!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First Chapter: The Need'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Graphs and specifically Knowledge Graphs (KG) are ubiquitous. The technology
+    is ripening with the advances in both Graph DB infrastructure and with the theoretical
+    ML tools (e.g. Node Embeddings).
+  prefs: []
+  type: TYPE_NORMAL
+- en: A critical challenge when working on Knowledge Graph in the real world is —
+    and in my humble opinion forever will be — [**density**](https://en.wikipedia.org/wiki/Dense_graph)**.**
+    Even algorithms with polynomial complexity might fail on dense graphs. Looking
+    into the future, if the hardware will advance - the future Knowledge Graphs will
+    increase both in number of nodes and in number of edges. [Moreover, I predict
+    and hope that in this arms race we will gradationally see hierarchical hypergraphs
+    and other monstrosities joining the game.]
+  prefs: []
+  type: TYPE_NORMAL
+- en: The **strength** of KGs is the fact that they hold complex connections in large
+    domain of knowledge, e.g. all the medical knowledge or all the known astronomical
+    objects, and therefore you can use them to enrich simpler features, for instance,
+    if your features are very sparse, e.g., very rare medical conditions, they can
+    be enriched by “neighboring” pieces of information from the graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The enormity comes with a drawback: Knowledge Graphs are often too large. In
+    addition to computational complexity, there is another essential issue here. KGs
+    cover everything in the domain and therefore most of the information is irrelevant
+    to your specific target. In other words, they have over sensitivity (aka coverage/recall)
+    — and therefore low specificity (aka precision). You might say that this is a
+    common tradeoff in ML; what’s special in graphs? The answer is that in typical
+    real-world KNs the degree distribution is heavy-tailed with huge “hubs”, i.e.,
+    nodes with extremely high-degree, namely, nodes with many edges. You might be
+    familiar with the effect of such hubs in [social-networks and physics](https://en.wikipedia.org/wiki/Six_degrees_of_separation)
+    (“six degrees of separation”) and in Graph Theory perspective (diameter of random
+    graphs) — in our context this means that a small number of such hubs drastically
+    reduces the distance between most nodes in the graph and therefore takes any signal
+    in the graph and rapidly diffuse it all over the graph, muting any subtler piece
+    of information that might be relevant to your specific objective.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To be concrete, in the next chapter, we will describe the a use-case we worked
+    on and then, in chapter 3, we will describe a method overcoming the density problem
+    for supervised tasks by removing irrelevant edges. Feel free to jump to the 3rd
+    chapter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Second Chapter: Concrete example'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s consider the following supervised task. We’ve simplified the details to
+    focus on the interesting part — the PMI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Research Hypothesis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: we can forecast potential medical conditions based on a person’s reading history
+    on medical Wikipedia. For example, if an individual has browsed articles on Headache,
+    Smoking, Coughing, and Tooth Discoloration, they may be at increased risk of a
+    particular lung disease. Once more, this is a simplified research scenario and
+    a toy hypothesis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The independent variables are given in a tabular data, in a design matrix X.
+    Each entry has binary values, 0/1.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each row represents one patient — i.e. the wipiedia reading history of one patient,
+    as binary variables — one variable for each medical wikipedia article (this is
+    similar to NLP’s bag-of-words encoding).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Each column represent a medical term from wikipedia.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'for instance, for patient *p* and for a wikipedia article *f* (eg Pneumonia),
+    *X[i, f] = 1* means that patient *p* had visited article *f*. namely, “The patient
+    read the Pneumonia article”. Clearly, patients are not checking the exact wikipedia
+    article related to their conditions, but we know from previous works that in some
+    cases they search online for symptoms that are related to the real condition.
+    And this exactly where the knowledge graph becomes handy: “the person read about
+    symptoms that are related to a neighborhood in the graph that is related to specific
+    medical condition”.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We will denote the number of rows (patients) and the number of columns (binary
+    features) — *m* and *n*, respectively.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The target (dependent variable) *y* is future existence of a medical condition,
+    e.g., severe COVID-19.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In addition, we have a knowledge graph (KG), the complete medical wikipedia,
+    where nodes are the wikipedia articles of the medical terms and edges are hyperlinks.
+    Note that this is a directed graph.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For simplicity, assume that there is every feature (column) is represented in
+    the graph as single node.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Using the Knowledge Graph to enrich features is a broad topic, so we won't go
+    into detail here. However, one method worth noting is node embedding, where binary
+    features are transformed into a continuous, lower-dimensional vector space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now we can use the medical example scenario in order to get a better intuition
+    for the **need** of sparsification:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember the hubs we mentioned above? While some hubs may hold significance
+    for our target, many consist of irrelevant high-degree nodes, such as “[List of
+    medical specialities](https://en.wikipedia.org/wiki/Medical_specialty)” or “[List
+    of medical symptoms](https://en.wikipedia.org/wiki/List_of_medical_symptoms)”,
+    such a node will amplify noise in the graph muting important information about
+    a specific rare symptom. But how can we effectively discern these hubs and identify
+    which of their edges are irrelevant and safe to remove from the graph?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Furthermore, there could be a need to utilize the same database for predicting
+    two distinct target variables, such as Female Breast Cancer and Prostate Cancer
+    in men, which exhibit different behaviors. In such cases, employing the entire
+    knowledge graph may not be advantageous, as certain edges may lack relevance to
+    our specific target label. Therefore, it might be necessary to exclude edges associated
+    with the opposite gender. But how do we systematically remove edges that are irrelevant
+    to a specific target variable?
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '3rd Chapter: The PMI Trick'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Our goal is clear: we seek to remove edges within the knowledge graph that
+    lack relevance to our target variable. While multiple mathematical definitions
+    of relevance are available, we have opted to employ Pointwise Mutual Information
+    (PMI) for its simplicity and intuitiveness.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'PMI is a fundamental tool from Information Theory, so let’s talk about it:
+    What exactly is PMI? We’ll begin by outlining its definition and then aim to develop
+    a better intuition.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: PMI has been described as “one of the most important concepts in NLP” [[see
+    6.6](https://web.stanford.edu/~jurafsky/slp3/6.pdf)]
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**PMI: Pointwise Mutual Information**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'PMI serves as a point-estimator for the well-known Mutual Information between
+    two discrete random variables. Given observed outcomes x and y for two random
+    variables *X* and *Y*, we define:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ec0b206c17dbed562b8d107b630e626.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Pointwise Mutual Information (from wikipedia)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The equalities are immediate results of Bayes’ theorem, providing us with distinct
+    perspectives and, ideally, intuition regarding PMI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If X and Y are independent, then p(x,y)=p(x)p(y). So, the first term might
+    be understood as the ratio between:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*p(x, y)* = point-estimate of the actual joint distribution with dependency,
+    and'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*p(x)p(y)* = the joint distribution, assuming independence between the two
+    variables.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Looking on the last term you might recognize that the PMI is quantifying “how
+    does the probability of x changes, given knowledge of y”, and vice versa.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s do a small exercise, to get more intuition into PMI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: assume 1% of all patients had severe covid, p(covid) = .01
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Among patients who had pneumonia in the past, 4% got severe covid. p(covid|pneumonia)
+    = .04
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: then the probability of covid given pneumonia is higher than without information
+    about pneumonia, and as a result the PMI is high. PMI(covid;pneumonia) = log(.04/.01)
+    = 2\. Very intuitive, right?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: PMI is beautiful in its simplicity, yet there’s much more to explore about its
+    features, variations, and applications. One noteworthy variant is the normalized
+    PMI, which ranges between -1 and 1\. This feature enables comparison and filtering
+    across numerous pairs of random variables. Keep this in mind — it will prove valuable
+    shortly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Back to our task
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have a large dense graph presenting links between out binary features and
+    we have a target variable. How can we sparsify the graph intelligently?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For an edge e between two features v1 and v2, we define an indicator random
+    variable x_e to be 1 if and only if both features have the value 1 (True), meaning
+    the two medical terms coincide for a patient. Now, look on the edge and the target
+    variable y. We asked the simple question: is this edge relevant for y? now we
+    can answer simply with the PMI! if PMI[x_e,y] is very close to zero, this edge
+    hold no information relevant to our target, otherwise **there is some relevant
+    information** in this edge.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, to conclude, we remove all edges with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c88fdc9a475e66ef5074002c8f6456a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Where alpha is a hyper-parameter, by tuning it you can control the sparsity
+    of the graph (trading-off with generalization-error, aka risk of over-fit).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Three Caveats — and potential improvements**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Caveat 1)** The feature space often exhibits sparsity, resulting in zero
+    values for both the numerator and denominator of the PMI, and we better not remove
+    such edges as we have no information about them whatsoever.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might ask: if we are usually not removing edges, are we really “sparsifying”
+    the graph? the answer is in the hubs. Remember those hubs? they will actually
+    usually NOT be zeros BECAUSE they are hubs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Caveat 2)** Another good question is: why define the edge-variable as “both
+    features have a value of 1”? Alternatively, we could check if either of the features
+    has a value of 1\. Thus, instead of y = x1 and x2, we could consider y = x1 or
+    x2\. This presents a valid point. These different implementations convey slightly
+    different narratives about your understanding of the domain and may be suitable
+    for different datasets. I suggest exploring various versions for your specific
+    use cases.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Caveat 3)** Even if the probabilities are not zero, in the medical domain
+    they are usually very-very small, so in order to add stability we can define conditional
+    PMI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ab3b3dc3871f8b0884ed680d7f40091b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conditional PMI
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In plain English: we calculate the PMI in a probability subspace, where third
+    event occurs.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Specifically, in the Knowledge Graph, remember that the graph is directed. We
+    will use the cPMI to check if an edge between two features e=(v1,v2) is relevant,
+    **given** that the the first feature is positive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, if v1 never occur, we claim that we don’t have enough information
+    about the edge even in order to remove it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now, when we know what’s PMI, we understand that in order to remove irrelevant
+    edges in a knowledge graph we can check the pointwise mutual information between
+    occurrences of each edge and the target variable and remove all irrelevant edges.
+    Boom! 🎤
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,288 @@
+- en: Merging tokens to accelerate LLM inference with SLERP
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/merging-tokens-to-accelerate-llm-inference-with-slerp-38a32bf7f194?source=collection_archive---------9-----------------------#2024-04-19](https://towardsdatascience.com/merging-tokens-to-accelerate-llm-inference-with-slerp-38a32bf7f194?source=collection_archive---------9-----------------------#2024-04-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can significantly accelerate LLMs next token generation by merging consecutive
+    pairs of tokens using SLERP, reducing the computing power needed to perform the
+    full prediction.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)[![Samuel
+    Chaineau](../Images/9fcc6bac98b3089dc984c4e337083f07.png)](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)
+    [Samuel Chaineau](https://medium.com/@sam.chaineau?source=post_page---byline--38a32bf7f194--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--38a32bf7f194--------------------------------)
+    ·6 min read·Apr 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1d20ac9c439c47bb8dac7cc59881664d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Martin Martz](https://unsplash.com/@martz90?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'TL;DR:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article presents a novel approach to accelerating Large Language Models
+    (LLMs) inference by merging tokens using Spherical Linear Interpolation (SLERP).
+    By reducing the sequence length while maintaining quality, this technique offers
+    significant speed-ups in LLM inference, addressing the computational challenges
+    posed by longer sequences. The method is still raw but highlights a dual world
+    for LLM with one set up for training and one for predicting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Background:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: LLMs have revolutionized natural language processing tasks by exhibiting remarkable
+    generative abilities. However, their effectiveness comes at a cost — computational
+    resources. As LLMs process longer sequences, the quadratic scaling of transformer
+    computations becomes increasingly prohibitive. Traditional methods to mitigate
+    this, such as caching and quantization, have limitations. Therefore, there is
+    a need for innovative approaches to speed up LLM inference without compromising
+    too much quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The current method to generate a token during inference is a brute force approach,
+    essentially a transposition of the training methodology. While this methodology
+    has proven effective for training, it may not be the most efficient for inference
+    tasks. Thus, there is an opportunity to develop a new inference methodology dedicated
+    specifically to generating tokens during inference, which could optimize the process
+    and further enhance the efficiency of LLMs. This highlights the importance of
+    exploring alternative techniques to address the computational challenges faced
+    by LLM inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recently, the mergekit library proposed to merge networks’ weights using the
+    SLERP methods which tends to yield better results. Inspired by this work, I decided
+    to see if could merge the tokens inside a sequence to produce a smaller sequence
+    to process while predicting the next token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1fcde1ba09eb3d7862d2b002b155125e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Vanilla generation vs merged one
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Merging Sequence with SLERP:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The proposed method involves modifying the forward pass of LLMs to merge tokens
+    using Spherical Linear Interpolation (SLERP), a technique borrowed from computer
+    graphics and animation. Unlike simple averaging techniques, SLERP preserves the
+    spherical aspects of token dimensions, offering a more nuanced interpolation.
+    The merging procedure entails several steps to efficiently condense the input
+    sequence:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sequence Length Adjustment**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Initially, the input sequence undergoes adjustments based on its length:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sequences with a length less than 3 remain unchanged.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For odd-length sequences, two null tokens are added, one at the beginning and
+    one at the end
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Even-length sequences receive an additional null token, positioned at the penultimate
+    position.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: By doing so, we ensure that the first and last token in the context are preserved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Pair Formation:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The adjusted sequence is then formatted into pairs of consecutive tokens. This
+    process prepares the data for aggregation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Aggregation with SLERP:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each pair of tokens undergoes aggregation using SLERP, effectively reducing
+    the sequence length by half (not exactly as we add and preserve some extra tokens).
+    SLERP interpolates between the two vectors representing consecutive tokens. This
+    creates a new vector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do so efficiently, I recreated all the SLERP functions in native pytorch.
+    However, the code might be under optimized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Layer Cutoff and Prompt Preservation:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The merging process can occur at different levels of the model architecture,
+    referred to as “layer cutoff.” Additionally, to preserve the integrity of prompts,
+    a portion of the sequence at the beginning and/or end can be designated to remain
+    unchanged. This is particularly useful for Instruct-based Models where the starting
+    part of the prompt should always be remembered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This innovative approach offers a nuanced solution to the computational challenges
+    associated with LLM inference, promising significant speed-ups without sacrificing
+    quality or accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6934167f27afc797fc61f04a0cba74aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Simple illustrative exemple of how to merge a sequence
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**What it means ?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Concretely, in a LLM, the forward call takes as input a sequence of token of
+    shape (batch_size, sequence length). The embedding layer creates a sequence of
+    shape (batch size, sequence length, dimension). Each attention module takes this
+    sequence as input. At a given attention layer, you can merge the tokens creating
+    a sequence of shape (batch size, k, dimension) where k is the compressed sequence
+    length. The choice of the layer where to apply this is the “layer cutoff”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next attention modules will no longer need to compute a (sequence length,
+    sequence length) attention matrix but a smaller one as k is strictly inferior
+    to the original sequence length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, the merging could occur at different level of the model architecture.
+    This parameter is referred as “layer cutoff”. Also, to ensure that a prompt is
+    not completely merged, you can define a part of the sequence at the beginning
+    and/or at the end to be kept unchanged. It is more efficient for Instruct-based
+    Models where the starting part of the prompt should be always reminded.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One downside of this methodology is that it strongly relies on the underlying
+    forward pass of the used model, requiring you to carefully rewrite the “merged”
+    process depending on the chosen model. Another downside is the necessity of recomputing
+    attention masks and possibly positional embeddings at each step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Results:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Experiments conducted on a Mistral 7B Instruct V0.2 model demonstrate promising
+    outcomes. By comparing predictions between the base model and various merged models
+    at different layer cutoffs, it was observed that merging tokens did not significantly
+    impact prediction quality. Moreover, the merged models exhibited notable speed-ups
+    in inference time, particularly at shallower layers. The technique also showcased
+    its effectiveness in handling longer sequences, making it applicable across a
+    wide range of use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31775627fd11cb17bd858d233710c1dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Accuracy between the merged inference model predicted token and the base one
+    for different layer cut and sequence lengths
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68a9ee0c7d5e691ed29b3d5bdd142300.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: How many time faster is the merged inference model vs the base one for different
+    sequence length and layer cut
+  prefs: []
+  type: TYPE_NORMAL
+- en: One downside is that I did not succeed at making the forward call the most optimized.
+    Hence, there are probably many optimizations to find by rethinking the process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I also tested a merged version of Mistral Instruct v0.2 on the AlpacaEval dataset.
+    I apply the merging at the 20th attention module. The results are really encouraging
+    as the models outperforms Falcon 7B, Gemma 7B and nous-hermes-13b. It shows that
+    merging without rethinking the positional encodings returns a model that speaks
+    more with an increase of 600 tokens generated on average. I tried to reimplement
+    the positional encoding procedure but failed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e8f72feb762d2920456495788e6525e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extract from the leaderboard
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, merging tokens with SLERP is a strong candidate solution to the
+    computational challenges associated with LLM inference. By striking a balance
+    between speed and quality, this approach is just about rewriting the forward loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using it:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'I prepared a repo with a simple notebook to play with it here : [https://github.com/samchaineau/llm_slerp_generation](https://github.com/samchaineau/llm_slerp_generation)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using a new class where the foraward call is adapted, you can easily pass the
+    LLM to a generation pipeline and use it on your dataset. So far my experiments
+    are limited to a Mistral 7B model but I would like to extend it to other architectures
+    to see whether the performances maintain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: All of the resources are in and you can reach out to me if you would like to
+    test it on another LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Conclusion:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The merging tokens with SLERP technique should be explored for accelerating
+    LLM inference. With further optimization and exploration, it holds the potential
+    to improve the efficiency and scalability of natural language processing tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you work in the AI field and are willing to bring this to the next level
+    : reach out to me !'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Github link : [https://github.com/samchaineau/llm_slerp_generation](https://github.com/samchaineau/llm_slerp_generation)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'HuggingFace profile : [https://huggingface.co/samchain](https://huggingface.co/samchain)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Works that are related and inspiring :'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '- Token Merging Stable Diffusion (paper) : [https://arxiv.org/abs/2303.17604](https://arxiv.org/abs/2303.17604)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Token Merging Stable Diffusion (library) : [https://huggingface.co/docs/diffusers/optimization/tome](https://huggingface.co/docs/diffusers/optimization/tome)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '- Token Merging NLP (paper) : [https://llm-random.github.io/posts/mixture_of_tokens/](https://llm-random.github.io/posts/mixture_of_tokens/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,474 @@
+- en: How to Implement a GenAI Agent using Autogen or LangGraph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01](https://towardsdatascience.com/how-to-implement-a-genai-agent-using-autogen-or-langgraph-929135afd34d?source=collection_archive---------1-----------------------#2024-08-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Comparing Autogen and LangGraph from a developer standpoint
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[![Lak
+    Lakshmanan](../Images/9faaaf72d600f592cbaf3e9089cbb913.png)](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)
+    [Lak Lakshmanan](https://lakshmanok.medium.com/?source=post_page---byline--929135afd34d--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--929135afd34d--------------------------------)
+    ·10 min read·Aug 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: GenAI models are good at a handful of tasks such as text summarization, question
+    answering, and code generation. If you have a business process which can be broken
+    down into a set of steps, and one or more those steps involves one of these GenAI
+    superpowers, then you will be able to partially automate your business process
+    using GenAI. We call the software application that automates such a step an *agent*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While agents use LLMs just to process text and generate responses, this basic
+    capability can provide quite advanced behavior such as the ability to invoke backend
+    services autonomously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Current weather at a location
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s say that you want to build an agent that is able to answer questions such
+    as “Is it raining in Chicago?”. You cannot answer a question like this using just
+    an LLM because it is not a task that can be performed by memorizing patterns from
+    large volumes of text. Instead, to answer this question, you’ll need to reach
+    out to real-time sources of weather information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There is an open and [free API](https://weather-gov.github.io/api/general-faqs)
+    from the US National Weather Service (NWS) that provides the short-term weather
+    forecast for a location. However, using this API to answer a question like “Is
+    it raining in Chicago?” requires several additional steps (see Figure 1):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0f71eccdecb13d6971c6c65ff33327e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1\. Agentic application to answer questions about current weather built
+    around conversational agents
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will need to set up an agentic framework to coordinate the rest of these
+    steps.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: What location is the user interested in? The answer in our example sentence
+    is “Chicago”. It is not as simple as just extracting the last word of the sentence
+    — if the user were to ask “Is Orca Island hot today?”, the location of interest
+    would be “Orca Island”. Because extracting the location from a question requires
+    being able to understand natural language, you can prompt an LLM to identify the
+    location the user is interested in.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The NWS API operates on latitudes and longitudes. If you want the weather in
+    Chicago, you’ll have to convert the string “Chicago” into a point latitude and
+    longitude and then invoke the API. This is called *geocoding*. Google Maps has
+    a Geocoder API that, given a place name such as “Chicago”, will respond with the
+    latitude and longitude. Tell the agent to use this tool to get the coordinates
+    of the location.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Send the location coordinates to the NWS weather API. You’ll get back a JSON
+    object containing weather data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Tell the LLM to extract the corresponding weather forecast (for example, if
+    the question is about now, tonight, or next Monday) and add it to the context
+    of the question.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Based on this enriched context, the agent is able to finally answer the user’s
+    question.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Let’s go through these steps one by one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 1: Setting up Autogen'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, we will use [Autogen](https://microsoft.github.io/autogen/), an open-source
+    agentic framework created by Microsoft. To follow along, clone [my Git repository](https://github.com/lakshmanok/lakblogs/),
+    get API keys following the directions provided [by Google Cloud](https://cloud.google.com/api-keys/docs/overview)
+    and [OpenAI](https://openai.com/index/openai-api/). Switch to the genai_agents
+    folder, and update the [keys.env](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/keys.env)
+    file with your keys.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, install the required Python modules using pip:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will install the autogen module and client libraries for Google Maps and
+    OpenAI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Follow the discussion below by looking at [ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Autogen treats agentic tasks as a conversation between agents. So, the first
+    step in Autogen is to create the agents that will perform the individual steps.
+    One will be the proxy for the end-user. It will initiate chats with the AI agent
+    that we will refer to as the Assistant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are three things to note about the user proxy above:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the Assistant responds with code, the user proxy is capable of executing
+    that code in a sandbox.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The user proxy terminates the conversation if the Assistant response contains
+    the word TERMINATE. This is how the LLM tells us that the user question has been
+    fully answered. Making the LLM do this is part of the hidden system prompt that
+    Autogen sends to the LLM.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The user proxy never asks the end-user any follow-up questions. If there were
+    follow-ups, we’d specify the condition under which the human is asked for more
+    input.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Even though Autogen is from Microsoft, it is not limited to Azure OpenAI. The
+    AI assistant can use OpenAI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'or Gemini:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Anthropic and Ollama are supported as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Supply the appropriate LLM configuration to create the Assistant:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before we wire the rest of the agentic framework, let’s ask the Assistant to
+    answer our sample query.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Assistant responds with this code to reach out an existing Google web service
+    and scrape the response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]python'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'filename: weather.py'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: import requests
+  prefs: []
+  type: TYPE_NORMAL
+- en: from bs4 import BeautifulSoup
+  prefs: []
+  type: TYPE_NORMAL
+- en: url = "https://www.google.com/search?q=weather+chicago"
+  prefs: []
+  type: TYPE_NORMAL
+- en: response = requests.get(url)
+  prefs: []
+  type: TYPE_NORMAL
+- en: soup = BeautifulSoup(response.text, 'html.parser')
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'weather_info = soup.find(''div'', {''id'': ''wob_tm''})'
+  prefs: []
+  type: TYPE_NORMAL
+- en: print(weather_info.text)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gets at the power of an agentic framework when powered by a frontier foundational
+    model — the Assistant has autonomously figured out a web service that provides
+    the desired functionality and is using its code generation and execution capability
+    to provide something akin to the desired functionality! However, it’s not quite
+    what we wanted — we asked whether it was raining, and we got back the full website
+    instead of the desired answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Secondly, the autonomous capability doesn’t really meet our pedagogical needs.
+    We are using this example as illustrative of enterprise use cases, and it is unlikely
+    that the LLM will know about your internal APIs and tools to be able to use them
+    autonomously. So, let’s proceed to build out the framework shown in Figure 1 to
+    invoke the specific APIs we want to use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Extracting the location'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Because extracting the location from the question is just text processing,
+    you can simply prompt the LLM. Let’s do this with a single-shot example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, when we initiate the chat by asking whether it is raining in Chicago:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we get back:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, step 2 of Figure 1 is complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Geocoding the location'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Step 3 is to get the latitude and longitude coordinates of the location that
+    the user is interested in. Write a Python function that will called the Google
+    Maps API and extract the required coordinates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, register this function so that the Assistant can call it in its generated
+    code, and the user proxy can execute it in its sandbox:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that, at the time of writing, function calling is supported by Autogen
+    only for GPT-4 models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now expand the example in the prompt to include the geocoding step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, when we initiate the chat by asking whether it is raining in Chicago:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'we get back:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Steps 4–6: Obtaining the final answer'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have the latitude and longitude coordinates, we are ready to invoke
+    the NWS API to get the weather data. Step 4, to get the weather data, is similar
+    to geocoding, except that we are invoking a different API and extracting a different
+    object from the web service response. Please look at the code on GitHub to see
+    the full details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The upshot is that the system prompt expands to encompass all the steps in
+    the agentic application:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Based on this prompt, the response to the question about Chicago weather extracts
+    the right information and answers the question correctly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this example, we allowed Autogen to select the next agent in the conversation
+    autonomously. We can also specify a different [next speaker selection strategy](https://microsoft.github.io/autogen/docs/tutorial/conversation-patterns/#group-chat):
+    in particular, setting this to be “manual” inserts a human in the loop, and allows
+    the human to select the next agent in the workflow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Agentic workflow in LangGraph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Where Autogen treats agentic workflows as conversations, [LangGraph](https://langchain-ai.github.io/langgraph/)
+    is an open source framework that allows you to build agents by treating a workflow
+    as a graph. This is inspired by the long history of representing data processing
+    pipelines as directed acyclic graphs (DAGs).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the graph paradigm, our weather agent would look as shown in Figure 2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6f107ffe2c1cf3165b5cc34df992874d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2\. Agentic application to answer questions about current weather built
+    around language model graphs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are a few key differences between Figures 1 (Autogen) and 2 (LangGraph):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In Autogen, each of the agents is a conversational agent. Workflows are treated
+    as conversations between agents that talk to each other. Agents jump into the
+    conversation when they believe it is “their turn”. In LangGraph, workflows are
+    treated as a graph whose nodes the workflow cycles through based on rules that
+    we specify.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In Autogen, the AI assistant is not capable of executing code; instead the Assistant
+    generates code, and it is the user proxy that executes the code. In LangGraph,
+    there is a special ToolsNode that consists of capabilities made available to the
+    Assistant.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can follow along this section by referring to the file [lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)
+    in my GitHub repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We set up LangGraph by creating the workflow graph. Our graph consists of two
+    nodes: the Assistant Node and a ToolsNode. Communication within the workflow happens
+    via a shared state.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The tools are Python functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The Assistant calls the language model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'LangGraph uses langchain, and so changing the model provider is straightforward.
+    To use Gemini, you can create the model using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we define the graph’s edges:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first and last lines above are self-explanatory: the workflow starts with
+    a question being sent to the Assistant. Anytime a tool is called, the next node
+    in the workflow is the Assistant which will use the result of the tool. The middle
+    line sets up a conditional edge in the workflow, since the next node after the
+    Assistant is not fixed. Instead, the Assistant calls a tool or ends the workflow
+    based on the contents of the last message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once the workflow has been created, compile the graph and then run it by passing
+    in questions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The system message and question are exactly what we employed in Autogen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The result is that the agent framework uses the steps to come up with an answer
+    to our question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Choosing between Autogen and LangGraph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Between Autogen and LangGraph, which one should you choose? A few considerations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7daad164e11286b6e415c82f1e5c271b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Of course, the level of Autogen support for non-OpenAI models and other tooling
+    could improve by the time you are reading this. LangGraph could add autonomous
+    capabilities, and Autogen could provide you more fine-grained control. The agent
+    space is moving fast!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resources
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'ag_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/ag_weather_agent.py)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'lg_weather_agent.py: [https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py](https://github.com/lakshmanok/lakblogs/blob/main/genai_agents/lg_weather_agent.py)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '*This article is an excerpt from a forthcoming O’Reilly book “Visualizing Generative
+    AI” that I’m writing with* [*Priyanka Vergadia*](https://www.linkedin.com/in/pvergadia/)*.
+    All diagrams in this post were created by the author.*'
+  prefs: []
+  type: TYPE_NORMAL

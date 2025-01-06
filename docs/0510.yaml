@@ -1,0 +1,556 @@
+- en: A Complete Guide to Write your own Transformers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-complete-guide-to-write-your-own-transformers-29e23f371ddd?source=collection_archive---------1-----------------------#2024-02-24](https://towardsdatascience.com/a-complete-guide-to-write-your-own-transformers-29e23f371ddd?source=collection_archive---------1-----------------------#2024-02-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An end-to-end implementation of a Pytorch Transformer, in which we will cover
+    key concepts such as self-attention, encoders, decoders, and much more.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)[![Benjamin
+    Etienne](../Images/cad8bc2d4b900575e76b7cf9debc9eea.png)](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------)
+    [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--29e23f371ddd--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--29e23f371ddd--------------------------------)
+    ·18 min read·Feb 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd0bb4ec869d59ea716cca7fc1928d2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Susan Holt Simpson](https://unsplash.com/@shs521?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Writing our own
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When I decided to dig deeper into Transformer architectures, I often felt frustrated
+    when reading or watching tutorials online as I felt they always missed something
+    :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Official tutorials from Tensorflow or Pytorch used their own APIs, thus staying
+    high-level and forcing me to have to go in their codebase to see what was under
+    the hood. Very time-consuming and not always easy to read 1000s of lines of code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other tutorials with custom code I found (links at the end of the article) often
+    oversimplified use cases and didn’t tackle concepts such as masking of variable-length
+    sequence batch handling.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I therefore decided to write my own Transformer to make sure I understood the
+    concepts and be able to use it with any dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: During this article, we will therefore follow a methodical approach in which
+    we will implement a transformer layer by layer and block by block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are obviously a lot of different implementations as well as high-level
+    APIs from Pytorch or Tensorflow already available off the shelf, with — I am sure
+    — better performance than the model we will build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***“Ok, but why not use the TF/Pytorch implementations then” ?***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The purpose of this article is educational, and I have no pretention in beating
+    Pytorch or Tensorflow implementations. I do believe that the theory and the code
+    behind transformers is not straightforward, that is why I hope that going through
+    this step-by-step tutorial will allow you to have a better grasp over these concepts
+    and feel more comfortable when building your own code later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Another reasons to build your own transformer from scratch is that it will
+    allow you to fully understand how to use the above APIs. If we look at the Pytorch
+    implementation of the `forward()` method of the Transformer class, you will see
+    a lot of obscure keywords like :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/00baf4c1e185c524d03fd1440baf4db9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'source : [Pytorch docs](https://pytorch.org/docs/stable/generated/torch.nn.Transformer.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you are already familiar with these keywords, then you can happily skip this
+    article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Otherwise, this article will walk you through each of these keywords with the
+    underlying concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A very short introduction to Transformers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you already heard about ChatGPT or Gemini, then you already met a transformer
+    before. Actually, the “T” of ChatGPT stands for Transformer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The architecture was first coined in 2017 by Google researchers in the “Attention
+    is All you need” paper. It is quite revolutionary as previous models used to do
+    sequence-to-sequence learning (machine translation, speech-to-text, etc…) relied
+    on RNNs which were computationnally expensive in the sense they had to process
+    sequences step by step, whereas Transformers only need to look once at the whole
+    sequence, moving the time complexity from O(n) to O(1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a4b8ca14307d51a11f291b0766a0cc4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[(Vaswani et al, 2017)](https://arxiv.org/abs/1706.03762)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Applications of transformers are quite large in the domain of NLP, and include
+    language translation, question answering, document summarization, text generation,
+    etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The overall architecture of a transformer is as below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/481fea3d28cd50a0773fafd6a1ef1366.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[source](https://www.tensorflow.org/text/tutorials/transformer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-head attention
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The first block we will implement is actually the most important part of a Transformer,
+    and is called the Multi-head Attention. Let’s see where it sits in the overall
+    architecture
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/99b4662ef876d9ab107782fdfebad4b3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[source](https://www.tensorflow.org/text/tutorials/transformer)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attention is a mechanism which is actually not specific to transformers, and
+    which was already used in RNN sequence-to-sequence models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c24820a0c6d6b508bdf72cfb69d2469f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Attention in a transformer (source: Tensorflow [documentation](https://www.tensorflow.org/text/tutorials/transformer))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6b88cb8f3f37ee9819f5aed4b9578e0d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Attention in a transformer (source: Tensorflow [documentation](https://www.tensorflow.org/text/tutorials/transformer))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We need to explain a few concepts here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1) Queries, Keys and Values.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The ***query***is the information you are trying to match,
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The ***key***and ***values***are the stored information.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Think of that as using a dictionary : whenever using a Python dictionary, if
+    your query doesn’t match the dictionary keys, you won’t be returned anything.
+    But what if we want our dictionary to return a blend of information which are
+    quite close ? Like if we had :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is basically what attention is about : looking at different parts of your
+    data, and blend them to obtain a synthesis as an answer to your query.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The relevant part of the code is this one, where we compute the attention weights
+    between the query and the keys
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And this one, where we apply the normalized weights to the values :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 2) Attention masking and padding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When attending to parts of a sequential input, we do not want to include useless
+    or forbidden information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Useless information is for example padding: padding symbols, used to align
+    all sequences in a batch to the same sequence size, should be ignored by our model.
+    We will come back to that in the last section'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forbidden information is a bit more complex. When being trained, a model learns
+    to encode the input sequence, and align targets to the inputs. However, as the
+    inference process involves looking at previously emitted tokens to predict the
+    next one (think of text generation in ChatGPT), we need to apply the same rules
+    during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is why we apply a *causal mask* to ensure that the targets, at each time
+    step, can only see information from the past. Here is the corresponding section
+    where the mask is applied (computing the mask is covered at the end)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Positional Encoding
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'It corresponds to the following part of the Transformer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4c54461de6e757740b7df62624b38aab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: When receiving and treating an input, a transformer has no sense of order as
+    it looks at the sequence as a whole, in opposition to what RNNs do. We therefore
+    need to add a hint of temporal order so that the transformer can learn dependencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The specific details of how positional encoding works is out of scope for this
+    article, but feel free to read the original paper to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Encoders
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We are getting close to having a full encoder working ! The encoder is the left
+    part of the Transformer
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8dea9506d84ec2bd26bf1791cd078aa8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We will add a small part to our code, which is the Feed Forward part :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Putting the pieces together, we get an Encoder module !
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As shown in the diagram, the Encoder actually contains N Encoder blocks or
+    layers, as well as an Embedding layer for our inputs. Let’s therefore create an
+    Encoder by adding the Embedding, the Positional Encoding and the Encoder blocks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Decoders
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The decoder part is the part on the left and requires a bit more crafting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e186299bbdb37043d1147a94c8bdde42.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'There is something called *Masked Multi-Head Attention.* Remember what we said
+    before about *causal mask* ? Well this happens here. We will use the attention_mask
+    parameter of our Multi-head attention module to represent this (more details about
+    how we compute the mask at the end) :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The second attention is called *cross-attention*. It will uses the decoder’s
+    query to match with the encoder’s key & values ! Beware : they can have different
+    lengths during training, so it is usually a good practice to define clearly the
+    expected shapes of inputs as follows :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And here is the part where we use the encoder’s output, called *memory*, with
+    our decoder input :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Putting the pieces together, we end up with this for the Decoder :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Padding & Masking
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Remember the Multi-head attention section where we mentionned excluding certain
+    parts of the inputs when doing attention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'During training, we consider batches of inputs and targets, wherein each instance
+    may have a variable length. Consider the following example where we batch 4 words
+    : banana, watermelon, pear, blueberry. In order to process them as a single batch,
+    we need to align all words to the length of the longest word (watermelon). We
+    will therefore add an extra token, PAD, to each word so they all end up with the
+    same length as watermelon.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the below picture, the upper table represents the raw data, the lower table
+    the encoded version:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/13b635dfa9a7c67680987264e66197b9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In our case, we want to exclude padding indices from the attention weights
+    being calculated. We can therefore compute a mask as follows, both for source
+    and target data :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'What about causal masks now ? Well if we want, at each time step, that the
+    model can attend only steps in the past, this means that for each time step T,
+    the model can only attend to each step t for t in 1…T. It is a double for loop,
+    we can therefore use a matrix to compute that :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/887c940f4c6dafa57ca2f5a0d50ce1f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Case study : a Word-Reverse Transformer'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s now build our Transformer by bringing parts together !
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our use case, we will use a very simple dataset to showcase how Transformers
+    actually learn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***“But why use a Transformer to reverse words ? I already know how to do that
+    in Python with word[::-1] !”***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The objective here is to see whether the Transformer attention mechanism works.
+    What we expect is to see attention weights to move from right to left when given
+    an input sequence. If so, this means our Transformer has learned a very simple
+    grammar, which is just reading from right to left, and could generalize to more
+    complex grammars when doing real-life language translation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s first begin with our custom Transformer class :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Performing Inference with Greedy Decoding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We need to add a method which will act as the famous `model.predict` of scikit.learn.
+    The objective is to ask the model to dynamically output predictions given an input.
+    During inference, there is not target : the model starts by outputting a token
+    by attending to the output, and uses its own prediction to continue emitting tokens.
+    This is why those models are often called auto-regressive models, as they use
+    past predictions to predict to next one.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The problem with greedy decoding is that it considers the token with the highest
+    probability at each step. This can lead to very bad predictions if the first tokens
+    are completely wrong. There are other decoding methods, such as Beam search, which
+    consider a shortlist of candidate sequences (think of keeping top-k tokens at
+    each time step instead of the argmax) and return the sequence with the highest
+    total probability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For now, let’s implement greedy decoding and add it to our Transformer model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Creating toy data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We define a small dataset which inverts words, meaning that “helloworld” will
+    return “dlrowolleh”:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We will now define training and evaluation steps :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And train the model for a couple of epochs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/9f7afec6c69db6a3ed76a02e7ce64609.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Visualize attention
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We define a little function to access the weights of the attention heads :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/58dc28e4552c6a895877083d7b02629a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image from author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see a nice right-to-left pattern, when reading weights from the top.
+    Vertical parts at the bottom of the y-axis may surely represent masked weights
+    due to padding mask
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing our model !
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To test our model with new data, we will define a little `Translator` class
+    to help us with the decoding :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should be able to see the following :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a1a3a1b926b437cfc76477fd3c99811.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'And if we print the attention head we will observe the following :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/8481c6a87c9210c958afdf396844f629.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image from author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can clearly see that the model attends from right to left when inverting
+    our sentence “reversethis” ! (The step 0 actually receives the beginning of sentence
+    token).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: That’s it, you are now able to write Transformer and use it with larger datasets
+    to perform machine translation of create you own BERT for example !
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I wanted this tutorial to show you the caveats when writing a Transformer :
+    padding and masking are maybe the parts requiring the most attention (pun unintended)
+    as they will define the good performance of the model during inference.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the following articles, we will look at how to create your own BERT model
+    and how to use Equinox, a highly performant library on top of JAX.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stay tuned !
+  prefs: []
+  type: TYPE_NORMAL
+- en: Useful links
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: (+) [“The Annotated Transformer”](https://nlp.seas.harvard.edu/2018/04/03/attention.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+) “[Transformers from scratch](https://peterbloem.nl/blog/transformers)”
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+) [“Neural machine translation with a Transformer and Keras”](https://www.tensorflow.org/text/tutorials/transformer)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+) [“The Illustrated Transformer”](https://jalammar.github.io/illustrated-transformer/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+) [University of Amsterdam Deep Learning Tutorial](https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial6/Transformers_and_MHAttention.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (+) [Pytorch tutorial on Transformers](https://pytorch.org/tutorials/beginner/translation_transformer.html)
+  prefs: []
+  type: TYPE_NORMAL

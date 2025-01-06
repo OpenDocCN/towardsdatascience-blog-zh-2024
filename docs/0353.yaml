@@ -1,0 +1,306 @@
+- en: Solving Differential Equations With Neural Networks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/solving-differential-equations-with-neural-networks-4c6aa7b31c51?source=collection_archive---------2-----------------------#2024-02-06](https://towardsdatascience.com/solving-differential-equations-with-neural-networks-4c6aa7b31c51?source=collection_archive---------2-----------------------#2024-02-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How Neural Networks are strong tools for solving differential equations without
+    the use of training data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)[![Rodrigo
+    Silva](../Images/d260f05ed9887c5072e0590db1481be2.png)](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------)
+    [Rodrigo Silva](https://medium.com/@rodrigopesilva?source=post_page---byline--4c6aa7b31c51--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--4c6aa7b31c51--------------------------------)
+    ·8 min read·Feb 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8dd6dcc5577d527b7f03e38984b6ec26.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Linus Mimietz](https://unsplash.com/@linusmimietz?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/water-drops-macro-photography-XSQHuGGRO3g?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Differential equations are one of the protagonists in physical sciences, with
+    vast applications in engineering, biology, economy, and even social sciences.
+    Roughly speaking, they tell us how a quantity varies in time (or some other parameter,
+    but usually we are interested in time variations). We can understand how a population,
+    or a stock price, or even how the opinion of some society towards certain themes
+    changes over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Typically, the methods used to solve DEs are not analytical (i.e. there is
+    no "closed formula" for the solution) and we have to resource to numerical methods.
+    However, numerical methods can be expensive from a computational standpoint, and
+    worse than that: the accumulated error can be significantly large.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This article will showcase how a Neural Network can be a valuable ally to solve
+    a differential equation, and how we can borrow concepts from Physics-Informed
+    Neural Networks to tackle the question: can we use a machine learning approach
+    to solve a DE?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A pinch of Physics-Informed Neural Networks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section, I will talk about Physics-Informed Neural Networks very briefly.
+    I suppose you know the "neural network" part, but what makes them be informed
+    by physics? Well, they are not exactly informed by physics, but rather by a (differential)
+    equation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Usually, neural networks are trained to find patterns and figure out what''s
+    going on with a set of training data. However, when you train a neural network
+    to obey the behavior of your training data and hopefully fit unseen data, your
+    model is highly dependent on the data itself, and not on the underlying nature
+    of your system. It sounds almost like a philosophical matter, but it is more practical
+    than that: if your data comes from measurements of ocean currents, these currents
+    have to obey the physics equations that describe ocean currents. Notice, however,
+    that your neural network is completely agnostic about these equations and is only
+    trying to fit data points.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is where physics informed comes into play. If, besides learning how to
+    fit your data, your model also learns how to fit the equations that govern that
+    system, the predictions of your neural network will be much more precise and will
+    generalize much better, just citing some advantages of physics-informed models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the governing equations of your system don't have to involve physics
+    at all, the "physics-informed" thing is just nomenclature (and the technique is
+    most used by physicists anyway). If your system is the traffic in a city and you
+    happen to have a good mathematical model that you want your neural network's predictions
+    to obey, then physics-informed neural networks are a good fit for you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we inform these models?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Hopefully, I've convinced you that it is worth the trouble to make the model
+    aware of the underlying equations that govern our system. However, how can we
+    do this? There are several approaches to this, but the main one is to adapt the
+    loss function to have a term that accounts for the governing equations, aside
+    from the usual data-related part. That is, the loss function *L* will be composed
+    of the sum
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dcc1113601f71c77b0fa9933bacd9824.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here, the data loss is the usual one: a mean squared difference, or some other
+    suited form of loss function; but the equation part is the charming one. Imagine
+    that your system is governed by the following differential equation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47f34c0f8617929070a5eca85e17a597.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'How can we fit this into the loss function? Well, since our task when training
+    a neural network is to minimize the loss function, what we want is to minimize
+    the following expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6808838b818b5eea8947e358a9851645.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So our equation-related loss function turns out to be
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7c629affee0d0c244f4cac4841b471ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: that is, it is the mean difference squared of our DE. If we manage to minimize
+    this (a.k.a. make this term as close to zero as possible) we automatically satisfy
+    the system's governing equation. Pretty clever, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, the extra term *L_IC* in the loss function needs to be addressed: it accounts
+    for the initial conditions of the system. If a system''s initial conditions are
+    not provided, there are infinitely many solutions for a differential equation.
+    For instance, a ball thrown from the ground level has its trajectory governed
+    by the same differential equation as a ball thrown from the 10th floor; however,
+    we know for sure that the paths made by these balls will not be the same. What
+    changes here are the initial conditions of the system. How does our model know
+    which initial conditions we are talking about? It is natural at this point that
+    we enforce it using a loss function term! For our DE, let''s impose that when
+    *t = 0*, *y = 1*. Hence, we want to minimize an initial condition loss function
+    that reads:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5a6c9d547fb8fbe2346528fa9fad2675.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If we minimize this term, then we automatically satisfy the initial conditions
+    of our system. Now, what is left to be understood is how to use this to solve
+    a differential equation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Solving a differential equation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If a neural network can be trained either with the data-related term of the
+    loss function (this is what is usually done in classical architectures), and can
+    also be trained with both the data and the equation-related term (this is physics-informed
+    neural networks I just mentioned), it must be true that it can be trained to minimize
+    *only* the equation-related term. This is exactly what we are going to do! The
+    only loss function used here will be the *L_equation*. Hopefully, this diagram
+    below illustrates what I''ve just said: today we are aiming for the right-bottom
+    type of model, our DE solver NN.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b5397415a3249d038332a3d4300f1e2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: diagram showing the kinds of neural networks with respect to their
+    loss functions. In this article, we are aiming for the right-bottom one. Image
+    by author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code implementation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To showcase the theoretical learnings we've just got, I will implement the proposed
+    solution in Python code, using the PyTorch library for machine learning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first thing to do is to create a neural network architecture:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This one is just a simple MLP with LeakyReLU activation functions. Then, I
+    will define the loss functions to calculate them later during the training loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now, we shall create a time array that will be used as train data, and instantiate
+    the model, and also choose an optimization algorithm:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, let''s start our training loop:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice the use of `torch.autograd.grad` function to automatically differentiate
+    the output *y_pred* with respect to the input *t* to compute the loss function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After training, we can see that the loss function rapidly converges. Fig. 2
+    shows the loss function plotted against the epoch number, with an inset showing
+    the region where the loss function has its fastest drop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/84b3cb68272023de4d8a4d0c14124f5b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Loss function by epochs. On the inset, we can see the region of most
+    rapid convergence. Image by author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: You probably have noticed that this neural network is not a common one. It has
+    no train data (our train data was a hand-crafted vector of timestamps, which is
+    simply the time domain that we wanted to investigate), so all information it gets
+    from the system comes in the form of a loss function. Its only purpose is to solve
+    a differential equation within the time domain it was crafted to solve. Hence,
+    to test it, it's only fair that we use the time domain it was trained on. Fig.
+    3 shows a comparison between the NN prediction and the theoretical answer (that
+    is, the analytical solution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d6fa652093b89341224469a1ca0dfa2d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3: Neural network prediction and the analytical solution prediction
+    of the differential equation shown. Image by author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can see a pretty good agreement between the two, which is very good for the
+    neural network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One caveat of this approach is that it does not generalize well for future times.
+    Fig. 4 shows what happens if we slide our time data points five steps ahead, and
+    the result is simply mayhem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47df1064835a3b04232af56c64966f12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4: Neural network and analytical solution for unseen data points. Image
+    by author.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hence, the lesson here is that this approach is made to be a numerical solver
+    for differential equations within a time domain, and it should not be used as
+    a regular neural network to make predictions with unseen out-of-train-domain data
+    and expect it to generalize well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'After all, one remaining question is:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Why bother to train a neural network that does not generalize well to unseen
+    data, and on top of that is obviously worse than the analytical solution, since
+    it has an intrinsic statistical error?*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: First, the example provided here was an example of a differential equation whose
+    analytical solution is known. For unknown solutions, numerical methods must be
+    used nevertheless. With that being said, numerical methods for differential equation
+    solving usually accumulate error. That means if you try to solve the equation
+    for many time steps, the solution will lose its accuracy along the way. The neural
+    network solver, on the other hand, learns how to solve the DE for all data points
+    at each of its training epochs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another reason is that neural networks are good interpolators, so if you want
+    to know the value of the function in unseen data (but this "unseen data" has to
+    lie within the time interval you trained) the neural network will promptly give
+    you a value that classic numeric methods will not be able to promptly give.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Marios Mattheakis et al., [Hamiltonian neural networks for solving equations
+    of motion](https://arxiv.org/abs/2001.11107), *arXiv preprint arXiv:2001.11107v5*,
+    2022.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Mario Dagrada, [Introduction to Physics-informed Neural Networks](/solving-differential-equations-with-neural-networks-afdcf7b8bcc4),
+    2022.'
+  prefs: []
+  type: TYPE_NORMAL

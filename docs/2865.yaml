@@ -1,0 +1,424 @@
+- en: 'Introducing ft-Q: Improving Vector Compression with Feature-Level Quantization'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/introducing-ft-q-improving-vector-compression-with-feature-level-quantization-3c18470ed2ee?source=collection_archive---------6-----------------------#2024-11-26](https://towardsdatascience.com/introducing-ft-q-improving-vector-compression-with-feature-level-quantization-3c18470ed2ee?source=collection_archive---------6-----------------------#2024-11-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Quantization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Pushing quantization to its limits by performing it at the feature level with
+    ft-Quantization (ft-Q)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)[![Michelangiolo
+    Mazzeschi](../Images/9211748ac638d2ed07679ac73ea17296.png)](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)
+    [Michelangiolo Mazzeschi](https://medium.com/@ardito.bryan?source=post_page---byline--3c18470ed2ee--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3c18470ed2ee--------------------------------)
+    ·10 min read·Nov 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '****To understand this article, knowledge of* ***embeddings*** *and* ***basic
+    quantization*** *is required. The implementation of this algorithm has been released
+    on* [*GitHub*](https://github.com/atlantis-nova/ft-Q) *and is fully open-source.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***UPDATE 24–20–12:*** *it has come to my attention that a similar approach
+    already exists and is available in the sentence-transformers library under the
+    parameters of* [*calibration embeddings*](https://sbert.net/docs/package_reference/sentence_transformer/quantization.html)
+    *(please cite the correct authors). However, when applied to binary quantization
+    it is still wrong, as the* ***median*** *should be utilized to split the distribution
+    in two perfect halves*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since the dawn of LLMs, quantization has become one of the most popular memory-saving
+    techniques for production-ready applications. Not long after, it has been popularized
+    across vector databases, which have started using the same technology for compressing
+    not only models but also vectors for retrieval purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will showcase the limitations of the current quantization
+    algorithms and propose a **new quantization approach (ft-Q)** to address them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Quantization and how does it work?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Quantization is a **memory-saving algorithm** that lets us store numbers (both
+    in-memory and in-disk) using a lower amount of bits. By default, when we store
+    any number in memory, we use float32: this means that this number is stored using
+    a combination of 32-bits (binary elements).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, the integer 40 is stored as follows in a 32-bit object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3de0fab2d22fc79957fb8000d8d713e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: storing the number 40 in a 32-bit object, **image by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, we could decide to store the same number using fewer bits (cutting
+    by half the memory usage), with a 16-bit object:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bd0c31063855a84aa94e254701938943.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: storing the number 40 in a 16-bit object, **image by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: By quantization, we mean to store data using a lower number of bits (ex. 32
+    -> 16, or 32 -> 4), this is also known as casting. If we were to store 1GB of
+    numbers (by default stored as 32-bit objects), if we decided to store them using
+    16-bit objects (hence, applying a quantization), the size of our data would be
+    halved, resulting in 0.5GB.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Is there a catch to quantization?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Saving this amount of storage looks incredible (as you understood, we could
+    keep cutting until we reach the minimum amount of bits: 1-bit, also known as binary
+    quantization. Our database size will be reduced by 32 times, **from 1GB to 31.25MB!**),
+    but as you might have already understood, there is a catch.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Any number can be stored up to the limits allowed by all the possible combinations
+    of bits. With a 32-bit quantization, you can store a maximum of 2³² numbers. There
+    are so many possible combinations that we decided to include decimals when using
+    32-bits. For example, if we were to add a decimal to our initial number and store
+    40.12 in 32-bits, it would be using this combination of 1 and 0:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have understood that with a 32-bit storage (given its large combination of
+    possible values) we can pretty much encode each number, including its decimal
+    points (to clarify, if you are new to quantization, the real number and decimal
+    are not separated, 40.12 is converted as a whole into a combination of 32 binary
+    numbers).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we keep diminishing the number of bits, all the possible combinations diminish
+    exponentially. For example, 4-bit storage has a limit of 2⁴ combinations: we can
+    only store 16 numbers (this does not leave much room to store decimals). With
+    1-bit storage, we can only store a single number, either a 1 or a 0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To put this into context, storing our initials 32-bit numbers into binary code
+    would force us to convert all our numbers, such as 40.12 into either 0 or 1\.
+    In this scenario, this compression does not look very good.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to make the best out of Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have seen how quantization results in an information loss. So, how can we
+    make use of it, after all? When you look at the quantization of a single number
+    (40.12 converted into 1), it seems there is no value that can derive from such
+    an extreme level of quantization, there is simply too much loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, when we apply this technique to a set of data such as vectors, the
+    information loss is not as drastic as when applied to a single number. Vector
+    search is a perfect example of where to apply quantization in a useful manner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When we use an encoder, such as **all-MiniLM-L6-v2**, we store each sample
+    (which was originally in the form of raw text) as a vector: a sequence of 384
+    numbers. The storage of millions of similar sequences, as you might have understood,
+    is prohibitive, and we can use quantization to substantially diminish the size
+    of the original vectors by a huge margin.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Perhaps, quantizing our vectors from 32-bit to 16-bit is not this big of a loss.
+    But how about 4-bit or even binary quantization? Because our sets are relatively
+    large (384 numbers each), this considerable complexity lets us reach a higher
+    level of compression without resulting in excessive retrieval loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4-bit quantization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The way we execute quantization is by looking at the data distribution of our
+    flattened vector and choosing to map an equivalent interval with a lower number
+    of bits. My favorite example is 4-bit quantization. With this degree of complexity,
+    we can store 2⁴ = 16 numbers. But, as explained, all the numbers in our vectors
+    are complex, each with several decimal points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: What we can do is map each of our numbers in the distribution into an interval
+    that spans between [-8, 7] (16 possible numbers). To define the extreme of the
+    interval, we can use the minimum and maximum values of the distribution we are
+    quantizing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/20c08512fbff9dde9fecc9fdfd93b941.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '4-bit quantization: the grey area is an interval of integers between [-8, 7],
+    don’t confuse it with bits. Any number of this interval will be later converted
+    into a 4-bit object, **image by Author**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, the minimum/maximum of the distribution is [-0.2, 0.2]. This means
+    that -0.2 will be converted to -8, and 0.2 to 7\. Each number in the distribution
+    will have a quantized equivalent in the interval (ex. the first number in our
+    example array (0.02436554) will be quantized to 0, as shown in the picture above).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**1-bit quantization**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The same principle applies to binary quantization but is much simpler. The
+    rule is the following: each number of the distribution < 0 becomes 0, and each
+    number > 0 becomes 1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47ee5e68eaecf27187bc19d0f422e850.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 1-bit quantization, **image by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Not all embeddings are built the same
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The principal issue with current quantization techniques is that they live on
+    the assumption that all our values **are based on a single distribution**. That
+    is why, when we use thresholds to define intervals (ex. minimum and maximum),
+    we only use a single set derived from the totality of our data (which is modeled
+    on a single distribution).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a6b19bc9727ad03a669bc57815c9d314.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: distribution of all individual samples from a flattened encoded dataset, **image
+    by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In an experiment, I have encoded 41.963 game descriptions into vectors**.**
+    By looking at the data distributions of each feature, we can see that despite
+    the efforts, there is no feature which is perfectly normalized: its mean could
+    deviate from the target 0.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c11a41a92ae510cee2c12f27f3c166fe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: distributions of 20 random features of the encoded dataset, **image by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a few words, each feature can be modeled **with a dedicated distribution**.
+    Because the data **does not follow** a single giant distribution, we can leverage
+    the many ways this is organized by applying a quantization at the feature level.
+    In addition, embeddings tend to encode each feature using similar values (otherwise,
+    the mean will constantly be 0), which means there is a **minimal chance of drift**
+    when encoding additional data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To better explain the math, let us define two sets of values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**S** = all the individual samples from the encoded dataset (41936 * 384)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Fₙ** = all the individual samples from the encoded dataset belonging to a
+    single feature (41936 * 1)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Feature 29: The Ugly Duckling'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'In our sample dataset, each vector counts 384 features. However, by exploring
+    the data one feature at a time, we can notice that some are not perfectly normalized
+    but substantially skewed. Let us take **F**₂₉as an example: the following plot
+    shows the distribution of **F**₂₉ **(**41936**)** across our entire encoded dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ab7ea6349f4adddc04c942c09c331cfc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**F**₂₉ distribution, **image by Author**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see from the plot, its distribution mean is around -0.07, and its
+    edges are (-0.2, 0.1). I am confident, knowing how encoders behave, that no matter
+    the amount of extra data we are going to feed the model, **F**₂₉ will always remain
+    an Ugly Duckling, with its distribution untouched. The distribution only counts
+    a few positive values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Regular Quantization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, let us apply **binary quantization to the book,** but only to **F**₂₉.
+    I am choosing a binary approach because most of the information is lost, meaning
+    there can be room for improvement using a different approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To quantize values in a binary fashion we need to pick a single value that will
+    work as a threshold when converting values to either 0 or 1\. The easiest way
+    is to pick 0 (~ the distribution mean of **S**). When working on the values of
+    **F**₂₉, because most of them are negative, the majority will be quantized to
+    0, and only a few will be quantized to 1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c06df47c158bea08f795a089f742a2e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'samples whose quantized value should be 1, but quantized as 0: 44% of **F**₂₉,
+    **image by Author**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let us explore the data further: 94% of the **F**₂₉ have been converted to
+    0, while our target in a perfectly normalized distribution is 50%. This means
+    that 44% of **F**₂₉ (red area of the density distribution) has not been properly
+    quantized.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: ft-Quantization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'What if, instead of using 0 as a threshold (extracted from **S**) we were to
+    use the **F**₂₉ distribution as a benchmark? Looking at **F**₂₉ distribution again,
+    instead of 0, we would be using its mean ~ -0.07 and its extremes as the minimum/maximum
+    of the interval ~ [-0.20, 0.10] (Please refer to the image below: I apologize
+    for the image inaccuracy, the extremes are quite there, though). In simple words,
+    ft-Q shifts the position of the **reference quantization interval** to better
+    fit the real distribution of the data.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9972f8207b07902d3986059f72446860.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: visualization of ft-Q, the interval is adapted to the feature distribution,
+    **image by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Through the following article I am trying to introduce a new algorithm that,
+    to the extent of my knowledge, I have been unable to find elsewhere. Note that
+    the algorithm is different from FQ (feature quantization) that is used for training
+    neural networks, this is algorithm is supposed to be used post-training.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**I am open to criticism** and **welcome any feedback.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: After applying binary quantization to **F**₂₉, because the threshold has been
+    updated, we can see how half the times the data will be quantized to 0, and the
+    other half to 1, resulting in a more realistic representation of the data. By
+    comparing the quantization results, ft-Q has converted 47% of the **F**₂₉ into
+    0, resulting in only 3% of values not being properly quantized.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: To summarize, **ft-Q** (or ft-Quantization) encodes each feature individually,
+    minimizing errors that can occur from non-normalized distributions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When to use ft-Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Realistically, no embedding is perfectly normalized, and there is a variance
+    (despite it being minimal) across the feature distribution. However, now that
+    we have identified the misplaced values, we can adjust them using
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**ft-Q**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can ft-Q be applied to regular embeddings?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When ft-Q is applied to regular embeddings we are not looking at a substantial
+    enhancement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the case of **all-MiniLM-L6-v2** we have reached a **1.2% improvement** (not
+    remarkable, but still an upgrade).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Where ft-Q shines: processed embeddings'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'However, embeddings are not always used in their normalized form. Sometimes,
+    there are use cases where encoding requires the embedding to be processed (ex.
+    in the case of [covariate encoding](https://github.com/atlantis-nova/simtag)).
+    We can use the following theoretical diagram as a way to understand **in which
+    cases** ft-Q can be better utilized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0f1ce97a5812a6558b64afc4c9167d7f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: the more the feature skew from a perfect normalisation, the more ft-Q is effective,
+    **image by Author**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The vectors that are the result of an extra processing step are not necessarily
+    normalized: we could **normalize** them again and only then apply **quantization**,
+    but we can cast two birds with one stone by using ft-Q as a single operation (in
+    addition to its small improvement even after a non-perfect normalization).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In conclusion, this article attempts to propose a more granular approach to
+    quantization. Originally, the reason for developing this algorithm was to solve
+    performance issues of processed embeddings, but after proper experimentation,
+    it has proved useful even in a regular scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the popularization of LLM and more complex vector databases, memory management
+    and performance improvements are becoming increasingly relevant in the space of
+    information retrieval, hence it is our responsibility to familiarize ourselves
+    with them and propose new and better solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Time will tell if new and smarter data compression approaches will join the
+    scene. For now, you can make the best use of this algorithm.
+  prefs: []
+  type: TYPE_NORMAL

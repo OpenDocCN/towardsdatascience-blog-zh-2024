@@ -1,0 +1,427 @@
+- en: How and Why to Use LLMs for Chunk-Based Information Retrieval
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-and-why-to-use-llms-for-chunk-based-information-retrieval-5242f0133b55?source=collection_archive---------4-----------------------#2024-10-28](https://towardsdatascience.com/how-and-why-to-use-llms-for-chunk-based-information-retrieval-5242f0133b55?source=collection_archive---------4-----------------------#2024-10-28)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)[![Carlo
+    Peron](../Images/e6db9521113aa6a2dd43b0b2aa6687b5.png)](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------)
+    [Carlo Peron](https://medium.com/@peronc79?source=post_page---byline--5242f0133b55--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--5242f0133b55--------------------------------)
+    ·9 min read·Oct 28, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea9b1bb4b44a9f0b8ada220d93ecda54.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Retrieve pipeline — Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I aim to explain how and why it’s beneficial to use a Large
+    Language Model (LLM) for chunk-based information retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I use OpenAI’s GPT-4 model as an example, but this approach can be applied with
+    any other LLM, such as those from Hugging Face, Claude, and others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Everyone can access this [article](https://medium.com/@peronc79/5242f0133b55?sk=aafe7dca2cb777410b6e426321c0b53e)
+    for free.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Considerations on standard information retrieval**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primary concept involves having a list of documents (**chunks of text**)
+    stored in a database, which could be retrieve based on some filter and conditions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Typically, a tool is used to enable hybrid search (such as Azure AI Search,
+    LlamaIndex, etc.), which allows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: performing a text-based search using term frequency algorithms like TF-IDF (e.g.,
+    BM25);
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: conducting a vector-based search, which identifies similar concepts even when
+    different terms are used, by calculating vector distances (typically cosine similarity);
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: combining elements from steps 1 and 2, weighting them to highlight the most
+    relevant results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/6f4f4ba0a88c11c7dc09513356aa58d5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1- Default hybrid search pipeline — Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Figure 1 shows the classic retrieval pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the user asks the system a question: “I would like to talk about Paris”;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the system receives the question, converts it into an embedding vector (using
+    the same model applied in the ingestion phase), and finds the chunks with the
+    smallest distances;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the system also performs a text-based search based on frequency;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the chunks returned from both processes undergo further evaluation and are reordered
+    based on a ranking formula.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This solution achieves good results but has some limitations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: not all relevant chunks are always retrieved;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: sometime some chunks contain anomalies that affect the final response.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**An example of a typical retrieval issue**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s consider the “documents” array, which represents an example of a knowledge
+    base that could lead to incorrect chunk selection.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s assume we have a RAG system, consisting of a vector database with hybrid
+    search capabilities and an LLM-based prompt, to which the user poses the following
+    question: “I need to know something about topic B.”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As shown in Figure 2, the search also returns an incorrect chunk that, while
+    semantically relevant, is not suitable for answering the question and, in some
+    cases, could even confuse the LLM tasked with providing a response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/356ad8ff68ceb28acca4d8a23ec584c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Example of information retrieval that can lead to errors — Image
+    by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, the user requests information about “*topic B*,” and the search
+    returns chunks that include “*This document expands on topic H. It also talks
+    about topic B*” and “*Insights related to topic B can be found here.*” as well
+    as the chunk stating, “*Nothing about topic B are given*”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this is the expected behavior of hybrid search (as chunks reference “*topic
+    B*”), it is not the desired outcome, as the third chunk is returned without recognizing
+    that it isn’t helpful for answering the question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The retrieval didn’t produce the intended result, not only because the BM25
+    search found the term “*topic B*” in the third Chunk but also because the vector
+    search yielded a high cosine similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To understand this, refer to Figure 3, which shows the cosine similarity values
+    of the chunks relative to the question, using OpenAI’s text-embedding-ada-002
+    model for embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c42a17cff143c55984745f79381a2c9e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Cosine similarity with text-embedding-ada-002- Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is evident that the cosine similarity value for “Chunk 9” is among the highest,
+    and that between this chunk and chunk 10, which references “*topic B*,” there
+    is also chunk 1, which does not mention “*topic B*”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This situation remains unchanged even when measuring distance using a different
+    method, as seen in the case of Minkowski distance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Utilizing LLMs for Information Retrieval: An Example**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The solution I will describe is inspired by what has been published in my GitHub
+    repository [https://github.com/peronc/LLMRetriever/](https://github.com/peronc/LLMRetriever/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The idea is to have the LLM analyze which chunks are useful for answering the
+    user’s question, not by ranking the returned chunks (as in the case of RankGPT)
+    but by directly evaluating all the available chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea9b1bb4b44a9f0b8ada220d93ecda54.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 4- LLM Retrieve pipeline — Image by the author
+  prefs: []
+  type: TYPE_NORMAL
+- en: In summary, as shown in Figure 4, the system receives a list of documents to
+    analyze, which can come from any data source, such as file storage, relational
+    databases, or vector databases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chunks are divided into groups and processed in parallel by a number of
+    threads proportional to the total amount of chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The logic for each thread includes a loop that iterates through the input chunks,
+    calling an OpenAI prompt for each one to check its relevance to the user’s question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The prompt returns the chunk along with a boolean value: *true* if it is relevant
+    and *false* if it is not.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Lets’go coding 😊**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To explain the code, I will simplify by using the chunks present in the *documents*
+    array (I will reference a real case in the conclusions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, I import the necessary standard libraries, including os, langchain,
+    and dotenv.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, I import my LLMRetrieverLib/llm_retrieve.py class, which provides several
+    static methods essential for performing the analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Following that, I need to import the necessary variables required for utilizing
+    Azure OpenAI GPT-4o model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, I proceed with the initialization of the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We are ready to begin: the user asks a question to gather additional information
+    about *Topic B*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: At this point, the search for relevant chunks begins, and to do this, I use
+    the function `llm_retrieve.process_chunks_in_parallel` from the `LLMRetrieverLib/retriever.py`
+    library, which is also found in the same repository.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: To optimize performance, the function `llm_retrieve.process_chunks_in_parallel`
+    employs multi-threading to distribute chunk analysis across multiple threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The main idea is to assign each thread a subset of chunks extracted from the
+    database and have each thread analyze the relevance of those chunks based on the
+    user’s question.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'At the end of the processing, the returned chunks are exactly as expected:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, I ask the LLM to provide an answer to the user’s question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Below is the LLM’s response, which is trivial since the content of the chunks,
+    while relevant, is not exhaustive on the topic of Topic B:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Scoring Scenario**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now let’s try asking the same question but using an approach based on scoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I ask the LLM to assign a score from 1 to 10 to evaluate the relevance between
+    each chunk and the question, considering only those with a relevance higher than
+    5.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do this, I call the function `llm_retriever.process_chunks_in_parallel`,
+    passing three additional parameters that indicate, respectively, that scoring
+    will be applied, that the threshold for being considered valid must be greater
+    than or equal to 5, and that I want a printout of the chunks with their respective
+    scores.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The retrieval phase with scoring produces the following result:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: It’s the same as before, but with an interesting score 😊.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, I once again ask the LLM to provide an answer to the user’s question,
+    and the result is similar to the previous one:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Considerations**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This retrieval approach has emerged as a necessity following some previous experiences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have noticed that pure vector-based searches produce useful results but are
+    often insufficient when the embedding is performed in a language other than English.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using OpenAI with sentences in Italian makes it clear that the tokenization
+    of terms is often incorrect; for example, the term “*canzone*,” which means “*song*”
+    in Italian, gets tokenized into two distinct words: “*can*” and “*zone*”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This leads to the construction of an embedding array that is far from what was
+    intended.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In cases like this, hybrid search, which also incorporates term frequency counting,
+    leads to improved results, but they are not always as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, this retrieval methodology can be utilized in the following ways:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**as the primary search method:** where the database is queried for all chunks
+    or a subset based on a filter (e.g., a metadata filter);'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**as a refinement in the case of hybrid search:** (this is the same approach
+    used by RankGPT) in this way, the hybrid search can extract a large number of
+    chunks, and the system can filter them so that only the relevant ones reach the
+    LLM while also adhering to the input token limit;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**as a fallback:** in situations where a hybrid search does not yield the desired
+    results, all chunks can be analyzed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Let’s discuss costs and performance**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, all that glitters is not gold, as one must consider response times
+    and costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a real use case, I retrieved the chunks from a relational database consisting
+    of 95 text segments semantically split using my `LLMChunkizerLib/chunkizer.py`
+    library from two Microsoft Word documents, totaling 33 pages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The analysis of the relevance of the 95 chunks to the question was conducted
+    by calling OpenAI's APIs from a local PC with non-guaranteed bandwidth, averaging
+    around 10Mb, resulting in response times that varied from 7 to 20 seconds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Naturally, on a cloud system or by using local LLMs on GPUs, these times can
+    be significantly reduced.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I believe that considerations regarding response times are highly subjective:
+    in some cases, it is acceptable to take longer to provide a correct answer, while
+    in others, it is essential not to keep users waiting too long.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, considerations about costs are also quite subjective, as one must
+    take a broader perspective to evaluate whether it is more important to provide
+    as accurate answers as possible or if some errors are acceptable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In certain fields, the damage to one’s reputation caused by incorrect or missing
+    answers can outweigh the expense of tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, even though the costs of OpenAI and other providers have been steadily
+    decreasing in recent years, those who already have a GPU-based infrastructure,
+    perhaps due to the need to handle sensitive or confidential data, will likely
+    prefer to use a local LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Conclusions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In conclusion, I hope to have provided my perspective on how retrieval can be
+    approached.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If nothing else, I aim to be helpful and perhaps inspire others to explore new
+    methods in their own work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember, the world of information retrieval is vast, and with a little creativity
+    and the right tools, we can uncover knowledge in ways we never imagined!
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’d like to discuss this further, feel free to connect with me on [LinkedIn](https://www.linkedin.com/in/carlo-peron)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'GitHub repositories can be found here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: • [https://github.com/peronc/LLMRetriever/](https://github.com/peronc/LLMRetriever/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: • [https://github.com/peronc/LLMChunkizer/](https://github.com/peronc/LLMChunkizer/)
+  prefs: []
+  type: TYPE_NORMAL

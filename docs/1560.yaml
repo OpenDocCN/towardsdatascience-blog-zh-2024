@@ -1,0 +1,485 @@
+- en: 'Validating Data in a Production Pipeline: The TFX Way'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce?source=collection_archive---------2-----------------------#2024-06-22](https://towardsdatascience.com/validating-data-in-a-production-pipeline-the-tfx-way-9770311eb7ce?source=collection_archive---------2-----------------------#2024-06-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A deep dive into data validation using Tensorflow Data Validation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)[![Akila
+    Somasundaram](../Images/5f3c58de8057c9c7ef42f6f5729fb395.png)](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)
+    [Akila Somasundaram](https://medium.com/@akila29?source=post_page---byline--9770311eb7ce--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9770311eb7ce--------------------------------)
+    ·9 min read·Jun 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Imagine this. We have a fully functional machine learning pipeline, and it is
+    flawless. So we decide to push it to the production environment. All is well in
+    prod, and one day a tiny change happens in one of the components that generates
+    input data for our pipeline, and the pipeline breaks. Oops!!!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d53ddb0f90e923a8b1b9f06d777cadb7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Sarah Kilian](https://unsplash.com/@rojekilian?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why did this happen??
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because ML models rely heavily on the data being used, remember the age old
+    saying, Garbage In, Garabage Out. Given the right data, the pipeline performs
+    well, any change and the pipeline tends to go awry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data passed into pipelines are generated mostly through automated systems, thereby
+    lowering control in the type of data being generated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, what do we do?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Validation is the answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Validation is the guardian system that would verify if the data is in appropriate
+    format for the pipeline to consume.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Read this article to understand why validation is crucial in an ML pipeline
+    and the 5 stages of machine learning validations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/the-5-stages-of-machine-learning-validation-162193f8e5db?source=post_page-----9770311eb7ce--------------------------------)
+    [## The 5 Stages of Machine Learning Validation'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ensure high-quality machine learning across the ML lifecycle
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/the-5-stages-of-machine-learning-validation-162193f8e5db?source=post_page-----9770311eb7ce--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: TensorFlow Data Validation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: TensorFlow Data Validation (TFDV), is a part of the TFX ecosystem, that can
+    be used for validating data in an ML pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: TFDV computes descriptive statistics, schemas and identifies anomalies by comparing
+    the training and serving data. This ensures training and serving data are consistent
+    and does not break or create unintended predictions in the pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: People at Google wanted TFDV to be used right from the earliest stage in an
+    ML process. Hence they ensured TFDV could be used with notebooks. We are going
+    to do the same here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To begin, we need to install tensorflow-data-validation library using pip. Preferably
+    create a virtual environment and start with your installations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**A note of caution**: Prior to installation, ensure version compatibility
+    in TFX libraries'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The following are the steps we will follow for the data validation process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating Statistics from Training Data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Infering Schema from Training Data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Generating Statistics for Evaluation Data and Comparing it with Training Data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Identifying and Fixing Anomalies
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Checking for Drifts and Data Skew
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Save the Schema
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We will be using 3 types of datasets here; training data, evaluation data and
+    serving data, to mimic real-time usage. The ML model is trained using the training
+    data. Evaluation data aka test data is a part of the data that is designated to
+    test the model as soon as the training phase is completed. Serving data is presented
+    to the model in the production environment for making predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The entire code discussed in this article is available in my GitHub repo. You
+    can download it from [here](https://github.com/akila29/TF_Transform_Demo).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 0: Preparations'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will be using the spaceship titanic dataset from Kaggle. You can learn more
+    and download the dataset using this [link](https://www.kaggle.com/competitions/spaceship-titanic).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ba359827d9aca475e8ef604afc070ae1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Sample view of Spaceship Titanic Dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: The data is composed of a mixture of numerical and categorical data. It is a
+    classification dataset, and the class label is `Transported`. It holds the value
+    True or False.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9b5b6032c887d15e46860375ccd13c44.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Data Description
+  prefs: []
+  type: TYPE_NORMAL
+- en: The necessary imports are done, and paths for the csv file is defined. The actual
+    dataset contains the training and the test data. I have manually introduced some
+    errors and saved the file as ‘titanic_test_anomalies.csv’ (This file is not available
+    in Kaggle. You can download it from my GitHub repository [link](https://github.com/akila29/TF_Transform_Demo)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we will be using ANOMALOUS_DATA as the evaluation data and TEST_DATA as
+    serving data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 1: Generating Statistics from Training Data'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First step is to analyze the training data and identify its statistical properties.
+    TFDV has the `generate_statistics_from_csv` function, which directly reads data
+    from a csv file. TFDV also has a `generate_statistics_from_tfrecord` function
+    if you have the data as a `TFRecord` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `visualize_statistics` function presents an 8 point summary, along with
+    helpful charts that can help us understand the underlying statistics of the data.
+    This is called the Facets view. Some critical details that needs our attention
+    are highlighted in red. Loads of other features to analyze the data are available
+    here. Play around and get to know it better.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/083119251429614e2406c036aeabbae3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Statistics generated for the dataset
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we see missing values in Age and RoomService features that needs to be
+    imputed. We also see that RoomService has 65.52% zeros. It is the way this particular
+    data is distributed, so we do not consider it an anomaly, and we move ahead.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Infering Schema from Training Data'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Once all the issues have been satisfactorily resolved, we infer the schema using
+    the `infer_schema` function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Schema is usually presented in two sections. The first section presents details
+    like the data type, presence, valency and its domain. The second section presents
+    values that the domain constitutes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9ab5c3d72692c0ed60ed099f0200770e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Section 1: Details about Features'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/efd9ef3bd5d36330c2bf8bb9b17010ea.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Section 2: Domain Values'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is the initial raw schema, we will be refining this in the later steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Generating Statistics for Evaluation Data and Comparing it with Training
+    Data'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we pick up the evaluation data and generate the statistics. We need to understand
+    how anomalies need to be handled, so we are going to use ANOMALOUS_DATA as our
+    evaluation data. We have manually introduced anomalies into this data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After generating the statistics, we visualize the data. Visualization can be
+    applied for the evaluation data alone (like we did for the training data), however
+    it makes more sense to compare the statistics of evaluation data with the training
+    statistics. This way we can understand how different the evaluation data is from
+    the training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/6ac2d32e901e679439959c38c0ca4dbf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison of Statistics of the Training data and the Evaluation data
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here we can see that RoomService feature is absent in the evaluation data (Big
+    Red Flag). The other features seem fairly ok, as they exhibit distributions similar
+    to the training data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, eyeballing is not sufficient in a production environment, so we are
+    going to ask TFDV to actually analyze and report if everything is OK.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Identifying and Fixing Anomalies'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Our next step is to validate the statistics obtained from the evaluation data.
+    We are going to compare it with the schema that we had generated with the training
+    data. The `display_anomalies` function will give us a tabulated view of the anomalies
+    TFDV has identified and a description as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b76570fc516d2e98687a33433a4ab109.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Anomaly List provided by TFDV
+  prefs: []
+  type: TYPE_NORMAL
+- en: From the table, we see that our evaluation data is missing 2 columns (Transported
+    and RoomService), Destination feature has an additional value called ‘Anomaly’
+    in its domain (which was not present in the training data), CryoSleep and VIP
+    features have values ‘TRUE’ and ‘FALSE’ which is not present in the training data,
+    finally, 5 features contain integer values, while the schema expects floating
+    point values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s a handful. So let’s get to work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two ways to fix anomalies; either process the evaluation data (manually)
+    to ensure it fits the schema or modify schema to ensure these anomalies are accepted.
+    Again a domain expert has to decide on which anomalies are acceptable and which
+    mandates data processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let us start with the ‘Destination’ feature. We found a new value ‘Anomaly’,
+    that was missing in the domain list from the training data. Let us add it to the
+    domain and say that it is also an acceptable value for the feature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We have removed this anomaly, and the anomaly list does not show it anymore.
+    Let us move to the next one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5af7cb267e286bd12f213f7627219f4d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Destination Anomaly has been resolved
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the VIP and CryoSleep domains, we see that the training data has
+    lowercase values while the evaluation data has the same values in uppercase. One
+    option is to pre-process the data and ensure that all the data is converted to
+    lower or uppercase. However, we are going to add these values in the domain. Since,
+    VIP and CryoSleep use the same set of values(true and false), we set the domain
+    of CryoSleep to use VIP’s domain.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/dd243f90d74ec3b97e25f251f7709010.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Resolved anomalies from CryoSleep and VIP
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is fairly safe to convert integer features to float. So, we ask the evaluation
+    data to infer data types from the schema of the training data. This solves the
+    issue related to data types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/92c72092ec74cac90fd4ad70c57f5ec0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Resolved datatype issue
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we end up with the last set of anomalies; 2 columns that are present
+    in the Training data are missing in the Evaluation data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ‘Transported’ is the class label and it will obviously not be available in the
+    Evalutation data. To solve cases where we know that training and evaluation features
+    might differ from each other, we can create multiple environments. Here we create
+    a Training and a Serving environment. We specify that the ‘Transported’ feature
+    will be available in the Training environment but will not be available in the
+    Serving environment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: ‘RoomService’ is a required feature that is not available in the Serving environment.
+    Such cases call for manual interventions by domain experts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keep resolving issues until you get this output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d1f86bc09f29744bb1e7e7ab96d015c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: All Anomalies Resolved
+  prefs: []
+  type: TYPE_NORMAL
+- en: All the anomalies have been resolved
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 5: Training-Serving Drift and Skew Detection'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next step is to check for drifts and skews. Skew occurs due to irregularity
+    in the distribution of data. Initially when a model is trained, its predictions
+    are usually perfect. However, as time goes by, the data distribution changes and
+    misclassification errors start to increase, this is called drift. These issues
+    require model retraining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: L-infinity distance is used to measure skew and drift. A threshold value is
+    set based on the L-infinity distance. If the difference between the analyzed features
+    in training and serving environment exceeds the given threshold, the feature is
+    considered to have experienced drift. A similar threshold based approach is followed
+    for skew. For our example, we have set the threshold level to be 0.01 for both
+    drift and skew.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see that the skew level exhibited by ‘Spa’ is acceptable (as it is not
+    listed in the anomaly list), however, ‘CryoSleep’ exhibits high drift levels.
+    When creating automated pipelines, these anomalies could be used as triggers for
+    automated model retraining.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74229d1ba539bc27649b3fd74c0a075d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: High Skew in CryoSleep
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 6: Save the Schema'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After resolving all the anomalies, the schema could be saved as an artifact,
+    or could be saved in the metadata repository and could be used in the ML pipeline.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can download the notebook and the data files from my GitHub repository using
+    this [link](https://github.com/akila29/TF_Transform_Demo)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other options to look into
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can read the following articles to know what your choices are and how to
+    select the right framework for your ML pipeline project
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/setting-up-ai-platform-pipelines/examination-review-setting-up-ai-platform-pipelines/what-are-the-advantages-and-differences-between-tfx-sdk-and-kubeflow-pipelines-sdk-and-how-should-you-choose-between-them-when-creating-your-own-pipeline/?source=post_page-----9770311eb7ce--------------------------------)
+    [## What are the advantages and differences between TFX SDK and Kubeflow Pipelines
+    SDK, and how should…'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The TFX SDK (TensorFlow Extended Software Development Kit) and Kubeflow Pipelines
+    SDK are two powerful tools that can…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: eitca.org](https://eitca.org/artificial-intelligence/eitc-ai-gcml-google-cloud-machine-learning/google-cloud-ai-platform/setting-up-ai-platform-pipelines/examination-review-setting-up-ai-platform-pipelines/what-are-the-advantages-and-differences-between-tfx-sdk-and-kubeflow-pipelines-sdk-and-how-should-you-choose-between-them-when-creating-your-own-pipeline/?source=post_page-----9770311eb7ce--------------------------------)
+    [](https://www.restack.io/docs/mlflow-knowledge-mlflow-vs-tensorflow-extended?source=post_page-----9770311eb7ce--------------------------------)
+    [## MLflow vs TensorFlow Extended Comparison
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explore the differences between MLflow and TensorFlow Extended for managing
+    machine learning workflows.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.restack.io](https://www.restack.io/docs/mlflow-knowledge-mlflow-vs-tensorflow-extended?source=post_page-----9770311eb7ce--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading my article. If you like it, please encourage by giving me
+    a few claps, and if you are in the other end of the spectrum, let me know what
+    can be improved in the comments. Ciao.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unless otherwise noted, all images are by the author.
+  prefs: []
+  type: TYPE_NORMAL

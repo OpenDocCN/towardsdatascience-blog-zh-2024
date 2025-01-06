@@ -1,0 +1,329 @@
+- en: KernelSHAP can be misleading with correlated predictors
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/kernelshap-can-be-misleading-with-correlated-predictors-9f64108f7cfb?source=collection_archive---------7-----------------------#2024-08-09](https://towardsdatascience.com/kernelshap-can-be-misleading-with-correlated-predictors-9f64108f7cfb?source=collection_archive---------7-----------------------#2024-08-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A concrete case study
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--9f64108f7cfb--------------------------------)[![Shuyang
+    Xiang](../Images/36a5fd18fd9b7b88cb41094f09b83882.png)](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--9f64108f7cfb--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9f64108f7cfb--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9f64108f7cfb--------------------------------)
+    [Shuyang Xiang](https://medium.com/@vanillaxiangshuyang?source=post_page---byline--9f64108f7cfb--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9f64108f7cfb--------------------------------)
+    ·7 min read·Aug 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: “Like many other permutation-based interpretation methods, the Shapley value
+    method suffers from inclusion of unrealistic data instances when features are
+    correlated. To simulate that a feature value is missing from a coalition, we marginalize
+    the feature. ..When features are dependent, then we might sample feature values
+    that do not make sense for this instance. ”— [Interpretable-ML-Book](https://christophm.github.io/interpretable-ml-book/shapley.html#disadvantages-13).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: SHAP (SHapley Additive exPlanations) values are designed to fairly allocate
+    the contribution of each feature to the prediction made by a machine learning
+    model, based on the concept of Shapley values from cooperative game theory. The
+    Shapley value framework has several desirable theoretical properties and can,
+    in principle, handle any predictive model. However, SHAP values can potentially
+    be misleading, especially when using the KernelSHAP method for approximation.
+    When predictors are correlated, these approximations can be imprecise and even
+    have the opposite sign.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog post, I will demonstrate how the original SHAP values can differ
+    significantly from approximations made by the [SHAP framework](https://shap.readthedocs.io/en/latest/example_notebooks/overviews/An%20introduction%20to%20explainable%20AI%20with%20Shapley%20values.html),
+    especially the KernalSHAP and discuss the reasons behind these discrepancies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Case Study: Churn Rate**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Consider a scenario where we aim to predict the churn rate of rental leases
+    in an office building, based on two key factors: occupancy rate and the rate of
+    reported problems.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The occupancy rate significantly impacts the churn rate. For instance, if the
+    occupancy rate is too low, tenants may leave due to the office being underutilized.
+    Conversely, if the occupancy rate is too high, tenants might depart because of
+    overcrowding, seeking better options elsewhere.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Furthermore, let’s assume that the rate of reported problems is highly correlated
+    with the occupancy rate, specifically that the reported problem rate is the square
+    of the occupancy rate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We define the churn rate function as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/456107a845a24d3ffa3fb61d9ede4aa3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: churn rate function'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This function with respect to the two variables can be represented by the following
+    illustrations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fac81573dd6ddaff630cd4e105c27f5c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Churn on two variables'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discrepancies between original SHAP and Kernel SHAP
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: SHAP Values Computed Using Kernel SHAP
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will now use the following code to compute the SHAP values of the predictors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The code above performs the following tasks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data Preparation: A DataFrame named `churn_df` is created with columns `occupancy_rate`,
+    `reported_problem_rate`, and `churn_rate`. Variables and target (`churn_rate`
+    ) are then created from and Data is split into training and testing sets, with
+    80% for training and 20% for testing. Note that a special data point with specific
+    `occupancy_rate` and `reported_problem_rate` values is added to the test set `X_test`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Prediction Function Definition: A function `predict_fn` is defined to calculate
+    churn rate using a specific formula involving predefined constants.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'SHAP Analysis: A SHAP `KernelExplainer` is initialized using the prediction
+    function and `background_data` samples from `X_train.` SHAP values for `X_test`
+    are computed using the `explainer`.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Below, you can see a summary SHAP bar plot, which represents the average SHAP
+    values for `X_test` :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4726e4abacf15f58d78cd540eb486327.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: average shap values'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In particular, we see that at the data point (0.8, 0.64), the SHAP values of
+    the two features are 0.10 and -0.03, illustrated by the following force plot:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3be60805793ee4b29f17cadb80ce818.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author Force Plot of one data point
+  prefs: []
+  type: TYPE_NORMAL
+- en: SHAP Values by orignal definition
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s take a step back and compute the exact SHAP values step by step according
+    to their original definition. The general formula for SHAP values is given by:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/506fd5f8560513877e5e88618a511382.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'where: S is a subset of all feature indices excluding i, |S| is the size of
+    the subset S, M is the total number of features, f(XS​∪{xi​}) is the function
+    evaluated with the features in S with xi present while f(XS) is the function evaluated
+    with the feature in S with xi absent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s calculate the SHAP values for two features: occupancy rate (denoted
+    as x1​) and reported problem rate (denoted as x2​) at the data point (0.8, 0.64).
+    Recall that x1​ and x2are related by x1 = x2².'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We have the SHAP value for occupancy rate at the data point:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/745d8cfe9265145b22870e14c1902dd9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'and, similary, for the feature reported problem rate:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3ea90e76aec7a3ba8c1e59d143dc01cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'First, let’s compute the SHAP value for the occupancy rate at the data point:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first term is the expectation of the model’s output when X1​ is fixed at
+    0.8 and X2​ is averaged over its distribution. Given the relationship x1 = x2²,
+    this expectation leads to the model’s output at the specific point (0.8, 0.64).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The second term is the unconditional expectation of the model’s output, where
+    both X1 and X2 are averaged over their distributions. This can be computed by
+    averaging the outputs over all data points in the background dataset.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The third term is the model’s output at the specific point (0.8, 0.64).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The final term is the expectation of the model’s output when X1​ is averaged
+    over its distribution, given that X2​ is fixed at the specific point 0.64\. Again,
+    due to the relationship x_1 = x_2²​, this expectation matches the model’s output
+    at (0.8, 0.64), similar to the first step.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Thus, the SHAP values compute from the original definition for the two features
+    occupancy rate and reported problem rate at the data point (0.8, 0.64) are -0.0375
+    and -0.0375, respectively, which is quite different from the values given by Kernel
+    SHAP.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where comes discrepancies?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cause of Discrepancies in SHAP Values
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As you may have noticed, the discrepancy between the two methods primarily arises
+    from the second and fourth steps, where we need to compute the conditional expectation.
+    This involves calculating the expectation of the model’s output when X1X_1X1​
+    is conditioned on 0.8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Exact SHAP**: When computing exact SHAP values, the dependencies between
+    features (such as x1=x_2² in our example​) are explicitly accounted for. This
+    ensures accurate calculations by considering how feature interactions impact the
+    model’s output.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Kernel SHAP**: By default, Kernel SHAP assumes feature independence, which
+    can lead to inaccurate SHAP values when features are actually dependent. According
+    to the paper [*A Unified Approach to Interpreting Model Predictions*,](https://arxiv.org/abs/1705.07874)
+    this assumption is a simplification. In practice, features are often correlated,
+    making it challenging to achieve accurate approximations when using Kernel SHAP.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/536458182b111c3c9659970702905c74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot from the paper
+  prefs: []
+  type: TYPE_NORMAL
+- en: Potential resolutions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Unfortunately, computing SHAP values directly based on their original definition
+    can be computationally expensive. Here are some alternative approaches to consider:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TreeSHAP
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Designed specifically for tree-based models like random forests and gradient
+    boosting machines, TreeSHAP efficiently computes SHAP values while effectively
+    managing feature dependencies.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This method is optimized for tree ensembles, making it faster and more scalable
+    compared to traditional SHAP computations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When using TreeSHAP within the SHAP framework, set the parameter `feature_perturbation
+    = "interventional"` to account for feature dependencies accurately.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extending Kernel SHAP for Dependent Features
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To address feature dependencies, this paper involves extending Kernel SHAP.
+    One method is to assume that the feature vector follows a multivariate Gaussian
+    distribution. In this approach:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conditional distributions are modeled as multivariate Gaussian distributions.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Samples are generated from these conditional Gaussian distributions using estimates
+    from the training data.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The integral in the approximation is computed based on these samples.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This method assumes a multivariate Gaussian distribution for features, which
+    may not always be applicable in real-world scenarios where features can exhibit
+    different dependency structures.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Improving Kernel SHAP Accuracy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Description**: Enhance the accuracy of Kernel SHAP by ensuring that the background
+    dataset used for approximation is representative of the actual data distribution
+    with independant features.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: By utilizing these methods, you can address the computational challenges associated
+    with calculating SHAP values and enhance their accuracy in practical applications.
+    However, it is important to note that no single solution is universally optimal
+    for all scenarios.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this blog post, we’ve explored how SHAP values, despite their strong theoretical
+    foundation and versatility across various predictive models, can suffer from accuracy
+    issues when predictors are correlated, particularly when approximations like KernelSHAP
+    are employed. Understanding these limitations is crucial for effectively interpreting
+    SHAP values. By recognizing the potential discrepancies and selecting the most
+    suitable approximation methods, we can achieve more accurate and reliable feature
+    attribution in our models.
+  prefs: []
+  type: TYPE_NORMAL

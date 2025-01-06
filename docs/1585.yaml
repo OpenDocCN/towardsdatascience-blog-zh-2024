@@ -1,0 +1,1507 @@
+- en: 'How Bend Works: A Parallel Programming Language That “Feels Like Python but
+    Scales Like CUDA”'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26](https://towardsdatascience.com/how-bend-works-a-parallel-programming-language-that-feels-like-python-but-scales-like-cuda-48be5bf0fc2c?source=collection_archive---------1-----------------------#2024-06-26)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A brief introduction to Lambda Calculus, Interaction Combinators, and how they
+    are used to parallelize operations on Bend / HVM.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Lucas
+    de Lima Nogueira](../Images/76edd8ee4005d4c0b8bd476261eb06ae.png)](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)
+    [Lucas de Lima Nogueira](https://medium.com/@lucasdelimanogueira?source=post_page---byline--48be5bf0fc2c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--48be5bf0fc2c--------------------------------)
+    ·22 min read·Jun 26, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/398ffec82c1dd32cf300f28b5c5ae933.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you are reading this article, you probably recently heard about Bend, a new
+    programming language that aims to be massively parallel but without you worrying
+    about things like threads creation, and other common parallel programming terms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you do not know what I am talking about, watch the video below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: They claim “***it feels like Python, but scales like CUDA”.*** As an enthusiast
+    of parallel programming, it caught my attention immediately. After some reading,
+    I found that Bend is powered by HVM (Higher-Order Virtual Machine), the runtime
+    where the magic happens. That is, in a Bend program, the Bend code is compiled
+    into HVM, which does some magic to run this program in an inherently parallel
+    manner. In some way, all operations that can be parallelized are automatically
+    parallelized by this runtime.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Straight away, I wanted to learn how all of the HVM magic happens. How can
+    all of this be possible? After some reading, I learned that the magic behind HVM
+    is mostly based on Interaction Combinators, which is a model of computation based
+    on graphs and graphical rules developed by Yves Lafont in the 1990s. So, I opened
+    the Lafont [paper](https://core.ac.uk/download/pdf/81113716.pdf), rolled some
+    pages and saw this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8dd7792bc5d746abcd3c81f8bbbb06bf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ???? Interaction Combinators alien code. Image by author, inspired from [Lafont,
+    1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I felt like I was in that movie *Arrival*, where the aliens try to communicate
+    with us using a strange symbolic language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: That’s when I closed the laptop and gave up on trying to understand that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A while later, when I turned on my machine again, those symbols were there,
+    staring at me, as if they were asking me to be understood.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After a lot of reading, watching videos and alien help, I somehow started to
+    understand this thing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The purpose of this article is to briefly clarify how all the HVM magic happens
+    and facilitate your further understanding by explaining some common terms you
+    might find during your learning journey. In order to do that, we need to first
+    learn some basic concepts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: λ-Calculus (Lambda Calculus)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The Lambda Calculus is a formal system in mathematical logic created by Alonzo
+    Church in the 1930s. Its purpose was to investigate some aspects of logic theory
+    from a purely mathematical point of view. Church was aiming to define what is
+    computability in mathematical terms (what can be calculated using a set of fundamental
+    rules). Let’s start:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You probably have already used Lambda Calculus before. For example, imagine
+    a function to multiply a number by two:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: f(x) = 2 * x
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On Python, you can express a named function for that like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'But you can also express that using lambdas, which are basically an anonymous
+    function:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, let’s go back to mathematics. In Lambda Calculus, you express this same
+    function using the notation *λx.2x,* where *x* is the the *parameter* and *2x*
+    the *body.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λ<parameter>.<body>*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is called an *abstraction.* An abstraction *λx.t* denotes an anonymous
+    function that takes a single input variable *x* and returns *t.* For example,
+    *λx.(x²+2x)* is an abstraction representing the function f defined by f(x) = x²+2x.
+    So, an abstraction basically defines a function but does not invoke it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also have a term like *λx.(x+y)*, which is the definition of f(x) =
+    x+y. Here, *y* has not been defined yet. The expression *λx.(x+y)* is a valid
+    abstraction and represents a function that adds its input to the yet-unknown *y.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: If using *λx.2x* defines a function, *(λx.2x)a “*calls” a function with argument
+    “*a”*. That is, we basically substitute the variable “x” with “a”.
+  prefs: []
+  type: TYPE_NORMAL
+- en: f(x) = 2x
+  prefs: []
+  type: TYPE_NORMAL
+- en: f(2) = 4
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is the same as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.2x*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.2x)2 = 4*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is called an *application.* We are “applying” the *abstraction (λx.2x)*
+    to the number *2.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can also apply a lambda expression to another lambda expression, such as
+    nested functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take f(x) = 2x and g(x) = x³
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And you want g(f(x)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can express this using lambda expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.2x*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.x³*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*=> (λx.x³)(λx.2x)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Do not try to solve it for now, first understand the notation, and further I
+    will show you how to solve it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s important to not confuse the parenthesis. For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*1 — λx.((λx.x)x)* is an *abstraction* (function definition).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*2 — (λx.(λx.x))x* is an *application* (funtion application)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the Example 1, we are defining a function *λx.B*, where B is the expression
+    (*λx.x)x,* which is the anonymous function *λx.x* applied to the input x.
+  prefs: []
+  type: TYPE_NORMAL
+- en: On Example 2, we are applying the anonymous function *λx.(λx.x)* to the input
+    *x.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Applications* can also be represented as *f* *x* (applying function *f* to
+    the variable *x*).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also represent functions with *n* parameters using Lambda Calculus.
+    This can be done by using nested functions, each taking a single parameter: *f(x,y,z)
+    → λx.*λy.λz'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, *f(x, y, z) = x + y + z* can be expressed by the *abstraction:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.*λy.λz.(x + y + z).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using this *abstraction* we can construct *applications*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.*λy.λz.(x + y + z))1 2 3 => 6'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When studying Lambda Calculus, there are also two common terms you might find:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alpha conversion (**α-conversion**) and Beta reduction (**β-reduction)**
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alpha conversion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When evaluating more complex lambda expressions, you may obtain some expression
+    like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.(λx.x+x)x)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this expression, the inner *x* could be mistakenly interpreted as the outer
+    *x*. In order to avoid that, we can rename the inner variable x:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.(λy.y+y)x)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This process is what it is called *α-conversion,* the name seems something complex,
+    but it is this simple renaming of a variable to avoid mistakes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.x → λy.y (α-conversion)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both expressions represents the same function. The *α-conversion* does not change
+    the function’s behavior, just the variable name.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Beta reduction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*β-reduction* is simply the process of calculating the result from an application
+    of a function to an expression. For instance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.xy)z*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the output *xy,* substitute every occurrence of x by z
+  prefs: []
+  type: TYPE_NORMAL
+- en: = *zy*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You also might found the following notation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λ param . output)input => output [param := input] => result*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This basically means that to get the result, you look at the *output* and substitute
+    every occurrence of *param* by the *input.* In the previous expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.xy)z => (xy)[x := z] => zy*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Example
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Going back to our example f(x) = 2x; g(x) = x³ and we want g(f(1)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to not mix up terms incorrectly, we can rewrite:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: f(x) = 2x and g(y) = y³
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we substitute f within g:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: g(f(1)) = (f(1))³
+  prefs: []
+  type: TYPE_NORMAL
+- en: => g(f(1)) = (2*1)³
+  prefs: []
+  type: TYPE_NORMAL
+- en: => 8*x = 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now with Lambda Calculus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.2x*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.x³*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*=> (λx.x³)((λx.2x)1)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, apply *α-conversion* in order to not mix up things:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λy.y³)((λx.2x)1)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, *β-reduction* on the inner most expression *(λx.2x)1:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λ param . output)input => output [param := input] => result*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λx.2x)1 => 2x [x := 1] => 2*1 = 2.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, *β-reduction* again on the resulting expression *(λy.y³)2:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λ param . output)input => output [param := input] => result*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λy.y³)2 => y³[y := 2] => 2³ => 8.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We got the same result! That’s brilliant right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: _________________________________________________________________
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⚠️ If you’re starting to feel confused at this point, please don’t close the
+    article!! I understand it can be challenging at first, but I promise you, when
+    you sleep today, you will wake up with things more clear! So, keep reading and
+    enjoy the rest of the article :)
+  prefs: []
+  type: TYPE_NORMAL
+- en: _________________________________________________________________
+  prefs: []
+  type: TYPE_NORMAL
+- en: Some years after the Lambda Calculus, Alan Turing introduced the concept of
+    Turing machines, an abstract mathematical model of a computer capable of simulating
+    any algorithmic process that can be described mathematically. Building on the
+    work of both Church and Turing, it was established that there exists a theoretical
+    equivalence between Lambda Calculus and Turing machines. This equivalence means
+    that, despite not having numbers or booleans, any problem computable by a Turing
+    machine can also be expressed in Lambda Calculus terms. Thus, we can express any
+    computable algorithm using Lambda Calculus!! Let’s understand how this can be
+    done.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Numbers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I mentioned that Lambda Calculus does not have numbers, only lambda expressions.
+    But then how could I have written things like *λx.(x+2)* before?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Well, I lied to you… 😞
+  prefs: []
+  type: TYPE_NORMAL
+- en: But don’t get angry, it was only to facilitate understanding 😀
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s understand how Church represented numbers using only lambda expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Church representation of numerals is a bit complicated to understand at
+    the beginning but it will get clearer further.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The chuch numeral `n` is defined as a function that takes a function `f` and
+    returns the application of `f` to its argument `n` times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '0: λf.λx.x (applies `f` to `x` 0 times)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1: λf.λx.f x (applies `f` to `x` 1 time)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2: λf.λx.f(f x) (applies `f` to `x` 2 times)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3: λf.λx.f(f(f x)) (applies `f` to `x` 3 times)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: and so on…
+  prefs: []
+  type: TYPE_NORMAL
+- en: It seems confusing, but after some though, it starts to make sense. The church
+    numeral `n` simply means to do anything `n` times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A good way to illustrate this is to remember that the idea of numbers comes
+    from the process of counting. For example, imagine that you have a stair with
+    20 steps. When it is said that to climb the stairs you have to go up 20 steps,
+    it means that you will climb one step 20 times, right? That’s exactly the same
+    idea of Church encoding: You have a function `f` that means ‘go up one step’ and
+    if you want to express the idea of 20 steps, you apply `f` `20` times.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Numerical Operations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After defining the Church numerals, we can define the numerical operations.
+    The first one is to define a successor function ***s***. It is basically a function
+    that increments a Church numeral by 1\. Thus, the successor is a function that
+    takes a Church numeral representing the number `n` and returns a Church numerical
+    representation of `n+1`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, if λf.λx.f(f x) represents the number 2, if we apply the successor
+    function **s** to that, we will get λf.λx.f(f(f x)) (Church numerical representation
+    of number 3).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The successor function is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*s(n) =λn.λf.λx.f((n f) x),* where `n` is the Church numeral `n`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s analyze it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Input**: `n` (a Church numeral), `f` (a function), and `x` (an argument)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***Application* of n**: The term `(nf)x` represents the application of the
+    function `f` to the argument `x` `n` times.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Additional Application**: The term `f((nf)x)` applies `f` one more time to
+    the result of `(nf)x`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If the Church numeral `n` means to do something `n` times, `s n` means do something
+    `n+1` times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s for example apply the successor function to the Church numeral for 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Church numeral for 2**: [*λf.λx.f(f x)*](http://.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Applying successor of this expression:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We know that *s(n) = λn.λf.λx.f((n f) x)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our n = 2 = [*λf.λx.f(f x)*](http://.)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thus, we apply the successor function on that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: s([**λf.λx.f(f x)**](http://.)*) = ( λn.λf.λx.f((n f) x) )(* [**λf.λx.f(f x)**](http://.)
+    *)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the first *β-reduction* on the *application* expression*:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(λ param . output)input => output [param := input] => result*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*( λn.λf.λx.f((n f) x) )(* [**λf.λx.f(f x)**](http://.) *) => λf.λx.f((n f)
+    x) [n :=* [**λf.λx.f(f x)**](http://.)**]**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: => *λf.λx.f((*[**λf.λx.f(f x)**](http://.)*f x)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s analyze the inner *application* expression:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(*[**λf.λx.f(fx)**](http://.)*f x*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The underlined term is the Church numeral 2, right? And it can be read as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given a function *f*, apply *f* 2 times to its argument, which is *x.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(*[**λf.λx.f(fx)**](http://.)*f x* turns into *f(f x)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Substituting on our expression *λf.λx.f((*[**λf.λx.f(fx)**](http://.)*f x),*
+    we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λf.λx.f(f(f x)),* which is exactly the Church numerical representation of
+    the number 3!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, we just defined the successor lambda operation. By using this idea, if
+    we define 0 = λf.λx.x, we can obtain the other Church numerals using the successor
+    function recursively:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 = **s** **0**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2 = s(**s** **0**)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3 = **s**(**s**(**s** **0**))
+  prefs: []
+  type: TYPE_NORMAL
+- en: …
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can take advantage of this functions to implement other operations such as
+    addition and multiplication.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The addition of two numbers m + n is defined as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*ADD(m, n) = λm.λn.λf.λx.(m f)((n f) x)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, if we define *m* and *n* as the Church numerical representations of 3
+    and 4, respectively, and then apply this ADD function, we will get the Church
+    numerical representation of 7.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The same logic applies to multiplication of two numbers m * n:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*MUL(m, n) = λm.λn.λf.λx.m (n f)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try to apply yourself anytime!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Booleans
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before we get into the Church definitions, let’s think of booleans as some operation
+    that we can do for *selection.* Among two options A and B, depending on some condition,
+    we select A or B.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`IF [CONDITION] THEN [RESULT A] ELSE [RESULT B]`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, during some app execution, if we want to use booleans to change
+    the background color of the screen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “red_theme = True”
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will only be useful when at some other part of the program we do some *selection:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: background_color = IF red_theme THEN red ELSE white.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, all we need from booleans is some manner of conditionally selecting two
+    options.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Based on that, in Lambda Calculus, the Church definition of *true* and *false*
+    are defined as functions of two parameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*true* chooses the first parameter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*false* chooses the second parameter.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*TRUE* = *λx.λy.x*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*FALSE* = *λx.λy.y*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It seems strange, right? But let’s define some boolean operations and see how
+    it goes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**NOT**: Takes a Boolean and returns the opposite.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`NOT = λp. p FALSE TRUE`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This means: “Take a Boolean function `p`. Apply `p` to the two parameters `FALSE`
+    `TRUE`."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Remember the definition of booleans on Church enconding? *TRUE* returns the
+    first parameter and *FALSE* returns the second parameter? Thus:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: → If `p` is `TRUE`, it returns `FALSE`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: → If `p` is `FALSE`, it returns `TRUE`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**AND**: Takes two Booleans and returns *TRUE* if both are *TRUE*, otherwise
+    FALSE.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`AND = λp.λq.p q p`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This means: “Take two Boolean functions `p` and `q`. Apply `p` to `q` and `p`."'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s try on practice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*AND TRUE FALSE* = (*λp.λq.p q p) TRUE FALSE:*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given *TRUE* and *FALSE*, return *TRUE FALSE TRUE*:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: => *TRUE* *FALSE* *TRUE* = *λx.λy.x FALSE TRUE*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given *FALSE* and *TRUE*, return the first parameter:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*λx.λy.x FALSE TRUE = FALSE*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The definitions of the other boolean operations such as OR, XOR and others follow
+    the same idea.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Practice
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now, let’s use some Lambda Calculus in practice:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: As you can see, we are performing numerical operations using only lambda functions!!
+    Also, by extending this with lambda boolean logic, we could implement if/else,
+    loops and even an entire programming language solely with lambda functions! Amazing
+    right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Okay, now after this brief introduction to Lambda Calculus, we can go to the
+    next topic of our journey.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interaction Nets
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before going directly to Interaction Combinators, let’s first learn another
+    earlier work by Yves Lafont: Interaction Nets. This foundation will make understanding
+    Interaction Combinators easier.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interaction Nets are a model of computation created by Yves Lafont in 1990\.
+    They use graph-like structures and a set of interaction rules to represent algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first thing we need to define is a *cell.* A consists of a some symbol
+    *e.g. α,* a principal port and n auxiliary ports*,* represented by the image below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ba40de956a0e60e58c173fb65fa5a68b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cell — Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When a *cell* has n = 0 auxiliary ports, it is represented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8e7e876645ce29028268c7ee95d7299e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Cell of arity n=0 — Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: By connecting a set of *cells* through *wires* on their *ports* we construct
+    a *net*. For example, a net with *cells α, β* and *γ,* with [arities](https://en.wikipedia.org/wiki/Arity)
+    n = 2, 1 and 0, respectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/93ad5ba679bdd192864241e7bc4f7d17.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that a *wire* can connect two *ports* of the same *cell* and a *net* may
+    not be necessarily connected. Also, in this example there are three free ports
+    *x*, *y* and *z.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Whenever a pair of cells is connected through their [***principal***](http://.)
+    *ports,* there will be an *interaction.* An *interaction* is a rule that will
+    modify the *net.* This pairs connected through their *active* ports and ready
+    to interact are called an *active pair (*or *redex).*
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the previous example, there are two possible *interactions* (*active pairs*)
+    on the first *iteration.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5c5f9513d5084292e2586a53b4e278a6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After applying these rules, the *net* will be modified. We then repeatdly apply
+    these rules again to the resulting *nets* until we reach an irreducible form,
+    when no more *interaction* rules can be applied. This process of repeatedly applying
+    *interaction* rules is also known as reduction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: An *interaction system* is constructed with a set of interaction rules that
+    can be applied without ambiguity. That is, if we define an *interaction* rule
+    for an *active pair (αi, αj)*, it will be the same for all *(αi, αj)* that appear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After this brief explanation, let’s do some practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Building an interaction system for arithmetics*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s build an interaction system for doing arithmetics. In order to create
+    that, let’s first forget our basic intuition about numbers and try to create a
+    system that can model natural numbers. In 1889, Giuseppe Peano introduced five
+    axioms to formalize natural numbers, similar to how Euclid defined his axioms
+    for geometry. The Peano’s axioms enable an infinite set to be generated by a finite
+    set of symbols and rules. Using these axioms, Peano defined some rules for a finite
+    set of symbols to model natural numbers and their arithmetic properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***0 → Symbolizes the number zero***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***s(n) → Represents the successor function. It returns the next natural number.***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using **s** and **0** we can define the natural numbers, as we have previously
+    seen during lambda calculus studies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 = **s(0)**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2 = **s(s(0))**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3 = **s(s(s(0)))**
+  prefs: []
+  type: TYPE_NORMAL
+- en: and so on…
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***+ → Represents addition. It is a function recursively defined as:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Base case:*** 0 + a = a'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Recursion:*** a + s(b) = s(a+b)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'a + 3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: = a + s(2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: = s(a+2)
+  prefs: []
+  type: TYPE_NORMAL
+- en: = s(a+s(1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: = s(s(a+1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: = s(s(a+s(0)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: = s(s(s(a+0)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: = s(s(s(a)))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***×: Represents multiplication. It is a function recursively defined as:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Base case:*** b × **0** = **0**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Recursion:*** s(a) × b = (a × b) + b'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Inspired by this, Yves Lafont built a interaction system to model natural numbers
+    and arithmetics. Let’s understand:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, he defined *cells* for the **s** and **0** symbols:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ea3ec73a34ccf2d96466542da9acaa7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, the *cell* for the addition operation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d95bc121072804cd7d37597788eb8880.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It seems strange, I know, but I promise will it will further make sense.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If all natural numbers can be expressed using only the symbols **0** and successor
+    **s**, for addition we need to define just two *interaction* rules: how an addition
+    interacts with successor and with **0\.** Therefore, Lafont introduced the two
+    following *interaction* rules:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/889329bea2557cffd9453a2471b0bbfe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Compare these rules with the Peano’s equations for addition, they are extactly
+    the same expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: s(x) + y = s(x+y)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**0** + y = y'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, let’s understand the *interaction* rules for multiplication. The *cell*
+    for multiplication is defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8fd1125c9726eca7ace99e90589b24b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, take a look at Peano’s equations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: y × **0** = **0**
+  prefs: []
+  type: TYPE_NORMAL
+- en: s(x) × y = (x × y) + y
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that the first equation “erases” the y variable (y appears on the left
+    side of the equation and do not appear on the right side). In the second equation,
+    the y is “duplicated” with another multiplication and an addition.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thus, two other symbols are needed: *ε (eraser)* and *δ (duplicator).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad52d6c71df9df7fbe0efef5b4b1d0ec.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The idea of this symbols is that a net representing natural numbers will be
+    erased when connected to the principal port of *ε,* and it will be duplicated
+    if it is connected to the principal port of *δ.* Now, the multiplication rule
+    can be represented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5edbb6983572225d6bf4503b71f98e38.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Try to reflect on how they are similar to the Peano’s expressions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: s(x) × y = (x × y) + y
+  prefs: []
+  type: TYPE_NORMAL
+- en: y × **0** = **0**
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The *interaction* rules for *duplicator* and *eraser* with *successor* and
+    0 are defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1fee674e8bd92a26f2008a095ee6487f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thus, we have a set of six symbols **{0, s, +**, ×, *δ, ε*} with the following
+    set of eight *interaction* rules: **{(s**, +), **(0, +)**, **(s**, ×), **(0**,
+    ×), **(s***, δ*)*,* **(*0****, δ*)*,* **(*s****, ε*)*,* **(*0****, ε*)}. Let’s
+    analyze them in practice for the operation 2 × 2.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7761269faea0c99e55e76dd3028a0622.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 2 x 2\. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you take a look, there is an active pair (**s**, ×) that we can apply the
+    Rule #3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4d416f15180cb9da8b6cf32136505daf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Applying *interaction rule #3\.* Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Therefore, the operation is solved by applying the *interaction* rules until
+    we reach an irreducible form:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/67e138061a4d076406a1a498898e633e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 2x2 = 4\. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Take a look at the final form that we have reached: **s**(**s**(**s**(**s**
+    **0**))).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5ada222ea12c2d41ccfdf3c448047307.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is exactly the definition of the numeral 4, the result of 2 × 2! Amazing,
+    right? After some manipulation of strange symbols, we could solve an arithmetic
+    operation! 😀
+  prefs: []
+  type: TYPE_NORMAL
+- en: But why do such a complicated thing? What are the advantages of solving problems
+    using these manipulations?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lafont’s nets have an interesting property: if a net *μ* can reduce in one
+    step to two different possible *nets v* or *v’,* then *v* and *v’* reduce in one
+    step to a common net ξ.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e93f8e38d3ba54b98c86d32876d794d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The consequence of this confluence property is that if a net *μ* reduces to
+    *v* in *n* steps, then any sequence of reductions will reach *v* in *n* steps.
+    In other words, the order of the application of *interaction* rules does not matter,
+    the net will reach the same form with the same amount of steps!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Did you get the power of this property? Basically, if the order of interactions
+    doesn’t matter, we can apply them in parallel! 🤯
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For instance, on our previous 2 × 2 operation, instead of applying the rules
+    one by one, we could parallelize them at moments like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9025d9f135f76590a34ec27617ad153c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In actual execution, both rules could be parallelized by running them in two
+    separated threads, without concerns about thread collisions and other common issues
+    related to parallelism. And that’s one of the core principles on which HVM/Bend
+    is founded! Based on that, all operations that can be parallelized will be inherently
+    parallelized!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we understand interaction nets, let’s take one more step. Earlier in
+    this article, I mentioned that HVM was based on Interaction Combinators, so let’s
+    understand how these concepts relate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interaction Combinators
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Based on his earlier Interaction Nets work, Yves Lafont created the Interaction
+    Combinators. The idea was to create a representation of computation using a minimal
+    set of primitives, called combinators. While interaction nets use graph rewriting
+    to model computation explicitly, interaction combinators refine this by focusing
+    on the fundamental combinatory logic. This shift provides a more abstract but
+    more powerful framework for expressing computation processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For interaction combinators, Lafont defined three symbols (also called combinators):
+    γ (*constructor*), *δ* (*duplicator*)and *ε (eraser).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using these three combinators, a total of only six rules were created. These
+    rules are divided into:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*commutation —* when two cells of different symbols interact (γ*δ,* γ*ε, δε*);'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*annihilation —* when two cells of the same symbol interact (γγ, *δδ, εε*).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The rules are defined below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3aa98d277576638e82070613893d2955.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Commutation rules. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/97e11564dd402b1e26d0184ab2c06034.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Annihilation rules. Image by author, inspired from [Lafont, 1997](https://www.sciencedirect.com/science/article/pii/S0890540197926432)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Therefore, using only these six rules you can model any computable algorithm!
+    Amazing, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, the HVM runtime uses a variant of Lafont’s interaction combinators,
+    called [Symmetric Interaction Combinators (SIC) (Mazza, 2007)](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf).
+    This variant is a simplified version that uses the same rewrite rule for all of
+    its symbols:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d41aba45a4959823ee000d41ec2d648.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Symmetric Interaction Combinators rules. Image by author, inspired from [Mazza,
+    2007](https://lipn.univ-paris13.fr/~mazza/papers/CombSem-MSCS.pdf)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, the single difference is that the rules γγ and *δδ* are now
+    the similar*.* The crucial confluence property is maintained, preserving its parallelization
+    capability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For now on, we will be using the SIC rules for our examples, so focus on them.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lambda Calculus → Symmetric Interaction Combinators
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now you may be asking “How can I write programs using that? How to transform
+    my Python function into interaction combinators drawings?”
+  prefs: []
+  type: TYPE_NORMAL
+- en: I mentioned before that you can represent any computable algorithm using lambda
+    calculus right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now another information: you can transform lambda calculus into interaction
+    combinators!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thus, any program can be transformed into lambda calculus, then transformed
+    into interaction combinators, run in parallel and then be transformed back!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e076537acd1508b1239640bb52df6823.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let’s understand how you can translate lambdas to interaction combinators!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Lambda *expressions ( λ )* and *applications* ( @ ) can be expressed using
+    a constructor γ. For instance, a lambda *expression λx.y* can be expressed as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c58777ecbcf6e4a9491e3330b3b727ff.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Lambda expression using SIC. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And for a given *application f x,* we can express it as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ebe37c5809c0a8c423f30e0b0fd100aa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Lambda application using SIC. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using these representations, we can express the identity *expression λx.x (*given
+    *x*, return *x* itself*):*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e373013cf236a706a208fb551c9163fb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*λx.x. Image by author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, imagine we want to do the *application* (*λx.x)y:*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a35facf020a380ffda8f89664bb32938.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*(λx.x)y* Image by author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we reduce the expression (*λx.x)y,* we will get *y* as result. Let’s analyze
+    what can we get using SIC rules?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that when there is an *application* applied to a lambda *expression,*
+    there will be an *active pair* that we can reduce! In this case, we will apply
+    the interaction rule γγ. Also, for now on, we will use a circle to identify the
+    final calculation result we are interested in.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cc9a7092abf3788fcfe1de34ad230f0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image bu author
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can notice, (*λx.x)y* was correctly reduced to *y*! Amazing, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, imagine we want to express *λf.ff (*given *f,* apply *f* to itself). As
+    you can notice, the parameter *f* is *duplicated* on the body. That’s when the
+    *duplicator (*δ) comes into action! We can use *duplicators* to copy (duplicate)
+    values:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/278b9ee8e57d4cb0d5631b5852fa73f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s go back to our expression *λf.ff.* First, identify that this is an *expression*
+    that given the input *f,* it outputs the *application f applied to f itself.*
+    Therefore, it can be expressed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0ce8478c7bffeffd294cca11cf909fd5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: “Given *f,* output *f* applied to *f”. Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Beyond duplication, variables can also be vanished. For instance, let’s take
+    the Church number **0 :=** *λf.λx.x.* This expression can be read as “given two
+    variables *f* and *x,* return *x”.* As you can notice, the variable *f* is not
+    used at the output. If we tried to represent using SIC with our current knowledge,
+    we would obtain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9ae939db655d63c9f4ebd1d9413bd566.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The *f* wire is floating. Something seems wrong, right? That’s why we have
+    the *eraser ε!* In order to represent this variable disappearance we do:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6040c5d8fa64b89e2b89de2eb863ec5c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In summary, we can handle Lambda Calculus with Symmetric Interaction Combinators
+    using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/069a7921a0fe243a1b2ec902d8e22bc4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author. Inspired by [https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Examples
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we covered these transformations, we are able to perform more complex
+    operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Church numbers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s draw some Church numbers!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71ff48be81fb16b7f945787eb7255ece.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before we go further, try to replicate this yourself! Get a paper and start
+    drawing! For instance, let’s try to draw together the Church number four: *λf.λx.f(f(f(f
+    x))).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The thing that I draw is the outer lambda expression *λf.____*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4baf00423b2cde5b9974dbf4bd517d25.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Given f, output *λ*x.f(f(f(f x))). Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, the second lambda expression __.*λx.*____:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/888164d02fd47ceb1a2abb3a2ff90029.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Given x, output f(f(f(f x))). Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now, we need to draw the *applications* (@). But first, notice that we have
+    *f* repeated four times. Therefore, we need to copy (duplicate) *f* three more
+    times (so we need three duplicators in sequence):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35deea54aa6b8d04016bec1d7ed8b016.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Duplications of f. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have four copiesof *f,* we can draw the *applications*of *f* to
+    *f* in sequence!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5669ee7a20e95e2d0fd88ff9ed37c799.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Church number 4 with SIC. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the same strategy, we can easily construct other expressions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Successor
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let’s implement the successor function. It is given by *λn.λf.λx.f((n f) x).*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/91eb0ac0fbac96178e46ccddbf24a7b5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Successor. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s apply SUCC to the number *0* and analyze what we get.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/73bd398bd363b80c9d6693a543157c27.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SUCC 0\. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s apply the interaction rules. In order to facilitate readability, I will
+    draw *duplicators* δ as black cells and *constructors* γ as white cells:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7483476d2c7eba05287c470db99a8219.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SUCC 0 reductions. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Well, we should have reached the Church numeral 1, right? What went wrong?
+    Take a look at the *eraser ε* connected to the auxiliary port of the duplicator
+    δ (in black):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8cc2c94526e90cb7650bcd2f8a8b940b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: This *eraser* is making this left auxiliary port to be redundant! All of the
+    information passed through this duplicator will be erased. For any *cell* that
+    interacts with this *duplicator,* the *left* part will be *erased.*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So we can remove this redundant *duplicator* and connect the *wire* directly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e662d51b21d3f99a9bf46d1bdad4415a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And *voila!* After reducing SUCC(0) we got exactly the Church number 1, as expected!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s apply SUCC againt to the number 1 and see if we get the number 2:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ff417ab383f7dcf4fa7f00fbfc20c8f3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SUCC 1\. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c554d864f027d5ae5fd12834413a298.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SUCC 1 = 2\. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We got exactly the Church number 2! Amazing, right?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Addition
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'So far, we have just performed sequential reductions. Let’s do a more complex
+    one, such as addition, to visualize the full parallelization potential of interaction
+    combinators. Below the SIC representation of addition: *ADD(m, n) = λm.λn.λf.λx.(m
+    f)((n f) x).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/07cb4ec55cf4a0856b417a91a615ad90.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Addition. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s calculate ADD 1 1:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/46ca9526345dc51c5260799e471fea3b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ADD 1 1\. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Executing the reductions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/05ad0dece29ad44eb9b72af6669863e0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take a look at this step. There are two active pairs! In cases like this we
+    can reduce both in parallel. In a real program, we could run them in two different
+    threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s continue:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a3e0763cf67f8158a12daa49fcfac41.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ADD 1 1 = 2\. Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: After reducing ADD 1 1 we got exactly the representation of the Church number
+    2!
+  prefs: []
+  type: TYPE_NORMAL
+- en: And that’s how the operations are parallelized using Interaction Combinators.
+    At each step, if there are multiples active pairs, all of them run in different
+    threads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post we covered basic concepts of lambda calculus, interaction combinators,
+    and how they are combined to parallelize operations. I hope I could give you a
+    brief explanation on how Bend/HVM works and for more information, please visit
+    their [website](https://higherorderco.com/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, follow me here and on my [LinkedIn profile](https://www.linkedin.com/in/lucas-de-lima-nogueira/)
+    to stay updated on my latest articles!
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[HigherOrderCO website](https://higherorderco.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Lafont’s Interaction Combinators paper](https://core.ac.uk/download/pdf/81113716.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[How HVM works video](https://www.youtube.com/watch?v=sDPuQ-UjhVQ&t=1591s)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Interaction combinators tutorial 1](https://zicklag.katharos.group/blog/interaction-nets-combinators-calculus/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Interaction combinators tutorial 2](https://blog.stevenhuyn.com/succ/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Lambda calculus tutorial](https://learnxinyminutes.com/docs/lambda-calculus/)'
+  prefs: []
+  type: TYPE_NORMAL

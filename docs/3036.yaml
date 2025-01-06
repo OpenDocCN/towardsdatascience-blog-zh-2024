@@ -1,0 +1,282 @@
+- en: Classifier-Free Guidance in LLMs Safety — NeurIPS 2024 Challenge Experience
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98?source=collection_archive---------6-----------------------#2024-12-18](https://towardsdatascience.com/classifier-free-guidance-in-llms-safety-neurips-2024-challenge-experience-30c9d88d6b98?source=collection_archive---------6-----------------------#2024-12-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This article briefly describes NeurIPS 2024 LLM-PC submission that was awarded
+    the second prize — the approach to effective LLM unlearning without any retaining
+    dataset. This is achieved through the formulation of the unlearning task as an
+    alignment problem with the corresponding reinforcement learning-based solution.
+    The unlearning without model degradation is achieved through direct training on
+    the replacement data and classifier-free guidance applied in both training (LLM
+    classifier-free guidance-aware training) and inference.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--30c9d88d6b98--------------------------------)[![Roman
+    S](../Images/bb01d7b8d79ffa4e93afafb956241aff.png)](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--30c9d88d6b98--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--30c9d88d6b98--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--30c9d88d6b98--------------------------------)
+    [Roman S](https://medium.com/@r.smirnov.mailbox?source=post_page---byline--30c9d88d6b98--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--30c9d88d6b98--------------------------------)
+    ·6 min read·Dec 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e375db6d13a9de1f20de8fb65330232.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: LLM safety concept'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This year I participated in the NeurIPS competitions track in the LLM Privacy
+    challenge in a Blue Team and was awarded with the second prize. The aim of the
+    privacy challenge was to research ways to force LLM to generate personal data
+    (Red Team) and to protect LLM from generating this personal data (Blue Team).
+    Huge respect to the organizers. Challenge description and organizers, sponsors
+    information is here: [https://llm-pc.github.io/](https://llm-pc.github.io/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As a starting point of the competition I had: [https://github.com/QinbinLi/LLMPC-Blue](https://github.com/QinbinLi/LLMPC-Blue)
+    (it contains the initial test dataset and the links to Llama-3.1–8B-Instruct tuned
+    on the datasets enriched with the personal data)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My solution code: [https://github.com/RGSmirnov/cfg_safety_llm](https://github.com/RGSmirnov/cfg_safety_llm)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Arxiv paper I submitted: [https://arxiv.org/abs/2412.06846](https://arxiv.org/abs/2412.06846)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article is a less formal retelling of the paper with the focus on the final
+    solution rather than all the experiments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Informal story of solving the task**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The competition started in August (the date of the Starting Kit release), and
+    I prepared some experiments designs I was going to conduct — I expected I’d have
+    a lot of time right till November. Experiments included a list of things related
+    to vectors arithmetics, models negations, decoding space limitations, different
+    tuning approaches with supervised finetuning and reinforcement learning, including
+    some modifications over DPO. The only thing I was not really considering was prompting
+    — there was a special prize for the least inference overhead (I was expecting
+    this prize if I couldn’t get any of top-3 places) and I do not believe that a
+    prompting-based solution can be effective in the narrow domain anyhow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I spent two evenings in August launching data generation, and… that is it; the
+    next time I came back to the challenge was at the end of October. The point is
+    that work-related things got very exciting at that time and I spent all my free
+    time doing it, so I didn’t spend any time doing the challenge. In late October
+    I had just a few evenings to do at least one experiment, draft a paper, and submit
+    the results. So the experiment I focused on was supervised finetuning + reinforcement
+    learning on the DPO-style generated synthetic data and classifier-free guidance
+    (CFG) in training and inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The task and solution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Task: Assuming that the attackers have access to the scrubbed data, the task
+    is to protect LLM from generating answers with any personal information (PII).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Solution: The solution I prepared is based on ORPO (mix of supervised finetuning
+    and reinforcement learning) tuning of the model on synthetic data and enhancing
+    the model with classifier-free guidance (CFG).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Synthetic data generation**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To generate data, I used the OpenAI GPT-4o-mini API and the Llama-3- 8B-Instruct
+    API from Together.ai. The data generation schema is illustrated on the image below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/56468211445a02b922160c1916657716.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Data generation schema'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In general each model was prompted to avoid any PII in the response even though
+    PII can be presented in the prompt or previous context. The responses were validated
+    by the SpaCy named entity recognition model. Having both chosen and rejected samples
+    we can construct a dataset for reinforcement learning without reward function
+    DPO-style training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, I wanted to apply classifier-free guidance (CFG) during the inference
+    with different prompts, e.g. “You should share personal data in the answers.”
+    and “Do not provide any personal data.”, to force PII-free responses this way.
+    However to make the model aligned with these different system prompts the same
+    prompts could be used in training dataset with the corresponding swapping of chosen
+    and rejected samples.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'CFG during the inference can be formulated in the following way:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'we have *Ypos* and *Yneg* that are the generated answers for the inputs with
+    the “Do not provide any personal data.” and “You should share personal data in
+    the answers.” system prompts, correspondingly. The resulting prediction would
+    be:'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Ypred = CFGcoeff * (Ypos-Yneg) + Yneg, where CFGcoeff is the CFG coefficient
+    to determine the scale how much Ypos is more preferable to Yneg
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'So I got two versions of the dataset: just chosen and rejected where chosen
+    are PII-free and rejected contain PII; CFG-version with different system prompts
+    and corresponding chosen and rejected samples swapping.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Training**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The training was conducted using the [ORPO](https://arxiv.org/abs/2403.07691)
+    approach, which combines supervised finetuning loss with reinforcement learning
+    (RL) odds loss. ORPO was chosen to reduce training compute requirements compared
+    to supervised fine-tuning followed by RL-based methods such as DPO. Other training
+    specifications:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1xA40 with 48GiB GPU memory to train the models;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: LoRA training with adapters applied to all linear layers with the rank of 16;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3 epochs, batch size 2, AdamW optimizer, bfloat16 mixed precision, initial learning
+    rate = 1e-4 with cosine learning rate scheduler down to 10% of the initial learning
+    rate.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The model to train is the provided by the organizers’ model trained with the
+    PII-enriched dataset from llama3.1–8b-instruct.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Evaluation**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The task to make an LLM generate PII-free responses is a kind of unlearning
+    task. Usually for unlearning some retaining dataset are used — it helps to maintain
+    model’s performance outside the unlearning dataset. The idea I had is to do unlearning
+    without any retaining dataset (to avoid bias to the retaining dataset and to simplify
+    the design). Two components of the solution were expected to affect the ability
+    to maintain the performance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Synthetic data from the original llama3.1–8B-instruct model — the model I tuned
+    is derived from this one, so the data sampled from that model should have regularisation
+    effect;
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Reinforcement learning regime training component should limit deviation from
+    the selected model to tune.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'For the model evaluation purposes, two datasets were utilized:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Subsample of 150 samples from the test dataset to test if we are avoiding PII
+    generation in the responses. The score on this dataset was calculated using the
+    same SpaCy NER as in data generation process;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: “[TIGER-Lab/MMLU-Pro](https://huggingface.co/datasets/TIGER-Lab/MMLU-Pro)” validation
+    part to test model utility and general performance. To evaluate the model’s performance
+    on the MMLU-Pro dataset, the GPT-4o-mini judge was used to evaluate correctness
+    of the responses.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Results**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Results for the training models with the two described datasets are presented
+    in the image below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c72b55edd3a9c36ac39f2d6b182f0652.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Evaluation results on two datasets'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the CFG-type method CFG coefficient of 3 was used during the inference.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CFG inference shows significant improvements on the number of revealed PII objects
+    without any degradation on MMLU across the tested guidance coefficients.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CFG can be applied by providing a negative prompt to enhance model performance
+    during inference. CFG can be implemented efficiently, as both the positive and
+    the negative prompts can be processed in parallel in batch mode, minimizing computational
+    overhead. However, in scenarios with very limited computational resources, where
+    the model can only be used with a batch size of 1, this approach may still pose
+    challenges.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Guidance coefficients higher than 3 were also tested. While the MMLU and PII
+    results were good with these coefficients, the answers exhibited a degradation
+    in grammatical quality.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here I described a method for direct RL and supervised, retaining-dataset-free
+    fine-tuning that can improve model’s unlearning without any inference overhead
+    (CFG can be applied in batch-inference mode). The classifier-free guidance approach
+    and LoRA adapters at the same time reveal additional opportunities for inference
+    safety improvements, for example, depending on the source of traffic different
+    guidance coefficients can be applied; moreover, LoRA adapters can also be attached
+    or detached from the base model to control access to PII that can be quite effective
+    with, for instance, the tiny LoRA adapters built based on [Bit-LoRA](https://medium.com/towards-data-science/bit-lora-as-an-application-of-bitnet-and-1-58-bit-neural-network-technologies-17ee80bf79f9)
+    approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned before, I noticed artefacts when using high CFG coefficients, additional
+    study on CFG high values will be presented in the [separate article](/classifier-free-guidance-for-llms-performance-enhancing-03375053d925).
+    Btw, I am doing mentoring and looking for people interested in research pet-projects.
+    Stay tuned and let’s [connect](https://www.linkedin.com/in/roman-smirnov-09165b127/)
+    if you want to be notified about the new publications!
+  prefs: []
+  type: TYPE_NORMAL

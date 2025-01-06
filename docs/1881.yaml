@@ -1,0 +1,312 @@
+- en: 'Building a RAG Pipeline with MongoDB: Vector Search for Personalized Picks'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/building-a-rag-pipeline-with-mongodb-vector-search-for-personalized-movie-picks-46a58a2aaac9?source=collection_archive---------8-----------------------#2024-08-01](https://towardsdatascience.com/building-a-rag-pipeline-with-mongodb-vector-search-for-personalized-movie-picks-46a58a2aaac9?source=collection_archive---------8-----------------------#2024-08-01)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)[![Pablo
+    Merchán-Rivera, Ph.D.](../Images/a560330911c7ba23fd4839e33e528f5a.png)](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------)
+    [Pablo Merchán-Rivera, Ph.D.](https://medium.com/@pablomerchanrivera?source=post_page---byline--46a58a2aaac9--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--46a58a2aaac9--------------------------------)
+    ·7 min read·Aug 1, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article explores the construction of a movie recommendation system using
+    a Retrieval-Augmented Generation (RAG) pipeline. The objective is to learn how
+    to harness the power of MongoDB’s vector search capabilities, transform data descriptions
+    into searchable digital fingerprints, and create a system that understands the
+    nuances of your preferences and your communication. In other words, we will aim
+    to build a recommendation system that’s not just smart, but also efficient.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By the end of this article, you’ll have built a functional movie recommendation
+    system. This system will be able to take a user’s query, such as *“I want to watch
+    a good sci-fi movie that explores artificial intelligence”* or *“What is a good
+    animated film that adults would enjoy too? What makes your suggestion a good fit?”*
+    and return relevant movie suggestions and the choice reasoning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a1cde82c3c844d5926591d0148cf5a4f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Alexandr Popadin](https://unsplash.com/@irrabagon?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is a RAG Pipeline?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A RAG pipeline refers to the sequential flow of data through a series of processing
+    steps that combines the strengths of large language models (LLMs) with structured
+    data retrieval. It works by first retrieving relevant information from a knowledge
+    base, and then using this information to augment the input of a large language
+    model, which generates the final output. The primary objective of such a pipeline
+    is to generate more accurate, contextually appropriate, and personalised responses
+    to user-specific queries from vast databases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why MongoDB?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: MongoDB is a open-source NoSQL database that stores data in flexible, JSON-like
+    documents, allowing for easy scalability and handling of diverse data types and
+    structures. MongoDB plays a significant role in this project. Its document model
+    aligns well with our movie data, while its vector search capabilities enable similarity
+    searches on our embeddings (i.e., the numerical representations of movie content).
+    We can also take advantage of indexing and query optimisation features to maintain
+    quick data retrieval even as the dataset expands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our Project
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here’s what our pipeline will look like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Set up the environment and load movie data from Hugging Face
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Model the data using Pydantic
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Generate embeddings for the movies information
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Ingest the data into a MongoDB database
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Create a Vector Search Index in MongoDB Atlas
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Perform vector search operations to find relevant movies
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Handle user queries with an LLM model
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Use the RAG pipeline to get a movie recommendation
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Step 1: Setting Up the Environment and Loading the Dataset'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First, we need to import the necessary libraries and set up our environment.
+    This also involves setting up our API keys and the connection string that the
+    application uses to connect to a MongoDB database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we load our movie dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The dataset contains more than 9000 entries. However, for this exercise, we’re
+    limiting our dataset to 200 movies using `dataset.take(200)`. In a real-world
+    scenario, you’d likely use a much larger dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Modeling the Data with Pydantic'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Data modeling is crucial for ensuring consistency and type safety in our application.
+    Hence, we use Pydantic for this purpose:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using Pydantic provides several benefits, such as automatic data validation,
+    type checking, and easy serialization/deserialization. Notice that we also created
+    a `text_embeddings` field that will store our generated embeddings as a list of
+    floats
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: Embedding Generation'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Now, we can use the OpenAI API and write a function for generating embeddings,
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the previous code lines, we first check if the input is valid (non-empty
+    string). Then, we use OpenAI’s embeddings.create method to generate the embedding
+    using the “text-embedding-3-small” model, which generates 1536-dimensional embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we can process each record and generate embeddings with the previous function.
+    We also add some lines to process the `'Genre'` field, converting it from a string
+    (if it exists) to a list of genres.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: These embeddings will allow us to perform semantic searches later, finding movies
+    that are conceptually similar to a given query. Notice that this process might
+    take some time, especially for larger datasets, as we’re making an API call for
+    each movie.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 4: Data Ingestion into MongoDB'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We establish a connection to our MongoDB database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We insert our processed and embedded data into MongoDB, which allows us to
+    efficiently store and query our movie data, including the high-dimensional embeddings:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 5: Creating a Vector Search Index in MongoDB Atlas'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before we can perform vector search operations, we need to create a vector
+    search index. This step can be done directly in the MongoDB Atlas platform:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Log in to your MongoDB Atlas account
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Navigate to your cluster
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Go to the “Search & Vector Search” tab
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Click on “Create Search Index”
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Choose “JSON Editor” in the “Atlas Vector Search” section and use the following
+    configuration:'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The idea is to create a vector search index named `"vector_index_text"` on the
+    `"text_embeddings"` field. We use cosine similarity because it helps us find movies
+    with similar themes or content by comparing the direction of their embedding vectors,
+    ignoring differences in length or amount of detail, which is really good for matching
+    a user’s query to movie descriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 6: Implementing Vector Search'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now, we implement the vector search function. The following function is meant
+    to perform a vector search in our MongoDB collection. It first generates an embedding
+    for the user’s query. It then constructs a MongoDB aggregation pipeline using
+    the $vectorSearch operator. The search looks for the 20 nearest neighbors among
+    150 candidates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We implement a retry mechanism (up to 3 attempts) to handle potential transient
+    issues. The function executes the `explain` command as well, which provides detailed
+    information about the query execution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 7: Handling User Queries with a LLM'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, we can handle user queries. First, we define a `SearchResultItem`
+    class to structure our search results. Then, the `handle_user_query` function
+    ties everything together: it performs a vector search based on the user’s query,
+    formats the search results into a pandas DataFrame, and then uses OpenAI’s GPT
+    model (i.e., gpt-3.5-turbo) to generate a response based on the search results
+    and the user’s query, and displays the results and the generated response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This function actually demonstrates the core value of this RAG: we generate
+    a contextually appropriate response by retrieving relevant information from our
+    database.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 8\. Using the RAG Pipeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'To use this RAG pipeline, you can now make queries like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The system would give a respond similar to this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Building a RAG pipeline involves several steps, from data loading and modeling
+    to embedding generation and vector search. This example showcases how a RAG pipeline
+    can provide informative, context-aware responses by combining the specific movie
+    data in our database with the natural language understanding and generation capabilities
+    of the language model. On top of this, we use MongoDB because it is well-suited
+    for this type of workflow due to its native vector search capabilities, flexible
+    document model, and scalability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can expand on this system by adding more data, fine-tuning your embeddings,
+    or implementing more complex recommendation algorithms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*For the complete code and additional resources, check out the* [*GitHub repository*](https://github.com/mr-pablinho/rag-mongodb-moviepl)*.
+    The dataset used in this project is sourced from* [*Kaggle*](https://www.kaggle.com/datasets/disham993/9000-movies-dataset/data)
+    *and has been granted CC0 1.0 Universal (CC0 1.0) Public Domain Dedication by
+    the original author. You can find the dataset and more information* [*here*](https://huggingface.co/datasets/Pablinho/movies-dataset)*.*'
+  prefs: []
+  type: TYPE_NORMAL

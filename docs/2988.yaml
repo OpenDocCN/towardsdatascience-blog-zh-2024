@@ -1,0 +1,367 @@
+- en: 'SQLite in Modern Web Production: Dreams Becoming Reality'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/sqlite-in-production-dreams-becoming-reality-94557bec095b?source=collection_archive---------0-----------------------#2024-12-12](https://towardsdatascience.com/sqlite-in-production-dreams-becoming-reality-94557bec095b?source=collection_archive---------0-----------------------#2024-12-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: On the virtues of radical simplicity
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ed.izaguirre?source=post_page---byline--94557bec095b--------------------------------)[![Ed
+    Izaguirre](../Images/c9eded1f06c47571baa662107428483f.png)](https://medium.com/@ed.izaguirre?source=post_page---byline--94557bec095b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--94557bec095b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--94557bec095b--------------------------------)
+    [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--94557bec095b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--94557bec095b--------------------------------)
+    ·10 min read·Dec 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2bc16ed3ce0f1cb1d7050f5368656ff2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simple landscape. From Unsplash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*This**is the first in a two-part series on using SQLite for web applications
+    and machine learning. In this article, I dive into why SQLite is rapidly becoming
+    a production-ready database for modern web apps. In the second article, I will
+    discuss how to perform retrieval-augmented-generation using SQLite.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*If you’d like a custom web application with generative AI integration, visit*
+    [*losangelesaiapps.com*](https://losangelesaiapps.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'SQLite: Escape from the Cave of Complexity'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/3621646166a7c86da96ea5b1aaa9caf6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Plato’s Allegory of the Cave](https://en.wikipedia.org/wiki/Allegory_of_the_cave),
+    by Jan Saenredam, 1604.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: “If you seek tranquility, do less.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: — *Marcus Aurelius*
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Most databases running modern web software today operate on a **client-server
+    architecture**. In this architecture, the server is the central system that manages
+    data. It processes requests from and sends responses to clients. Clients here
+    refer to users or applications that interact with the database through the server.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/079e71dc5d51a6101c4f07437aa23740.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The client-server architecture. From pixabay.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple way to understand this architecture is to use the analogy of libraries.
+    The server is the *library*, each piece of data is a *book*, and the client is
+    a *visitor*. In this world, visitors don’t pick books out directly from the shelves.
+    They instead must go through the librarian, who has meticulously organized their
+    library to make it easy to find a book. In this world, a visitor’s access to the
+    library is mediated entirely through the library’s staff (server-side).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a pretty neat architecture. However, for smaller, lightweight applications
+    it is engineering overkill. If you only have a few books, why do you need to build
+    multiple shelves, let alone multiple rooms? The alternative to the client-server
+    architecture is the **single-file architecture** used by the **SQLite database**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the uninitiated, SQLite is the Platonic ideal of databases. As opposed
+    to running an entire server to manage the access to data, this database is housed
+    entirely within a single file. Your application is then able to create, read,
+    update, and destroy data by simply modifying this one file. When you deploy a
+    web application backed by a client-server database, you are deploying not one
+    service but two services: one for your application and one for your database.
+    With SQLite, you only have to deploy a single service: your application with the
+    SQLite file included. This means less complexity and less cost.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Returning to our analogy, using SQLite is like having a single notebook in which
+    all of your data is stored. No shelves, no libraries, no librarians. You just
+    open the book and add, delete, or update your data. Perhaps you can get fancy,
+    and add an index in the back of your book to speed up search. You can imagine
+    how much simpler this would be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, as they say in economics: there are no solutions, there are only trade-offs.
+    SQLite is not perfect, and there are valid reasons for why it has rarely seen
+    usage in modern web applications. In this article, I will highlight some of the
+    issues that have dogged SQLite and how recent advancements have removed these
+    barriers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Issue #1: Concurrency'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The primary issue in SQLite has traditionally been **concurrency related.**
+    SQLite uses a write lock to ensure that only one write operation occurs at a time.
+    We don’t want transactions interfering with each other. If you attempt to send
+    concurrent write requests, you will often get a `SQLITE_BUSY` error, and one of
+    the transactions will have been lost. In the case of concurrent requests, we want
+    the transactions to queue up and play nice with each other.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, the default transaction mode in SQLite does not facilitate this.
+    Some important background: a **transaction** typically involves a series of database
+    **statements**, such as reads and writes, that are executed together.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The default transaction mode in SQLite is the **deferred transaction mode.**
+    In this mode:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: No lock is acquired at the start of the transaction.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A **read-only statement** doesn’t trigger a write lock; it only requires a shared
+    read lock, which allows concurrent reads. Think `SELECT` statements.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A **write statement** requires an exclusive write lock, which blocks all other
+    reads and writes until the transaction is complete. Think `INSERT`, `UPDATE`,
+    or `DELETE` statements.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As an example, take a look at the following two transactions. Suppose they
+    were to run at the same time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: In this scenario, because `Transaction 1` was mid-transaction when the `SQLITE_BUSY`
+    exception was thrown, it will not be re-queued after `Transaction 2` is finished
+    with the write lock; it will just be cancelled. SQLite doesn’t want to risk inconsistent
+    results should another transaction modify overlapping data during the lock wait,
+    so it just tells the interrupted transaction to buzz off.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Think of it this way: imagine you and your friend are sharing a notebook. You
+    start reading a half-finished story in the notebook, planning to write the next
+    part. But before you can pick up your pen, your friend snatches the notebook.
+    “*You weren’t writing anything anyway!*” they exclaim. What if they change something
+    crucial in your story? Frustrated and unable to continue, you give up in a huff,
+    abandoning your attempt to finish the story. Turns out, your friend isn’t as nice
+    as you thought!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'How can we fix this issue? What if you establish the following rule: when one
+    of you grabs the notebook, **regardless of if you are reading or writing**, that
+    person gets to use the notebook until they are done? Issue solved!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This transaction mode in SQLite is known as **immediate**. Now, when one transaction
+    begins, regardless of whether it is writing or reading, it claims the write lock.
+    If a concurrent transaction attempts to claim the write lock, it will now queue
+    up nicely behind the current one instead of throwing the `SQLITE_BUSY` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the immediate transaction mode goes a long way towards solving the concurrency
+    issue in SQLite. To continue improving concurrency, we can also change the **journal
+    mode**. The default here is a **rollback journal**. In this paradigm, the original
+    content of a database page is copied *before* modification. This way, if the transaction
+    fails or if you so desire, you can always go back to the journal to restore the
+    database to its original state. This is great for reproducibility, but bad for
+    concurrency. Copying an entire page in a database is slow and grabs the write
+    lock, delaying any read operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To fix this issue we can instead use **write-ahead logging (WAL)**. Rather than
+    writing changes directly to the main database file, the changes are first recorded
+    in a separate log file (the “write-ahead log”) before being applied to the database
+    at regular intervals. Readers can still access the most recently committed write
+    operations, as SQLite checks the WAL file in addition to the main database file
+    on read. This separates write and read operations, easing concurrency issues that
+    can come as a result of scaling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To continue our analogy, write-ahead logging is like grabbing a post-it-note
+    every time a change to the shared notebook needs to occur. If anyone wants to
+    read a section of the notebook, they can check if there are any post-its attached
+    to that section to get the latest updates. You can have many people simultaneously
+    reading the notebook at the same time with this method. Once a lot of post-its
+    start to accumulate, you can then edit the actual notebook itself, tossing the
+    post-its once the edits have finished.
+  prefs: []
+  type: TYPE_NORMAL
+- en: These configuration options in SQLite have been around for decades (write-ahead-logging
+    was introduced in 2010). Given this, why hasn’t SQLite been used in production
+    for decades? That leads us to our next issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Issue #2: Slow hardware'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Hard disk drives (HDD) are notoriously slow compared to solid state drives (SSD)
+    on a variety of operations that are important to database management. For example,
+    SSDs are about 100 times faster than HDDs when it comes to latency (time it takes
+    for a single I/O operation). In random I/O operations per second (IOPS), SSDs
+    are about 50–1000 times faster than HDDs. SSDs are so much faster than HDDs because
+    of the lack of moving parts. HDDs use spinning disks and moving parts to read
+    and write data, much like an old turntable, whereas SDDs use only electronic components,
+    much like a giant USB stick.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite their inferiority, HDDs have historically dominated the storage market
+    primarily due to low cost. However, SDDs have quickly been catching up. In 2011,
+    SSDs were roughly 32 times more expensive per GB than HDDs ([source](https://www.tomshardware.com/news/ssd-hdd-solid-state-drive-hard-disk-drive-prices%2C14336.html?utm_source=chatgpt.com)).
+    By 2023, the price gap narrowed, with SSDs now being about 3 to 5 times more expensive
+    per GB compared to HDDs ([source](https://darwinsdata.com/how-much-does-ssd-cost-per-gb-vs-hdd/?utm_source=chatgpt.com)).
+    In the past year, SSD prices have increased due to cuts from manufacturers like
+    Samsung and increasing demand in data centers. In the long run however, we can
+    expect SSDs to continue to decrease in price. Even if parity is never reached
+    with HDDs, the low absolute price is enough to ensure widespread adoption. In
+    2020, SSDs outsold HDDs, with 333 million units shipped compared to 260 million
+    HDDs, marking a turning point in the storage market ([source](https://www.pcgamer.com/fun-fact-ssds-outsold-hdds-last-year-but-not-in-total-capacity/?utm_source=chatgpt.com)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As of December 2024, you can rent a dedicated vCPU with 80 GB of SSD storage
+    for about $16 USD per month on a service like [Hetzner](https://www.hetzner.com/cloud).
+    240 GB can be had for about $61\. You can get even cheaper prices with a shared
+    vCPU. For many smaller applications this storage is more than enough. The use
+    of cheap SSDs has removed a significant bottleneck when using SQLite in production-grade
+    web applications. But there is still one more important issue to deal with.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Issue #3: Backups'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It goes without saying that having a backup to your database is critical in
+    production. The last thing any startup wants is to have their primary database
+    get corrupted and all user data lost.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first option for creating a backup is the simplest. Since the SQLite database
+    is just a file, you can essentially copy and paste your database into a folder
+    on your computer, or upload it to a cloud service like AWS S3 buckets for more
+    reliability. For small databases with infrequent writes this is a great option.
+    As a simple example (taken from the [Litestream docs](https://litestream.io/alternatives/cron/)),
+    here is a bash script creating a backup:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A few notes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `-e` option in`set -e` stands for “exit immediately”. This makes sure that
+    the script will be stopped if any command fails.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SQLite’s `VACUUM INTO` command creates a compact backup of the SQLite database.
+    It reduces fragmentation in the database and the file size. Think of it as a neat
+    and tidy version of your database. However you don’t have to use `VACUUM INTO`
+    ; you can replace it with `.backup` . This copies the entire database file, including
+    all its data and structure as-is to another file.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: SQLite databases compress well, and the `gzip` command facilitates this.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, you can upload the copy of the file to your cloud storage provider
+    of choice. Here we are uploading to S3.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If you want to have your backups run automatically, you can configure `crontab`
+    to run this job on a regular basis. Here we are running the script daily at midnight:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: For write-heavy databases, where you would want to capture the state of the
+    database at any given moment, you can use [Litestream](https://litestream.io/alternatives/cron/).
+    This is an open-source tool designed to provide *real-time replication* for SQLite
+    databases by streaming changes to a remote storage backend.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Litestream is able to track changes to SQLite’s WAL file. Remember the post-it
+    notes? Whenever a new transaction is recorded to the WAL file, Litestream is able
+    to replicate these incrementally to your cloud storage provider of choice. This
+    allows us to maintain a near real-time backup of the database without creating
+    full copies each time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To get started with Litestream, you first have to install it. On MacOS this
+    means using Homebrew. Then, you need to setup a `litestream.yml` configuration
+    file:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here, we are going to be streaming transactions to our database to an S3 bucket.
+    Then we can run the following command to begin replication:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this case, we are setting any transactions in `your.db` to be replicated
+    in an S3 bucket. That’s it! You are then able to restore a SQLite database to
+    any previous state by replaying WAL changes. As an example, if you want to create
+    a copy of your db called `restored.db` from a timestamp of 15:00 UTC dated 2024–12–10,
+    you can run the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: To get a backup of the latest version of your database, just omit the `-timestamp
+    flag` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I encourage you to watch this recent [talk at Rails World 2024](https://www.youtube.com/watch?v=wFUy120Fts8)
+    to see how SQLite is rapidly becoming production-ready for modern web apps. They
+    have implemented some of the changes we have discussed here to their SQLite adapter.
+    I also recommend reading [Stephen Margheim’s article](https://fractaledmind.github.io/2024/04/15/sqlite-on-rails-the-how-and-why-of-optimal-performance/)
+    detailing his work on SQLite in Rails if you want to dive deeper. You better believe
+    these sorts of improvement are coming soon to [Django](https://gcollazo.com/optimal-sqlite-settings-for-django/),
+    [Laravel](https://laravel-news.com/optimize-db-for-laravel-sqlite), etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The improvements to SQLite for production are not finished. David Heinemeier
+    Hansson, creator of Rails, wants to push SQLite to be able to run a mid-size SaaS
+    company off of. Exciting times!
+  prefs: []
+  type: TYPE_NORMAL

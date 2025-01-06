@@ -1,0 +1,285 @@
+- en: Hacking “Codenames” with GloVe Embeddings
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/hacking-codenames-with-glove-embeddings-0cf928af0858?source=collection_archive---------7-----------------------#2024-07-16](https://towardsdatascience.com/hacking-codenames-with-glove-embeddings-0cf928af0858?source=collection_archive---------7-----------------------#2024-07-16)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using a GloVe embedding-based algorithm to achieve 100% accuracy on the popular
+    party game “Codenames”
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)[![Zhiheng
+    Jiang](../Images/a83400a64f7ec5f1d579c6fba6da05b9.png)](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)
+    [Zhiheng Jiang](https://jiangzh.medium.com/?source=post_page---byline--0cf928af0858--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0cf928af0858--------------------------------)
+    ·7 min read·Jul 16, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Codenames](https://codenames.game/) is a popular party game for 2 teams of
+    2 players each, where each team consists of a spymaster and an operative. Each
+    team is allocated a number of word cards on a game board. During each turn, the
+    spymaster provides a word clue, and the number of word cards it corresponds to.
+    The operative would then have to guess which words on the game board belong to
+    his/her team. The objective is for the spymaster to provide good clues, such that
+    the operative can use fewer number of turns to guess all the words, before the
+    opponent team. In addition, there will be an “assassin” card, which upon being
+    chosen by the operative, causes the team to lose immediately.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this project, we are going to use a simple word vector algorithm using pre-trained
+    word vectors in machine learning to maximize our accuracy in solving the game
+    in as few tries as possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Below are examples of what the game board looks like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef91552569e8509704b3ca7648c0890c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Spymaster View (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b4f8e55702cf738cf5afb1d412926980.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Operative View (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the card arrangement for the Spymaster, the color of each card represents
+    Red Team, Blue Team, Neutral (Beige) and Assassin Card (Black).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Automating the spymaster and operative
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We will be creating an [algorithm](https://github.com/jzh001/codenames) that
+    can take on both the roles of spymaster and operative and play the game by itself.
+    In a board of 25 cards, there will be 9 “good” cards and 16 “bad” cards (including
+    1 “assassin” card).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Representing meaning with GloVe embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In order for the spymaster to give good clues to the operative, our model needs
+    to be able to understand the meaning of each word. One popular way to represent
+    word meaning is via word embeddings. For this task, we will be using pre-trained
+    [GloVe embeddings](https://nlp.stanford.edu/projects/glove/), where each word
+    is represented by a 100-dimensional vector.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We then score the similarity between two words using cosine similarity, which
+    is the dot product of two vectors divided by their magnitudes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cdac39603dd26713dca9dfbdad647b5c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Operative: Decoding Algorithm'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: During each turn, the operative receives a clue *c*, and an integer *n* representing
+    the number of corresponding words to guess. In other words, the operator has to
+    decode a *{c, n}* pair and choose *n* words one at a time without replacement,
+    until a wrong word is reached and the turn ends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Our decoder is a straightforward greedy algorithm: simply sort all the remaining
+    words on the board based on cosine similarity with the clue word *c*, and pick
+    the top *n* words based on similarity score.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Spymaster: Encoding Algorithm'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: On each turn, based on the remaining “good” and “bad” words, the spymaster has
+    to pick *n* words and decide on a clue *c* to give to the operative. One assumption
+    we make here is that the spymaster and operative agree on the decoding strategy
+    mentioned above, and hence the operator will pick the optimal *{c, n}* that will
+    maximize the number of correct words chosen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point, we can make an observation that the clue *c* is an information
+    bottleneck, because it has to summarize *n* words into a single word *c* for the
+    operative to decode. The word vector of the encoded clue lies in the same vector
+    space as each of the original word vectors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4fcc5c4d51b44ad6289128c84d3ca814.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Mechanics of encoder-decoder system (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Generating clue candidates**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Word embeddings have the property of enabling us to represent composite meanings
+    via the addition and subtraction of different word vectors. Given set of “good”
+    words *G* and set of “bad” words *B*, we can use this property to obtain an “average”
+    meaning of a “good” word, with reference to the “bad” words, by computing a [normalized
+    mean](https://github.com/piskvorky/gensim/blob/develop/gensim/models/keyedvectors.py#LC690:%7E:text=def%20most_similar,self%2C)
+    of the vectors, with “good” word vectors being added, and “bad” word vectors being
+    subtracted. This average vector enables us to generate clue candidates:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Negative sampling**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As the number of “bad” words usually exceeds the number of “good” words, we
+    perform negative sampling, by randomly sampling an equal number of “bad” words
+    compared to the “good” words in our computation of our average word vector. This
+    also contributes to more randomness in the clues generated, which improves the
+    diversity of clue candidates.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After we find the average word vector, we use the *most_similar()* function
+    in Gensim to obtain the top closest words from the entire GloVe vocabulary with
+    respect to the average word vector, based on cosine similarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Score function**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, we have a method to generate candidates for clue *c*, given *n* words.
+    However, we still have to decide which candidate *c* to pick, which *n* words
+    to choose, and how to determine *n*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thereafter, we generate all possible combinations of *k, k*-1, …, 1 words from
+    the *k “*good” words remaining on the board, as well as their respective clue
+    word candidates *c,* working backwards from *k*. To pick the best *{c, n}*,we
+    score all the candidates from each possible combination of the remaining “good”
+    words, through the decoding algorithm. Then we obtain the maximum number of words
+    guessed correct given clue *c, count(c)*, since we know what strategy the operative
+    will use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cd6af4e7a2d8b9295a2106e24ca4ea8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In each game, 25 words are sampled from [a list of 400 common Codenames words](https://github.com/Gullesnuffs/Codenames/blob/master/wordlist-eng.txt).
+    Overall, after 100 experiments, our method chooses the correct word 100% of the
+    time, completing the game within an average of 1.98 turns, or 4.55 guesses per
+    turn (for 9 correct words), taking at most 2 turns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/676819238b000e10030980d1d45ef3de.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Average number of guesses at each turn as game progresses (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: In other words, this algorithm takes two turns almost every game, except for
+    a few exceptions where it guesses all the words in a single turn.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s view a sample distribution of word embeddings of the clues and guesses
+    we made.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a2aae26b63061bcc794fd17b6a7421e1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Scatter plot of word embeddings for 1 game after PCA reduction (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the clues generated do provide some level of semantic summary of the
+    words that the operative eventually guessed correctly, these relationships between
+    clues and guesses may not be obvious from a human perspective. One way to make
+    to clues more interpretable is to cap the maximum number of guesses per turn,
+    which generates clues with better semantic approximation of the guesses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even so, our algorithm promotes a good clustering outcome for each of the words,
+    to enable our decoder to get more words correct by providing good clues that lie
+    close to the target words.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In conclusion, this greedy GloVe-based algorithm performs well as both the spymaster
+    and operative in the Codenames game, by offering an effective way to encode and
+    decode words via a clue and number.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our model, the encoder and decoder share a common strategy, which works in
+    similar ways as a shared encryption key. A possible limitation of this is that
+    the encoder and decoder will not work as well separately, as a human player may
+    not be able to interpret the generated clues as effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the mechanics behind word embeddings and vector manipulation is
+    a great way to get started in Natural Language Processing. It is interesting to
+    see how simple methods can also perform well in such semantic clustering and classification
+    tasks. To enhance the gameplay even further, one can consider using adding elements
+    of reinforcement learning or training an autoencoder to achieve better results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Github Repository: [https://github.com/jzh001/codenames](https://github.com/jzh001/codenames)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Koyyalagunta, D., Sun, A., Draelos, R. L., & Rudin, C. (2021). Playing codenames
+    with language graphs and word embeddings. *Journal of Artificial Intelligence
+    Research*, *71*, 319–346\. [https://doi.org/10.1613/jair.1.12665](https://doi.org/10.1613/jair.1.12665)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Pennington, J., Socher, R., & Manning, C. (2014). Glove: Global vectors for
+    word representation. *Proceedings of the 2014 Conference on Empirical Methods
+    in Natural Language Processing (EMNLP)*. [https://doi.org/10.3115/v1/d14-1162](https://doi.org/10.3115/v1/d14-1162)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Li, Y., Yan, X., & Shaw, C. (2022). Codenames AI [https://xueweiyan.github.io/codenames-ai-website/](https://xueweiyan.github.io/codenames-ai-website/)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Friedman, D., & Panigrahi, A. (2021). Algorithms for Codenames [https://www.cs.princeton.edu/~smattw/Teaching/521FA21/FinalProjectReports/FriedmanPanigrahi.pdf](https://www.cs.princeton.edu/~smattw/Teaching/521FA21/FinalProjectReports/FriedmanPanigrahi.pdf)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Jaramillo, C., Charity, M., Canaan , R., & Togelius, J. (2020). Word Autobots:
+    Using Transformers for Word Association in the Game Codenames. *Proceedings of
+    the AAAI Conference on Artificial Intelligence and Interactive Digital Entertainment*,
+    *16*(1), 231–237\. [https://doi.org/10.1609/aiide.v16i1.7435](https://doi.org/10.1609/aiide.v16i1.7435)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

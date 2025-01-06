@@ -1,0 +1,362 @@
+- en: Introduction to Spatial Analysis of Cells for Neuroscientists (Part 1)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/introduction-to-spatial-analysis-of-cells-for-neuroscientists-part-1-82bef519ad46?source=collection_archive---------12-----------------------#2024-05-30](https://towardsdatascience.com/introduction-to-spatial-analysis-of-cells-for-neuroscientists-part-1-82bef519ad46?source=collection_archive---------12-----------------------#2024-05-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An approach using point patterns analysis (PPA) with spatstat
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@damanrique?source=post_page---byline--82bef519ad46--------------------------------)[![Daniel
+    Manrique-Castano](../Images/06f857ae6e82688113f1089c7f03be88.png)](https://medium.com/@damanrique?source=post_page---byline--82bef519ad46--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--82bef519ad46--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--82bef519ad46--------------------------------)
+    [Daniel Manrique-Castano](https://medium.com/@damanrique?source=post_page---byline--82bef519ad46--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--82bef519ad46--------------------------------)
+    ·10 min read·May 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f5616b948d25d4a114fb18d9ade8062a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Density kernel generated from point patterns
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a neuroscientist, in recent years I have been interested in developing strategies
+    that allow multimodal assessment of cell distribution in the brain. My motivation
+    was to quantitatively understand the cellular rearrangement of neuroglia after
+    brain injury. Along the way, I came across `spatstat`(*1*), a multifunctional
+    R package for spatial analysis based on point patterns, called point pattern analysis
+    (PPA). This approach is well developed in fields such as geography, epidemiology,
+    or ecology, but applications to neurobiology are very limited, if not non-existent.
+    I recently published a short protocol (*2*), and the reader can find a preprint
+    (*3*) with a much longer and dedicated application of this approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, my goal is to provide an accessible introduction to the use of
+    this method for researchers interested in unraveling the spatial distribution
+    of cells in different tissues, without the narrative rigidity of scientific papers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is point pattern analysis (PPA)?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: PPA is a spatial analysis technique used to study the distribution of individual
+    events or objects in a given area (also called an observation window). This method
+    allows researchers to examine the number of objects per unit area (called spatial
+    intensity), whether the points are randomly distributed, clustered, or regularly
+    spaced, and the variations in spatial intensity conditional on different covariants.
+    Unlike raw and non-reproducible cell counts (e.g., 100 cells/mm2), PPA preserves
+    all spatial information and allows multiple and reproducible manipulations of
+    the point patterns. This allows researchers to identify underlying processes or
+    structures that influence the distribution of objects of interest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Requirements for PPA
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The only requirement to perform PPA is to have xy coordinates of single objects
+    (cells, proteins, subcellular structures, etc.). In this article, we focus on
+    2D PPA, although 3D approaches are also available. These coordinates are then
+    processed using R and the spatstat function to create point patterns and store
+    them as hyperframes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I obtained the coordinates of individual cells using unbiased cell detection/quantification
+    approaches using QuPath (*4*) or CellProfiler (*5*). I find that the detection
+    and segmentation of round/circular objects like neurons (e.g. NeuN) is easier
+    compared to irregular objects like astrocytes (GFAP) or microglia (IBA1), especially
+    when cell density is high and there is a lot of cell overlap (e.g. glial aggregation
+    after brain injury). The segmentation of irregular, highly clustered objects is
+    still a frontier in this field. However, the QuPath or CellProfiler provide reasonable
+    accuracy and, most importantly, are reproducible and can be validated. A human
+    observer could not do better. Therefore, I recommend not to worry too much if
+    in some cases you get the impression that certain objects only correspond to fragments
+    of a cell or a combination of several cells. Fine-tune the parameters to ensure
+    that the cell detection/segmentation does the best job possible. If the cells
+    are far enough apart (e.g. healthy brain, cell culture), there is not much to
+    worry about.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating point patterns
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When working with multiple samples, the creation of point patterns can be simplified
+    by using functions like the following [link](https://github.com/elalilab/Stroke_PDGFR-B_Reactivity/blob/main/Widefield_5x_Ipsilateral_Gfap-Pdgfrb_Handling.qmd).
+    The core of this procedure is to convert individual .csv files containing single-cell
+    coordinates into point patterns (using the `ppp` function of `spatstat`) and organize
+    them into a hyperframe that can be saved and shared as a .rds R object.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, we’ll load a point pattern I have created during my research (*3*). This
+    file is available in the [GitHub repository](https://github.com/daniel-manrique/MediumBlog/tree/main/Data)
+    under the name `PointPatterns_5x.rds`. Please feel free to use it for research,
+    education, or training purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can see that the hyper-frame contains several columns of variables. Let’s
+    focus on the first three columns, which contain point patterns for three types
+    of brain cells: Neurons, Astrocytes, and Microglia. We will rewrite some variable
+    columns in our own way to exercise the implementation of PPA. First, let’s take
+    a look at what the point patterns look like by plotting them all at once (for
+    neurons):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/2adba861dc4f6d37902aa83ab1a36f4e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: Multiple point patterns.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s see the details by looking at any single brain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/1a2324987371eff9602376ee68e6d752.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 2: Single point pattern.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can play a little bit with the plots, by displaying two cell types (point
+    patterns) at the same type and changing the way (shape and color) they are plotted.
+    Here is an example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/11ecbdaac7307350fd5eac5fe7eb28dc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 3: Different cell types and aesthetics.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This gives a first impression of the number and distribution of cells, but
+    of course we need to quantify it. A first approach is to obtain the estimated
+    spatial intensity for each point pattern. We can generate an extra column for
+    each row in the hyperframe with a simple code. For the sake of this post, we will
+    do this for astrocytes only:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/23a6ff8a53095d423a1fcff4eedfedaa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'You can see that we have created a new column that contains the spatial intensity
+    of astrocytes. Next, we extract the information into a data frame along with the
+    grouping variables:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f5d5a972b85bf35a50803dbfbd52aebc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This’s a good start, you are able to get the number of cells per unit area in
+    a reproducible way using unbiased/automatic cell counting. Let’s make a simple
+    scientific inference from this data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fit a statistical model for the spatial intensity
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As usual in my blog posts, we use `brms` (*6*) to fit a Bayesian linear model
+    where we investigate the Astrocyte spatial intensity conditioning on DPI, that
+    is, the days post-ischemia (brain injury) for the animals in this data set. We’re
+    going to build a model with heteroscedasticity (predicting sigma) because (I know)
+    the variance between DPIs is not equal. It is much smaller for 0D.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Let’s look at the summary table for our model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c678c24671811924977346241aa61521.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We see that animals at 0D (intercept) have a mean spatial intensity of 4.3 with
+    a 95% credible interval (CI) between 0.73 and 2.90\. That’s a very small number
+    of cells. On the other hand, we have a peak at 15D with a mean of 26.9 with CIs
+    between 22 and 31.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s plot the results using the great `TidyBayes` package (*7*) from the great
+    [Matthew Kay](https://www.mjskay.com/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/68d0761bd0aa09e9875d6515bdd522cc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4: Posterior distribution for the spatial intensity of astrocytes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`stat_halfeye()`from Figure 4 is a nice way to look at the results. This procedure
+    is analogous to counting cells in a given area. The advantage of PPA is that you
+    do not have to rely on the supposed visual acuity of a student counting cells
+    (the supposed experts are not the ones counting them), but you can produce unbiased
+    cell counts that can be validated and are reproducible and reusable. Clearly,
+    dear reader, we can do much more with PPA.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Creating density kernels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have density kernels available in the loaded point patterns, but we’ll rewrite
+    them for this post. A density kernel is a method of estimating the probability
+    density function of a variable, in this case, the location of cells. This provides
+    a smooth estimate of the intensity function that produced the observed data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Kernel density estimation for point patterns can be formulated as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f4fe1e192c2108651bc83c4e80563ffd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We’ll recreate the density kernels for astrocytes and microglia using the `density`
+    function from `spatstat`. Please make sure that this function is not overwritten
+    by other packages. I find that a sigma (bandwidth) of 0.2 gives a fair readout
+    for the point pattern density.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'With this ready, I want to give you an example of the impact of sigma in the
+    density kernel using a single brain:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/80a3138784acf26514e55584b6d3e98e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 5: Density kernels with different sigma.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 5 shows that, in the first case, we see that a very low sigma maps single
+    points. For sigma = 0.2, we see a mapping on a larger scale and we can distinguish
+    much better regions with low and high density of astrocytes. Finally, sigma =
+    2 offers a perspective where we cannot really distinguish with precision the different
+    densities of astrocytes. For this case, sigma = 0.2 is a good compromise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we’ll fit a simple point process model to investigate the relative distribution
+    of neurons conditioning on astrocyte density (mapped by the density kernel).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fit a point process model (ppm)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Here, we use the `mppm` function from `spatstat` to fit a multiple-point process
+    model for the point patterns in our hyperframe.Unfortunately, there are no Bayesian-like
+    functions for multiple-point patterns in `spatstat`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/4c5f2b0bb516790213ef789aa4c326ad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Remember that spatial models are fitted with a Poisson distribution that uses
+    the log link function to obtain only positive results. This means that we need
+    to exponentiate the results in the table to convert them to the original scale.
+    Therefore, we can see that the spatial intensity of neurons at a baseline (when
+    the density of astrocytes is 0) is exp(3.54) = 34.4\. This intensity decreases
+    by ex(-0.002171358)=-0.99 for every unit increase in astrocyte spatial intensity
+    (as defined by the density kernels). In other words, this model tells us that
+    we have fewer neurons at points where we have more astrocytes. Note that we do
+    not include DPI in the regression, an exercise you can do to see if this estimate
+    changes with DPI.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are more aspects to explore for PPA. However, not to make this post long
+    and heavy, I will cover them in the next two posts. Here you could learn how to
+    calculate and extract the spatial intensity of cells, create density kernels,
+    and build point process models with them. In the next post, we’ll explore how
+    to perform calculations for relative distributions and how to use raster layers
+    to further explore the cell distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I would appreciate your comments or feedback letting me know if this journey
+    was useful to you. If you want more quality content on data science and other
+    topics, you might consider becoming a [medium member](https://medium.com/membership).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find a complete/updated version of this post on my [GitHub site](https://github.com/daniel-manrique/MediumBlog/blob/main/2024-05-24_SpatialAnalysis_Part1.qmd).
+  prefs: []
+  type: TYPE_NORMAL
+- en: All images, unless otherwise stated, were generated by the authors using R code.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '1.A. Baddeley, E. Rubak, R. Turner, *Spatial point patterns: Methodology and
+    applications with R* (Chapman; Hall/CRC Press, London, 2015; [https://www.routledge.com/Spatial-Point-Patterns-Methodology-and-Applications-with-R/Baddeley-Rubak-Turner/p/book/9781482210200/](https://www.routledge.com/Spatial-Point-Patterns-Methodology-and-Applications-with-R/Baddeley-Rubak-Turner/p/book/9781482210200/)).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. D. Manrique-Castano, A. ElAli, [Unbiased quantification of the spatial distribution
+    of murine cells using point pattern analysis](https://doi.org/10.1016/j.xpro.2024.102989).
+    *STAR Protocols*. **5**, 102989 (2024).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. D. Manrique-Castano, D. Bhaskar, A. ElAli, Dissecting glial scar formation
+    by spatial point pattern and topological data analysis (2023), (available at [http://dx.doi.org/10.1101/2023.10.04.560910](http://dx.doi.org/10.1101/2023.10.04.560910)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. P. Bankhead, M. B. Loughrey, J. A. Fernández, Y. Dombrowski, D. G. McArt,
+    P. D. Dunne, S. McQuaid, R. T. Gray, L. J. Murray, H. G. Coleman, J. A. James,
+    M. Salto-Tellez, P. W. Hamilton, QuPath: Open source software for digital pathology
+    image analysis. *Scientific Reports*. **7** (2017), doi:[10.1038/s41598–017–17204–5](https://doi.org/10.1038/s41598-017-17204-5).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '5\. D. R. Stirling, M. J. Swain-Bowden, A. M. Lucas, A. E. Carpenter, B. A.
+    Cimini, A. Goodman, CellProfiler 4: improvements in speed, utility and usability.
+    *BMC Bioinformatics*. **22** (2021), doi:[10.1186/s12859–021–04344–9](https://doi.org/10.1186/s12859-021-04344-9).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6\. P.-C. Bürkner, Brms: An r package for bayesian multilevel models using
+    stan. **80** (2017), doi:[10.18637/jss.v080.i01](https://doi.org/10.18637/jss.v080.i01).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '7\. M. Kay, *tidybayes: Tidy data and geoms for Bayesian models* (2023; [http://mjskay.github.io/tidybayes/](http://mjskay.github.io/tidybayes/)).'
+  prefs: []
+  type: TYPE_NORMAL

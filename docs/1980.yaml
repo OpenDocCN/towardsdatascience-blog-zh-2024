@@ -1,0 +1,487 @@
+- en: 'How to Talk to a PDF File Without Using Proprietary Models: CLI + Streamlit
+    + Ollama'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932?source=collection_archive---------4-----------------------#2024-08-14](https://towardsdatascience.com/how-to-talk-to-a-pdf-file-without-using-proprietary-models-cli-streamlit-ollama-6c22437ed932?source=collection_archive---------4-----------------------#2024-08-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/5bbf5cec507aee72cad3963558d8f2d7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Talk to a PDF file *(Gif by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: A contribution to the creation of a locally executed, free PDF chat app with
+    Streamlit and Meta AI’s LLaMA model, without API limitations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)[![Stefan
+    Pietrusky](../Images/f5abf75db277f3aec8d8e56877daafe4.png)](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------)
+    [Stefan Pietrusky](https://medium.com/@stefanpietrusky?source=post_page---byline--6c22437ed932--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--6c22437ed932--------------------------------)
+    ·14 min read·Aug 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: I have already read various articles on the internet about how the open source
+    framework Streamlit can be used in combination with machine learning to quickly
+    and easily create interesting interactive web applications. This is very useful
+    for developing experimental applications without extensive front-end development.
+    One article showed how to create a conversation chain using an OpenAI language
+    model and then execute it. An instance of the chat model *“gpt-3.5-turbo”* was
+    created, the parameter *“temperature”* was defined with a value of 0 so that the
+    model responds deterministically and finally a placeholder for the API key was
+    implemented. The latter is required to authenticate the model when it is used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the comments, I often read the question of how to deal with a particular
+    error message or how it can be solved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*RateLimitError: Error code: 429 — {‘error’: {‘message’: ‘You exceeded your
+    current quota, please check your plan and billing details. For more information
+    on this error, read the docs:* [*https://platform.openai.com/docs/guides/error-codes/api-errors.'',*](https://platform.openai.com/docs/guides/error-codes/api-errors.'',)
+    *‘type’: ‘insufficient_quota’, ‘param’: None, ‘code’: ‘insufficient_quota’}}*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Error 429 indicates that the request sent to the OpenAI API has exceeded the
+    current usage quota. The available API calls in a certain period or the general
+    usage limit of the subscription have been reached. The error is easy to solve.
+    You take out a paid subscription with the respective provider and thus increase
+    your usage limit. This gave me the idea of why you can’t simply use open source
+    models that are operated locally and thus circumvent the limitation without having
+    to pay anything.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, I will show how to use Streamlit to create an application to
+    which PDF files can be uploaded in order to ask questions based on their content,
+    which are answered by integrating an LLM. There are no limits or costs incurred
+    when using the app. The response time (input-output) will take a little longer,
+    depending on the system, but remains within reasonable limits. First, we take
+    care of the LLM that we will use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A KINGDOM FOR A LLAMA
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will use the open source language model Llama from Meta AI. As part of the
+    recent development in the field of large language models, it will be used within
+    the app to understand and generate natural language (NLP). In order to use the
+    LLM locally, we first need to install Ollama on our system. To do this, we go
+    to the following [**official site**](https://ollama.com/) and download the open
+    source platform. The system may need to be restarted afterward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b2e80402088c8e5141c11a64a52bea18.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Download Ollama ([Public Domain](https://ollama.com/))
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once Ollama has been installed, we click on *“Models”* and select the *“llama3.1”*
+    model in the overview that opens. Llama is based on the Transformer architecture,
+    has been trained on large and diverse data sets, is available in different sizes
+    and is ideally suited for the development of practical applications due to its
+    openness and accessibility. In this article, the smallest size *“8B”* is used
+    to ensure that the app also works on less powerful systems. Once the correct model
+    has been selected, copy the command shown and execute it in the terminal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6bbb1a1ecbe418de4246df8470fddfcd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: LLama3.1 overview on Ollama platform ([Public Domain](https://ollama.com/library/llama3.1))
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once the model has been downloaded, you can communicate with it via the terminal.
+    Next, let’s move on to setting up the app. In a nutshell, the process is as follows.
+    The PDF file is uploaded and the text it contains is extracted. The extracted
+    text is divided into smaller chunks that are stored in a vector store. The user
+    enters a question. The question, i.e. the input, is prepared for the model by
+    combining the question and the context. The LLM is queried and generates the answer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f6c3884b08f96c6d4738e89ed1795425.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: App process (*Image by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: PDF CHAT APP [REQUIRED LIBRARIES]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Various libraries are required for the application to function correctly, which
+    are briefly described below. The execution of system commands in Python and communication
+    with them is made possible by *“subprocess”*. We need *“streamlit”* to create
+    the web application. *“PyPDF2”* is used to read PFD documents. The splitting of
+    texts into smaller sections is done by *“langchain.text_splitter.RecursiveCharacterTextSplitter”*.
+    The library *“langchain_community.embeddings.SpacyEmbeddings”* is used to generate
+    text embeddings with the Spacy model. The vector store *“langchain_community.vectorstores.FAISS”*
+    enables the efficient saving and retrieval of embeddings. For the definition of
+    prompt templates for chat interactions, “*langchain_core.prompts.ChatPromptTemplate”*
+    is used. Access to operating system functions is obtained via *“os” and “re”*
+    is used to recognize patterns in character strings. Python should also be installed
+    on the system. Depending on the operating system, the required execution file
+    can be downloaded from the [**official site**](https://www.python.org/downloads/).
+    After installation, you can check whether the installation was successful using
+    the terminal with the following command.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The required libraries are installed via the terminal with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*“subprocess”, “os” and “re”* are built-in Python libraries and do not need
+    to be installed separately. The Spacy language model, however, must be downloaded
+    separately with the following command.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The list of dependencies for the app is as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that everything you need is in place, let’s move on to setting up the app.
+    The various components of the script are described below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PDF CHAT APP [ENVIRONMENT CONFIGURATION]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To avoid problems when loading libraries, especially during parallel processing,
+    it is necessary to set the environment variable *“KMP_DUPLICATE_LIB_OK”* to *“TRUE”*.
+    In the context of this article, this configuration is due to the use of FAISS
+    [Facebook AI Similarity Search], which uses parallel computing operations when
+    searching data sets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: PDF CHAT APP [PDF READING FUNCTION]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The *“pdf_read()”* function reads the entire text from a PDF file. Specifically,
+    *“PyPDF2”* is used to extract the text. The text is then combined into a single
+    character string *“text”*, which is returned. The function is important in order
+    to make the content of the PDF file available for further processing steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: In principle, several PDF files can be uploaded at the same time, whereby these
+    together form the context. If you want to analyze individual files, you should
+    only upload one file at a time, then remove it and upload a new file. The upload
+    of multiple files, whereby these are viewed as individual contexts, is implemented
+    in a customized version of the app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PDF CHAT APP [TEXT-CHUNKS FUNCTION]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The combined character string from the previous function is split into smaller
+    text chunks in the next step using the *“create_text_chunks()”* function. The
+    maximum number of characters per chunk *“chunk_size”* is 1000 and the number of
+    characters that can overlap in adjacent chunks *“chunk_overlap”* is 200\. This
+    implementation enables the app to query and process larger amounts of text more
+    efficiently. Exceeding the input size of the model is prevented. The search is
+    optimized by the split, as smaller, contextualized sections (granularity) can
+    be queried more accurately (more detailed vectors), improving the provision of
+    information overall. The accuracy and processing speed of the model are also increased.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: PDF CHAT APP [TEXT-EMBEDDING]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: An object for text embeddings, numerical representation of text, using the Spacy
+    model must be created to capture the meaning of the text uploaded as a PDF file.
+    The embeddings are then used to vectorize the text in order to store them in a
+    vector store so that they can be used for semantic search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: PDF CHAT APP [VECTOR-STORE-FUNCTION]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The *“vector_store()”* function uses the aforementioned FAISS to store the embeddings
+    of the text chunks. The vector store enables faster retrieval and searching of
+    texts based on the existing embeddings. The vector store is saved locally so that
+    it can be accessed later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fa02e6bddbeb2ed4097a99f593e4d89c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: From PDF to vector store *(Image by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Vectors capture the meaning and context of text by translating sentences and
+    words into a mathematically interpretable space. The text “*The weather is nice
+    today”* is converted into an example vector [0.25, -0.47, 0.19, …]. This makes
+    it easier to carry out similarity searches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PDF CHAT APP [CLI BASED LLAMA REQUEST]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The function *“query_llama_via_cli()”* enables communication with an external
+    LLaMA model process via the command line. Input data is sent, the response is
+    received, processed and any errors that occur are handled errors=’ignore’. This
+    function allows the LLM to be implemented in the application workflow, although
+    it runs in a separate environment that is controlled via CLI (Command Line Interface).
+    The advantage of CLIs as a command line interface is that they are platform-independent,
+    which makes the app available on almost any operating system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: A more detailed explanation of the function follows. The process is started
+    by *“subprocess.Popen()”*. The command to start the LLM is executed [“ollama”,
+    “run”, “llama3.1”]. Access to the input and output streams of the process (sending
+    data and receiving results) is made possible by the parameters *“stdin”*, *“stdout”*
+    and *“stderr”*. Communication takes place as UTF-8 encoded text *encoding=’utf-8'*.
+    To improve interactivity, the buffer size for the I/O operations is set to line
+    buffering *“bufsize=1”*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The input *“input_text”* is transmitted to the process, specifically to the
+    LLM, whereupon a response is generated *“stdout”*. The maximum time (seconds)
+    that is waited until the process has to deliver a response is 30 seconds “timeout=30”.
+    If it takes longer, a timeout error is triggered *“stderr”*. The return code checks
+    whether the process was successful *“returncode == 0”*. If this is not the case,
+    an error message is returned. The app does not take as long to return a response.
+    Finally, the response “stdout” is processed. Unwanted characters are removed and
+    ANSI color and formatting codes are removed from the output *“response = re.sub(r’\x1b\[.*?m’,
+    ‘’, stdout)”*. To extract and format the relevant response from the complete module
+    response, *“extract_relevant_answer” i*s called. The process is terminated with
+    *“process.kill()”* if the timeout of 30 seconds is exceeded. Errors that occur
+    during communication are intercepted and returned as a general error message.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PDF CHAT APP [EXTRACTION OF RELEVANT ANSWERS]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The relevant response is extracted from the entire model response using the
+    *“extract_relevant_answer()”* function. At the same time, the function also removes
+    simple formatting problems, specifically spaces at the beginning and end of the
+    composite character string that forms the response *“strip()”*. Depending on the
+    specific requirements of the app, the function can be extended to return certain
+    keywords or sentences (markers). The integration of additional rules for cleansing
+    and formatting is also possible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: PDF CHAT APP [THE CONVERSATION CHAIN]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The conversation chain is created by the function *“get_conversational_chain()”*.
+    The function prepares the input for the LLM by combining a specific prompt and
+    the context together with the user’s question. The model should be provided with
+    a clear and structured input in order to deliver the best possible answer. A multi-level
+    prompt schema (system message, human message *“{input}”* and a placeholder) is
+    defined by *“ChatPromptTemplate.from_message()”*. The role of the model is defined
+    by the system message “system”. The human message then contains the user’s question.
+    The prompt (behavior of the model), the context (content of the PDF file) and
+    the question (user of the app) are combined in *“input_text”*. The prepared input
+    is sent to the LLM via CLI using the function *“query_llama_via_cli(input_text)”*.
+    The output is saved as *“response”* and displayed in the Streamlit app with *“st.write(“PDF:
+    “, response)”*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: PDF CHAT APP [USER INPUT PROCESSING]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The user input is processed and forwarded to the LLM using the *“user_input()”*
+    function. Specifically, the entire text of the uploaded PDF file is used as the
+    context. The conversation chain function *“get_conversational_chain”* is called
+    to finally answer the user’s question *“user_question”* using the context *“context”*
+    . In other words, the interaction between user and model is enabled by this function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: PDF CHAT APP [MAIN SCRIPT]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The main logic of the Streamlit web application is defined by the *“main()”*
+    function. Specifically, the Streamlit page is set up and the layout is defined.
+    Currently, the layout only consists of the option to upload a PDF file *“st.file_uploader”*
+    and an input field *“st.text_input”*. The user’s questions are entered in the
+    latter. The user interface enables interaction with the model. If a PDF file is
+    uploaded, it is read *“pdf_text = pdf_read(pdf_doc)”*. If there is still a question
+    and the input has been confirmed, the request is processed *“user_input(user_question,
+    pdf_text)”*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The app described is started with the following command and looks like this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f88464f892b955054d9be41ba9dffbd8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Streamlit PDF chat app 1 *Image by author*
+  prefs: []
+  type: TYPE_NORMAL
+- en: INDIVIDUAL CUSTOMIZATION OPTIONS
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are individual customization options in various areas. To improve the
+    quality and relevance of the LLM’s responses, the system prompting or the system
+    message, see Conversation chain, can be adapted. The behavior of the model can
+    be directly controlled by specific instructions and context. You can experiment
+    with different prompts to test how the model’s responses change. The current system
+    message still offers a lot of potential for customization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Another customization option is to replace the currently used LLM Llama3.1\.
+    Various models (e.g. gemma2, mistral, phi3, qwen2 etc.) in different sizes (2B,
+    8B, 70B etc.) are available on OLLAMA. To be able to use a different model, it
+    must first be downloaded and then the function *“query_llama_via_cli()”* in the
+    Python script must be adapted. Specifically, the command *[“ollama”, “run”, “llama3.1”]*,
+    which starts the LLM, must be changed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2f06154b207a96a2797fd38a6ce31ed9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Some Ollama models *(Image by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: When using other models, it must be ensured that the available computing power
+    is sufficient for local use. You also need to consider whether the model will
+    be executed on GPUs or CPUs. The following example can be used as a rule of thumb
+    to assess whether a model will work on your own computer. A model with 1 billion
+    parameters (1B) requires around 2 to 3 GB RAM (2–3 bytes per parameter). The Task
+    Manager (Windows) can be used to check to what extent the execution of the application
+    affects the performance of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/409ebb2896dcb3a0f74598467322cb3a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Windows Task Manager (*Image by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: Alternatively, you can also integrate the application’s memory usage directly
+    into Streamlit. This is done using the *“psutil”* library, which must first be
+    installed and then implemented in the Python script.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is also possible to customize the layout and functionality of the application.
+    For example, the main logic, specifically the *“main()”* function, can be extended
+    to allow the simultaneous upload of multiple PDF files *“accept_multiple_files=True”*.
+    The files can then be displayed in a list and selected by the user *“selected_pdf_file”*.
+    Processing then takes place as usual. Depending on the selected file, the extracted
+    context is forwarded to the LLM together with the user’s question. The customized
+    code can be found in the file *“pca2.py”*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b7d2661ffafe3abed3580dd73f52935c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Streamlit PDF chat app 2 *(Image by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: PCA PYTHON SCRIPT [DOWNLOAD]
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Click on the folder to download the zip file with the two apps!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[![](../Images/495251495ae1862c340639d9f89f25d4.png)](https://drive.google.com/file/d/15x3i1ov7GkOGWbml3LY_Os-DVR8kN98C/view?usp=sharing)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Load the Python scripts by clicking on the folder (*Image by author)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: CONCLUSION
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: This article showed how Python in combination with tools such as Streamlit,
+    FAISS, Spacy, CLI, OLLAMA and the LLM Llama3.1 can be used to create a web application
+    that allows users to extract text from PDF files locally, save it in the form
+    of embeddings and ask questions about the content of the file using an AI model.
+    By further optimizing the scripts (e.g. prompt), using other models and adapting
+    the layout to include additional functionalities, the app can offer added value
+    in everyday life without incurring additional costs. Have fun customizing and
+    using the app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6986252b10d7723e67c0529d265a19a5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You can clap up to 50 times!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/127ee9bba2f9b657ec9f4cb2b3c1f6ed.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Just for the thumbnail (Image by author)
+  prefs: []
+  type: TYPE_NORMAL

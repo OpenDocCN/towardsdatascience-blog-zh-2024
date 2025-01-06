@@ -1,0 +1,231 @@
+- en: Understanding Ghost Attention in LLaMa 2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23](https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This blog post explains the Ghost Attention method of fine-tuning introduced
+    in the LLaMa 2 paper.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[![Matthew
+    Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)
+    [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)
+    ·6 min read·Jan 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92079d14f31ee22d6208bf88a6085700.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: DALL-E generated image of a ghost llama
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Often times, we want the LLM to be given an instruction once and then follow
+    it until told otherwise. Nevertheless, as the below example shows LLMs can quickly
+    forget instructions after a few turns of dialogue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c6567cf2486a8f3ad6430d77dd67300b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 9 from [the LLaMa 2 paper](https://arxiv.org/pdf/2307.09288.pdf) illustrating
+    how instructions can be ignored after a few turns of dialogue
+  prefs: []
+  type: TYPE_NORMAL
+- en: One way to get the model to pay attention consistently is appending the instruction
+    to each user message. While this will work, it comes at the cost of more tokens
+    put into the context, thus limiting how many turns of dialogue your LLM can have.
+    How do we get around this? By fine tuning! Ghost Attention is meant to let the
+    LLM follow instructions for more turns of dialogue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Methodology Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s start by imagining our dialogues as a data array. We have a user message,
+    followed by an assistant message, and the two go back and forth. When the last
+    item in our array is a user message, then we would expect the LLM to generate
+    a message as the assistant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, we make sure the instruction does not appear in any of the user
+    messages except the first, as in the real world this is likely the only time a
+    user would organically introduce instructions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a3b52797085918892ba91dd8e5f6d763.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by the Author: The data array showing alternating user and assistant
+    messages'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also in our setup is a Reinforcement Learning Human Feedback (RLHF) model that
+    we can sample from and know what a good response to the prompt would look like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With our sample and dialogue, we perform rejection sampling — asking the LLM
+    to generate an arbitrary number of different responses and then scoring them with
+    the RLHF model. We save the response that ranks the highest and use all of these
+    highest quality responses to fine tune the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a9043cfe3b7e5fe6290874cb1d6f6723.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by the Author: A diagram showing how we create the fine-tuning data that
+    will enable our model to focus on the instruction for multiple turns of dialogue'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When we fine-tune with our dialogue and best sample, we set the loss to zero
+    for all tokens generated in previous dialogue turns. As far as I can tell, this
+    was done as the researchers noted this improved performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth calling out that while Ghost Attention will interact with the self-attention
+    mechanism used for Transformer models, Ghost Attention is not itself a replacement
+    for self-attention, rather a way to give the self-attention mechanism better data
+    so it will remember instructions given early on over longer contexts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating Instructions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The LLaMa 2 paper highlights three specific types of instructions that they
+    tested this with: (1) acting as a public figure, (2) speaking in a certain language,
+    and (3) enjoying specific hobbies. As the set of possible public figures and hobbies
+    is large, they wanted to avoid the LLM being given a hobby or person that wasn’t
+    present in the training data. To solve this, they asked the LLM to generate the
+    list of hobbies and public figures that it would then be instructed to act like;
+    hopefully, if it generated the subject, it was more likely to know things about
+    it and thus less likely to hallucinate. To further improve the data, they would
+    make the instruction as concise as possible. It is not discussed if there are
+    any limits to the types of instructions that could be given, so presumably it
+    is up to us to test what types of instructions work best on models fine-tuned
+    via ghost attention.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: So what are the effects of this new method on the LLM?
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/880996860c94ab89e19cb9e590717415.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Figure 28 from the LLaMa 2 paper](https://arxiv.org/pdf/2307.09288.pdf) showing
+    the results of Ghost Attention on new instructions'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the paper, they attach the above image showing how the model reacts to instructions
+    not found in its fine-tuning data set. On the left, they test the instruction
+    of “always answer with Haiku”, and on the right they test the instruction of suggest
+    architecture-related activities when possible. While the haiku answers seem to
+    miss some syllables as it progresses, there is no doubt it is trying to maintain
+    the general format in each response. The architecture one is especially interesting
+    to me, as you can see the model appropriately does not bring this up in the first
+    message when it is not relevant but does bring it up later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Try this for yourself on lmsys.org’s llama-2 interface. You can see that while
+    it is not as perfect as the screen captures in the paper, it still is far better
+    than the LLaMa 1 versions
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/56397c860ace11b97085e57e4c320492.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by the author: a screen capture of llama-2–70b-chat model on chat.lmsys.org
+    following the “respond in emojis” instruction'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Importantly, we also see that this methodology has an impact on the attention
+    of the model. Below is a heat map graph of the attention given to each token by
+    the model. The left and bottom side of the graph show tokens that are being put
+    into the model. We do not see the top right side of the graph because it is generating
+    the rest, and so the tokens that would appear beyond the current token are not
+    available to the model. As we generate more of the text, we can see that more
+    tokens become available. Heat maps show higher values with darker colors, so the
+    darker the color is here, the more attention being paid to those tokens. We can
+    see that the ‘Act as Oscar Wilde’ tokens get progressively darker as we generate
+    more tokens, suggesting they get paid more and more attention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06756787026f40bb4afdb6b2d321f0a7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Figure 10 from the LLaMa2 Paper](https://arxiv.org/pdf/2307.09288.pdf) showing
+    a heat map of attention before and after Ghost Attention was applied'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The paper tells us that after more than 20 turns, the context is often filled,
+    causing issues with the attention. Interestingly, the graph they provide in the
+    appendix also shows that as they kept fine-tuning the model the score assigned
+    to it by the RLHF model kept going down. It would be interesting to see if this
+    is because the instructions were getting longer, due to their complexity for each
+    subsequent batch, or if this was somehow related to a limitation of the data they
+    were using to train the model. If the second, then it’s possible that with more
+    training data you could go through even more batches before seeing the score decrease.
+    Either way, there may be diminishing returns to fine-tuning via Ghost Attention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/70291ed31a98a5d7b502fdd9ddd24b2f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Figure 26 from the LLaMa 2 paper](https://arxiv.org/pdf/2307.09288.pdf) showing
+    how the reward model scored prompt samples after each batch'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing Thoughts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In closing, the LLaMa2 paper introduced many interesting training techniques
+    for LLMs. As the field has had ground-breaking research published seemingly every
+    day, there are some interesting questions that arise when we look back at this
+    critical paper and Ghost Attention in particular.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As Ghost Attention is one way to fine-tune a model using the Proximal Policy
+    Optimization (PPO) technique, one critical question is how this method fares when
+    we use Direct Preference Optimization(DPO). DPO does not require a separate RLHF
+    model to be trained and then sampled from to generate good fine-tuning data, so
+    the loss set in Ghost Attention may simply become unnecessary, potentially greatly
+    improving the results from the technique.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As LLMs are used for more consumer applications, the need to keep the LLM focused
+    on instructions will only increase. Ghost Attention shows great promise for training
+    an LLM to maintain its focus through multiple turns of dialogue. Time will tell
+    just how far into a conversation the LLM can maintain its attention on the instruction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] H. Touvron, et al., [Llama 2: Open Foundation and Fine-Tuned Chat Models
+    (2023)](https://arxiv.org/abs/2307.09288), arXiv'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] R. Rafailov, et al., [Direct Preference Optimization: Your Language Model
+    is Secretly a Reward Model (2023)](https://arxiv.org/abs/2305.18290), arXiv'
+  prefs: []
+  type: TYPE_NORMAL

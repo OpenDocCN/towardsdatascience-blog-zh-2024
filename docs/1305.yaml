@@ -1,0 +1,922 @@
+- en: Practical Computer Simulations for Product Analysts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/practical-computer-simulations-for-product-analysts-fe61e2b577f5?source=collection_archive---------8-----------------------#2024-05-24](https://towardsdatascience.com/practical-computer-simulations-for-product-analysts-fe61e2b577f5?source=collection_archive---------8-----------------------#2024-05-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Part 3: Modelling Ops queues'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://miptgirl.medium.com/?source=post_page---byline--fe61e2b577f5--------------------------------)[![Mariya
+    Mansurova](../Images/b1dd377b0a1887db900cc5108bca8ea8.png)](https://miptgirl.medium.com/?source=post_page---byline--fe61e2b577f5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--fe61e2b577f5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--fe61e2b577f5--------------------------------)
+    [Mariya Mansurova](https://miptgirl.medium.com/?source=post_page---byline--fe61e2b577f5--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--fe61e2b577f5--------------------------------)
+    ·23 min read·May 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71a5c5982659d4e38fd756c9ae246157.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by DALL-E 3
+  prefs: []
+  type: TYPE_NORMAL
+- en: Today, I would like to show you an example of the discrete-event simulation
+    approach. We will model the Customer Support team and decide what strategy to
+    use to improve its performance. But first, let me share a bit of my personal story.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I first learned about discrete simulations at university. One of my subjects
+    was [Queueing theory](https://en.wikipedia.org/wiki/Queueing_theory), and to get
+    a final grade for it, I had to implement the airport simulation and calculate
+    some KPIs. Unfortunately, I missed all the seminars because I was already working
+    full-time, so I had no idea about the theory behind this topic and how to approach
+    it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I was determined to get an excellent mark, so I found a book, read it, understood
+    the basics and spent a couple of evenings on implementation. It was pretty challenging
+    since I hadn’t been coding for some time, but I figured it out and got my A grade.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At this point (as often happens with students), I had a feeling that this information
+    wouldn't be helpful for my future work. However, later, I realised that many analytical
+    tasks can be solved with this approach. So, I would like to share it with you.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One of the most apparent use cases for agent-based simulations is Operational
+    analytics. Most products have customer support where clients can get help. A CS
+    team often looks at such metrics as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***average resolution time*** — how much time passed from the customer reaching
+    out to CS and getting the first answer,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***size of the queue*** that shows how many tasks we have in a backlog right
+    now.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Without a proper model, it may be tricky to understand how our changes (i.e.
+    introducing night shifts or just increasing the number of agents) will affect
+    the KPIs. Simulations will help us do it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, let’s not waste our time and move on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Basics of simulations and modelling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s start from the very beginning. We will be modelling***the system***. The
+    system is a collection of entities (for example, people, servers or even mechanical
+    tools) that interact with each other to achieve some logical goal (i.e. answering
+    a customer question or passing border control in an airport).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You could define the system with the needed granularity level, depending on
+    your research goal. For example, in our case, we would like to investigate how
+    the changes to agents’ efficiency and schedules could affect average CS ticket
+    resolution time. So, the system will be just a set of agents. However, if we would
+    like to model the possibility of outsourcing some tickets to different outsourcing
+    companies, we will need to include these partners in our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The system is described by a set of variables — for example, the number of tickets
+    in a queue or the number of agents working at the moment in time. These variables
+    define ***the system state***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are two types of systems:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***discrete*** *—* when the system state changes instantaneously, for example,
+    the new ticket has been added to a queue or an agent has finished their shift.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***continuous —*** when the system is constantly evolving*.* One such example
+    is a flying plane, in which coordinates, velocity, height, and other parameters
+    change all the time during flight.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For our task, we can treat the system as discrete and use ***the******discrete-event
+    simulation approach***. It's a case when the system can change at only a countable
+    number of points in time. These time points are where events occur and instantly
+    change the system state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So, the whole approach is based on events. We will generate and process events
+    one by one to simulate how the system works. We can use the concept of a timeline
+    to structure events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since this process is dynamic, we need to keep track of the current value of
+    simulated time and be able to advance it from one value to another. The variable
+    in a simulation model that shows the current time is often called ***the simulation
+    clock***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We also need a mechanism to advance simulated time. There are two approaches
+    to advance time:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***next-event time advance*** — we are moving from one event timestamp to the
+    next one,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***fixed-increment time advance*** — we select the period, for example, 1 minute,
+    and shift clocks each time for this period.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I think the first approach is easier to understand, implement and debug. So,
+    I will stick to it for this article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's review a simple example to understand how it works. We will discuss a
+    simplified case of the CS tickets queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We start the simulation, initialising the simulation clock. Sometimes, people
+    use zero as the initial value. I prefer to use real-life data and the actual date
+    times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here's the initial state of our system. We have two events on our timeline related
+    to two incoming customer requests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd95b05f1a22997ef9e856012f5d64c6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The next step is to advance the simulation clock to the first event on our timeline
+    — the customer request at 9:15.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31f4bc945689d456b0ed1715677cc691.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: It's time to process this event. We should find an agent to work on this request,
+    assign the request to them, and generate an event to finish the task. Events are
+    the main drivers of our simulation, so it's okay if one event creates another
+    one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the updated timeline, we can see that the most imminent event is
+    not the second customer request but the completion of the first task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/39e090293ad9228610e4c0829fc9c08c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: So, we need to advance our clock to 9:30 and process the next event. The completion
+    of the request won't create new events, so after that, we will move to the second
+    customer request.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cef08b7308d87f030a8239ecdf7ccdd0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We will repeat this process of moving from one event to another until the end
+    of the simulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To avoid never-ending processes, we need to define the stopping criteria. In
+    this case, we can use the following logic: if no more events are on the timeline,
+    we should stop the simulation. In this simplified example, our simulation will
+    stop after finishing the second task.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've discussed the theory of discrete event simulations and understood how
+    it works. Now, it's time to practice and implement this approach in code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The program architecture
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Objective-oriented programming
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In my day-to-day job, I usually use a procedural programming paradigm. I create
+    functions for some repetitive tasks, but rather than that, my code is quite linear.
+    It's pretty standard approach for data-wrangling tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this example, we would use [Objective-Oriented Programming](https://en.wikipedia.org/wiki/Object-oriented_programming).
+    So, let's spend some time revising this topic if you haven’t used classes in Python
+    before or need a refresher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'OOP is based on the concept of objects. Objects consist of data (some features
+    that are called attributes) and actions (functions or methods). The whole program
+    describes the interactions between different objects. For example, if we have
+    an object representing a CS agent, it can have the following properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***attributes***: name, date when an agent started working, average time they
+    spend on tasks or current status (`"out of office"`, `"working on task"` or `"free"`).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '***methods***: return the name, update the status or start processing a customer
+    request.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: To represent such an object, we can use Python classes. Let's write a simple
+    class for a CS agent.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: This class defines each agent's name, average handling time, and role. I've
+    also added a couple of functions that can return internal variables following
+    the incapsulation pattern. Also, we have the `update_handling_time` function that
+    allows us to update the agent’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We've created a class (an object that explains any kind of CS agent). Let's
+    make an instance of the object — the agent John Doe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: When we created an instance of the class, the function `__init__` was executed.
+    We can use `__dict__` property to present class fields as a dictionary. It often
+    can be handy, for example, if you want to convert a list of objects into a data
+    frame.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can try to execute a method and update the agent’s performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: One of the fundamental concepts of OOP that we will use today is inheritance.
+    Inheritance allows us to have a high-level ancestor class and use its features
+    in the descendant classes. Imagine we want to have not only CS agents but also
+    KYC agents. We can create a high-level `Agent` class with common functionality
+    and define it only once for both KYC and CS agents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can create separate classes for these agent types and define slightly
+    different `__init__` and `get_job_description` functions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: To specify inheritance, we mentioned the base class in brackets after the current
+    class name. With `super()` , we can call the base class methods, for example,
+    `__init__` to create an object with a custom `role` value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's create objects and check whether they work as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let's update Marie's handling time. Even though we haven’t implemented this
+    function in the `KYCAgent` class, it uses the implementation from the base class
+    and works quite well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can also call the methods we defined in the classes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: So, we've covered the basics of the Objective-oriented paradigm and Python classes.
+    I hope it was a helpful refresher.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, it’s time to return to our task and the model we need for our simulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Architecture: classes'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you haven’t used OOP a lot before, switching your mindset from procedures
+    to objects might be challenging. It takes some time to make this mindset shift.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of the life hacks is to use real-world analogies (i.e. it's pretty clear
+    that an agent is an object with some features and actions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Also, don''t be afraid to make a mistake. There are better or worse program
+    architectures: some will be easier to read and support over time. However, there
+    are a lot of debates about the best practices, even among mature software engineers,
+    so I wouldn’t bother trying to make it perfect too much for analytical ad-hoc
+    research.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s think about what objects we need in our simulation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`System` — the most high-level concept we have in our task. The system will
+    represent the current state and execute the simulation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As we discussed before, the system is a collection of entities. So, the next
+    object we need is `Agent` . This class will describe agents working on tasks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Each agent will have its schedule: hours when this agent is working, so I''ve
+    isolated it into a separate class `Schedule`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our agents will be working on customer requests. So, it's a no-brainer— we need
+    to represent them in our system. Also, we will store a list of processed requests
+    in the `System` object to get the final stats after the simulation.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: If no free agent picks up a new customer request, it will be put into a queue.
+    So, we will have a `RequestQueue` as an object to store all customer requests
+    with the FIFO logic (First In, First Out).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The following important concept is `TimeLine` that represents the set of events
+    we need to process ordered by time.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`TimeLine` will include events, so we will also create a class `Event` for
+    them. Since we will have a bunch of different event types that we need to process
+    differently, we can leverage the OOP inheritance. We will discuss event types
+    in more detail in the next section.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: That's it. I’ve put all the classes and links between them into a diagram to
+    clarify it. I use such charts to have a high-level view of the system before starting
+    the implementation — it helps to think about the architecture early on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b29d63495089da7a70b25081a396022f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As you might have noticed, the diagram is not super detailed. For example, it
+    doesn’t include all field names and methods. It's intentional. This schema will
+    be used as a helicopter view to guide the development. So, I don't want to spend
+    too much time writing down all the field and method names because these details
+    might change during the implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Architecture: event types'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We've covered the program architecture, and now it's time to think about the
+    main drivers of our simulation — events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let's discuss what events we need to generate to keep our system working.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The event I will start with is the "*Agent Ready*" event. It shows that an agent
+    starts their work and is ready to pick up a task (if we have any waiting in the
+    queue).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We need to know when agents start working. These working hours can depend on
+    an agent and the day of the week. Potentially, we might even want to change the
+    schedules during the simulation. It's pretty challenging to create all "*Agent
+    Ready*" events when we initialise the system (especially since we don't know how
+    much time we need to finish the simulation). So, I propose a recurrent "*Plan
+    Agents Schedule*" event to create ready-to-work events for the next day.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The other essential event we need is a "*New Customer Request*" — an event that
+    shows that we got a new CS contact, and we need to either start working on it
+    or put it in a queue.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The last event is "*Agent Finished Task*", which shows that the agent finished
+    the task he was working on and is potentially ready to pick up a new task.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: That's it. These four events are enough to run the whole simulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to classes, there are no right or wrong answers for system modelling.
+    You might use a slightly different set of events. For example, you can add a "*Start
+    Task*" event to have it explicitly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can find the full implementation on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/simulations/queue_simulation.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We've defined the high-level structure of our solution, so we are ready to start
+    implementing it. Let’s start with the heart of our simulation — the system class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initialising the system
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Let's start with the `__init__` method for the system class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, let''s think about the parameters we would like to specify for the simulation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`agents` — set of agents that will be working in the CS team,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`queue` — the current queue of customer requests (if we have any),'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`initial_date` — since we agreed to use the actual timestamps instead of relative
+    ones, I will specify the date when we start simulations,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`logging` — flag that defines whether we would like to print some info for
+    debugging,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`customer_requests_df` — data frame with information about the set of customer
+    requests we would like to process.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Besides input parameters, we will also create the following internal fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`current_time` — the simulation clock that we will initialise as 00:00:00 of
+    the initial date specified,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`timeline` object that we will use to define the order of events,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`processed_request` — an empty list where we will store the processed customer
+    requests to get the data after simulation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'It''s time to take the necessary actions to initialise a system. There are
+    only two steps left:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Plan agents work for the first day. I’ll generate and process a corresponding
+    event with an initial timestamp.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Load customer requests by adding corresponding "*New Customer Request*" events
+    to the timeline.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Here's the code that does all these actions to initialise the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's not working yet since it has links to non-implemented classes and methods,
+    but we will cover it all one by one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Timeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let''s start with the classes we used in the system definition. The first one
+    is `TimeLine` . The only field it has is the list of events. Also, it implements
+    a bunch of methods:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: adding events (and ensuring that they are ordered chronologically),
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: returning the next event and deleting it from the list,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: telling how many events are left.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Customer requests queue
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The other class we used in initialisation is `RequestQueue`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are no surprises: the request queue consists of customer requests. Let''s
+    start with this building block. We know each request''s creation time and how
+    much time an agent will need to work on it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: It's a simple data class that contains only parameters. The only new thing here
+    is that I've overridden the `__str__` method to change the output of a print function.
+    It's pretty handy for debugging. You can compare it yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can move on to the requests queue. Similarly to the timeline, we've
+    implemented methods to add new requests, calculate requests in the queue and get
+    the subsequent request from the queue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Agents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The other thing we need to initialise the system is agents. First, each agent
+    has a schedule — a period when they are working depending on a weekday.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The only method we have for a schedule is whether at the specified moment the
+    agent is working or not.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s define the agent class. Each agent will have the following attributes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`id` and `name` — primarily for logging and debugging purposes,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`schedule` — the agent’s schedule object we’ve just defined,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`request_in_work` — link to customer request object that shows whether an agent
+    is occupied right now or not.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`effectiveness` — the coefficient that shows how efficient the agent is compared
+    to the expected time to solve the particular task.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We have the following methods implemented for agents:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: understanding whether they can take on a new task (whether they are free and
+    still working),
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: start and finish processing the customer request.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Loading initial customer requests to the timeline
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The only thing we are missing from the system `__init__` function (besides the
+    events processing that we will discuss in detail a bit later) is `load_customer_request_events`
+    function implementation. It's pretty straightforward. We just need to add it to
+    our `System` class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Cool, we've figured out the primary classes. So, let's move on to the implementation
+    of the events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Processing events
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As discussed, I will use the inheritance approach and create an `Event` class.
+    For now, it implements only `__init__` and `__str__` functions, but potentially,
+    it can help us provide additional functionality for all events.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, I implement a separate subclass for each event type that might have a
+    bit different initialisation. For example, for the `AgentReady` event, we also
+    have an `Agent` object. More than that, each Event class implements `process`
+    method that takes `system` as an input.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: That's actually it with the events processing business logic. The only bit we
+    need to finish is to put everything together to run our simulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Putting all together in the system class
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As we discussed, the `System` class will be in charge of running the simulations.
+    So, we will put the remaining nuts and bolts there.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here''s the remaining code. Let me briefly walk you through the main points:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`is_simulation_finished` defines the stopping criteria for our simulation —
+    no requests are in the queue, and no events are in the timeline.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`process_next_event` gets the next event from the timeline and executes `process`
+    for it. There''s a slight nuance here: we might end up in a situation where our
+    simulation never ends because of recurring "*Plan Agents Schedule*" events. That''s
+    why, in case of processing such an event type, I check whether there are any other
+    events in the timeline and if not, I don''t process it since we don''t need to
+    schedule agents anymore.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`run_simulation` is the function that rules our world, but since we have quite
+    a decent architecture, it''s a couple of lines: we check whether we can finish
+    the simulation, and if not, we process the next event.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: It was a long journey, but we've done it. Amazing job! Now, we have all the
+    logic we need. Let's move on to the funny part and use our model for analysis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the full implementation on [GitHub](https://github.com/miptgirl/miptgirl_medium/blob/main/simulations/queue_simulation.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Analysis
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I will use a synthetic Customer Requests dataset to simulate different Ops setups.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3766fb4263d15047736abfe15e6b3b64.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: First of all, let's run our system and look at metrics. I will start with 15
+    agents who are working regular hours.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: As a result of the execution, we got all the stats in `system.processed_requests`.
+    Let's put together a couple of helper functions to analyse results easier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: Also, let's make a couple of charts and calculate weekly metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we can use this function to analyse the simulation results. Apparently,
+    15 agents are not enough for our product since, after three weeks, we have 4K+
+    requests in a queue and an average resolution time of around ten days. Customers
+    would be very unhappy with our service if we had just 15 agents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f8de16ff06157ff13f33a00afa3c4fc4.png)![](../Images/febfa76237f01782abdc2d85c423424c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's find out how many agents we need to be able to cope with the demand. We
+    can run a bunch of simulations with the different number of agents and compare
+    results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can see that from ~25–30 agents, metrics for different weeks are roughly
+    the same, so there's enough capacity to handle incoming requests and queue is
+    not growing week after week.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e010166cb7d3325c2b92f2992fa55b4c.png)![](../Images/eefc26c7547bf7a3d19eda50a903becc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If we model the situation when we have 30 agents, we can see that the queue
+    is empty from 13:50 till the end of the working day from Tuesday to Friday. Agents
+    spend Monday processing the huge queue we are gathering during weekends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28e8e206ea36958c081ae0b870719357.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: With such a setup, the average resolution time is 500.67 minutes, and the average
+    queue length is 259.39.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let''s try to think about the possible improvements for our Operations team:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: we can hire another five agents,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can start leveraging LLMs and reduce handling time by 30%,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: we can shift agents' schedules to provide coverage during weekends and late
+    hours.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since we now have a model, we can easily estimate all the opportunities and
+    pick the most feasible one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first two approaches are straightforward. Let's discuss how we can shift
+    the agents' schedules. All our agents are working from Monday to Friday from 9
+    to 18\. Let's try to make their coverage a little bit more equally distributed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we can cover later and earlier hours, splitting agents into two groups.
+    We will have agents working from 7 to 16 and from 11 to 20.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Second, we can split them across working days more evenly. I used quite a straightforward
+    approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/58d97ada596f273dd5961143534c44e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: In reality, you can go even further and allocate fewer agents on weekends since
+    we have way less demand. It can improve your metrics even further. However, the
+    additional effect will be marginal.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we run simulations for all these scenarios, surprisingly, we will see that
+    KPIs will be way better if we just change agents' schedules. If we hire five more
+    people or improve agents' performance by 30%, we won't achieve such a significant
+    improvement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/feab62766dc8914d050a73e643a049f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Let's see how changes in agents' schedules affect our KPIs. Resolution time
+    grows only for cases outside working hours (from 20 to 7), and queue size never
+    reaches 200 cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60dc8a0dd103e62122945661f028ea08.png)![](../Images/ec4402a2bc799068f60099f32244c5d2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: That's an excellent result. Our simulation model has helped us prioritise operational
+    changes instead of hiring more people or investing in LLM tool development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We''ve discussed the basics of this approach in this article. If you want to
+    dig deeper and use it in practice, here are a couple more suggestions that might
+    be useful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before starting to use such models in production, it’s worth testing them. The
+    most straightforward way is to model your current situation and compare the main
+    KPIs. If they differ a lot, then your system doesn’t represent the real world
+    well enough, and you need to make it more accurate before using it for decision-making.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The current metrics are customer-focused. I've used average resolution time
+    as the primary KPI to make decisions. In business, we also care about costs. So,
+    it's worth looking at this task from an operational perspective as well, i.e.
+    measure the percentage of time when agents don't have tasks to work on (which
+    means we are paying them for nothing).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In real life, there might be spikes (i.e. the number of customer requests has
+    doubled because of a bug in your product), so I recommend you use such models
+    to ensure that your CS team can handle such situations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Last but not least, the model I've used was entirely deterministic (it returns
+    the same result on every run), because handling time was defined for each customer
+    request. To better understand metrics variability, you can specify the distribution
+    of handling times (depending on the task type, day of the week, etc.) for each
+    agent and get handling time from this distribution at each iteration. Then, you
+    can run the simulation multiple times and calculate the confidence intervals of
+    your metrics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'So, let’s briefly summarise the main points we’ve discussed today:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve learned the basics of the discrete-event simulation approach that helps
+    to model discrete systems with a countable number of events.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We’ve revised the object-oriented programming and classes in Python since this
+    paradigm is more suitable for this task than the common procedural code data analysts
+    usually use.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We’ve built the model of the CS team and were able to estimate the impact of
+    different potential improvements on our KPIs (resolution time and queue size).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thank you a lot for reading this article. If you have any follow-up questions
+    or comments, please leave them in the comments section.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '*All the images are produced by the author unless otherwise stated.*'
+  prefs: []
+  type: TYPE_NORMAL

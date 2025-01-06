@@ -1,0 +1,1932 @@
+- en: A Crash Course of Planning for Perception Engineers in Autonomous Driving
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/a-crash-course-of-planning-for-perception-engineers-in-autonomous-driving-ede324d78717?source=collection_archive---------1-----------------------#2024-06-30](https://towardsdatascience.com/a-crash-course-of-planning-for-perception-engineers-in-autonomous-driving-ede324d78717?source=collection_archive---------1-----------------------#2024-06-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The fundamentals of planning and decision-making
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@patrickllgc?source=post_page---byline--ede324d78717--------------------------------)[![Patrick
+    Langechuan Liu](../Images/fecbf85146a9bde21e6b2251538ddd65.png)](https://medium.com/@patrickllgc?source=post_page---byline--ede324d78717--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ede324d78717--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ede324d78717--------------------------------)
+    [Patrick Langechuan Liu](https://medium.com/@patrickllgc?source=post_page---byline--ede324d78717--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ede324d78717--------------------------------)
+    ·44 min read·Jun 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5098127e65432ebcafff9731d7e5c451.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AlphaGo, ChatGPT and FSD (image credit [Elena Popova](https://unsplash.com/@elenapopova?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash),
+    [Karthik Sridasyam](https://unsplash.com/@karthik1324?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    and [Jonathan Kemper](https://unsplash.com/@jupp?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/a-computer-screen-with-a-text-description-on-it-5yuRImxKOcU?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash))
+  prefs: []
+  type: TYPE_NORMAL
+- en: A classical modular autonomous driving system typically consists of perception,
+    prediction, planning, and control. Until around 2023, AI (artificial intelligence)
+    or ML (machine learning) primarily enhanced **perception** in most mass-production
+    autonomous driving systems, with its influence diminishing in downstream components.
+    In stark contrast to the low integration of AI in the planning stack, end-to-end
+    perception systems (such as the [BEV, or birds-eye-view perception pipeline](https://medium.com/towards-data-science/monocular-bev-perception-with-transformers-in-autonomous-driving-c41e4a893944?sk=b7498a375cf92533e8242b1837f29af4))
+    have been deployed in [mass production vehicles](https://medium.com/towards-data-science/bev-perception-in-mass-production-autonomous-driving-c6e3f1e46ae0?sk=8963783161435815fa1b0957fd325d39).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f4a37398d69465caf9d19fc89e145ad.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Classical modular design of an autonomous driving stack, 2023 and prior (Chart
+    created by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are multiple reasons for this. A classical stack based on a human-crafted
+    framework is more explainable and can be iterated faster to fix field test issues
+    (within hours) compared to machine learning-driven features (which could take
+    days or weeks). However, it does not make sense to let readily available human
+    driving data sit idle. Moreover, increasing computing power is more scalable than
+    expanding the engineering team.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fortunately, there has been a strong trend in both academia and industry to
+    change this situation. First, downstream modules are becoming increasingly data-driven
+    and may also be integrated via different interfaces, such as the one proposed
+    in [CVPR 2023’s best paper, UniAD](https://arxiv.org/abs/2212.10156). Moreover,
+    driven by the ever-growing wave of Generative AI, a single unified vision-language-action
+    (VLA) model shows great potential for handling complex robotics tasks ([RT-2](https://robotics-transformer2.github.io/assets/rt2.pdf)
+    in academia, TeslaBot and 1X in industry) and autonomous driving ([GAIA-1](https://arxiv.org/abs/2309.17080),
+    [DriveVLM](https://arxiv.org/abs/2402.12289) in academia, and Wayve AI driver,
+    Tesla FSD in industry). This brings the toolsets of AI and data-driven development
+    from the perception stack to the planning stack.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This blog post aims to introduce the problem settings, existing methodologies,
+    and challenges of the planning stack, in the form of a crash course for perception
+    engineers. As a perception engineer, I finally had some time over the past couple
+    of weeks to systematically learn the classical planning stack, and I would like
+    to share what I learned. I will also share my thoughts on how AI can help from
+    the perspective of an AI practitioner.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The intended audience for this post is AI practitioners who work in the field
+    of autonomous driving, in particular, perception engineers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The article is a bit long (11100 words), and the table of contents below will
+    most likely help those who want to do quick ctrl+F searches with the keywords.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Chinese version is available on [Zhihu知乎](https://zhuanlan.zhihu.com/p/706193528).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Why learn planning?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'This brings us to an interesting question: why learn planning, especially the
+    classical stack, in the era of AI?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a problem-solving perspective, understanding your customers’ challenges
+    better will enable you, as a perception engineer, to serve your downstream customers
+    more effectively, even if your main focus remains on perception work.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Machine learning is a tool, not a solution. The most efficient way to solve
+    problems is to combine new tools with domain knowledge, especially those with
+    solid mathematical formulations. Domain knowledge-inspired learning methods are
+    likely to be more data-efficient. As planning transitions from rule-based to ML-based
+    systems, even with early prototypes and products of end-to-end systems hitting
+    the road, there is a need for engineers who can deeply understand both the fundamentals
+    of planning and machine learning. Despite these changes, classical and learning
+    methods will likely continue to coexist for a considerable period, perhaps shifting
+    from an 8:2 to a 2:8 ratio. It is almost essential for engineers working in this
+    field to understand both worlds.
+  prefs: []
+  type: TYPE_NORMAL
+- en: From a value-driven development perspective, understanding the limitations of
+    classical methods is crucial. This insight allows you to effectively utilize new
+    ML tools to design a system that addresses current issues and delivers immediate
+    impact.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, planning is a critical part of all autonomous agents, not just
+    in autonomous driving. Understanding what planning is and how it works will enable
+    more ML talents to work on this exciting topic and contribute to the development
+    of truly autonomous agents, whether they are cars or other forms of automation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is planning?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The problem formulation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As the “brain” of autonomous vehicles, the planning system is crucial for the
+    safe and efficient driving of vehicles. The goal of the planner is to generate
+    trajectories that are safe, comfortable, and efficiently progressing towards the
+    goal. In other words, safety, comfort, and efficiency are the three key objectives
+    for planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As input to the planning systems, all perception outputs are required, including
+    static road structures, dynamic road agents, free space generated by occupancy
+    networks, and traffic wait conditions. The planning system must also ensure vehicle
+    comfort by monitoring acceleration and jerk for smooth trajectories, while considering
+    interaction and traffic courtesy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The planning systems generate trajectories in the format of a sequence of waypoints
+    for the ego vehicle’s low-level controller to track. Specifically, these waypoints
+    represent the future positions of the ego vehicle at a series of fixed time stamps.
+    For example, each point might be 0.4 seconds apart, covering an 8-second planning
+    horizon, resulting in a total of 20 waypoints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A classical planning stack roughly consists of global route planning, local
+    behavior planning, and local trajectory planning. Global route planning provides
+    a road-level path from the start point to the end point on a global map. Local
+    behavior planning decides on a semantic driving action type (e.g., car following,
+    nudging, side passing, yielding, and overtaking) for the next several seconds.
+    Based on the decided behavior type from the behavior planning module, local trajectory
+    planning generates a short-term trajectory. The global route planning is typically
+    provided by a map service once navigation is set and is beyond the scope of this
+    post. We will focus on behavior planning and trajectory planning from now on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Behavior planning and trajectory generation can work explicitly in tandem or
+    be combined into a single process. In explicit methods, behavior planning and
+    trajectory generation are distinct processes operating within a hierarchical framework,
+    working at different frequencies, with behavior planning at 1–5 Hz and trajectory
+    planning at 10–20 Hz. Despite being highly efficient most of the time, adapting
+    to different scenarios may require significant modifications and fine-tuning.
+    More advanced planning systems combine the two into a single optimization problem.
+    This approach ensures feasibility and optimality without any compromise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/84bae81967ad3e62c3fd2330dc51aa15.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Classification of planning design approaches (source: [Fluid Dynamics Planner](https://arxiv.org/abs/2406.05708))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Glossary of Planning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You might have noticed that the terminology used in the above section and the
+    image do not completely match. There is no standard terminology that everyone
+    uses. Across both academia and industry, it is not uncommon for engineers to use
+    different names to refer to the same concept and the same name to refer to different
+    concepts. This indicates that planning in autonomous driving is still under active
+    development and has not fully converged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, I list the notation used in this post and briefly explain other notions
+    present in the literature.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Planning: A top-level concept, parallel to control, that generates trajectory
+    waypoints. Together, planning and control are jointly referred to as PnC (planning
+    and control).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Control: A top-level concept that takes in trajectory waypoints and generates
+    high-frequency steering, throttle, and brake commands for actuators to execute.
+    Control is relatively well-established compared to other areas and is beyond the
+    scope of this post, despite the common notion of PnC.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Prediction: A top-level concept that predicts the future trajectories of traffic
+    agents other than the ego vehicle. Prediction can be considered a lightweight
+    planner for other agents and is also called motion prediction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Behavior Planning: A module that produces high-level semantic actions (e.g.,
+    lane change, overtake) and typically generates a coarse trajectory. It is also
+    known as task planning or decision making, particularly in the context of interactions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Motion Planning: A module that takes in semantic actions and produces smooth,
+    feasible trajectory waypoints for the duration of the planning horizon for control
+    to execute. It is also referred to as trajectory planning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Trajectory Planning: Another term for motion planning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Decision Making: Behavior planning with a focus on interactions. Without ego-agent
+    interaction, it is simply referred to as behavior planning. It is also known as
+    tactical decision making.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Route Planning: Finds the preferred route over road networks, also known as
+    mission planning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Model-Based Approach: In planning, this refers to manually crafted frameworks
+    used in the classical planning stack, as opposed to neural network models. Model-based
+    methods contrast with learning-based methods.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Multimodality: In the context of planning, this typically refers to multiple
+    intentions. This contrasts with multimodality in the context of multimodal sensor
+    inputs to perception or multimodal large language models (such as VLM or VLA).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Reference Line: A local (several hundred meters) and coarse path based on global
+    routing information and the current state of the ego vehicle.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Frenet Coordinates: A coordinate system based on a reference line. Frenet simplifies
+    a curvy path in Cartesian coordinates to a straight tunnel model. See below for
+    a more detailed introduction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Trajectory: A 3D spatiotemporal curve, in the form of (x, y, t) in Cartesian
+    coordinates or (s, l, t) in Frenet coordinates. A trajectory is composed of both
+    path and speed.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Path: A 2D spatial curve, in the form of (x, y) in Cartesian coordinates or
+    (s, l) in Frenet coordinates.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Semantic Action: A high-level abstraction of action (e.g., car following, nudge,
+    side pass, yield, overtake) with clear human intention. Also referred to as intention,
+    policy, maneuver, or primitive motion.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Action: A term with no fixed meaning. It can refer to the output of control
+    (high-frequency steering, throttle, and brake commands for actuators to execute)
+    or the output of planning (trajectory waypoints). Semantic action refers to the
+    output of behavior prediction.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Different literature may use various notations and concepts. Here are some
+    examples:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Decision Making System: Sometimes includes planning and control as well. (source:
+    [A Survey of Motion Planning and Control Techniques for Self-driving Urban Vehicles](https://arxiv.org/pdf/1604.07446),
+    and [BEVGPT](https://arxiv.org/abs/2310.10357))'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Motion Planning: Sometimes is the top-level planning concept and includes behavior
+    planning and trajectory planning. (source: [Towards A General-Purpose Motion Planning
+    for Autonomous Vehicles Using Fluid Dynamics](https://arxiv.org/abs/2406.05708)).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Planning: Sometimes includes behavior planning, motion planning, and also route
+    planning.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These variations illustrate the diversity in terminology and the evolving nature
+    of the field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Behavior Planning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As a machine learning engineer, you may notice that the behavior planning module
+    is a heavily manually crafted intermediate module. There is no consensus on the
+    exact form and content of its output. Concretely, the output of behavior planning
+    can be a reference path or object labeling on ego maneuvers (e.g., pass from the
+    left or right-hand side, pass or yield). The term “semantic action” has no strict
+    definition and no fixed methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The decoupling of behavior planning and motion planning increases efficiency
+    in solving the extremely high-dimensional action space of autonomous vehicles.
+    The actions of an autonomous vehicle need to be reasoned at typically 10 Hz or
+    more (time resolution in waypoints), and most of these actions are relatively
+    straightforward, like going straight. After decoupling, the behavior planning
+    layer only needs to reason about future scenarios at a relatively coarse resolution,
+    while the motion planning layer operates in the local solution space based on
+    the decision made by behavior planning. Another benefit of behavior planning is
+    converting non-convex optimization to convex optimization, which we will discuss
+    further below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Frenet vs Cartesian systems
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The Frenet coordinate system is a widely adopted system that merits its own
+    introduction section. The Frenet frame simplifies trajectory planning by independently
+    managing lateral and longitudinal movements relative to a reference path. The
+    sss coordinate represents longitudinal displacement (distance along the road),
+    while the lll (or ddd) coordinate represents lateral displacement (side position
+    relative to the reference path).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Frenet simplifies a curvy path in Cartesian coordinates to a straight tunnel
+    model. This transformation converts non-linear road boundary constraints on curvy
+    roads into linear ones, significantly simplifying the subsequent optimization
+    problems. Additionally, humans perceive longitudinal and lateral movements differently,
+    and the Frenet frame allows for separate and more flexible optimization of these
+    movements.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/557bbcb9cf482212a57762342fd2058c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Schematics on the conversion from Cartesian frame to Frenet frame (source:
+    [Cartesian Planner](https://ieeexplore.ieee.org/document/9703250))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Frenet coordinate system requires a clean, structured road graph with low
+    curvature lanes. In practice, it is preferred for structured roads with small
+    curvature, such as highways or city expressways. However, the issues with the
+    Frenet coordinate system are amplified with increasing reference line curvature,
+    so it should be used cautiously on structured roads with high curvature, like
+    city intersections with guide lines.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For unstructured roads, such as ports, mining areas, parking lots, or intersections
+    without guidelines, the more flexible Cartesian coordinate system is recommended.
+    The Cartesian system is better suited for these environments because it can handle
+    higher curvature and less structured scenarios more effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Classical tools — the troika of planning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Planning in autonomous driving involves computing a trajectory from an initial
+    high-dimensional state (including position, time, velocity, acceleration, and
+    jerk) to a target subspace, ensuring all constraints are satisfied. Searching,
+    sampling, and optimization are the three most widely used tools for planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Searching
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Classical graph-search methods are popular in planning and are used in route/mission
+    planning on structured roads or directly in motion planning to find the best path
+    in unstructured environments (such as parking or urban intersections, especially
+    mapless scenarios). There is a clear evolution path, from Dijkstra’s algorithm
+    to A* (A-star), and further to hybrid A*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dijkstra’s algorithm explores all possible paths to find the shortest one, making
+    it a blind (uninformed) search algorithm. It is a systematic method that guarantees
+    the optimal path, but it is inefficient to deploy. As shown in the chart below,
+    it explores almost all directions. Essentially, Dijkstra’s algorithm is a breadth-first
+    search (BFS) weighted by movement costs. To improve efficiency, we can use information
+    about the location of the target to trim down the search space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/90d0ec4849efafff5dd561d12527be42.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Visualization of Dijkstra’s algorithm and A-star search (Source: [PathFinding.js](https://qiao.github.io/PathFinding.js/visual/),
+    example inspired by [RedBlobGames](https://www.redblobgames.com/pathfinding/a-star/introduction.html))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The A* algorithm uses heuristics to prioritize paths that appear to be leading
+    closer to the goal, making it more efficient. It combines the cost so far (Dijkstra)
+    with the cost to go (heuristics, essentially greedy best-first). A* only guarantees
+    the shortest path if the heuristic is admissible and consistent. If the heuristic
+    is poor, A* can perform worse than the Dijkstra baseline and may degenerate into
+    a greedy best-first search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the specific application of autonomous driving, the hybrid A* algorithm further
+    improves A* by considering vehicle kinematics. A* may not satisfy kinematic constraints
+    and cannot be tracked accurately (e.g., the steering angle is typically within
+    40 degrees). While A* operates in grid space for both state and action, hybrid
+    A* separates them, maintaining the state in the grid but allowing continuous action
+    according to kinematics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Analytical expansion (shot to goal) is another key innovation proposed by hybrid
+    A*. A natural enhancement to A* is to connect the most recently explored nodes
+    to the goal using a non-colliding straight line. If this is possible, we have
+    found the solution. In hybrid A*, this straight line is replaced by Dubins and
+    Reeds-Shepp (RS) curves, which comply with vehicle kinematics. This early stopping
+    method strikes a balance between optimality and feasibility by focusing more on
+    feasibility for the further side.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hybrid A* is used heavily in parking scenarios and mapless urban intersections.
+    Here is a very nice video showcasing how it works in a parking scenario.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3f58234e1f2851acba82d22fabb261e1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Hybrid A-star algorithm with analytical expansion (source: the [2010 IJRR Hybrid
+    A-star paper](https://www.semanticscholar.org/paper/Path-Planning-for-Autonomous-Vehicles-in-Unknown-Dolgov-Thrun/0e8c927d9c2c46b87816a0f8b7b8b17ed1263e9c)
+    and [2012 Udacity class](https://www.youtube.com/watch?v=qXZt-B7iUyw&ab_channel=Udacity)
+    )'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sampling
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Another popular method of planning is sampling. The well-known Monte Carlo method
+    is a random sampling method. In essence, sampling involves selecting many candidates
+    randomly or according to a prior, and then selecting the best one according to
+    a defined cost. For sampling-based methods, the fast evaluation of many options
+    is critical, as it directly impacts the real-time performance of the autonomous
+    driving system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Large Language Models (LLMs) essentially provide samples, and there needs to
+    be an evaluator with a defined cost that aligns with human preferences. This evaluation
+    process ensures that the selected output meets the desired criteria and quality
+    standards. This process is basically the so-called alignment.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Sampling can occur in a parameterized solution space if we already know the
+    analytical solution to a given problem or subproblem. For example, typically we
+    want to minimize the time integral of the square of jerk (the third derivative
+    of position p(t)), indicated by the triple dots over p, where one dot represents
+    one order derivative with respect to time), among other criteria.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e328957af9c4e4da4e980f475582b866.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Minimizing squared jerk for driving comfort (source: [Werling et al](https://www.semanticscholar.org/paper/Optimal-trajectory-generation-for-dynamic-street-in-Werling-Ziegler/6bda8fc13bda8cffb3bb426a73ce5c12cc0a1760),
+    ICRA 2010)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It can be mathematically proven that quintic (5th order) polynomials provide
+    the jerk-optimal connection between two states in a position-velocity-acceleration
+    space, even when additional cost terms are considered. By sampling in this parameter
+    space of quintic polynomials, we can find the one with the minimum cost to get
+    the approximate solution. The cost takes into account factors such as speed, acceleration,
+    jerk limit, and collision checks. This approach essentially solves the optimization
+    problem through sampling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/22c50c86d7b5b1fd2a459d17fafece5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sampling of lateral movement time profiles (source: [Werling et al](https://www.semanticscholar.org/paper/Optimal-trajectory-generation-for-dynamic-street-in-Werling-Ziegler/6bda8fc13bda8cffb3bb426a73ce5c12cc0a1760),
+    ICRA 2010)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sampling-based methods have inspired numerous ML papers, including CoverNet,
+    Lift-Splat-Shoot, NMP, and MP3\. These methods replace mathematically sound quintic
+    polynomials with human driving behavior, utilizing a large database. The evaluation
+    of trajectories can be easily parallelized, which further supports the use of
+    sampling-based methods. This approach effectively leverages a vast amount of expert
+    demonstrations to mimic human-like driving behavior, while avoiding random sampling
+    of acceleration and steering profiles.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/98b82507bc9c5bf06c32603d8a6d7823.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Sampling from human-driving data for data-driven planning methods (source:
+    [NMP](http://www.cs.toronto.edu/~wenjie/papers/cvpr19/nmp.pdf), [CoverNet](https://arxiv.org/abs/1911.10298)
+    and [Lift-splat-shoot](https://arxiv.org/abs/2008.05711))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Optimization finds the best solution to a problem by maximizing or minimizing
+    a specific objective function under given constraints. In neural network training,
+    a similar principle is followed using gradient descent and backpropagation to
+    adjust the network’s weights. However, in optimization tasks outside of neural
+    networks, models are usually less complex, and more effective methods than gradient
+    descent are often employed. For example, while gradient descent can be applied
+    to Quadratic Programming, it is generally not the most efficient method.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In autonomous driving, the planning cost to optimize typically considers dynamic
+    objects for obstacle avoidance, static road structures for following lanes, navigation
+    information to ensure the correct route, and ego status to evaluate smoothness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization can be categorized into convex and non-convex types. The key distinction
+    is that in a convex optimization scenario, there is only one global optimum, which
+    is also the local optimum. This characteristic makes it unaffected by the initial
+    solution to the optimization problems. For non-convex optimization, the initial
+    solution matters a lot, as illustrated in the chart below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/697da6b0533847e3cebf23f289d27301.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Convex vs non-convex optimization (source: [Stanford course materials](https://stanford.edu/~pilanci/papers/TALK_Sketching.pdf))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since planning involves highly non-convex optimization with many local optima,
+    it heavily depends on the initial solution. Additionally, convex optimization
+    typically runs much faster and is therefore preferred for onboard real-time applications
+    such as autonomous driving. A typical approach is to use convex optimization in
+    conjunction with other methods to outline a convex solution space first. This
+    is the mathematical foundation behind separating behavior planning and motion
+    planning, where finding a good initial solution is the role of behavior planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Take obstacle avoidance as a concrete example, which typically introduces non-convex
+    problems. If we know the nudging direction, then it becomes a convex optimization
+    problem, with the obstacle position acting as a lower or upper bound constraint
+    for the optimization problem. If we don’t know the nudging direction, we need
+    to decide first which direction to nudge, making the problem a convex one for
+    motion planning to solve. This nudging direction decision falls under behavior
+    planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Of course, we can do direct optimization of non-convex optimization problems
+    with tools such as projected gradient descent, alternating minimization, particle
+    swarm optimization (PSO), and genetic algorithms. However, this is beyond the
+    scope of this post.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/6a71f4bf5ba9b067048f77546c92d93b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A convex path planning problem vs a non-convex one (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5aec290676543117fa55a96f20ec808c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The solution process of the convex vs non-convex path planning problem (chart
+    made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: How do we make such decisions? We can use the aforementioned search or sampling
+    methods to address non-convex problems. Sampling-based methods scatter many options
+    across the parameter space, effectively handling non-convex issues similarly to
+    searching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may also question why deciding which direction to nudge from is enough to
+    guarantee the problem space is convex. To explain this, we need to discuss topology.
+    In path space, similar feasible paths can transform continuously into each other
+    without obstacle interference. These similar paths, grouped as “homotopy classes”
+    in the formal language of topology, can all be explored using a single initial
+    solution homotopic to them. All these paths form a driving corridor, illustrated
+    as the red or green shaded area in the image above. For a 3D spatiotemporal case,
+    please refer to the [QCraft tech blog](https://zhuanlan.zhihu.com/p/551381336).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can utilize the [*Generalized Voronoi diagram*](https://zhuanlan.zhihu.com/p/551381336)
+    to enumerate all homotopy classes, which roughly corresponds to the different
+    decision paths available to us. However, this topic delves into advanced mathematical
+    concepts that are beyond the scope of this blog post.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The key to solving optimization problems efficiently lies in the capabilities
+    of the optimization solver. Typically, a solver requires approximately 10 milliseconds
+    to plan a trajectory. If we can boost this efficiency by tenfold, it can significantly
+    impact algorithm design. This exact improvement was highlighted during Tesla AI
+    Day 2022\. A similar enhancement has occurred in perception systems, transitioning
+    from 2D perception to Bird’s Eye View (BEV) as available computing power scaled
+    up tenfold. With a more efficient optimizer, more options can be calculated and
+    evaluated, thereby reducing the importance of the decision-making process. However,
+    engineering an efficient optimization solver demands substantial engineering resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Every time compute scales up by 10x, algorithm will evolve to next generation.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: — — The unverified law of algorithm evolution
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Industry Practices of Planning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A key differentiator in various planning systems is whether they are spatiotemporally
+    decoupled. Concretely, spatiotemporally decoupled methods plan in spatial dimensions
+    first to generate a path, and then plan the speed profile along this path. This
+    approach is also known as path-speed decoupling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Path-speed decoupling is often referred to as lateral-longitudinal (lat-long)
+    decoupling, where lateral (lat) planning corresponds to path planning and longitudinal
+    (long) planning corresponds to speed planning. This terminology seems to originate
+    from the Frenet coordinate system explained earlier.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decoupled solutions are easier to implement and can solve about 95% of issues.
+    In contrast, coupled solutions have a higher theoretical performance ceiling but
+    are more challenging to implement. They involve more parameters to tune and require
+    a more principled approach to parameter tuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4f7f92a26aabf6071ff72ba10662c0c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The comparison of decoupled and joint planning (source: made by the author,
+    inspired by [Qcraft](https://www.xchuxing.com/article/63767))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/80caac84205c7a3876e6207a9d7e841f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Pros and cons of decoupled vs joint spatiotemporal planning (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Path-speed decoupled planning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can take [Baidu Apollo EM planner](https://arxiv.org/abs/1807.08048) as an
+    example of a system that uses path-speed decoupled planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The EM planner significantly reduces computational complexity by transforming
+    a three-dimensional station-lateral-speed problem into two two-dimensional problems:
+    station-lateral and station-speed. At the core of Apollo’s EM planner is an iterative
+    Expectation-Maximization (EM) step, consisting of path optimization and speed
+    optimization. Each step is divided into an E-step (projection and formulation
+    in a 2D state space) and an M-step (optimization in the 2D state space). The E-step
+    involves projecting the 3D problem into either a Frenet SL frame or an ST speed
+    tracking frame.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dc607d36c1a73faf84d32ee4fd982b79.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The EM iteration in Apollo EM planner (source: [Baidu Apollo EM planner](https://arxiv.org/abs/1807.08048)
+    )'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The M-step (maximization step) in both path and speed optimization involves
+    solving non-convex optimization problems. For path optimization, this means deciding
+    whether to nudge an object on the left or right side, while for speed optimization,
+    it involves deciding whether to overtake or yield to a dynamic object crossing
+    the path. The Apollo EM planner addresses these non-convex optimization challenges
+    using a two-step process: Dynamic Programming (DP) followed by Quadratic Programming
+    (QP).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: DP uses a sampling or searching algorithm to generate a rough initial solution,
+    effectively pruning the non-convex space into a convex space. QP then takes the
+    coarse DP results as input and optimizes them within the convex space provided
+    by DP. In essence, DP focuses on feasibility, and QP refines the solution to achieve
+    optimality within the convex constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our defined terminology, Path DP corresponds to lateral BP, Path QP to lateral
+    MP, Speed DP to longitudinal BP, and Speed QP to longitudinal MP. Thus, the process
+    involves conducting BP (Basic Planning) followed by MP (Master Planning) in both
+    the path and speed steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f32f0b7181bbaae16ff39a41c4366104.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A full autonomous driving stack with path-speed decoupled planning (chart made
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Joint spatiotemporal planning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Although decoupled planning can resolve 95% of cases in autonomous driving,
+    the remaining 5% involve challenging dynamic interactions where a decoupled solution
+    often results in suboptimal trajectories. In these complex scenarios, demonstrating
+    intelligence is crucial, making it a very hot topic in the field.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, in narrow-space passing, the optimal behavior might be to either
+    decelerate to yield or accelerate to pass. Such behaviors are not achievable within
+    the decoupled solution space and require joint optimization. Joint optimization
+    allows for a more integrated approach, considering both path and speed simultaneously
+    to handle intricate dynamic interactions effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d32a376deca659417fe15fe58533a45e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A full autonomous driving stack with joint spatiotemporal planning (chart made
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, there are significant challenges in joint spatiotemporal planning.
+    Firstly, solving the non-convex problem directly in a higher-dimensional state
+    space is more challenging and time-consuming than using a decoupled solution.
+    Secondly, considering interactions in spatiotemporal joint planning is even more
+    complex. We will cover this topic in more detail later when we discuss decision-making.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here we introduce two solving methods: brute force search and constructing
+    a spatiotemporal corridor for optimization.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Brute force search occurs directly in 3D spatiotemporal space (2D in space and
+    1D in time), and can be performed in either XYT (Cartesian) or SLT (Frenet) coordinates.
+    We will take SLT as an example. SLT space is long and flat, similar to an energy
+    bar. It is elongated in the L dimension and flat in the ST face. For brute force
+    search, we can use hybrid A-star, with the cost being a combination of progress
+    cost and cost to go. During optimization, we must conform to search constraints
+    that prevent reversing in both the s and t dimensions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f2dd701764070281b4288f1bd789052f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Overtake by lane change in spatiotemporal lattice (source: [Spatiotemporal
+    optimization with A*](https://www.qichegongcheng.com/CN/abstract/abstract1500.shtml))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another method is constructing a spatiotemporal corridor, essentially a curve
+    with the footprint of a car winding through a 3D spatiotemporal state space (SLT,
+    for example). The [SSC (spatiotemporal semantic corridor, RAL 2019)](https://arxiv.org/abs/1906.09788),
+    encodes requirements given by semantic elements into a semantic corridor, generating
+    a safe trajectory accordingly. The semantic corridor consists of a series of mutually
+    connected collision-free cubes with dynamical constraints posed by the semantic
+    elements in the spatiotemporal domain. Within each cube, it becomes a convex optimization
+    problem that can be solved using Quadratic Programming (QP).
+  prefs: []
+  type: TYPE_NORMAL
+- en: SSC still requires a BP (Behavior Planning) module to provide a coarse driving
+    trajectory. Complex semantic elements of the environment are projected into the
+    spatiotemporal domain concerning the reference lane. [EPSILON (TRO 2021)](https://arxiv.org/abs/2108.07993),
+    showcases a system where SSC serves as the motion planner working in tandem with
+    a behavior planner. In the next section, we will discuss behavior planning, especially
+    focusing on interaction. In this context, behavior planning is usually referred
+    to as decision making.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/abad96e9b684fca4f58bce59ddb353e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'An illustration of the spatiotemporal corridor (source: [SSC](https://arxiv.org/abs/1906.09788))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Decision making
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: What and why?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Decision making in autonomous driving is essentially behavior planning, but
+    with a focus on interaction with other traffic agents. The assumption is that
+    other agents are mostly rational and will respond to our behavior in a predictable
+    manner, which we can describe as “noisily rational.”
+  prefs: []
+  type: TYPE_NORMAL
+- en: People may question the necessity of decision making when advanced planning
+    tools are available. However, two key aspects — uncertainty and interaction —
+    introduce a probabilistic nature to the environment, primarily due to the presence
+    of dynamic objects. Interaction is the most challenging part of autonomous driving,
+    distinguishing it from general robotics. Autonomous vehicles must not only navigate
+    but also anticipate and react to the behavior of other agents, making robust decision-making
+    essential for safety and efficiency.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a deterministic (purely geometric) world without interaction, decision making
+    would be unnecessary, and planning through searching, sampling, and optimization
+    would suffice. Brute force searching in the 3D XYT space could serve as a general
+    solution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In most classical autonomous driving stacks, a prediction-then-plan approach
+    is adopted, assuming zero-order interaction between the ego vehicle and other
+    vehicles. This approach treats prediction outputs as deterministic, requiring
+    the ego vehicle to react accordingly. This leads to overly conservative behavior,
+    exemplified by the “freezing robot” problem. In such cases, prediction fills the
+    entire spatiotemporal space, preventing actions like lane changes in crowded conditions
+    — something humans manage more effectively.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To handle stochastic strategies, Markov Decision Processes (MDP) or Partially
+    Observable Markov Decision Processes (POMDP) frameworks are essential. These approaches
+    shift the focus from geometry to probability, addressing chaotic uncertainty.
+    By assuming that traffic agents behave rationally or at least noisily rationally,
+    decision making can help create a safe driving corridor in the otherwise chaotic
+    spatiotemporal space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Among the three overarching goals of planning — safety, comfort, and efficiency
+    — decision making primarily enhances efficiency. Conservative actions can maximize
+    safety and comfort, but effective negotiation with other road agents, achievable
+    through decision making, is essential for optimal efficiency. Effective decision
+    making also displays intelligence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MDP and POMDP
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will first introduce Markov Decision Processes (MDP) and Partially Observable
+    Markov Decision Processes (POMDP), followed by their systematic solutions, such
+    as value iteration and policy iteration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Markov Process (MP) is a type of stochastic process that deals with dynamic
+    random phenomena, unlike static probability. In a Markov Process, the future state
+    depends only on the current state, making it sufficient for prediction. For autonomous
+    driving, the relevant state may only include the last second of data, and we can
+    expand the state space to allow for a shorter history window (for example, instead
+    of a longer history of positions, we can use a shorter history window of position,
+    velocity and acceleration, etc).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A Markov Decision Process (MDP) extends a Markov Process to include decision-making
+    by introducing action. MDPs model decision-making where outcomes are partly random
+    and partly controlled by the decision maker or agent. An MDP can be modeled with
+    five factors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'State (S): The state of the environment.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Action (A): The actions the agent can take to affect the environment.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Reward (R): The reward the environment provides to the agent as a result of
+    the action.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Transition Probability (P): The probability of transitioning from the old state
+    to a new state upon the agent’s action.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Gamma (γ): A discount factor for future rewards.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This is also the common framework used by reinforcement learning (RL), which
+    is essentially an MDP. The goal of MDP or RL is to maximize the cumulative reward
+    received in the long run. This requires the agent to make good decisions given
+    a state from the environment, according to a policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A policy, π, is a mapping from each state, s ∈ S, and action, a ∈ A(s), to the
+    probability π(a|s) of taking action a when in state s. MDP or RL studies the problem
+    of how to derive the optimal policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/498d6c7687a59b14b330d3801aead9cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The agent-environment interface in MDP and RL (source: [Reinforcement Learning:
+    An Introduction](https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Partially Observable Markov Decision Process (POMDP) adds an extra layer of
+    complexity by recognizing that states cannot be directly observed but rather inferred
+    through observations. In a POMDP, the agent maintains a belief — a probability
+    distribution over possible states — to estimate the state of the environment.
+    Autonomous driving scenarios are better represented by POMDPs due to their inherent
+    uncertainties and the partial observability of the environment. An MDP can be
+    considered a special case of a POMDP where the observation perfectly reveals the
+    state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/826bad80b9b9275cb7ed42022798660f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'MDP vs POMDP (source: [POMDPs as stochastic contingent planning](https://www.researchgate.net/figure/MDP-and-POMDP-visualization_fig1_374986767))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: POMDPs can actively collect information, leading to actions that gather necessary
+    data, demonstrating the intelligent behavior of these models. This capability
+    is particularly valuable in scenarios like waiting at intersections, where gathering
+    information about other vehicles’ intentions and the state of the traffic light
+    is crucial for making safe and efficient decisions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Value iteration and Policy iteration
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Value iteration** and **policy iteration** are systematic methods for solving
+    MDP or POMDP problems. While these methods are not commonly used in real-world
+    applications due to their complexity, understanding them provides insight into
+    exact solutions and how they can be simplified in practice, such as using MCTS
+    in AlphaGo or MPDM in autonomous driving.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To find the best policy in an MDP, we must assess the potential or expected
+    reward from a state, or more specifically, from an action taken in that state.
+    This expected reward includes not just the immediate reward but also all future
+    rewards, formally known as the return or cumulative discounted reward. (For a
+    deeper understanding, refer to “[Reinforcement Learning: An Introduction](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf),”
+    often considered the definitive guide on the subject.)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The value function (V) characterizes the quality of states by summing the expected
+    returns. The action-value function (Q) assesses the quality of actions for a given
+    state. Both functions are defined according to a given policy. The Bellman Optimality
+    Equation states that an *optimal* policy will choose the action that *maximizes*
+    the immediate reward plus the expected future rewards from the resulting new states.
+    In simple terms, the Bellman Optimality Equation advises considering both the
+    immediate reward and the future consequences of an action. For example, when switching
+    jobs, consider not only the immediate pay raise (R) but also the future value
+    (S’) the new position offers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b78b1653df30f808436b6e3d5b3f3137.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Bellman’s equation of optimality (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is relatively straightforward to extract the optimal policy from the Bellman
+    Optimality Equation once the optimal value function is available. But how do we
+    find this optimal value function? This is where value iteration comes to the rescue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e68bbaeaec158ca39554728869f81b09.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extract best policy from optimal values (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Value iteration finds the best policy by repeatedly updating the value of each
+    state until it stabilizes. This process is derived by turning the Bellman Optimality
+    Equation into an update rule. Essentially, we use the optimal future picture to
+    guide the iteration toward it. In plain language, “fake it until you make it!”
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/288f8fed1d74fe07a5ff0a778685e236.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Update value functions under the guidance of Bellman’s Equation (chart made
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Value iteration is guaranteed to converge for finite state spaces, regardless
+    of the initial values assigned to the states (for a detailed proof, please refer
+    to the [Bible of RL](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//medium.com/p/ede324d78717/edit%23%3A~%3Atext%3Dhttps%253A//web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf)).
+    If the discount factor gamma is set to 0, meaning we only consider immediate rewards,
+    the value iteration will converge after just one iteration. A smaller gamma leads
+    to faster convergence because the horizon of consideration is shorter, though
+    it may not always be the best option for solving concrete problems. Balancing
+    the discount factor is a key aspect of engineering practice.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One might ask how this works if all states are initialized to zero. The immediate
+    reward in the Bellman Equation is crucial for bringing in additional information
+    and breaking the initial symmetry. Think about the states that immediately lead
+    to the goal state; their value propagates through the state space like a virus.
+    In plain language, it’s about making small wins, frequently.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e3a80128bd6e391639059888b443e77.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Value and policy functions interact until they converge to optimum together
+    (source: [Reinforcement Learning: An Introduction](https://web.stanford.edu/class/psych209/Readings/SuttonBartoIPRLBook2ndEd.pdf))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, value iteration also suffers from inefficiency. It requires taking
+    the optimal action at each iteration by considering all possible actions, similar
+    to Dijkstra’s algorithm. While it demonstrates feasibility as a basic approach,
+    it is typically not practical for real-world applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/341299e3acf45f2fcba47891bf78fc9c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The contrast of Bellman Equation and Bellman Optimality Equation (chart made
+    by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Policy iteration improves on this by taking actions according to the current
+    policy and updating it based on the Bellman Equation (not the Bellman Optimality
+    Equation). Policy iteration decouples policy evaluation from policy improvement,
+    making it a much faster solution. Each step is taken based on a given policy instead
+    of exploring all possible actions to find the one that maximizes the objective.
+    Although each iteration of policy iteration can be more computationally intensive
+    due to the policy evaluation step, it generally results in a faster convergence
+    overall.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In simple terms, if you can only fully evaluate the consequence of one action,
+    it’s better to use your own judgment and do your best with the current information
+    available.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AlphaGo and MCTS — when nets meet trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We have all heard the unbelievable story of AlphaGo beating the best human player
+    in 2016\. AlphaGo formulates the gameplay of Go as an MDP and solves it with Monte
+    Carlo Tree Search (MCTS). But why not use value iteration or policy iteration?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Value iteration and policy iteration are systematic, iterative methods that
+    solve MDP problems. However, even with improved policy iteration, it still requires
+    performing time-consuming operations to update the value of every state. A standard
+    19x19 Go board has roughly [2e170 possible states](https://senseis.xmp.net/?NumberOfPossibleGoGames=).
+    This vast number of states makes it intractable to solve with traditional value
+    iteration or policy iteration techniques.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AlphaGo and its successors use a [Monte Carlo tree search](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search)
+    (MCTS) algorithm to find their moves, guided by a value network and a policy network,
+    trained on both human and computer play. Let’s take a look at vanilla MCTS first.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2103789656021072b20fd0ceb6e0d8cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The four steps of MCTS by AlphaGo, combining both value network and policy
+    network (source: [AlphaGo](https://www.nature.com/articles/nature16961), Nature
+    2016)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Monte Carlo Tree Search (MCTS)** is a method for policy estimation that focuses
+    on decision-making from the current state. One iteration involves a four-step
+    process: selection, expansion, simulation (or evaluation), and backup.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Selection**: The algorithm follows the most promising path based on previous
+    simulations until it reaches a leaf node, a position not yet fully explored.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Expansion**: One or more child nodes are added to represent possible next
+    moves from the leaf node.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Simulation (Evaluation)**: The algorithm plays out a random game from the
+    new node until the end, known as a “rollout.” This assesses the potential outcome
+    from the expanded node by simulating random moves until a terminal state is reached.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Backup**: The algorithm updates the values of the nodes on the path taken
+    based on the game’s result. If the outcome is a win, the value of the nodes increases;
+    if it is a loss, the value decreases. This process propagates the result of the
+    rollout back up the tree, refining the policy based on simulated outcomes.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: After a given number of iterations, MCTS provides the percentage frequency with
+    which immediate actions were selected from the root during simulations. During
+    inference, the action with the most visits is selected. Here is [an interactive
+    illustration of MTCS](https://vgarciasc.github.io/mcts-viz/) with the game of
+    tic-tac-toe for simplicity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MCTS in AlphaGo is enhanced by two neural networks. **Value Network** evaluates
+    the winning rate from a given state (board configuration). **Policy Network**
+    evaluates the action distribution for all possible moves. These neural networks
+    improve MCTS by reducing the effective depth and breadth of the search tree. The
+    policy network helps in sampling actions, focusing the search on promising moves,
+    while the value network provides a more accurate evaluation of positions, reducing
+    the need for extensive rollouts. This combination allows AlphaGo to perform efficient
+    and effective searches in the vast state space of Go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f006e297e1acba4bad8d39b92f318b69.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The policy network and value network of AlphaGo (source: [AlphaGo](https://www.nature.com/articles/nature16961),
+    Nature 2016)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the **expansion** step, the policy network samples the most likely positions,
+    effectively pruning the breadth of the search space. In the **evaluation** step,
+    the value network provides an instinctive scoring of the position, while a faster,
+    lightweight policy network performs rollouts until the game ends to collect rewards.
+    MCTS then uses a weighted sum of the evaluations from both networks to make the
+    final assessment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that a single evaluation of the value network approaches the accuracy of
+    Monte Carlo rollouts using the RL policy network but with 15,000 times less computation.
+    This mirrors the fast-slow system design, akin to intuition versus reasoning,
+    or [System 1 versus System 2](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//en.wikipedia.org/wiki/Thinking%2C_Fast_and_Slow)
+    as described by Nobel laureate Daniel Kahneman. Similar designs can be observed
+    in more recent works, such as [DriveVLM](https://arxiv.org/abs/2402.12289).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To be exact, AlphaGo incorporates two slow-fast systems at different levels.
+    On the macro level, the policy network selects moves while the faster rollout
+    policy network evaluates these moves. On the micro level, the faster rollout policy
+    network can be approximated by a value network that directly predicts the winning
+    rate of board positions.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: What can we learn from AlphaGo for autonomous driving? AlphaGo demonstrates
+    the importance of extracting an excellent policy using a robust world model (simulation).
+    Similarly, autonomous driving requires a highly accurate simulation to effectively
+    leverage algorithms similar to those used by AlphaGo. This approach underscores
+    the value of combining strong policy networks with detailed, precise simulations
+    to enhance decision-making and optimize performance in complex, dynamic environments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MPDM (and successors) in autonomous driving
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the game of Go, all states are immediately available to both players, making
+    it a perfect information game where observation equals state. This allows the
+    game to be characterized by an MDP process. In contrast, autonomous driving is
+    a POMDP process, as the states can only be estimated through observation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: POMDPs connect perception and planning in a principled way. The typical solution
+    for a POMDP is similar to that for an MDP, with a limited lookahead. However,
+    the main challenges lie in the curse of dimensionality (explosion in state space)
+    and the complex interactions with other agents. To make real-time progress tractable,
+    domain-specific assumptions are typically made to simplify the POMDP problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[MPDM](https://ieeexplore.ieee.org/document/7139412) (and the [two](https://www.roboticsproceedings.org/rss11/p43.pdf)
+    [follow-ups](https://link.springer.com/article/10.1007/s10514-017-9619-z), and
+    [the white paper](https://maymobility.com/resources/autonomy-at-scale-white-paper/))
+    is one pioneering study in this direction. MPDM reduces the POMDP to a closed-loop
+    forward simulation of a finite, discrete set of semantic-level policies, rather
+    than evaluating every possible control input for every vehicle. This approach
+    addresses the [curse of dimensionality](https://en.wikipedia.org/wiki/Curse_of_dimensionality)
+    by focusing on a manageable number of meaningful policies, allowing for effective
+    real-time decision-making in autonomous driving scenarios.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1e479cccd693fbe81acaa387068e7102.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Semantic actions help control the curse of dimensionality (source: [EPSILON](https://arxiv.org/abs/2108.07993))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The assumptions of MPDM are twofold. First, much of the decision-making by
+    human drivers involves discrete high-level semantic actions (e.g., slowing, accelerating,
+    lane-changing, stopping). These actions are referred to as policies in this context.
+    The second implicit assumption concerns other agents: other vehicles will make
+    reasonably safe decisions. Once a vehicle’s policy is decided, its action (trajectory)
+    is determined.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a6e9de32f012cfd6c27c556e6912cf2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The framework of MPDM (chart created by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: MPDM first selects one policy for the ego vehicle from many options (hence the
+    “multi-policy” in its name) and selects one policy for each nearby agent based
+    on their respective predictions. It then performs forward simulation (similar
+    to a fast rollout in MCTS). The best interaction scenario after evaluation is
+    then passed on to motion planning, such as the Spatiotemporal Semantic Corridor
+    (SCC) mentioned in the joint spatiotemporal planning session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MPDM enables intelligent and human-like behavior, such as actively cutting into
+    dense traffic flow even when there is no sufficient gap present. This is not possible
+    with a predict-then-plan pipeline, which does not explicitly consider interactions.
+    The prediction module in MPDM is tightly integrated with the behavior planning
+    model through forward simulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MPDM assumes a single policy throughout the decision horizon (10 seconds). Essentially,
+    MPDM adopts an MCTS approach with one layer deep and super wide, considering all
+    possible agent predictions. This leaves room for improvement, inspiring many follow-up
+    works such as EUDM, EPSILON, and MARC. For example, EUDM considers more flexible
+    ego policies and assigns a policy tree with a depth of four, with each policy
+    covering a time duration of 2 seconds over an 8-second decision horizon. To compensate
+    for the extra computation induced by the increased tree depth, EUDM performs more
+    efficient width pruning by guided branching, identifying critical scenarios and
+    key vehicles. This approach explores a more balanced policy tree.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The forward simulation in MPDM and EUDM uses very simplistic driver models (Intelligent
+    driver model or IDM for longitudinal simulation, and Pure Pursuit or PP for lateral
+    simulation). MPDM points out that high fidelity realism matters less than the
+    closed-loop nature itself, as long as policy-level decisions are not affected
+    by low-level action execution inaccuracies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7cfe5b2544f6f640ad9958c221f248b7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The conceptual diagram of decision making, where prediction, BP and MP integrates
+    tightly (chart created by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contingency planning in the context of autonomous driving involves generating
+    multiple potential trajectories to account for various possible future scenarios.
+    A key motivating example is that experienced drivers anticipate multiple future
+    scenarios and always plan for a safe backup plan. This anticipatory approach leads
+    to a smoother driving experience, even when cars perform sudden cut-ins into the
+    ego lane.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A critical aspect of contingency planning is deferring the decision bifurcation
+    point. This means delaying the point at which different potential trajectories
+    diverge, allowing the ego vehicle more time to gather information and respond
+    to different outcomes. By doing so, the vehicle can make more informed decisions,
+    resulting in smoother and more confident driving behaviors, similar to those of
+    an experienced driver.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6bed42bd618a07b194d8e27fc1327ca7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Risk-aware contingency planning (source: [MARC](https://arxiv.org/abs/2308.12021),
+    RAL 2023)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: MARC also combines behavior planning and motion planning together. This extends
+    the notion and utility of forward simulation. In other words, MPDM and EUDM still
+    uses policy tree for high level behavior planning and rely on other motion planning
+    pipelines such as [semantic spatiotemporal corridors (SSC)](https://arxiv.org/abs/1906.09788),
+    due to the fact that ego motion in the policy tree is still characterized by heavily
+    quantized behavior bucket. MARC extends this by keeping the quantized behavior
+    for agents other than ego but uses more refined motion planning directly in the
+    forward rollout. In a way it is a hybrid approach, where hybrid carries a similar
+    meaning to that in hybrid A*, a mix of discrete and continuous.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: One possible drawback of MPDM and all its follow-up works is their reliance
+    on simple policies designed for highway-like structured environments, such as
+    lane keeping and lane changing. This reliance may limit the capability of forward
+    simulation to handle complex interactions. To address this, following the example
+    of MPDM, the key to making POMDPs more effective is to simplify the action and
+    state space through the growth of a high-level policy tree. It might be possible
+    to create a more flexible policy tree, for example, by enumerating spatiotemporal
+    relative position tags to all relative objects and then performing guided branching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Industry practices of decision making
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Decision-making remains a hot topic in current research. Even classical optimization
+    methods have not been fully explored yet. Machine learning methods could shine
+    and have a disruptive impact, especially with the advent of Large Language Models
+    (LLMs), empowered by techniques like Chain of Thought (CoT) or Monte Carlo Tree
+    Search (MCTS).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trees
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Trees are systematic ways to perform decision-making. Tesla AI Day 2021 and
+    2022 showcased their decision-making capabilities, heavily influenced by AlphaGo
+    and the subsequent MuZero, to address highly complex interactions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: At a high level, Tesla’s approach follows behavior planning (decision making)
+    followed by motion planning. It searches for a convex corridor first and then
+    feeds it into continuous optimization, using spatiotemporal joint planning. This
+    approach effectively addresses scenarios such as narrow passing, a typical bottleneck
+    for path-speed decoupled planning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ee5c3ba674a8e3a6622efd7ad84d89f8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Neural network heuristics guided MCTS (source: [Tesla AI Day 2021](https://youtu.be/j0z4FweCy4M?t=4514))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tesla also adopts a hybrid system that combines data-driven and physics-based
+    checks. Starting with defined goals, Tesla’s system generates seed trajectories
+    and evaluates key scenarios. It then branches out to create more scenario variants,
+    such as asserting or yielding to a traffic agent. Such an interaction search over
+    the policy tree is showcased in the presentations of the years [2021](https://pic1.zhimg.com/80/v2-ede609df14524ce4a9c23689367f791c_1440w.webp)
+    and [2022](https://pic2.zhimg.com/v2-48022fc4ee278be6f730d3b2ee587b19_r.png).
+  prefs: []
+  type: TYPE_NORMAL
+- en: One highlight of Tesla’s use of machine learning is the acceleration of tree
+    search via trajectory optimization. For each node, Tesla uses physics-based optimization
+    and a neural planner, achieving a 10 ms vs. 100 µs time frame — resulting in a
+    10x to 100x improvement. The neural network is trained with expert demonstrations
+    and offline optimizers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trajectory scoring is performed by combining classical physics-based checks
+    (such as collision checks and comfort analysis) with neural network evaluators
+    that predict intervention likelihood and rate human-likeness. This scoring helps
+    prune the search space, focusing computation on the most promising outcomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While many argue that machine learning should be applied to high-level decision-making,
+    Tesla uses ML fundamentally to accelerate optimization and, consequently, tree
+    search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Monte Carlo Tree Search (MCTS) method appears to be an ultimate tool for
+    decision-making. Interestingly, those studying Large Language Models (LLMs) are
+    trying to incorporate MCTS into LLMs, while those working on autonomous driving
+    are attempting to replace MCTS with LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As of roughly two years ago, Tesla’s technology followed this approach. However,
+    since March 2024, Tesla’s Full Self-Driving (FSD) has switched to a more end-to-end
+    approach, significantly different from their earlier methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: No trees
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We can still consider interactions without implicitly growing trees. Ad-hoc
+    logics can be implemented to perform one-order interaction between prediction
+    and planning. Even one-order interaction can already generate good behavior, as
+    demonstrated by TuSimple. MPDM, in its original form, is essentially one-order
+    interaction, but executed in a more principled and extendable way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd068780f3173683cf8bc15e030b0665.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Multi-order interaction between prediction and planning (source: [TuSImple
+    AI day](https://www.bilibili.com/video/BV1Em4y1u7P7/?vd_source=73e03d3e246aa3ec284f028c7dcf0fa7),
+    in Chinese, translated by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: TuSimple has also demonstrated the capability to perform contingency planning,
+    similar to the approach proposed in [MARC](https://arxiv.org/abs/2308.12021) (though
+    MARC can also accommodate a customized risk preference).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a06c89c942531828ed5dda56ef58dc38.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Contingency planning (source: [TuSImple AI day](https://www.bilibili.com/video/BV1Em4y1u7P7/?vd_source=73e03d3e246aa3ec284f028c7dcf0fa7),
+    in Chinese, translated by author)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Self-Reflections
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: After learning the basic building blocks of classical planning systems, including
+    behavior planning, motion planning, and the principled way to handle interaction
+    through decision-making, I have been reflecting on potential bottlenecks in the
+    system and how machine learning (ML) and neural networks (NN) may help. I am documenting
+    my thought process here for future reference and for others who may have similar
+    questions. Note that the information in this section may contain personal biases
+    and speculations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why NN in planning?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s look at the problem from three different perspectives: in the existing
+    modular pipeline, as an end-to-end (e2e) NN planner, or as an e2e autonomous driving
+    system.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Going back to the drawing board, let’s review the problem formulation of a planning
+    system in autonomous driving. The goal is to obtain a trajectory that ensures
+    safety, comfort, and efficiency in a highly uncertain and interactive environment,
+    all while adhering to real-time engineering constraints onboard the vehicle. These
+    factors are summarized as goals, environments, and constraints in the chart below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fcaa289038ec10ef1f6767f19c7e5de5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The potentials of NN in planning (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Uncertainty in autonomous driving can refer to uncertainty in perception (observation)
+    and predicting long-term agent behaviors into the future. Planning systems must
+    also handle the uncertainty in future trajectory predictions of other agents.
+    As discussed earlier, a principled decision-making system is an effective way
+    to manage this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, a typically overlooked aspect is that planning must tolerate uncertain,
+    imperfect, and sometimes incomplete perception results, especially in the current
+    age of vision-centric and HD map-less driving. Having a Standard Definition (SD)
+    map onboard as a prior helps alleviate this uncertainty, but it still poses significant
+    challenges to a heavily handcrafted planner system. This perception uncertainty
+    was considered a solved problem by Level 4 (L4) autonomous driving companies through
+    the heavy use of Lidar and HD maps. However, it has resurfaced as the industry
+    moves toward mass production autonomous driving solutions without these two crutches.
+    An NN planner is more robust and can handle largely imperfect and incomplete perception
+    results, which is key to mass production vision-centric and HD-mapless Advanced
+    Driver Assistance Systems (ADAS).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interaction should be treated with a principled decision-making system such
+    as Monte Carlo Tree Search (MCTS) or a simplified version of MPDM. The main challenge
+    is dealing with the curse of dimensionality (combinatorial explosion) by growing
+    a balanced policy tree with smart pruning through domain knowledge of autonomous
+    driving. MPDM and its variants, in both academia and industry (e.g., Tesla), provide
+    good examples of how to grow this tree in a balanced way.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NNs can also enhance the real-time performance of planners by speeding up motion
+    planning optimization. This can shift the compute load from CPU to GPU, achieving
+    orders of magnitude speedup. A tenfold increase in optimization speed can fundamentally
+    impact high-level algorithm design, such as MCTS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trajectories also need to be more human-like. Human likeness and takeover predictors
+    can be trained with the vast amount of human driving data available. It is more
+    scalable to increase the compute pool rather than maintain a growing army of engineering
+    talents.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/20831d3ba51f5c5083e4292b758d01d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The NN-based planning stack can leverage human-driving data more effectively
+    (Chart created by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: What about e2e NN planners?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: An end-to-end (e2e) neural network (NN) planner still constitutes a modular
+    autonomous driving (AD) design, accepting structured perception results (and potentially
+    latent features) as its input. This approach combines prediction, decision, and
+    planning into a single network. Companies such as [DeepRoute (2022) and Huawei
+    (2024)](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//www.xchuxing.com/article/124221)
+    claim to utilize this method. Note that relevant raw sensor inputs, such as navigation
+    and ego vehicle information, are omitted here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/44644c42a483b21510a189f25742521b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A full autonomous driving stack with an e2e planner (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This e2e planner can be further developed into an end-to-end autonomous driving
+    system that combines both perception and planning. This is what [Wayve’s LINGO-2
+    (2024)](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//wayve.ai/thinking/lingo%2D2%2Ddriving%2Dwith%2Dlanguage/)
+    and Tesla’s FSDv12 (2024) claim to achieve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The benefits of this approach are twofold. First, it addresses perception issues.
+    There are many aspects of driving that we cannot easily model explicitly with
+    commonly used perception interfaces. For example, it is quite challenging to handcraft
+    a driving system to [nudge around a puddle of water](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//x.com/AIDRIVR/status/1760841783708418094)
+    or [slow down for dips or potholes](https://medium.com/p/ede324d78717/edit#:~:text=https%3A//x.com/AIDRIVR/status/1759843256513564997).
+    While passing intermediate perception features might help, it may not fundamentally
+    resolve the issue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Additionally, emergent behavior will likely help resolve corner cases more systematically.
+    The intelligent handling of edge cases, such as the examples above, may result
+    from the emergent behavior of large models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a33be1918eb98c773763a5fc0ee3b0c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A full autonomous driving stack with a one-model e2e driver (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: My speculation is that, in its ultimate form, the end-to-end (e2e) driver would
+    be a large vision and action-native multimodal model enhanced by Monte Carlo Tree
+    Search (MCTS), assuming no computational constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A world model in autonomous driving, as of 2024 consensus, is typically a multimodal
+    model covering at least vision and action modes (or a VA model). While language
+    can be beneficial for accelerating training, adding controllability, and providing
+    explainability, it is not essential. In its fully developed form, a world model
+    would be a VLA (vision-language-action) model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are at least two approaches to developing a world model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Video-Native Model**: Train a model to predict future video frames, conditioned
+    on or outputting accompanying actions, as demonstrated by models like GAIA-1.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Multimodality Adaptors**: Start with a pretrained Large Language Model (LLM)
+    and add multimodality adaptors, as seen in models like Lingo-2, RT2, or ApolloFM.
+    These multimodal LLMs are not native to vision or action but require significantly
+    less training resources.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: A world model can produce a policy itself through the action output, allowing
+    it to drive the vehicle directly. Alternatively, MCTS can query the world model
+    and use its policy outputs to guide the search. This World Model-MCTS approach,
+    while much more computationally intensive, could have a higher ceiling in handling
+    corner cases due to its explicit reasoning logic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we do without prediction?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Most current motion prediction modules represent the future trajectories of
+    agents other than the ego vehicle as one or multiple discrete trajectories. It
+    remains a question whether this prediction-planning interface is sufficient or
+    necessary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In a classical modular pipeline, prediction is still needed. However, a predict-then-plan
+    pipeline definitely caps the upper limit of autonomous driving systems, as discussed
+    in the decision-making session. A more critical question is how to integrate this
+    prediction module more effectively into the overall autonomous driving stack.
+    Prediction should aid decision-making, and a queryable prediction module within
+    an overall decision-making framework, such as MPDM and its variants, is preferred.
+    There are no severe issues with concrete trajectory predictions as long as they
+    are integrated correctly, such as through policy tree rollouts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another issue with prediction is that open-loop Key Performance Indicators (KPIs),
+    such as Average Displacement Error (ADE) and Final Displacement Error (FDE), are
+    not effective metrics as they fail to reflect the impact on planning. Instead,
+    metrics like recall and precision at the intent level should be considered.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In an end-to-end system, an explicit prediction module may not be necessary,
+    but implicit supervision — along with other domain knowledge from a classical
+    stack — can definitely help or at least boost the data efficiency of the learning
+    system. Evaluating the prediction behavior, whether explicit or implicit, will
+    also be helpful in debugging such an e2e system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we do with just nets but no trees?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Conclusions First. For an assistant, neural networks (nets) can achieve very
+    high, even superhuman performance. For agents, I believe that using a tree structure
+    is still beneficial (though not necessarily a must).
+  prefs: []
+  type: TYPE_NORMAL
+- en: First of all, trees can boost nets. Trees enhance the performance of a given
+    network, whether it’s NN-based or not. In AlphaGo, even with a policy network
+    trained via supervised learning and reinforcement learning, the overall performance
+    was still inferior to the MCTS-based AlphaGo, which integrates the policy network
+    as one component.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Second, nets can distill trees. In AlphaGo, MCTS used both a value network and
+    the reward from a fast rollout policy network to evaluate a node (state or board
+    position) in the tree. The AlphaGo paper also mentioned that while a value function
+    alone could be used, combining the results of the two yielded the best results.
+    The value network essentially distilled the knowledge from the policy rollout
+    by directly learning the state-value pair. This is akin to how humans distill
+    the logical thinking of the slow System 2 into the fast, intuitive responses of
+    System 1\. Daniel Kahneman, in his book “[Thinking, Fast and Slow](https://en.wikipedia.org/wiki/Thinking,_Fast_and_Slow),”
+    describes how a chess master can quickly recognize patterns and make rapid decisions
+    after years of practice, whereas a novice would require significant effort to
+    achieve similar results. Similarly, the value network in AlphaGo was trained to
+    provide a fast evaluation of a given board position.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/94f5b0839feca2e4bcd4310d65598774.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Grandmaster-Level Chess Without Search (source: [DeepMind, 2024](https://arxiv.org/abs/2402.04494))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Recent papers explore the upper limits of this fast system with neural networks.
+    The “[chess without search](https://arxiv.org/abs/2402.04494)” paper demonstrates
+    that with sufficient data (prepared through tree search using a conventional algorithm),
+    it is possible to achieve grandmaster-level proficiency. There is a clear “scaling
+    law” related to data size and model size, indicating that as the amount of data
+    and the complexity of the model increase, so does the proficiency of the system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So here we are with a power duo: trees boost nets, and nets distill trees.
+    This positive feedback loop is essentially what AlphaZero uses to bootstrap itself
+    to reach superhuman performance in multiple games.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The same principles apply to the development of large language models (LLMs).
+    For games, since we have clearly defined rewards as wins or losses, we can use
+    forward rollout to determine the value of a certain action or state. For LLMs,
+    the rewards are not as clear-cut as in the game of Go, so we rely on human preferences
+    to rate the models via reinforcement learning with human feedback (RLHF). However,
+    with models like ChatGPT already trained, we can use supervised fine-tuning (SFT),
+    which is essentially imitation learning, to distill smaller yet still powerful
+    models without RLHF.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Returning to the original question, nets can achieve extremely high performance
+    with large quantities of high-quality data. This could be good enough for an assistant,
+    depending on the tolerance for errors, but it may not be sufficient for an autonomous
+    agent. For systems targeting driving assistance (ADAS), nets via imitation learning
+    may be adequate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Trees can significantly boost the performance of nets with an explicit reasoning
+    loop, making them perhaps more suitable for fully autonomous agents. The extent
+    of the tree or reasoning loop depends on the return on investment of engineering
+    resources. For example, even one order of interaction can provide substantial
+    benefits, as demonstrated in [TuSimple AI Day](https://www.bilibili.com/video/BV1Em4y1u7P7/?vd_source=73e03d3e246aa3ec284f028c7dcf0fa7).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Can we use LLMs to make decisions?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: From the summary below of the hottest representatives of AI systems, we can
+    see that LLMs are not designed to perform decision-making. In essence, LLMs are
+    trained to complete documents, and even SFT-aligned LLM assistants treat dialogues
+    as a special type of document (completing a dialogue record).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e0e938cc3c27089bf9c0be33a0a5ef29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Representative AI products as of 2024 (chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: I do not fully agree with recent claims that LLMs are slow systems (System 2).
+    They are unnecessarily slow in inference due to hardware constraints, but in their
+    vanilla form, LLMs are fast systems as they cannot perform counterfactual checks.
+    Prompting techniques such as Chain of Thought (CoT) or Tree of Thoughts (ToT)
+    are actually simplified forms of MCTS, making LLMs function more like slower systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is extensive research trying to integrate full-blown MCTS with LLMs. Specifically,
+    [LLM-MCTS](https://arxiv.org/abs/2305.14078) (NeurIPS 2023) treats the LLM as
+    a commonsense “world model” and uses LLM-induced policy actions as a heuristic
+    to guide the search. LLM-MCTS outperforms both MCTS alone and policies induced
+    by LLMs by a wide margin for complex, novel tasks. The [highly speculated Q-star
+    from OpenAI](https://www.lesswrong.com/posts/JnM3EHegiBePeKkLc/possible-openai-s-q-breakthrough-and-deepmind-s-alphago-type)
+    seems to follow the same approach of boosting LLMs with MCTS, as the name suggests.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The trend of evolution
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Below is a rough evolution of the planning stack in autonomous driving. It is
+    rough as the listed solutions are not necessarily more advanced than the ones
+    above, and their debut may not follow the exact chronological order. Nonetheless,
+    we can observe general trends. Note that the listed representative solutions from
+    the industry are based on my interpretation of various press releases and could
+    be subject to error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One trend is the movement towards a more end-to-end design with more modules
+    consolidated into one. We see the stack evolve from path-speed decoupled planning
+    to joint spatiotemporal planning, and from a predict-then-plan system to a joint
+    prediction and planning system. Another trend is the increasing incorporation
+    of machine learning-based components, especially in the last three stages. These
+    two trends converge towards an end-to-end NN planner (without perception) or even
+    an end-to-end NN driver (with perception).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e753016647b4fc5cd09a94aa0263393.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A rough history of evolution of planning (Chart made by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Takeaways
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**ML as a Tool**: Machine learning is a tool, not a standalone solution. It
+    can assist with planning even in current modular designs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Full Formulation**: Start with a full problem formulation, then make reasonable
+    assumptions to balance performance and resources. This helps create a clear direction
+    for a future-proof system design and allows for improvements as resources increase.
+    Recall the transition from POMDP’s formulation to engineering solutions like AlphaGo’s
+    MCTS and MPDM.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Adapting Algorithms**: Theoretically beautiful algorithms (e.g., Dijkstra
+    and Value Iteration) are great for understanding concepts but need adaptation
+    for practical engineering (Value Iteration to MCTS as Dijkstra’s algorithm to
+    Hybrid A-star).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Deterministic vs. Stochastic**: Planning excels in resolving deterministic
+    (not necessarily static) scenes. Decision-making in stochastic scenes is the most
+    challenging task toward full autonomy.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Contingency Planning**: This can help merge multiple futures into a common
+    action. It’s beneficial to be aggressive to the degree that you can always resort
+    to a backup plan.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**End-to-end Models**: Whether an end-to-end model can solve full autonomy
+    remains unclear. It may still need classical methods like MCTS. Neural networks
+    can handle assistants, while trees can manage agents.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Acknowledgments
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This blog post is heavily inspired by [Dr. Wenchao Ding](https://wenchaoding.github.io/personal/index.html)’s
+    course on planning on [Shenlan Xueyuan (深蓝学院)](https://www.shenlanxueyuan.com/course/671).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thanks for the heavy and inspiring discussion with [Naiyan Wang](https://winsty.net/)
+    and Jingwei Zhao. Thanks to [论文推土机](https://www.zhihu.com/people/george-reagan),
+    [Invictus](https://www.zhihu.com/people/REX-X-96-9), [XXF](https://zhuanlan.zhihu.com/p/704847315),
+    PYZ and JCL for giving critical feedback to the initial draft. Thanks for the
+    insightful discussion with [Professor Wei Zhan](https://zhanwei.site/) from Berkeley
+    on trends in academia.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Reference
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[UniAD: Planning-oriented Autonomous Driving](https://arxiv.org/abs/2212.10156),
+    CVPR 2023 best paper'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[End-To-End Planning of Autonomous Driving in Industry and Academia: 2022–2023](https://arxiv.org/abs/2401.08658),
+    Arxiv 2024'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[BEVGPT: Generative Pre-trained Large Model for Autonomous Driving Prediction,
+    Decision-Making, and Planning](https://arxiv.org/abs/2310.10357), AAAI 2024'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Towards A General-Purpose Motion Planning for Autonomous Vehicles Using Fluid
+    Dynamics](https://arxiv.org/abs/2406.05708), Arxiv 2024'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Tusimple AI day](https://www.bilibili.com/video/BV1Em4y1u7P7/?vd_source=73e03d3e246aa3ec284f028c7dcf0fa7),
+    in Chinese with English subtitle on Bilibili, 2023/07'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Tech blog on joint spatiotemporal planning by Qcraft](https://zhuanlan.zhihu.com/p/551381336),
+    in Chinese on Zhihu, 2022/08'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[A review of the entire autonomous driving stack](https://zhuanlan.zhihu.com/p/53495492),
+    in Chinese on Zhihu, 2018/12'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Tesla AI Day Planning](https://zhuanlan.zhihu.com/p/572950979), in Chinese
+    on Zhihu, 2022/10'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Technical blog on ApolloFM](https://mp.weixin.qq.com/s/8d1qXTm5v4H94HxAibp1dA),
+    in Chinese by Tsinghua AIR, 2024'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Optimal Trajectory Generation for Dynamic Street Scenarios in a Frenet Frame](https://www.semanticscholar.org/paper/Optimal-trajectory-generation-for-dynamic-street-in-Werling-Ziegler/6bda8fc13bda8cffb3bb426a73ce5c12cc0a1760),
+    ICRA 2010'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MP3: A Unified Model to Map, Perceive, Predict and Plan](https://arxiv.org/abs/2101.06806),
+    CVPR 2021'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[NMP: End-to-end Interpretable Neural Motion Planner](http://www.cs.toronto.edu/~wenjie/papers/cvpr19/nmp.pdf),
+    CVPR 2019 oral'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Lift, Splat, Shoot: Encoding Images From Arbitrary Camera Rigs by Implicitly
+    Unprojecting to 3D](https://arxiv.org/abs/2008.05711), ECCV 2020'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[CoverNet: Multimodal Behavior Prediction using Trajectory Sets](https://arxiv.org/abs/1911.10298),
+    CVPR 2020'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Baidu Apollo EM Motion Planner](https://arxiv.org/abs/1807.08048), Baidu,
+    2018'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[AlphaGo: Mastering the game of Go with deep neural networks and tree search](https://www.nature.com/articles/nature16961),
+    Nature 2016'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[AlphaZero: A general reinforcement learning algorithm that masters chess,
+    shogi, and Go through self-play](https://www.science.org/doi/full/10.1126/science.aar6404),
+    Science 2017'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MuZero: Mastering Atari, Go, chess and shogi by planning with a learned model](https://www.nature.com/articles/s41586-020-03051-4),
+    Nature 2020'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[ToT: Tree of Thoughts: Deliberate Problem Solving with Large Language Models](https://arxiv.org/abs/2305.10601),
+    NeurIPS 2023 Oral'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[CoT: Chain-of-Thought Prompting Elicits Reasoning in Large Language Models](https://arxiv.org/abs/2201.11903),
+    NeurIPS 2022'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[LLM-MCTS: Large Language Models as Commonsense Knowledge for Large-Scale Task
+    Planning](https://arxiv.org/abs/2305.14078), NeurIPS 2023'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MPDM: Multipolicy decision-making in dynamic, uncertain environments for autonomous
+    driving](https://ieeexplore.ieee.org/document/7139412), ICRA 2015'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MPDM2: Multipolicy Decision-Making for Autonomous Driving via Changepoint-based
+    Behavior Prediction](https://www.roboticsproceedings.org/rss11/p43.pdf), RSS 2015'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MPDM3: Multipolicy decision-making for autonomous driving via changepoint-based
+    behavior prediction: Theory and experiment](https://link.springer.com/article/10.1007/s10514-017-9619-z),
+    RSS 2017'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[EUDM: Efficient Uncertainty-aware Decision-making for Automated Driving Using
+    Guided Branching](https://arxiv.org/abs/2003.02746), ICRA 2020'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MARC: Multipolicy and Risk-aware Contingency Planning for Autonomous Driving](https://arxiv.org/abs/2308.12021),
+    RAL 2023'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[EPSILON: An Efficient Planning System for Automated Vehicles in Highly Interactive
+    Environments](https://arxiv.org/abs/2108.07993), TRO 2021'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

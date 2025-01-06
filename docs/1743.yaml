@@ -1,0 +1,632 @@
+- en: 'BlazeFace: How to Run Real-time Object Detection in the Browser'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/blazeface-how-to-run-real-time-object-detection-in-the-browser-66c2ac9acd75?source=collection_archive---------2-----------------------#2024-07-17](https://towardsdatascience.com/blazeface-how-to-run-real-time-object-detection-in-the-browser-66c2ac9acd75?source=collection_archive---------2-----------------------#2024-07-17)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step guide to training a BlazeFace model, from the Python training
+    pipeline to the JavaScript demo through model conversion.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@vincent.vandenbussche?source=post_page---byline--66c2ac9acd75--------------------------------)[![Vincent
+    Vandenbussche](../Images/b2febfc63ca0efbda0af5501f6080ab7.png)](https://medium.com/@vincent.vandenbussche?source=post_page---byline--66c2ac9acd75--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--66c2ac9acd75--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--66c2ac9acd75--------------------------------)
+    [Vincent Vandenbussche](https://medium.com/@vincent.vandenbussche?source=post_page---byline--66c2ac9acd75--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--66c2ac9acd75--------------------------------)
+    ·11 min read·Jul 17, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/05b105d691b1a727b04e20b7e15caa57.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Freely adapted from a photo by [visuals](https://unsplash.com/@visuals?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+    on [Unsplash](https://unsplash.com/photos/man-in-black-suit-jacket-smiling-Y4qzW3AsvqI?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thanks to libraries such as [YOLO by Ultralytics](https://docs.ultralytics.com/),
+    it is fairly easy today to make robust object detection models with as little
+    as a few lines of code. Unfortunately, those solutions are not yet fast enough
+    to work in a web browser on a real-time video stream at 30 frames per second (which
+    is usually considered the real-time limit for video applications) on any device.
+    More often than not, it will run at less than 10 fps on an average mobile device.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The most famous real-time object detection solution on web browser is [Google’s
+    MediaPipe](https://ai.google.dev/edge/mediapipe/solutions/vision/object_detector).
+    This is a really convenient and versatile solution, as it can work on many devices
+    and platforms easily. But what if you want to make your own solution?
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we propose to build our own lightweight, fast and robust object
+    detection model, that runs at more than 30 fps on almost any devices, based on
+    the BlazeFace model. All the code used for this is available on my [GitHub](https://github.com/vincent-vdb/medium_posts/tree/main/blazeface),
+    in the *blazeface* folder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [BlazeFace](https://arxiv.org/abs/1907.05047) model, proposed by Google
+    and originally used in MediaPipe for face detection, is really small and fast,
+    while being robust enough for easy object detection tasks such as face detection.
+    Unfortunately, to my knowledge, no training pipeline of this model is available
+    online on GitHub; all I could find is [this inference-only model architecture](https://github.com/hollance/BlazeFace-PyTorch).
+    Through this post, we will train our own BlazeFace model with a fully working
+    pipeline and use it on browser with a working JavaScript code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'More specifically, we will go through the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training the model using [PyTorch](https://pytorch.org/)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Converting the PyTorch model into a TFLite model
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Running the object detection in the browser thanks to JavaScript and TensorFlow.js
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s get started with the model training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training the PyTorch Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'As usual when training a model, there are a few typical steps in a training
+    pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Preprocessing the data: we will use a freely available Kaggle dataset for simplicity,
+    but any dataset with the right format of labels would work'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Building the model: we will reuse the proposed architecture in the original
+    paper and the inference-only GitHub code'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Training and evaluating the model: we will use a simple Multibox loss as the
+    cost function to minimize'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s go through those steps together.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Preprocessing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We are going to use a subset of the [Open Images Dataset](https://storage.googleapis.com/openimages/web/index.html)
+    V7, proposed by Google. This dataset is made of about 9 million images with many
+    annotations (including bounding boxes, segmentation masks, and many others). The
+    dataset itself is quite large and contains many types of images.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For our specific use case, I decided to select images in the validation set
+    fulfilling two specific conditions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Containing labels of human face bounding box
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Having a permissive license for such a use case, more specifically the [CC BY
+    2.0](https://creativecommons.org/licenses/by/2.0/) license
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The script to download and build the dataset under those strict conditions is
+    provided in the GitHub, so that anyone can reproduce it. The downloaded dataset
+    with this script contains labels in the YOLO format (meaning box center, width
+    and height). In the end, the downloaded dataset is made of about 3k images and
+    8k faces, that I have separated into train and validation set with a 80%-20% split
+    ratio.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'From this dataset, typical preprocessing it required before being able to train
+    a model. The data preprocessing code I used is the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Data preprocessing class for model training with PyTorch. Some code has been
+    omitted for clarity: full code is available on GitHub.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we can see, the preprocessing is made of the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It loads images and labels
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It converts labels from YOLO format (center position, width, height) to box
+    corner format (top-left corner position, bottom-right corner position)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It resizes images to the target size (e.g. 128 pixels), and adds padding if
+    necessary to keep the original image aspect ratio and avoid image deformation.
+    Finally, it normalizes the images.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Optionally, this code allows for data augmentation using [Albumentations](https://albumentations.ai/).
+    For the training, I used the following data augmentations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Horizontal flip
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Random brightness contrast
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Random crop from borders
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Affine transformation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Those augmentations will allow us to have a more robust, regularized model.
+    After all those transformations and augmentations, the input data may look like
+    the following sample:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f180793b42b7b04702cec440680ad18f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Preprocessed images, with data augmentation, used to train the model. Image
+    by author, made of images from the [Open Images Dataset](https://storage.googleapis.com/openimages/web/download_v7.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see, the preprocessed images have grey borders because of augmentation
+    (with rotation or translation) or padding (because the original image did not
+    have a square aspect ratio). They all contain faces, although the context might
+    be really different depending on the image.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Important Note:***'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Face detection is a highly sensitive task with significant ethical and safety
+    considerations. Bias in the dataset, such as underrepresentation or overrepresentation
+    of certain facial characteristics, can lead to false negatives or false positives,
+    potentially causing harm or offense. See below a dedicated section about ethical
+    considerations.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that our data can be loaded and preprocessed, let’s go to the next step:
+    building the model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Building
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this section, we will build the model architecture of the original BlazeFace
+    model, based on the original article and adapted from the [BlazeFace repository](https://github.com/hollance/BlazeFace-PyTorch)
+    containing inference code only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The whole BlazeFace architecture is rather simple and is mostly made of what
+    the paper’s author call a BlazeBlock, with various parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The BlazeBlock can be defined with PyTorch as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementation of the BlazeBlock, of which the BlazeFace is made of. Full code
+    available on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we can see from this code, a BlazeBlock is simply made of the following
+    layers:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: One depthwise 2D convolution layer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One batch norm 2D layer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One 2D convolution layer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One batch norm 2D layer
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*N.B.: You can read the PyTorch documentation for more about these layers:*
+    [*Conv2D layer*](https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html)
+    *and* [*BatchNorm2D layer*](https://pytorch.org/docs/stable/generated/torch.nn.BatchNorm2d.html)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This block is repeated many times with different input parameters, to go from
+    a 128-pixel image up to a typical object detection prediction using tensor reshaping
+    in the final stages. Feel free to have a look at the full code in the GitHub repository
+    for more about the implementation of this architecture.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before moving to the next section about training the model, note that there
+    are actually two architectures:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A 128-pixel input image architecture
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: A 256-pixel input image architecture
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As you can imagine, the 256-pixel architecture is slightly larger, but still
+    lightweight and sometimes more robust. This architecture is also implemented in
+    the provided code, so that you can use it if you want.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*N.B.: The original BlazeFace model not only predicts a bounding box, but also
+    six approximate face landmarks. Since I did not have such labels, I simplified
+    the model architecture to predict only the bounding boxes.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we can build a model, let’s move on to the next step: training the
+    model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For anyone familiar with PyTorch, training models such as this one is usually
+    quite simple and straightforward, as shown in this code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Code used to train the BlazeFace model. Full code available on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As we can see, the idea is to loop over your data for a given number of epochs,
+    one batch at a time, and do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get the processed data and corresponding labels
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Make the forward inference
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compute the loss of the inference against the label
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Update the weights
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I am not getting into all the details for clarity in this post, but feel free
+    to navigate through the code to get a better sense of the training part if needed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After training on 100 epochs, I had the following results on the validation
+    set:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/47ff2c73041c624853d570fdc4a90a0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Results of the model on the validation set after 50 epochs. Green boxes are
+    ground truth labels, red boxes are model predictions. Image by author, made of
+    images from the [Open Images Dataset](https://storage.googleapis.com/openimages/web/download_v7.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: As we can see on those results, even if the object detection is not perfect,
+    it works pretty well for most cases (probably the IoU threshold was not optimal,
+    leading sometimes to overlapping boxes). Keep in mind it’s a very light model;
+    it can’t exhibit the same performances as a YOLOv8, for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before going to the next step about converting the model, let’s have a short
+    discussion about ethical and safety considerations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ethical and Safety Considerations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s go over a few points about ethics and safety, since face detection can
+    be a very sensitive topic:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Dataset importance and selection:** This dataset is used to demonstrate face
+    detection techniques for educational purposes. It was chosen for its relevance
+    to the topic, but it may not fully represent the diversity needed for unbiased
+    results.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Bias awareness:** The dataset is not claimed to be bias-free, and potential
+    biases have not been fully mitigated. Please be aware of potential biases that
+    can affect the accuracy and fairness of face detection models.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Risks:** The trained face detection model may reflect these biases, raising
+    potential ethical concerns. Users should critically assess the outcomes and consider
+    the broader implications.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To address these concerns, anyone willing to build a product on such topic
+    should focus on:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Collecting diverse and representative images
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Verifying the data is bias-free and any category is equally represented
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Continuously evaluating the ethical implications of face detection technologies
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*N.B.: A useful approach to address these concerns is to examine what Google
+    did for their own* [*face detection*](https://storage.googleapis.com/mediapipe-assets/MediaPipe%20BlazeFace%20Model%20Card%20(Short%20Range).pdf)
+    *and* [*face landmarks*](https://storage.googleapis.com/mediapipe-assets/Model%20Card%20MediaPipe%20Face%20Mesh%20V2.pdf)
+    *models*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Again, the used dataset is intended solely for educational purposes. Anyone
+    willing to use it should exercise caution and be mindful of its limitations when
+    interpreting results. Let’s now move to the next step with the model conversion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Converting the Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Remember that our goal is to make our object detection model work in a web browser.
+    Unfortunately, once we have a trained PyTorch model, we can not directly use it
+    in a web browser. We first need to convert it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, to my knowledge, the most reliable way to run a deep learning model
+    in a web browser is by using a [TFLite](https://www.tensorflow.org/lite) model
+    with T[ensorFlow.js](https://www.tensorflow.org/js). In other words, we need to
+    convert our PyTorch model into a TFLite model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*N.B.: Some alternative ways are emerging, such as* [*ExecuTorch*](https://pytorch.org/executorch-overview)*,
+    but they do not seem to be mature enough yet for web use.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As far as I know, there is no robust, reliable way to do so directly. But there
+    are side ways, by going through ONNX. [ONNX](https://onnx.ai/) (which stands for
+    Open Neural Network Exchange) is a standard for storing and running (using [ONNX
+    Runtime](https://onnxruntime.ai/)) machine learning models. Conveniently, there
+    are available libraries for conversion from torch to ONNX, as well as from ONNX
+    to TensorFlow models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To summarize, the conversion workflow is made of the three following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Convert from PyTorch to ONNX
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Convert from ONNX to TensorFlow
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Convert from TensorFlow to TFLite
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'This is exactly what the following code does:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model conversion from PyTorch format to TFLite format, through ONNX. Full code
+    available on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This code can be slightly more cryptic than the previous ones, as there are
+    some specific optimizations and parameters used to make it work properly. One
+    can also try to go one step further and quantize the TFLite model to make it even
+    smaller. If you are interested in doing so, you can have a look at the [official
+    documentation](https://www.tensorflow.org/lite/performance/post_training_quantization).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*N.B.: The conversion code is highly sensitive of the versions of the libraries.
+    To ensure a smooth conversion, I would strongly recommend using the specified
+    versions in the requirements.txt file on GitHub.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: On my side, after TFLite conversion, I finally have a TFLite model of only about
+    400kB, which is lightweight and quite acceptable for web usage. Next step is to
+    actually test it out in a web browser, and to make sure it works as expected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'On a side note, be aware that another solution is currently being developed
+    by Google for PyTorch model conversion to TFLite format: [AI Edge Torch](https://github.com/google-ai-edge/ai-edge-torch).
+    Unfortunately, this is quite new and I couldn’t make it work for my use case.
+    However, any feedback about this library is very welcome.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the Model
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we finally have a TFLite model, we are able to run it in a web browser
+    using TensorFlow.js. If you are not familiar with JavaScript (since this is not
+    usually a language used by data scientists and machine learning engineers) do
+    not worry; all the code is provided and is rather easy to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I won’t comment all the code here, just the most relevant parts. If you look
+    at the code on [GitHub](https://github.com/vincent-vdb/medium_posts), you will
+    see the following in the *javascript* folder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*index.html*: contains the home page running the whole demo'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*assets*: the folder containing the TFLite model that we just converted'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*js*: the folder containing the JavaScript codes'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'If we take a step back, all we need to do in the JavaScript code is to loop
+    over the frames of the camera feed (either a webcam on a computer or the front-facing
+    camera on a mobile phone) and do the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Preprocess the image: resize it as a 128-pixel image, with padding and normalization'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Compute the inference on the preprocessed image
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Postprocess the model output: apply thresholding and non max suppression to
+    the detections'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We won’t comment the image preprocessing since this would be redundant with
+    the Python preprocessing, but feel free to have a look at the code. When it comes
+    to making an inference with a TFLite model in JavaScript, it’s fairly easy:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simplistic example of code to instantiate a TFLite model and compute an inference,
+    assuming an image of the right shape. Full working code on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The tricky part is actually the postprocessing. As you may know, the output
+    of a SSD object detection model is not directly usable: this is not the bounding
+    boxes locations. Here is the postprocessing code that I used:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Postprocessing the BlazeFace model output in JavaScript. Full code on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the code above, the model output is postprocessed with the following steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The boxes locations are corrected with the anchors
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The box format is converted to get the top-left and the bottom-right corners
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Non-max suppression is applied to the boxes with the detection score, allowing
+    the removal of all boxes below a given threshold and overlapping other already-existing
+    boxes
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is exactly what has been done in Python too to display the resulting bounding
+    boxes, if it may help you get a better understanding of that part.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Finally, below is a screenshot of the resulting web browser demo:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7531f025b2456d12dcd9b3b675f298ca.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot of the running demo in the web browser, with picture-in-picture by
+    [Vitaly Gariev](https://unsplash.com/photos/a-man-sitting-at-a-table-in-front-of-a-laptop-wAUjHURVbDw)
+    on Unsplash
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you can see, it properly detects the face in the image. I decided to use
+    a [static image from Unsplash](https://unsplash.com/photos/a-man-sitting-at-a-table-in-front-of-a-laptop-wAUjHURVbDw),
+    but the code on GitHub allows you to run it on your webcam, so feel free to test
+    it yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before concluding, note that if you run this code on your own computer or smartphone,
+    depending on your device you may not reach 30 fps (on my personal laptop having
+    a rather old 2017 [Intel® Core™ i5–8250U](https://www.intel.fr/content/www/fr/fr/products/sku/124967/intel-core-i58250u-processor-6m-cache-up-to-3-40-ghz/specifications.html),
+    it runs at 36fps). If that’s the case, a few tricks may help you get there. The
+    easiest one is to run the model inference only once every N frames (N to be fine
+    tuned depending on your application, of course). Indeed, in most cases, from one
+    frame to the next, there are not many changes, and the boxes can remain almost
+    unchanged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I hope you enjoyed reading this post and thanks if you got this far. Even though
+    doing object detection is fairly easy nowadays, doing it with limited resources
+    can be quite challenging. Learning about BlazeFace and converting models for web
+    browser gives some insights into how MediaPipe was built, and opens the way to
+    other interesting applications such as blurring backgrounds in video call (like
+    Google Meets or Microsoft Teams) in real time in the browser.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [Open Images Dataset publication](https://arxiv.org/abs/1811.00982)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [GitHub repo](https://github.com/vincent-vdb/medium_posts) containing all
+    the working code in the folder blazeface
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [original GitHub](https://github.com/hollance/BlazeFace-PyTorch/blob/master/blazeface.py)
+    containing inference code for BlazeFace
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The [BlazeFace paper](https://arxiv.org/abs/1907.05047)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MediaPipe’s face detection](https://ai.google.dev/edge/mediapipe/solutions/vision/face_detector)
+    and [BlazeFace model card](https://storage.googleapis.com/mediapipe-assets/MediaPipe%20BlazeFace%20Model%20Card%20(Short%20Range).pdf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[ONNX](https://onnx.ai/) and [ONNX Runtime](https://onnxruntime.ai/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[TFLite quantization](https://www.tensorflow.org/lite/performance/post_training_quantization)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

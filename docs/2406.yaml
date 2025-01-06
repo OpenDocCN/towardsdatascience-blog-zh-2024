@@ -1,0 +1,565 @@
+- en: 'Optimizing Inventory Management with Reinforcement Learning: A Hands-on Python
+    Guide'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/optimizing-inventory-management-with-reinforcement-learning-a-hands-on-python-guide-7833df3d25a6?source=collection_archive---------3-----------------------#2024-10-03](https://towardsdatascience.com/optimizing-inventory-management-with-reinforcement-learning-a-hands-on-python-guide-7833df3d25a6?source=collection_archive---------3-----------------------#2024-10-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A complete guide on how to apply the Q-Learning method in Python to optimize
+    inventory management and reduce costs
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@peymankor?source=post_page---byline--7833df3d25a6--------------------------------)[![Peyman
+    Kor](../Images/33f92f508120a56ebcc05c2aca7be3c4.png)](https://medium.com/@peymankor?source=post_page---byline--7833df3d25a6--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7833df3d25a6--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7833df3d25a6--------------------------------)
+    [Peyman Kor](https://medium.com/@peymankor?source=post_page---byline--7833df3d25a6--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7833df3d25a6--------------------------------)
+    ·13 min read·Oct 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/81c435aa8f9c4f70d2abfcefea46f469.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Petrebels](https://unsplash.com/@petrebels?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Inventory Management — What Problem Are We Solving?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Imagine you are managing a bike shop. Every day, you need to decide how many
+    bikes to order from your supplier. If you order too many, you incur high holding
+    costs (cost of storing bikes overnight); if you order too few, you might miss
+    out on potential sales. Here, the challenge is to develop a (ordering) strategy
+    that balances these trade-offs optimally. Inventory management is crucial in various
+    industries, where the goal is to determine the optimal quantity of products to
+    order periodically to maximize profitability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Why Reinforcement Learning for Inventory Management?**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Previously, we discussed approaching this problem using Dynamic Programming
+    (DP) with the Markov Decision Process (MDP) [Here](https://medium.com/towards-artificial-intelligence/inventory-optimization-with-dynamic-programming-in-less-than-100-lines-of-python-code-ab1cc58ef34c).
+    However, the DP approach requires a complete model of the environment (in this
+    case, we need to know the probability distribution of demand), which may not always
+    be available or practical.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, the Reinforcement Learning (RL) approach is presented, which overcomes
+    that challenge by following a “data-driven” approach.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The goal is to build a “data-driven” agent that learns the best policy (how
+    much to order) through interacting with the environment (uncertainty). The RL
+    approach removes the need for prior knowledge about the model of the environment.
+    This post explores the RL approach, specifically Q-learning, to find the optimal
+    inventory policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How to Frame the Inventory Management Problem?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Before diving into the Q-learning method, it’s essential to understand the
+    basics of the inventory management problem. At its core, inventory management
+    is a sequential decision-making problem, where decisions made today affect the
+    outcomes and choices available tomorrow. Let’s break down the key elements of
+    this problem: the *state*, *uncertainty*, and *recurring decisions*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State**: What’s the Current Situation?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the context of a bike shop, the state represents the current situation regarding
+    inventory. It’s defined by two key components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'α (Alpha): The number of bikes you currently have in the store. (referred to
+    as On-Hand Inventory)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'β (Beta): The number of bikes that you ordered yesterday and are expected to
+    arrive tomorrow morning (*36 hours delivery lead time*). These bikes are still
+    in transit. (referred to as On-Order Inventory)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Together, (α,β) form the state, which gives a snapshot of your inventory status
+    at any given moment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Uncertainty**: What Could Happen?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Uncertainty in this problem arises from the random demand for bikes each day.
+    You don’t know exactly how many customers will walk in and request a bike, making
+    it challenging to predict the exact demand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Decisions**: How Many Items Should you Order Every Day?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As the bike shop owner, you face a recurring decision every day: How many bikes
+    should you order from the supplier? . Your decision needs to account for both
+    the current state of your inventory (α,β) and also the uncertainty in customer
+    demand for the following day.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A typical 24-hour cycle for managing your bike shop’s inventory is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6 PM: Observe the current state St:(α,β) of your inventory. (**State**)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6 PM: Make the decision on how many new bikes to order. (**Decision**)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6 AM: Receive the bikes you ordered 36 hours ago.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8 AM: Open the store to customers.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '8 AM — 6 PM: Experience customer demand throughout the day. (**Uncertainty**)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '6 PM: Close the store and prepare for the next cycle.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A graphical representation of the inventory management process is shown below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0c833c676bd2f78f9574bc6accf7850c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A typical 24-hour cycle for inventory management — image source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is Reinforcement Learning?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Reinforcement Learning (RL) is a data-driven method that focuses on learning
+    how to make sequences of decisions (following a policy) to maximize a cumulative
+    reward. It's similar to how humans and animals learn what action to take through
+    trial and error. In the context of inventory management, RL can be used to learn
+    the optimal ordering policy that minimizes the total cost of inventory management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The key components of the RL approach are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Agent**: The decision-maker who interacts with the environment.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Environment**: The external system with which the agent interacts. In this
+    case, the environment is the random customer demand.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**State**: The current situation or snapshot of the environment.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Action**: The decision or choice made by the agent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reward**: The feedback signal that tells the agent how well it’s doing.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of the agent (decision-maker) is to learn the optimal policy, which
+    is a mapping from states to actions that maximize the cumulative reward over time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the context of inventory management, the policy tells the agent how many
+    bikes to order each day based on the current inventory status and the uncertainty
+    in customer demand.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Implementing Reinforcement Learning for Inventory Optimization Problem
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Q-learning** is a model-free reinforcement learning algorithm that learns
+    the optimal action-selection policy for any given state. Unlike the DP approach,
+    which requires a complete model of the environment, Q-learning learns directly
+    from the interaction with the environment (here, uncertainty and the reward it
+    gets) by updating a Q-table.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The key components of Q-Learning**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our case, the agent is the decision-maker (the bike shop owner), and the
+    environment is the demand from customers. The state is represented by the current
+    inventory levels (alpha, beta), and the action is how many bikes to order. **The
+    reward is the cost associated with both holding inventory and missing out on sales**.
+    Q-Table is a table that stores the expected future rewards for each state-action
+    pair.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Initialization of Q Table**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this work, the Q-table is initialized as a dictionary named Q. States are
+    represented by tuples (alpha, beta), where: alpha is the number of items in stock
+    (on-hand inventory). beta is the number of items on order (on-order inventory).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Actions are *possible inventory order quantities* that can be taken in each
+    state. For each state (alpha, beta), the possible actions depend on how much space
+    is left in the inventory (remaining capacity = Inventory Capacity — (alpha + beta)).
+    The restriction is that the number of items ordered cannot exceed the remaining
+    capacity of the inventory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The schematic design of the Q value is visualized below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/06e67d083e0092ae4d959b46d288342d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'A schematic design of the Q dictionary is visualized — Image source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Q dictionary can be initialized as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: As the above code shows, Q-values (Q[state][action]) are initialized with small
+    random values to encourage exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Q-Learning Algorithm
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The Q-learning method updates a table of state-action pairs based on rewards
+    from the environment (here, interacting with the environment comes). Here’s how
+    the algorithm works in three steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b271d953abb3487d58b4688cb271b868.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Q-Learning Equation — Image Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Where s is the current state, a is the action taken, s’ is the next state, (
+    α ) is the learning rate. and ( γ ) is the discount factor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We breakdown the equation, and rewrote it in three parts down here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9b31dd86a62fd52609a518a0ee87276d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Q-Learning Equation — Image Source: Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The translation of the above equations to Python code is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: At the above function, the equivalent equation of each line has been shown as
+    a comment on top of each line.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Simulating Transitions and Rewards in Q-Learning for Inventory Optimization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The current state is represented by a tuple (alpha, beta), where: alpha is
+    the current on-hand inventory (items in stock), beta is the current on-order inventory
+    (items ordered but not yet received), init_inv calculates the total initial inventory
+    by summing alpha and beta.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we need to simulate customer demand using Poisson distribution with lambda
+    value “self.poisson_lambda”. Here, the demand shows the randomness of customer
+    demand:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Note**: Poisson distribution is used to model the demand, which is a common
+    choice for modeling random events like customer arrivals. However, we can either
+    train the model with historical demand data or live interaction with environment
+    in real time. In its core, reinforcement learning is about learning from the data,
+    and it does not require prior knowledge of a model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, the “next alpha” which is in-hand inventory can be written as max(0,init_inv-demand).
+    What that means is that if demand is more than the initial inventory, then the
+    new alpha would be zero, if not, init_inv-demand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The **cost** comes in two parts. **Holding cost**: is calculated by multiplying
+    the number of bikes in the store by the per-unit holding cost. Then, we have another
+    cost, which is **stockout cost**. It is a cost that we need to pay for the cases
+    of missed demand. These two parts form the “reward” which we try to maximize using
+    reinforcement learning method.( a better way to put is we want to minimize the
+    cost, so we maximize the reward).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Exploration — Exploitation in Q-Learning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Choosing action in the Q-learning method involves some degree of exploration
+    to get an overview of the Q value for all the states in the Q table. To do that,
+    at every action chosen, there is an epsilon chance that we take an exploration
+    approach and “randomly” select an action, whereas, with a 1-ϵ chance, we take
+    the best action possible from the Q table.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Training RL Agent
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The training of the RL agent is done by the “train” function, and it is follow
+    as: First, we need to initialize the Q (empty dictionary structure). Then, experiences
+    are collected in each batch (self.batch.append((state, action, reward, next_state))),
+    and the Q table is updated at the end of each batch (self.update_Q(self.batch)).
+    The number of episodes is limited to “max_actions_per_episode” in each batch.
+    The number of episodes is the number of times the agent interacts with the environment
+    to learn the optimal policy.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each episode starts with a randomly assigned state, and while the number of
+    actions is lower than max_actions_per_episode, the collecting data for that batch
+    continues.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Example Case and Results
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This is example case is on how to pull together all above codes, and see how
+    the Q-learning agent learns the optimal policy for inventory management. Here,
+    *user_capicty* (capacity of storage) is 10, which is the total number of items
+    that inventory can hold (capacity). Then, the *poisson_lambda* is the lambda term
+    in the demand distribution, which has a value of 4\. Holding costs is 8, which
+    is the cost of holding an item in inventory overnight, and stockout cost, which
+    is the cost of missed demand (assume that the item had a customer that day and
+    the price of the item was, but you did not have the item in your inventory) is
+    10\. *gamma* value lower than one is needed in the equation to discount the future
+    reward (0.9), where *alpha* (learning rate ) is 0.1\. The *epsilon* term is the
+    term control exploration-exploitation dilemma. The episodes are 1000, and each
+    batch consists of 1000 (max actions per episode).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Having defined these initial parameters of the model, we can define the ql Python
+    class, then use the class to train, and then use the module “get_optimal_policy()”
+    to get the optimal policy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Results**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have the policy found from the Q-learning method, we can visualize
+    the results and see what they look like. The x-axis is states, which is a tuple
+    of (alpha, beta), and the y-axis is the “Number of Order” found from Q-learning
+    at each state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6b23e9e1d2d2dd54cf9f112b6b4ab5be.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Number of order (y-axis) for each state (x-axis) found from Q-learning policy
+    — Image Source: Author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A couple of learnings can be gained by looking at the plot. First, as we go
+    toward the right, we see that the number of orders decreases. When we go right,
+    the alpha value increases (in-hand inventory), meaning we need to “order” less,
+    as inventory in place can fulfill the demand. Secondly, When alpha is constant,
+    with increasing beta, we lower the order of new sites. It can be understood that
+    this is due to the fact that when “we have more item “on order” we do not need
+    increase the orders.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Comparing the Q-Learning Policy to the BaseLine Policy**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Now that we used Q-learning to find the policy (how many items to order in
+    a given state), we can compare it to the baseline policy (a simple policy). The
+    baseline policy is just to “order up to policy,” which simply means you look at
+    the on-hand inventory and the on-order inventory and order up to “meet the target
+    level.” We can write simple code to write this policy in Python format here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the code, the **target_level** is the desired value we want to order for
+    inventory. If target_level = user_capacity, then we are filling just to fulfill
+    the inventory. First, we can compare the policies of these different methods.
+    For each state, what will be the “number of orders” if we follow the Simple policy
+    and the one from the Q-learning policy? In the figure below, we plotted the comparison
+    of two policies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f90efc18304e79a30955c981f2b915f0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Comparing Ordering policy between Q-Learning and Simple Policy, for each state
+    — Image Source : Author'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simple policy is just to order so that it fulfills the inventory, where
+    the Q-learning policy order is often lower than the simple policy order.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**This can be attributed to the fact that “poisson_lambda” here is 4, meaning
+    the demand is much lower than the capacity of the inventory=10, therefore it is
+    not optimal to order “high number of bicycle” as it has a high holding cost.**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We can also compare the total cumulative rewards you can get when you apply
+    both policies. To do that, we can use the *test_policy* function of “QLearningInventory”
+    which was especially designed to evaluate policies:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: The way the function works is it starts randomly with a new state (state = (alpha_0,
+    beta_0); then for that state, you get action (number of order) for that state
+    from policy, you act and see the reward, and next state, and the process continues
+    as total number of episodes, while you collect the total reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c3d1c92a43d76dc68bb3566c90a66491.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Total costs of manging Inventory, following Q-Learnng policy and Simple policy
+    — Image Source Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The plot above compares the total cost of managing inventory when we follow
+    the “Q-Learning” and “Simple Policy”. The aim is to mimimize the cost of running
+    inventory. Since the ‘reward’ in our model represents this cost, we added total
+    cost = -total reward.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Running the inventory with the Q-Learning policy will lead to lower costs compared
+    to the Simple policy.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Code in GitHub
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The full code for this blog can be found in the GitHub repository [here](https://github.com/Peymankor/medium_blogs/blob/main/2024/08-Aug/RL-Inventory/main.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary and Main Takeaways
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this post, we worked on how reinforcement learning (Q-Learning specifically)
+    can be used to optimize inventory management. We were able to develop a Q-learning
+    algorithm that learns the optimal ordering policy through interaction with the
+    environment (uncertainty). Here, the environment was the “random” demand of the
+    customers (buyers of bikes), and the state was the current inventory status (alpha,
+    beta). The Q-learning algorithm was able to learn the optimal policy that minimizes
+    the total cost of inventory management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Main Takeaways**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Q-Learning**: A model-free reinforcement learning algorithm, Q-learning,
+    can be used to find the optimal inventory policy without requiring a complete
+    model of the environment.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**State Representation**: The state in inventory management is represented
+    by the current on-hand inventory and on-order inventory state = (α, β).'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Cost Reduction**: We can see that the Q-learning policy leads to lower costs
+    compared to the simple policy of ordering up to capacity.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Flexibility**: The Q-learning approach is quite flexible and can be applied
+    to the case of we have past data of demand, or we can interact with the environment
+    to learn the optimal policy.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Data-Driven Decisions**: As we showed, the reinforcement learning (RL) approach
+    does not require any prior knowledge on the model of environment , as it is learning
+    from the data.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] A. Rao, T. Jelvis, Foundations of Reinforcement Learning with Applications
+    in Finance (2022).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] S. Sutton, A. Barto, Reinforcement Learning: An Introduction (2018).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] W. B. Powell, Sequential Decision Analytics and Modeling: Modeling with
+    Python (2022).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] R. B. Bratvold, Making Good Decisions (2010).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you go! 🦸🏻‍♀️
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: If you found value in this article, please follow me on [Medium](https://medium.com/@peymankor)
+    and [Linkedin](https://www.linkedin.com/in/peyman-kor/) to keep updated with my
+    latest posts/writings.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Clap my article 50 times, that will really really help me out and boost this
+    article to others.👏
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

@@ -1,0 +1,258 @@
+- en: 'Dissecting Stockfish Part 3: In-Depth Look at a Chess Engine'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/dissecting-stockfish-part-3-in-depth-look-at-a-chess-engine-51b59e532bb4?source=collection_archive---------6-----------------------#2024-07-22](https://towardsdatascience.com/dissecting-stockfish-part-3-in-depth-look-at-a-chess-engine-51b59e532bb4?source=collection_archive---------6-----------------------#2024-07-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Navigating a chess tree at scale
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)[![Antoine
+    Champion](../Images/dfd05ce8d2081c94e388254731fe7174.png)](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------)
+    [Antoine Champion](https://medium.com/@antoine.champion?source=post_page---byline--51b59e532bb4--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--51b59e532bb4--------------------------------)
+    ·5 min read·Jul 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e3759642068a88760c83493078f2d5eb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Stockfish Chess Engine, Background photo by [ᴊᴀᴄʜʏᴍ ᴍɪᴄʜᴀʟ](https://unsplash.com/@jachymmichal?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
+    on [Unsplash](https://unsplash.com/s/photos/chess?utm_source=unsplash&utm_medium=referral&utm_content=creditCopyText)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Welcome back to our series on the inner workings of the Stockfish chess engine.
+    Our goal is to explain the algorithms and techniques that make Stockfish one of
+    the most powerful chess engines in the world. By understanding these mechanisms,
+    we can gain deeper insights into the intersection of computer science, artificial
+    intelligence, and game theory.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The previous parts of this series explored how Stockfish finds a playable move
+    ([part. 1](https://medium.com/towards-data-science/dissecting-stockfish-part-1-in-depth-look-at-a-chess-engine-7fddd1d83579))
+    and evaluates the quality of a position from that move ([part. 2](/dissecting-stockfish-part-2-in-depth-look-at-a-chess-engine-2643cdc35c9a)).
+    But how to consider what our opponent can play next? And what would be our possible
+    responses?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To handle this situation, Stockfish relies on one final concept: depth.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A tree for all moves
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The game begins: pawn to e4\. Your opponent responds with e5\. Then Nf3, Nc6,
+    and so on. This sequence forms a single branch in the tree of all possible moves.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stockfish navigates this tree to determine the best move based on all potential
+    outcomes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/16ab623cbace833e3d4b82cb6a350c6a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: High-level overview — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The best worst outcome
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In game theory, there is a one-fits-all algorithm for turn-based games: the
+    **Minimax algorithm**. The crux of it is that, because you cannot predict your
+    opponent’s move, you assume they will always choose the best one for themselves.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is illustrated in the diagram below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/be81af5a92f71021445ee059068626cf.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Minimax algorithm for Chess. A positive score means an advantage for white,
+    a negative score an advantage for black — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the move *bishop G3*, Stockfish considers all possible responses from the
+    opponent.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although some moves, like *pawn to A7* or *A6*, yield a positive score, the
+    move *rook to E8* results in a disadvantage of -5.6.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This worst-case outcome gives the move *bishop to G3* a score of -5.6, as it
+    is assumed the opponent (black player) will find and play their best move.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: After calculating all moves and responses, Stockfish selects the best option
+    for itself (white player), which in this case is *knight to D4*.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Although that example illustrated what happens using a single move with the
+    opponent’s responses, the Minimax algorithm can be extended recursively up to
+    an infinite depth. The limiting factor is computing resources, which leads us
+    to the next section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Optimization and tradeoff
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Even though Stockfish can assess millions of moves per second, it still cannot
+    evaluate an entire chess position in a reasonable time due to the exponential
+    growth of possible moves with each depth level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, [Claude Shannon demonstrated](https://en.wikipedia.org/wiki/Shannon_number)
+    that to reach a depth of 10 moves from the starting position, one would need to
+    evaluate 69 billion positions. Using the Minimax algorithm alone, this would take
+    days.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Stockfish leverages several improvements to that Minimax algorithm. One such
+    improvement is **Alpha-Beta pruning**, which optimizes the traversal of the move
+    tree. This is illustrated below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/30800d0c726948a806121b8fc2cae162.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Alpha-Beta pruning for Chess — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stockfish calculated that the sequence *rook E8 -> knight G4 ->* *bishop G4*
+    leads to a disadvantage of -5.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another sequence *rook E8 -> bishop C6* has already been explored and led to
+    a score of -1, which is better than the branch currently being explored.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Therefore, *knight G4* can be discarded in favor of the better option: *bishop
+    C6*.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Additional techniques, such as iterative deepening, further enhance the process:
+    when the engine calculates at depth N, it stores the best line of the search,
+    so it can explore these moves first when searching at a depth N+1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The resulting, big-picture search algorithm for Stockfish is dense (see [search.cpp](https://github.com/official-stockfish/Stockfish/blob/master/src/search.cpp)),
+    and yet utilizes another modern computing technique: multithreading.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Distributed search
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Modern computers can use multiple threads, allowing Stockfish to scale with
+    distributed computing power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To do so, Stockfish leverages multiple threads to search for the best move in
+    parallel, with each thread communicating through a concurrent memory storage system.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cbbe0e8bdfd6d63504325cdb915331fb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Parallel computing using a shared dictionary — Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The compute threads are searching the tree in parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: When a thread completes a branch, it writes the result to a shared dictionary.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When a thread starts a new branch, it checks in that dictionary if any other
+    thread already calculated it.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There is also a main thread that serves as an orchestrator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It stores and launches compute threads from a threadpool.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It seeds initial conditions to each compute thread (e.g. ordering offset for
+    searching the tree, to increase the search entropy and fill the dictionary faster).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It monitors if a thread finished calculating, in which case it halts all the
+    compute threads and reads the evaluation results from the dictionary.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Interestingly, the few nanoseconds required by memory locks when accessing a
+    “true” concurrent dictionary was too much overhead. Therefore, Stockfish programmers
+    developed their own distributed table (see [tt.h](https://github.com/official-stockfish/Stockfish/blob/master/src/tt.h)).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To summarize:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Stockfish generates every candidate move for a given depth.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It evaluates these moves in a tree using various optimizations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It increases the evaluation depth, and repeats that process.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Through this series, we’ve uncovered how Stockfish combines classic algorithms
+    with modern computing techniques and neural networks to achieve state-of-the-art
+    performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding Stockfish’s inner workings not only demystifies one of the strongest
+    chess engines but also offers broader insights into the challenges and solutions
+    in computing and AI. Due to its inherent nature, Stockfish focuses primarily on
+    efficiency, a theme that is becoming less common in AI as computing power continues
+    to increase. Additionally, Stockfish is an example about how to build a complete,
+    distributed system out of an AI core.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope this series has been educational and inspiring. Thank you for reading!
+  prefs: []
+  type: TYPE_NORMAL
+- en: For further reading, you can consult the [Chess Programming Wiki](https://www.chessprogramming.org/Main_Page)
+    and join the [Computer Chess Club](https://talkchess.com/) forum for discussions
+    on chess programming.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[https://antoinechampion.com](https://antoinechampion.com/)'
+  prefs: []
+  type: TYPE_NORMAL

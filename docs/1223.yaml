@@ -1,0 +1,468 @@
+- en: Feature Engineering for Time-Series Using PySpark on Databricks
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=collection_archive---------3-----------------------#2024-05-15](https://towardsdatascience.com/feature-engineering-for-time-series-using-pyspark-on-databricks-02b97d62a287?source=collection_archive---------3-----------------------#2024-05-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Discover the potentials of PySpark for time-series data: Ingest, extract, and
+    visualize data, accompanied by practical implementation code'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)[![John
+    Leung](../Images/ef45063e759e3450fa7f3c32b2f292c3.png)](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------)
+    [John Leung](https://medium.com/@johnleungTJ?source=post_page---byline--02b97d62a287--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--02b97d62a287--------------------------------)
+    ·9 min read·May 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: With the increasing demand for high-speed querying and analysis on large datasets,
+    [Apache Spark](https://spark.apache.org/) has stood out as one of the most popular
+    analytical engines in recent years. It is powerful in distributed data processing
+    due to its [master-worker architecture](/a-beginners-guide-to-apache-spark-ff301cb4cd92).
+    This includes a driver program that coordinates with the cluster manager (master)
+    and controls the execution of distributing smaller tasks to worker nodes. Besides,
+    designed as an in-memory data processing engine, Spark primarily uses RAM to store
+    and manipulate data, rather than relying on disk storage. These coordinately facilitate
+    faster execution of overall tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f5ba1a26d9aa68b032e07ceb2446dd09.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Dawid Zawiła](https://unsplash.com/@davealmine?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Apache Spark: From low-level to high-level'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'At the lower level, its architecture is designed based on two main abstractions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Resilient Distributed Dataset ([RDD](https://spark.apache.org/docs/latest/rdd-programming-guide.html))
+    — A low-level data abstraction in which each dataset can be divided into logical
+    portions and executed on cluster worker nodes, thus aiding in parallel programming.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Directed Acyclic Graph ([DAG](https://sparkbyexamples.com/spark/what-is-dag-in-spark/))
+    — The representation that facilitates optimizing and scheduling the dependencies
+    and sequences of tasks.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: At the higher level, we can leverage a rich set of high-level tools using languages
+    Scala, Python, or R. Examples of tools include [Spark SQL](https://spark.apache.org/sql/)
+    for SQL and DataFrames, [Pandas API](https://spark.apache.org/docs/latest/api/python/user_guide/pandas_on_spark/index.html)
+    on Spark for Pandas workloads, and [Structured Streaming](https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html)
+    for stream processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, before enjoying these functionalities, we may need much effort to self-manage
+    a Spark cluster with the setup of infrastructure and a bunch of complex tools,
+    which could cause a headache.
+  prefs: []
+  type: TYPE_NORMAL
+- en: PySpark on Databricks
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To address these challenges, [PySpark](https://spark.apache.org/docs/latest/api/python/index.html)
+    on [Databricks](https://docs.databricks.com/en/introduction/index.html) is recently
+    one of the high-level solutions in the industry. PySpark is the Python API for
+    Spark, while Databricks is a full software platform built on top of Spark. It
+    includes notebooks, infrastructure orchestration (auto-provisioning and scaling),
+    process orchestration (job submission and scheduling), managed clusters, and even
+    source control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using PySpark APIs in Databricks, we will demonstrate and perform a feature
+    engineering project on time series data. In this hands-on journey, we will simulate
+    how Pandas library generally behaves for data processing, with the extra benefits
+    of scalability and parallelism.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Note: If you want to know further how to dynamically orchestrate this Databricks
+    notebook written in PySpark APIs in Azure, you can click* [*here*](https://medium.com/towards-data-science/orchestrating-a-dynamic-time-series-pipeline-with-azure-data-factory-and-databricks-810819608231)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/65a0654ef823dc1def1a7caf5abd5b30.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Alexandru Boicu](https://unsplash.com/@boiq?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Consider a scenario in which you have the electric power consumption data for
+    your household on hand, sampled at a one-minute rate from December 2006 to November
+    2010\. Our objective is to ingest and manipulate data, extract features, and generate
+    visualizations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The [dataset](https://www.kaggle.com/datasets/uciml/electric-power-consumption-data-set/data)
+    [with license as [Database: Open Database, Contents: Database Contents](https://opendatacommons.org/licenses/dbcl/1-0/)],
+    obtained from Kaggle, includes various fields such as date, time, global power
+    (active and reactive), voltage, global intensity, and submetering (1, 2 and 3).
+    We can begin our analysis now.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The initial setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To begin, we need to create a user account for [Databricks Community Edition](https://www.databricks.com/product/faq/community-edition),
+    which gives a suitable Databricks environment for our proof-of-concept purpose.
+    Afterward, we can upload the input data file to the FileStore, a dedicated Databricks
+    path. By clicking “Create Table in Notebook”, you are provided with the code template
+    to initiate data ingestion.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c5e6d630d059bb13a169a9fdc1e5e9e6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Initial setup (1/2) — Create a user account (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3f45f84fb426e8deba717b1e847a53c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Initial setup (2/2) — Create a new table (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a feature engineering project
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**#1 Ingest data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Static data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We use the method `spark.read()` to read our data source and return a DataFrame,
+    a relational table. It supports various data sources such as CSV, JSON, Parquet,
+    and more. In this case, we read the power consumption data in CSV format with
+    a defined schema, where the first row serves as the header, and “;” is as the
+    delimiter.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The output of the DataFrame with the first several rows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0625e5a7006818e72ebba9b31738edb4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output of the DataFrame (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Streaming data
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In scenarios where data is continuously generated, we use stream processing
+    techniques to read it incrementally. To demonstrate Spark’s behavior, I partitioned
+    the original dataset into 10 subsets and stored them at the path “/FileStore/tables/stream/”
+    beforehand. We then use another method `spark.readStream()`for streaming data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is worth mentioning that the `mode` setting as “dropMalformed” means that
+    we discard the corrupted records, no matter whether the corruption is due to structural
+    inconsistencies or other factors that make them unusable. Also, we choose to process
+    only one file per trigger event.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By starting to receive data and checking the record count every ten seconds,
+    we can observe the continuous arrival of streaming data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**#2 Manipulate and explore data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data transformation
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since the number of rows with missing values is relatively negligible, we choose
+    to drop them. Besides, we extract time-related features so that patterns can potentially
+    be observed in higher dimensions later.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Data exploration
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can explore data with various basic [PySpark methods](https://spark.apache.org/docs/3.1.1/api/python/reference/api/pyspark.sql.DataFrame.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1) Select
+  prefs: []
+  type: TYPE_NORMAL
+- en: The “‘select” method allows us to create a subset of the data frame column-wise.
+    In this example, we select columns in descending order of global active power.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/63e2ed1f5139466002ac988a985dccd1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output of “select” method (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (2) Filter
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This filters data points based on column values. In this example, we filter
+    by two columns: “year” and “Global_intensity”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: (3) groupby
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also perform some aggregations. In our dataset, we calculate the average
+    of global active power and sub-meterings for different months.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/0c23b506d6091e313838198cd696ef74.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output of “groupby” method (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#3 Extract features using Window functions**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition to the above basic PySpark methods and functions, we can leverage
+    [Window functions](https://spark.apache.org/docs/latest/api/python/reference/pyspark.sql/api/pyspark.sql.Window.html)
+    to generate additional features to capture temporal dependencies and relationships
+    in time series data. Assuming we have a transformed dataset (“df2”) where the
+    total global active power is aggregated by day from one-minute rate samples. Let’s
+    explore how we can obtain these features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1) Lag features
+  prefs: []
+  type: TYPE_NORMAL
+- en: These represent the metrics’ values from previous days, which aids our models
+    in learning from historical data and identifying trends.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/434e8ccfb2bb2a4fb421b8df83620e29.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output — Lag features (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (2) Delta features
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is to take a subsequent step to capture short-term changes or variations
+    over time by calculating the difference between original data fields and the lag
+    features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/7a55306d33c5684e2d67047a8f5ece93.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output — Delta features (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (3) Window average features
+  prefs: []
+  type: TYPE_NORMAL
+- en: These features calculate the average value of our target data fields within
+    a sliding window, enabling us to capture the smoothed patterns and relatively
+    long-term trends. Here I pick the window sizes as 14 (2 weeks) and 30 (roughly
+    1 month).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/6da0266dc8acdc4ecba82eea68778a0e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output — Window average features (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: (4) Exponentially weighted moving average (EWMA) features
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'EWMA features are the rectified version of window average features by assigning
+    more weight and emphasis to recent data, and less to past data. A higher value
+    of weight (alpha) means that the EWMA features track more closely to the original
+    time series. Here I pick two separate weights: 0.2 and 0.8.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/6f8d723516896fea4200c35e0e10f34a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Output — EWMA features (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**#4 Generate visualizations on Notebook**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: After extracting time-related data and features using various PySpark functions
+    and methods, we can use the built-in support from Databricks to create visualizations
+    efficiently. This works by dragging and dropping data fields and configuring visual
+    settings in the visualization editor. Some examples are shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Scatter plot: Relationship between global active power and global intensity'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Interpretation: There is a highly positive correlation between the two fields.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/91d07a8535fb209f7e67989232457ed8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Scatter plot, using a visualization editor (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Box plot: The distribution of global active power across hours'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Interpretation: There are relatively large variations of global active power
+    from 7:00 to 21:00.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d737bb1829863d28a0311a0a48f2dafd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Box plot (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Line chart: The changes in total global active power, EWMA with alpha 0.2,
+    and EWMA with alpha 0.8 from Jan 2008 to Mar 2008'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*Interpretation: EWMA with alpha 0.8 sticks more closely to the original time
+    series than EWMA with alpha 0.2.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6505478ffa3793a4eb8a874d7cb56713.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Line chart (Image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Besides, we can generate the default data profiles to display summary statistics
+    such as count, % of missing values, and data distributions. This ensures data
+    quality throughout the entire feature engineering process. These above visualizations
+    can alternatively be created by the query output using Databricks SQL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping it up
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In our hands-on exploration, we used PySpark for feature engineering of time-series
+    data using the Databricks platform:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ingesting static and streaming data, by using the `spark.read()` and `spark.readStream()`
+    methods respectively.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Manipulating and exploring data, by using a range of basic PySpark functions
+    available in `pyspark.sql.functions`, and DataFrame methods.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Extract trend-related features, by calculating the relationship within groups
+    of data using `pyspark.sql.Window`.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Visualization, by using the built-in features of Databricks Notebook.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: When dealing with a massive dataset, PySpark is often preferred over Pandas
+    due to its scalability and performance capabilities. PySpark’s support for lazy
+    evaluation also means that computations are only performed when necessary, which
+    reduces the overhead. However, Scala can sometimes be a better option, because
+    we can closely catch up with the latest features as Spark itself is written in
+    Scala. And more likely that systems which are less error-prone can be designed
+    with the use of immutable objects. Different languages or libraries have their
+    edges. Ultimately, the choice depends on the enterprise requirements, developers’
+    learning curves, and integration with other systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you go
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: If you enjoy this reading, I invite you tofollow my [Medium page](https://medium.com/@johnleungTJ)
+    and [LinkedIn page](https://www.linkedin.com/in/john-leung-639800115/). By doing
+    so, you can stay updated with exciting content related to data science side projects,
+    and Machine Learning Operations (MLOps) demonstrations methodologies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----02b97d62a287--------------------------------)
+    [## Performing Customer Analytics with LangChain and LLMs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Discover the potentials and constraints of LangChain for customer analytics,
+    accompanied by practical implementation…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/performing-customer-analytics-with-langchain-and-llms-0af4ea38f7b5?source=post_page-----02b97d62a287--------------------------------)
+    [](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----02b97d62a287--------------------------------)
+    [## Managing the Technical Debts of Machine Learning Systems
+  prefs: []
+  type: TYPE_NORMAL
+- en: Explore the practices with implementation codes for sustainably mitigating the
+    cost of speedy delivery
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/managing-the-technical-debts-of-machine-learning-systems-5b85d420ab9d?source=post_page-----02b97d62a287--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

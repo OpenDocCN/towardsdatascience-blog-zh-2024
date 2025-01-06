@@ -1,0 +1,698 @@
+- en: Integrating Microsoft GraphRAG into Neo4j
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31](https://towardsdatascience.com/integrating-microsoft-graphrag-into-neo4j-e0d4fa00714c?source=collection_archive---------0-----------------------#2024-07-31)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Store the MSFT GraphRAG output into Neo4j and implement local and global retrievers
+    with LangChain or LlamaIndex
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Tomaz
+    Bratanic](../Images/d5821aa70918fcb3fc1ff0013497b3d5.png)](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
+    [Tomaz Bratanic](https://bratanic-tomaz.medium.com/?source=post_page---byline--e0d4fa00714c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--e0d4fa00714c--------------------------------)
+    ·16 min read·Jul 31, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b8dfacae208dd7c0c5efcd6495e436c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image created with ChatGPT.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Microsoft’s GraphRAG implementation](https://microsoft.github.io/graphrag/)
+    has gained significant attention lately. In my [last blog post](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4),
+    I discussed how the graph is constructed and explored some of the innovative aspects
+    highlighted in the [research paper](https://arxiv.org/abs/2404.16130). At a high
+    level, the input to the GraphRAG library are source documents containing various
+    information. The documents are processed using an Large Language Model (LLM) to
+    extract structured information about entities appearing in the documents along
+    with their relationships. This extracted structured information is then used to
+    construct a knowledge graph.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/24791b4cf2a113c9a490245cdae794f6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: High-level indexing pipeline as implemented in the GraphRAG paper by Microsoft
+    — Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the knowledge graph has been constructed, the GraphRAG library uses a
+    combination of graph algorithms, specifically Leiden community detection algorithm,
+    and LLM prompting to generate natural language summaries of communities of entities
+    and relationships found in the knowledge graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we’ll take the output from the [GraphRAG library](https://github.com/microsoft/graphrag),
+    store it in Neo4j, and then set up retrievers directly from Neo4j using LangChain
+    and LlamaIndex orchestration frameworks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The code and GraphRAG output are accessible on [GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag),
+    allowing you to skip the GraphRAG extraction process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataset
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The dataset featured in this blog post is “A Christmas Carol” by Charles Dickens,
+    which is freely accessible via the Gutenberg Project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)
+    [## A Christmas Carol by Charles Dickens'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Free kindle book and epub digitized and proofread by volunteers.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: www.gutenberg.org](https://www.gutenberg.org/ebooks/19337?source=post_page-----e0d4fa00714c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We selected this book as the source document because it is highlighted in the
+    [introductory documentation](https://microsoft.github.io/graphrag/posts/get_started/),
+    allowing us to perform the extraction effortlessly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph construction
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even though you can skip the graph extraction part, we’ll talk about a couple
+    of configuration options I think are the most important. For example, graph extraction
+    can be very token-intensive and costly. Therefore, testing the extraction with
+    a relatively cheap but good-performing LLM like gpt-4o-mini makes sense. The cost
+    reduction from gpt-4-turbo can be significant while retaining good accuracy, as
+    described in this [blog post](https://blog.cubed.run/graphrag-gpt-4o-mini-building-an-ai-knowledge-graph-at-low-cost-a4282440d92e).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The most important configuration is the type of entities we want to extract.
+    By default, organizations, people, events, and geo are extracted.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: These default entity types might work well for a book, but make sure to change
+    them accordingly to the domain of the documents you are looking at processing
+    for a given use case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another important configuration is the max gleanings value. The authors identified,
+    and we also validated separately, that an LLM doesn’t extract all the available
+    information in a single extraction pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9538bdd012d48b26296e1a04445c33f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Number of extract entities given the size of text chunks — Image from the [GraphRAG
+    paper](https://arxiv.org/abs/2404.16130), licensed under CC BY 4.0
+  prefs: []
+  type: TYPE_NORMAL
+- en: The gleaning configuration allows the LLM to perform multiple extraction passes.
+    In the above image, we can clearly see that we extract more information when performing
+    multiple passes (gleanings). Multiple passes are token-intensive, so a cheaper
+    model like gpt-4o-mini helps to keep the cost low.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally, the claims or covariate information is not extracted by default.
+    You can enable it by setting the `GRAPHRAG_CLAIM_EXTRACTION_ENABLED` configuration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: It seems that it’s a recurring theme that not all structured information is
+    extracted in a single pass. Hence, we have the gleaning configuration option here
+    as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s also interesting, but I haven’t had time to dig deeper is the prompt
+    tuning section. Prompt tuning is optional, but highly encouraged as it can improve
+    accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[## Prompt Tuning ⚙️'
+  prefs: []
+  type: TYPE_NORMAL
+- en: GraphRAG provides the ability to create domain adaptive templates for the generation
+    of the knowledge graph. This step…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: microsoft.github.io](https://microsoft.github.io/graphrag/posts/prompt_tuning/auto_prompt_tuning/?source=post_page-----e0d4fa00714c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the configuration has been set, we can follow the [instructions to run
+    the graph extraction pipeline](https://microsoft.github.io/graphrag/posts/get_started/),
+    which consists of the following steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/58d946343c0b8c5ffbc8daef9b5b6a68.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Steps in the pipeline — Image from the [GraphRAG paper](https://arxiv.org/abs/2404.16130),
+    licensed under CC BY 4.0
+  prefs: []
+  type: TYPE_NORMAL
+- en: The extraction pipeline executes all the blue steps in the above image. Review
+    my [previous blog post](https://medium.com/neo4j/implementing-from-local-to-global-graphrag-with-neo4j-and-langchain-constructing-the-graph-73924cc5bab4)
+    to learn more about graph construction and community summarization. The output
+    of the graph extraction pipeline of the MSFT GraphRAG library is a set of parquet
+    files, as shown in the [Operation Dulce example](https://github.com/microsoft/graphrag/tree/main/examples_notebooks/inputs/operation%20dulce).
+  prefs: []
+  type: TYPE_NORMAL
+- en: These parquet files can be easily imported into the Neo4j graph database for
+    downstream analysis, visualization, and retrieval. We can [use a free cloud Aura
+    instance or set up a local Neo4j environment](https://neo4j.com/docs/operations-manual/current/installation/).
+    My friend [Michael Hunger](https://medium.com/u/3865848842f9?source=post_page---user_mention--e0d4fa00714c--------------------------------)
+    did most of the work to import the parquet files into Neo4j. We’ll skip the import
+    explanation in this blog post, but it consists of importing and constructing a
+    knowledge graph from five or six CSV files. If you want to learn more about CSV
+    importing, you can check the [Neo4j Graph Academy course](https://graphacademy.neo4j.com/courses/importing-cypher/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The import code is available as a [Jupyter notebook on GitHub](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb)
+    along with the example GraphRAG output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)
+    [## blogs/msft_graphrag/ms_graphrag_import.ipynb at master · tomasonjo/blogs'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Jupyter notebooks that support my graph data science blog posts at https://bratanic-tomaz.medium.com/
+    …
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_import.ipynb?source=post_page-----e0d4fa00714c--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the import is completed, we can open the Neo4j Browser to validate and
+    visualize parts of the imported graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92899dd2b556af48c66fd7870c915e0d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Part of the imported graph. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Graph analysis
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Before moving onto retriever implementation, we’ll perform a simple graph analysis
+    to familiarize ourselves with the extracted data. We start by defining the database
+    connection and a function that executes a Cypher statement (graph database query
+    language) and outputs a Pandas DataFrame.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: When performing the graph extraction, we used a chunk size of 300\. Since then,
+    the authors have changed the default chunk size to 1200\. We can validate the
+    chunk sizes using the following Cypher statement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 230 chunks have 300 tokens, while the last one has only 155 tokens. Let’s now
+    check an example entity and its description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/35f18f3cc25aac41a57272e234289a80.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example entity name and description. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It seems that the project Gutenberg is described in the book somewhere, probably
+    at the beginning. We can observe how a description can capture more detailed and
+    intricate information than just an entity name, which the MSFT GraphRAG paper
+    introduced to retain more sophisticated and nuanced data from text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s check example relationships as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6f893ad3537c258ca75ad42e7879b6af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example relationship descriptions. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The MSFT GraphRAG goes beyond merely extracting simple relationship types between
+    entities by capturing detailed relationship descriptions. This capability allows
+    it to capture more nuanced information than straightforward relationship types.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also examine a single community and its generated descriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a91072cfd28f72bcf4f76e20c8929c04.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example community description. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A community has a title, summary, and full content generated using an LLM. I
+    haven’t seen if the authors use the full context or just the summary during retrieval,
+    but we can choose between the two. We can observe citations in the full_content,
+    which point to entities and relationships from which the information came. It’s
+    funny that an LLM sometimes trims the citations if they are too long, like in
+    the following example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: There is no way to expand the `+more` sign, so this is a funny way of dealing
+    with long citations by an LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s now evaluate some distributions. We’ll start by inspecting the distribution
+    of the count of extracted entities from text chunks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/31d7f4dc8a8dd0eb2cced392fb6494e4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Distribution of the count of extracted entities from text chunks. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Remember, text chunks have 300 tokens. Therefore, the number of extracted entities
+    is relatively small, with an average of around three entities per text chunk.
+    The extraction was done without any gleanings (a single extraction pass). It would
+    be interesting to see the distribution if we increased the gleaning count.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we will evaluate the node degree distribution. A node degree is the number
+    of relationships a node has.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/202d970f10bd278b5aee8974cf48ae0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Node degree distribution. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Most real-world networks follow a power-law node degree distribution, with most
+    nodes having relatively small degrees and some important nodes having a lot. While
+    our graph is small, the node degree follows the power law. It would be interesting
+    to identify which entity has 120 relationships (connected to 43% of entities).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68f4527199ac6daafeca1cc648fb7fe1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Entities with the most relationships. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Without any hesitation, we can assume that Scrooge is the book’s main character.
+    I would also venture a guess that **Ebenezer Scrooge** and **Scrooge** are actually
+    the same entity, but as the MSFT GraphRAG lacks an entity resolution step, they
+    weren’t merged.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It also shows that analyzing and cleaning the data is a vital step to reducing
+    noise information, as Project Gutenberg has 13 relationships, even though they
+    are not part of the book story.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lastly, we’ll inspect the distribution of community size per hierarchical level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2eba2f21b06f75caa3302f3a3ce41067.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Community size distribution per level. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The Leiden algorithm identified three levels of communities, where the communities
+    on higher levels are larger on average. However, there are some technical details
+    that I’m not aware of because if you check the all_members count, and you can
+    see that each level has a different number of all nodes, even though they should
+    be the same in theory. Also, if communities merge at higher levels, why do we
+    have 19 communities on level 0 and 22 on level 1? The authors have done some optimizations
+    and tricks here, which I haven’t had a time to explore in detail yet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Implementing retrievers
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In the last part of this blog post, we will discuss the local and global retrievers
+    as specified in the MSFT GraphRAG. The retrievers will be implemented and integrated
+    with LangChain and LlamaIndex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Local retriever
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The local retriever starts by using vector search to identify relevant nodes,
+    and then collects linked information and injects it into the LLM prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3526b6401fd23d76effcaf0a4022a12c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Local retriever architecture. Image from [https://microsoft.github.io/graphrag/posts/query/1-local_search/](https://microsoft.github.io/graphrag/posts/query/1-local_search/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: While this diagram might look complex, it can be easily implemented. We start
+    by identifying relevant entities using a vector similarity search based on text
+    embeddings of entity descriptions. Once the relevant entities are identified,
+    we can traverse to related text chunks, relationships, community summaries, and
+    so on. The pattern of using vector similarity search and then traversing throughout
+    the graph can easily be implemented using a `retrieval_query` feature in both
+    LangChain and LlamaIndex.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, we need to configure the vector index.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: We’ll also calculate and store the community weight, which is defined as the
+    number of distinct text chunks the entities in the community appear.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: The number of candidates (text units, community reports, …) from each section
+    is [configurable](https://microsoft.github.io/graphrag/posts/query/notebooks/local_search_nb/).
+    While the original implementation has slightly more involved filtering based on
+    token counts, we’ll simplify it here. I developed the following simplified top
+    candidate filter values based on the default configuration values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will start with LangChain implementation. The only thing we need to define
+    is the `retrieval_query` , which is more involved.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This Cypher query performs multiple analytical operations on a set of nodes
+    to extract and organize related text data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '1\. **Entity-Text Unit Mapping**: For each node, the query identifies linked
+    text chunks (`__Chunk__`), aggregates them by the number of distinct nodes associated
+    with each chunk, and orders them by frequency. The top chunks are returned as
+    `text_mapping`.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '2\. **Entity-Report Mapping**: For each node, the query finds the associated
+    community (`__Community__`), and returns the summary of the top-ranked communities
+    based on rank and weight.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '3\. **Outside Relationships**: This section extracts descriptions of relationships
+    (`RELATED`) where the related entity (`m`) is not part of the initial node set.
+    The relationships are ranked and limited to the top external relationships.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '4\. **Inside Relationships**: Similarly to outside relationships, but this
+    time it considers only relationships where both entities are within the initial
+    set of nodes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '5\. **Entities Description**: Simply collects descriptions of each node in
+    the initial set.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the query combines the collected data into a structured result comprising
+    of chunks, reports, internal and external relationships, and entity descriptions,
+    along with a default score and an empty metadata object. You have the option to
+    remove some of the retrieval parts to test how they affect the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now you can run the retriever using the following code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The same retrieval pattern can be implemented with LlamaIndex. For LlamaIndex,
+    we first need to add metadata to nodes so that the vector index will work. *If
+    the default metadata is not added to the relevant nodes, the vector index will
+    return an error*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Again, we can use the `retrieval_query` feature in LlamaIndex to define the
+    retriever. Unlike with LangChain, we will use the f-string instead of query parameters
+    to pass the top candidate filter parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: Additionally, the return is slightly different. We need to return the node type
+    and content as metadata; otherwise, the retriever will break. Now we just instantiate
+    the Neo4j vector store and use it as a query engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can now test the GraphRAG local retriever.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: One thing that immediately sparks to mind is that we can improve the local retrieval
+    by using a hybrid approach (vector + keyword) to find relevant entities instead
+    of vector search only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Global retriever
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The [global retriever architecture](https://microsoft.github.io/graphrag/posts/query/notebooks/global_search_nb/)
+    is slightly more straightforward. It seems to iterate over all the community summaries
+    on a specified hierarchical level, producing intermediate summaries and then generating
+    a final response based on the intermediate summaries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/69405ee5c3fd2d9bedc89f5b463fb816.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Global retriever architecture. Image from [https://microsoft.github.io/graphrag/posts/query/0-global_search/](https://microsoft.github.io/graphrag/posts/query/0-global_search/)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We have to decide which define in advance which hierarchical level we want to
+    iterate over, which is a not a simple decision as we have no idea which one would
+    work better. The higher up you go the hierarchical level, the larger the communities
+    get, but there are fewer of them. This is the only information we have without
+    inspecting summaries manually.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other parameters allow us to ignore communities below a rank or weight threshold,
+    which we won’t use here. We’ll implement the global retriever using LangChain
+    as use the same [map](https://github.com/microsoft/graphrag/blob/main/graphrag/query/structured_search/global_search/map_system_prompt.py)
+    and [reduce prompts](https://github.com/microsoft/graphrag/blob/main/graphrag/query/structured_search/global_search/reduce_system_prompt.py)
+    as in the GraphRAG paper. Since the system prompts are very long, we will not
+    include them here or the chain construction. However, all the code is available
+    in the [notebook](https://github.com/tomasonjo/blogs/blob/master/msft_graphrag/ms_graphrag_retriever.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s now test it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Results*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The story primarily revolves around Ebenezer Scrooge, a miserly man who initially
+    embodies a cynical outlook towards life and despises Christmas. His transformation
+    begins when he is visited by the ghost of his deceased business partner, Jacob
+    Marley, followed by the appearances of three spirits—representing Christmas Past,
+    Present, and Yet to Come. These encounters prompt Scrooge to reflect on his life
+    and the consequences of his actions, ultimately leading him to embrace the Christmas
+    spirit and undergo significant personal growth [Data: Reports (32, 17, 99, 86,
+    +more)].'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The Role of Jacob Marley and the Spirits
+  prefs:
+  - PREF_BQ
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Jacob Marley''s ghost serves as a supernatural catalyst, warning Scrooge about
+    the forthcoming visitations from the three spirits. Each spirit guides Scrooge
+    through a journey of self-discovery, illustrating the impact of his choices and
+    the importance of compassion. The spirits reveal to Scrooge how his actions have
+    affected not only his own life but also the lives of others, particularly highlighting
+    the themes of redemption and interconnectedness [Data: Reports (86, 17, 99, +more)].'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Scrooge's Relationships and Transformation
+  prefs:
+  - PREF_BQ
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Scrooge''s relationship with the Cratchit family, especially Bob Cratchit and
+    his son Tiny Tim, is pivotal to his transformation. Through the visions presented
+    by the spirits, Scrooge develops empathy, which inspires him to take tangible
+    actions that improve the Cratchit family''s circumstances. The narrative emphasizes
+    that individual actions can have a profound impact on society, as Scrooge''s newfound
+    generosity fosters compassion and social responsibility within his community [Data:
+    Reports (25, 158, 159, +more)].'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Themes of Redemption and Hope
+  prefs:
+  - PREF_BQ
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Overall, the story is a timeless symbol of hope, underscoring themes such as
+    empathy, introspection, and the potential for personal change. Scrooge''s journey
+    from a lonely miser to a benevolent figure illustrates that it is never too late
+    to change; small acts of kindness can lead to significant positive effects on
+    individuals and the broader community [Data: Reports (32, 102, 126, 148, 158,
+    159, +more)].'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: In summary, the story encapsulates the transformative power of Christmas and
+    the importance of human connections, making it a poignant narrative about redemption
+    and the impact one individual can have on others during the holiday season.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The response is quite long and exhaustive as it fits a global retriever that
+    iterates over all the communities on a specified level. You can test how the response
+    changes if you change the community hierarchical level.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In this blog post we demonstrated how to integrate Microsoft’s GraphRAG into
+    Neo4j and implement retrievers using LangChain and LlamaIndex. This should allows
+    you to integrate GraphRAG with other retrievers or agents seamlessly. The local
+    retriever combines vector similarity search with graph traversal, while the global
+    retriever iterates over community summaries to generate comprehensive responses.
+    This implementation showcases the power of combining structured knowledge graphs
+    with language models for enhanced information retrieval and question answering.
+    It’s important to note that there is room for customization and experimentation
+    with such a knowledge graph, which we will look into in the next blog post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As always, the code is available on [GitHub](https://github.com/tomasonjo/blogs/tree/master/msft_graphrag).
+  prefs: []
+  type: TYPE_NORMAL

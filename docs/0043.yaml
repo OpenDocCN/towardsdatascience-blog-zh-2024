@@ -1,0 +1,738 @@
+- en: Inspecting Neural Network Model Performance for Edge Deployment
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/inspecting-neural-network-model-performance-for-edge-deployment-d4f8f18dbfd5?source=collection_archive---------11-----------------------#2024-01-05](https://towardsdatascience.com/inspecting-neural-network-model-performance-for-edge-deployment-d4f8f18dbfd5?source=collection_archive---------11-----------------------#2024-01-05)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A detailed look at quantizing CNN- and transformer-based models and techniques
+    to measure and understand their efficacy on edge hardware
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)[![Lindo
+    St. Angel](../Images/e742a501401428448a235030414f851b.png)](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)
+    [Lindo St. Angel](https://medium.com/@lindo.st.angel?source=post_page---byline--d4f8f18dbfd5--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d4f8f18dbfd5--------------------------------)
+    ·16 min read·Jan 5, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/02969585c26b65b1943f459ac7613f51.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Gavin Allanwood](https://unsplash.com/@gavla?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: This article will show you how to convert and quantize neural network models
+    for inference at the edge and how to inspect them for quantization efficacy, understand
+    runtime latency, and model memory usage to optimize performance. Although focused
+    on solving the non-intrusive load monitoring (NILM) problem using convolutional
+    neural networks (CNN) and transformer-based neural networks as a way of illustrating
+    the techniques introduced here, you can use the general approach to train, quantize,
+    and analyze models to solve other problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The goal of NILM is to recover the energy consumption of individual appliances
+    from the aggregate mains signal, which reflects the total electricity consumption
+    of a building or house. NILM is also known as energy disaggregation, and you can
+    use both terms interchangeably.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the code used to generate the results shown in this article on
+    my GitHub, [Energy Management Using Real-Time Non-Intrusive Load Monitoring](https://github.com/goruck/nilm),
+    and additional details omitted here for brevity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NILM Algorithm Selection and Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Algorithm Selection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Energy disaggregation is a highly under-determined and single-channel [Blind
+    Source Separation](https://en.wikipedia.org/wiki/Signal_separation) (BSS) problem,
+    which makes it challenging to obtain accurate predictions. Let *M* be the number
+    of household appliances, and *i* be the index referring to the i-th appliance.
+    The aggregate power consumption *x* at a given time *t* is the sum of the power
+    consumption of all appliances *M*, denoted by *yᵢ,* for all {i=1,…,M}. Therefore,
+    the total power consumption *x* at a given time *t* can expressed by Equation
+    1, where *e* is a noise term.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f3ed1d9a08d6d52b1366bd81d3527b40.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The goal is to solve the inverse problem and estimate the appliance power consumption
+    *yᵢ*, given the aggregate power signal *x*, and to do so in a manner suitable
+    for deployment at the edge.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can solve the single-channel BSS problem by using sequence-to-point (seq2point)
+    learning with neural networks, and it can applied to the NILM problem using transformers,
+    convolutional (CNN), and recurrent neural networks. Seq2point learning involves
+    training a neural network to map between an input time series, such as the aggregate
+    power readings in the case of NILM, and an output signal. You use a sliding input
+    window to train the network, which generates a corresponding single-point output
+    at the window’s midpoint.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I selected the seq2point learning approach, and my implementation was inspired
+    and guided by the work described by Michele D’Incecco, et al. ¹ and Zhenrui Yue
+    et al. ². I developed various seq2point learning models but focused my work on
+    the models based on transformer and CNN architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Neural Network Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can see the CNN model in Figure 1 for an input sequence length of 599 samples.
+    You can view the complete model code [here](https://github.com/goruck/nilm/blob/main/ml/define_models.py#L72).
+    The model follows traditional CNN concepts from vision use cases where several
+    convolutional layers extract features from the input power sequence at gradually
+    finer details as the input traverses the network. These features are the appliances’
+    on-off patterns and power consumption levels. Max pooling manages the complexity
+    of the model after each convolutional layer. Finally, dense layers output the
+    window’s final single-point power consumption estimate, which is de-normalized
+    before being used in downstream processing. There are about 40 million parameters
+    in this model using the default values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a827065eb4ec90784e39e61fdc9ad106.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 1 — CNN Model
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the transformer model in Figure 2 for an input sequence length of
+    599 samples where the transformer block is a Bert-style encoder. You can view
+    the complete code [here](https://github.com/goruck/nilm/blob/main/ml/transformer_model.py).
+    The input sequence is first passed through a convolutional layer to expand into
+    a latent space, analogous to the feature extraction in the CNN model case. Pooling
+    and L2 normalization reduce model complexity and mitigate the effects of outliers.
+    Next, a Bert-style transformer lineup processes the latent space sequence, which
+    includes positional embedding and transformer blocks that apply importance weighting.
+    Several layers process the output of the transformer blocks. These are relative
+    position embedding, which uses symmetric weights around the mid-point of the signal;
+    average pooling, which reduces the sequence to a single value per feature; and
+    then finally, dense layers that output the final single point estimated power
+    value for the window which again is de-normalized for downstream processing. There
+    are about 1.6 million parameters in this model using the default values.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ff11b2c840cad9aa37a4de2d0974fe03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 2 — Overall Transformer Model
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the Bert-style transformer encoder in Figure 3, below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/87eb93bfafca90ab758c7f03e8bcae1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Figure 3 — Transformer Encoder.
+  prefs: []
+  type: TYPE_NORMAL
+- en: NILM Datasets
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Several large-scale publicly available datasets specifically designed to address
+    the NILM problem were captured in household buildings from various countries.
+    The datasets generally include many 10s millions of active power, reactive power,
+    current, and voltage samples but with different sampling frequencies, which require
+    you to pre-process the data before use. Most NILM algorithms utilize only real
+    (active or true) power data. Five appliances are usually considered for energy
+    disaggregation research: a kettle, microwave, fridge, dishwasher, and washing
+    machine. These are the appliances I used for this article, and I mainly focused
+    on the [REFIT](https://pureportal.strath.ac.uk/en/datasets/refit-electrical-load-measurements-cleaned)³
+    dataset.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that these datasets are typically very imbalanced because, most of the
+    time, an appliance is in the off state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Training and Results
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: I used [TensorFlow](https://www.tensorflow.org/) to train and test the model.
+    You can find the code associated with this section [here](https://github.com/goruck/nilm/tree/main/ml).
+    I trained the seq2point learning models for the appliances individually on z-score
+    standardized REFIT data or normalized to [0, *Pₘ*], where *Pₘ* is the maximum
+    power consumption of an appliance in its active state. Normalized data tends to
+    give the best model performance, so I used it by default.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used the following metrics to evaluate the model’s performance. You can view
+    the code that calculates these metrics [here](https://github.com/goruck/nilm/blob/main/ml/nilm_metric.py).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Mean absolute error (*MAE)* evaluates the absolute difference between the prediction
+    and the ground truth power at every time point and calculates the mean value,
+    as defined by the equation below.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/d54421cc4c4a72796ba3155fbe7bac0f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Normalized signal aggregate error (*SAE*) indicates the total energy’s relative
+    error. Denote *r* as the total energy consumption of the appliance and *rₚ* as
+    the predicted total energy, then *SAE* is defined per the equation below.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/76f14926ea0f57dd887be1e9276f353c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Energy per Day (*EpD*), which measures the predicted energy used in a day, is
+    valuable when the household users are interested in the total energy consumed
+    in a period. Denote *D* as the total number of days and *e* as the appliance energy
+    consumed daily; then *EpD* is defined per the equation below.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/217353af2aac56c424094738cffb3f6c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Normalized disaggregation error (*NDE*) measures the normalized error of the
+    squared difference between the prediction and the ground truth power of the appliances,
+    as defined by the equation below.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/4f221660b7809beb73473fa8862cbefe.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: I also used accuracy (*ACC*), F1-score (*F1*), and Matthew’s correlation coefficient
+    (*MCC*) to assess if the model can perform well with the severely imbalanced datasets
+    used to train and test the model. These metrics depend on the computed on-off
+    status of the appliance device. *ACC* equals the number of correctly predicted
+    time points over the test dataset. The equations below define *F1* and *MCC*,
+    where *TP* stands for true positives, *TN* stands for true negatives, *FP* stands
+    for false positives, and *FN* stands for false negatives.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/be831bdf057836ca2fe1d178f535d5d0.png)![](../Images/9ca4fb594b61a298bf23cf5eacb3dce6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*MAE, SAE, NDE*, and *EpDₑ,* defined as 100% times (predicted EpD — ground
+    truth EpD) / ground truth EpD, reflect the model’s ability to predict the appliance
+    energy consumption levels correctly. *F1* and *MCC* indicate the model’s ability
+    to predict appliance on-off states using imbalanced classes correctly. *ACC* is
+    less valuable than *F1* or *MCC* in this application because, most of the time,
+    the model will accurately predict that the appliance, which dominates the dataset,
+    is off.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used a sliding window of 599 samples of the aggregate real power consumption
+    signal as inputs to the seq2point model, and I used the midpoints of the corresponding
+    windows of the appliances as targets. You can see the code that generates these
+    samples and targets by an instance of the WindowGenerator Class defined in the
+    [window_generator.py](https://github.com/goruck/nilm/blob/main/ml/window_generator.py)
+    module.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the code I used to train the model in [train.py](https://github.com/goruck/nilm/blob/main/ml/train.py),
+    which uses the [tf.distribute.MirroredStrategy](https://www.tensorflow.org/api_docs/python/tf/distribute/MirroredStrategy)
+    distributed training strategy. I used the Keras Adam optimizer, with early stopping
+    to reduce over-fitting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The key hyper-parameters for training and the optimizer are summarized below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Input Window Size: 599 samples'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Global Batch size: 1024 samples.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Learning Rate: 1e-04'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Adam Optimizer: beta_1=0.9, beta_2=0.999, epsilon=1e-08'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Early Stopping Criteria: 6 epochs.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I used the loss function shown in the equation below to compute training gradients
+    and evaluate validation loss on a per-batch basis. It combines Mean Squared Error,
+    Binary Cross-Entropy, and Mean Absolute Error losses, averaged over distributed
+    model replica batches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dcb377666e4a69dc97bc991bb8afa72f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Where x, x_hat in [0, 1] is the ground truth and predicted power usage single
+    point values divided by the maximum power limit per appliance and s, s_ hat in
+    {0, 1} are the appliance state label and prediction. The absolute error term is
+    only applied for the set of predictions when either the status label is on, or
+    the prediction is incorrect. The hyper-parameter lambda tunes the absolute loss
+    term on a per-appliance basis.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see typical performance metrics for the CNN model in the table below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/852a5550cd715efaab21222cffa86c6f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 1 — CNN model performance
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see typical performance metrics for the transformer model in the table
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/084c86e0da169b59cf89ec8851372e10.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 2 — transformer model performance
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see that the CNN and transformer models have similar performance even
+    though the latter has about 26 times fewer parameters than the former. However,
+    each transformer training step takes about seven times longer than CNN due to
+    the transformer model’s use of self-attention, which has O(*n*²) complexity compared
+    to the CNN model’s O(*n*), where *n* is the input sequence length. Based on training
+    (and inference) efficiency, you can see that CNN is preferable with little loss
+    in model performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Conversion and Quantization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The steps involved in converting a model graph in floating point to a form suitable
+    for inferencing on edge hardware, including those based on CPUs, MCUs, and specialized
+    compute optimized for int8 operations, are as follows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Train the model in float32 or representation such as TensorFloat-32 using Nvidia
+    GPUs. The output will be a complete network graph; I used the TensorFlow SavedModel
+    format, a complete TensorFlow program including variables and computations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Convert the floating-point graph to a format optimized for the edge hardware
+    using TensorFlow Lite or equivalent. The output will be a flat file that can run
+    on a CPU, but all operations will still be in float32\. Note that you cannot convert
+    all TensorFlow operators into a TFLite equivalent. You can convert most layers
+    and operators used in CNN networks can be converted, but I designed the transformer
+    network carefully to avoid TFLite conversion issues. See [TensorFlow Lite and
+    TensorFlow operator compatibility.](https://www.tensorflow.org/lite/guide/ops_compatibility)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Quantize and optimize the converted model’s weights, biases, and activations.
+    I used various quantization modes to partially or fully quantize the model to
+    int8, int16, or combinations thereof, resulting in different inference latencies
+    on the target hardware.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I performed [Post-training quantization](https://www.tensorflow.org/lite/performance/post_training_quantization)
+    on the CNN and transformer models using the [TensorFlow Lite (TFLite) converter
+    AP](https://www.tensorflow.org/lite/models/convert/)I with various quantization
+    modes to improve inference speed on edge hardware, including the Raspberry Pi
+    and the Google Edge TPU, while managing the impact on accuracy. You can see the
+    quantization modes I used below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**convert_only**:Convert to tflite but keep all parameters in Float32 (no quantization).'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**w8**: Quantize weights from float32 to int8 and biases to int64\. Leave activations
+    in Float32.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**w8_a8_fallback**: Same as w8 but quantize activations from float32 to int8\.
+    Fallback to float if an operator does not have an integer implementation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**w8_a8**: Same as w8 but quantize activations from float32 to int8\. Enforce
+    full int8 quantization for all operators.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**w8_a16**: Same as w8 but quantize activations to int16.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The CNN model was quantized using all modes to understand the best tradeoff
+    between latency and accuracy. Only the weights for the transformer model were
+    quantized to int8 using mode w8; the activations needed to be kept in float32
+    to maintain acceptable accuracy. See [convert_keras_to_tflite.py](https://github.com/goruck/nilm/blob/main/ml/convert_keras_to_tflite.py)
+    for the code that does this quantization, which also uses [TensorFlow Lite’s quantization
+    debugger](https://www.tensorflow.org/lite/performance/quantization_debugger) to
+    check how well each layer in the model was quantized. I profiled the converted
+    models using the [TensorFlow Lite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)
+    to quantify inference latencies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fully quantizing a model requires calibration of the model’s activations via
+    a dataset that is representative of the actual data used during training and testing
+    of the floating point model. Calibration can be challenging with highly imbalanced
+    data because a random selection of samples will likely lead to poor calibration
+    and quantized model accuracy. To mitigate this, I used an algorithm to construct
+    a representative dataset of the balanced appliance on- and off-states. You can
+    find that code [here](https://github.com/goruck/nilm/blob/main/ml/convert_model.py#L91)
+    and in the snippet below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Figure 4 — Representative Generator Code Snippet
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find the quantized inference results in the tables below, where Lx86
+    is the average inference latency on a 3.8 GHz x86 machine using eight TFlite interpreter
+    threads, and Larm is the average inference latency on the ARM aarch-64-based Raspberry
+    Pi 4 using four threads with both computers using the TensorFlow Lite [XNNPACK](https://github.com/google/XNNPACK)
+    CPU delegate. Ltpu is the average inference latency on the Google Coral Edge TPU.
+    I kept the model inputs and outputs in float32 to maximize inference speed for
+    the x86- and ARM-based machines. I set them to int8 for the edge TPU.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CNN Model Results and Discussion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You can see the quantized results for the CNN models in the table below for
+    quantization mode w8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/08baf028bae667e2b026d41f53d38724.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 4 — Quantized CNN Models for Mode w8
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quantized results for the CNN kettle model are shown below for the other
+    quantization modes. You can see that latency on the edge TPU is much longer than
+    other machines. Because of this, I focused my analysis on the x86 and ARM architectures.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/aefe2d6b5411a02c5049607cd7fbc6f7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 5 — Quantized CNN Kettle Model for Other Modes
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results for the other appliance models are omitted for brevity but show similar
+    characteristics as a function of quantization mode.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the negative impact of activation quantization, but because of regularization
+    effects, weight quantization has a moderate benefit on some model performance
+    metrics. As expected, the full quantization modes lead to the lowest latencies.
+    Quantizing activations to int16 by the w8_a16 mode results in the highest latencies
+    because only non-optimized reference kernel implementations are presently available
+    in TensorFlow Lite, but this scheme leads to the best model metrics given the
+    regularization benefits from weight quantization and better preservation of activation
+    numerics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can also see that inference latency of the modes follows w8 > convert_only
+    > w8_a8 for the x86 machine but convert_only > w8 > w8_a8 for the aarch64 machine,
+    although the variation is more significant for x86\. To understand this better,
+    I profiled the converted models using the [TFLite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark%29).
+    A summary of the profiling results for the CNN microwave model, which represents
+    the other models, is shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Profiling on x86 (slowest to fastest)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: You can see that the Fully Connected and Convolution operations are taking the
+    longest to execute in all cases but are much faster in the fully quantized mode
+    of w8_a8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/454a66c12d5e6a88e1f4adbd7f18e8b6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 6 — CNN x86 Model Profiling for w8 Mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c1a741b8e8eaf544abb2e94b3d4dcedd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 7 — CNN x86 Model Profiling for convert_only Mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1abeb28548f04843a2813f078bf5055c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 8 — CNN x86 Model Profiling for w8_a8 Mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Model Profiling on aarch64 (slowest to fastest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The copy and Max Pooling operations are slower on x86 than on aarch64, probably
+    due to memory bandwidth and micro-architecture differences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ef4254f43dbb042f9bb4385a15c80162.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 9 — CNN aarch64 Model Profiling for convert_only Mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8dbda2f2b7d89c47ba275bd718e2230a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 10 — CNN aarch64 Model Profiling for w8 Mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a5dce1d80afb32bbeb6a126eaa9de516.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 11 — CNN aarch64 Model Profiling for w8_a8 Mode
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Quantization Efficacy
+  prefs: []
+  type: TYPE_NORMAL
+- en: The metric RMSE / scale is close to 1 / sqrt(12) (~ 0.289) when the quantized
+    distribution is similar to the original float distribution, indicating a well-quantized
+    model. The larger the value, the more likely the layer will not be quantized well.
+    The tables below show the RMSE / Scale metric for the CNN kettle model and the
+    Suspected? Column indicates a layer that significantly exceeds 0.289\. Other models
+    are omitted for brevity but show similar results. These layers can remain in float
+    to generate a selectively quantized model that increases accuracy at the expense
+    of inference performance, but doing so for the CNN models did not materially improve
+    accuracy. See [Inspecting Quantization Errors with Quantization Debugger](https://www.tensorflow.org/lite/performance/quantization_debugger).
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find layer quantization efficacy metrics for the CNN kettle model using
+    mode w8_a8 below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/947f518302538d62fd6217b55dd5acde.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 12 — Layer quantization efficacy metrics for the CNN kettle model using
+    mode w8_a8
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Model Memory Footprint
+  prefs: []
+  type: TYPE_NORMAL
+- en: I used the [TFLite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)
+    to get the approximate RAM consumption of the TFLite CNN microwave model at runtime,
+    shown in the table below for each quantization mode, and the TFLite model disk
+    space. The other CNN models show similar characteristics. The findings for the
+    x86 architecture were identical to the arm architecture. Note that the Keras model
+    consumes about 42.49 (MB) on disk. You can see that there is about a four times
+    reduction in disk storage space due to the float32 to int8 weight conversions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Interestingly, RAM runtime usage varies considerably due to the TFLite algorithms
+    that optimize intermediate tensor usage. These are pre-allocated to reduce inference
+    latency at the cost of memory space. See [Optimizing TensorFlow Lite Runtime Memory](https://blog.tensorflow.org/2020/10/optimizing-tensorflow-lite-runtime.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e8b191f426bc6728b7bc518f73a703e1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 13 — CNN Model Memory Usage
+  prefs: []
+  type: TYPE_NORMAL
+- en: Transformer Model Results and Discussion
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Even though I enabled the XNNPACK delegate during the transformer model inference
+    evaluation, nothing was accelerated because the transformer model contains dynamic
+    tensors. I encountered the following warning when using the TFLite interpreter
+    for inference:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Attempting to use a delegate that only supports static-sized tensors with a
+    graph that has dynamic-sized tensors (tensor#94 is a dynamic-sized tensor).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This warning means that all operators are unsupported by XNNPACK and will fall
+    back to the default CPU kernel implementations. A future effort will involve refactoring
+    the transformer model to use only static-size tensors. Note that a tensor could
+    be marked dynamic when the TFLite runtime encounters a control-flow operation
+    (e.g., if, while). In other words, even when the model graph doesn’t have any
+    tensors of dynamic shapes, a model could have dynamic tensors at runtime. The
+    current transformer model uses `if` control-flow operations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the quantized results for the transformer model in the table below
+    for quantization mode w8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9cd2b8c6568fcbc74589cb8cf0da2703.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 14 — Quantized results for the transformer model for quantization mode
+    w8
+  prefs: []
+  type: TYPE_NORMAL
+- en: The quantized results for the transformer kettle and microwave models are shown
+    in the table below for quantization mode convert_only.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/73188628808bc9f0b3f9cacb73817d0c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 15 — Quantized results for the transformer kettle and microwave models
+    for quantization mode convert_only
+  prefs: []
+  type: TYPE_NORMAL
+- en: Model Profiling on x86 (slowest to fastest)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The FULLY_CONNECTED layers dominate the compute in w8 mode but less in convert_only
+    mode. This behavior is probably due to x86 memory micro-architecture handling
+    of int8 weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c035ef48d43deca205ee762eb668c87f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 16 — x86 transformer Model Profiling for Mode w8
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cd0b839943f74f225583ded3eff9e304.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 17 — x86 transformer Model Profiling for Mode convert_only
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2\. Model Profiling on aarch64 (slowest to fastest)
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can see the arm architecture seems to be more efficient in computing the
+    FULLY_CONNECTED layers in w8 mode than in the x86 case.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/21ab6a0cd821cc2ed517d7303be5898c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 18 — aarch64 transformer Model Profiling for Mode convert_only
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea96ef58f5deba7021a479a4d562b7cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 19 — aarch64 transformer Model Profiling for Mode w8
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Quantization Efficacy
+  prefs: []
+  type: TYPE_NORMAL
+- en: You can find layer quantization efficacy metrics for the transformer kettle
+    model using mode w8_a8 [here](https://github.com/goruck/nilm?tab=readme-ov-file#quantization-efficacy-1),
+    although, as noted above, quantizing the transformer model’s activations results
+    in inferior model performance. You can see that the RSQRT operator, in particular,
+    does not quantize well; these operators are used in the Gaussian error linear
+    activation functions, which helps explain the model’s poor performance. The other
+    transformer appliance models show similar efficacy metrics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Model Memory Footprint
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identical to the CNN case, I used the [TFLite Model Benchmark Tool](https://github.com/tensorflow/tensorflow/tree/master/tensorflow/lite/tools/benchmark)
+    to get the approximate RAM consumption of the TFLite microwave model at runtime,
+    shown in the table below for each relevant quantization mode and the TFLite model
+    disk space. The other transformer models show similar characteristics. Note that
+    the Keras model consumes about 6.02 (MB) on disk. You can see that there is about
+    a three-times reduction in model size due to the weights being quantized from
+    float32 to int8, which is less than the four-times reduction seen in the CNN case,
+    likely because there are fewer layers with weights. You can also see that the
+    x86 TFLite runtime is more memory efficient than its aarch64 counterpart for this
+    model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/726685934870e28711b0d54476cad036.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Table 20 — transformer Model Disk and RAM Usage
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: You can effectively develop and deploy models using TensorFlow and TensorFlow
+    Lite at the edge. TensorFlow Lite offers tools useful in production to understand
+    and modify the behavior of your models, including layer quantization inspection
+    and runtime profiling.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There is better support for the operators used in CNN-based models than the
+    typical operators used in transformer-based models. You should carefully choose
+    how to design your networks with these constraints and run a complete end-to-end
+    training-conversion-quantization cycle before going too far in developing and
+    training your models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Post-training quantization works well to quantize CNN networks fully, but I
+    could only quantize the transformer network weights to maintain acceptable performance.
+    The transformer network should be trained using [Quantization-aware methods](https://www.tensorflow.org/model_optimization/guide/quantization/training)
+    for better integer performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The CNN models used to solve the NILM problem in this article are many times
+    larger than their transformer counterparts but train much faster and have lower
+    latency due to linear complexity. The CNN models are a better solution if disk
+    space and RAM are not your chief constraints.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[arXiv:1902.08835](https://arxiv.org/abs/1902.08835) | Transfer Learning for
+    Non-Intrusive Load Monitoring by Michele D’Incecco, Stefano Squartini and Mingjun
+    Zhong.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[BERT4NILM](https://github.com/Yueeeeeeee/BERT4NILM): A Bidirectional Transformer
+    Model for Non-Intrusive Load Monitoring by Zhenrui Yue, et. al.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Available under the [Creative Commons Attribution 4.0 International Public License](https://creativecommons.org/licenses/by/4.0/).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL

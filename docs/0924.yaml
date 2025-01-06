@@ -1,0 +1,341 @@
+- en: 'How to Make the Most Out of LLM Production Data: Simulated User Feedback'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-make-the-most-out-of-llm-production-data-simulated-user-feedback-843c444febc7?source=collection_archive---------6-----------------------#2024-04-11](https://towardsdatascience.com/how-to-make-the-most-out-of-llm-production-data-simulated-user-feedback-843c444febc7?source=collection_archive---------6-----------------------#2024-04-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A novel approach to use production data to simulate user feedback for testing
+    and evaluating your LLM app
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)[![Pasquale
+    Antonante, Ph.D.](../Images/97733117413b3daeb79886e171ab30c9.png)](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------)
+    [Pasquale Antonante, Ph.D.](https://medium.com/@pasquale_68605?source=post_page---byline--843c444febc7--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--843c444febc7--------------------------------)
+    ·9 min read·Apr 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/17386b21ff3d693432dc70e815185505.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author and ChatGPT. “Image of two llamas, one with a thumbs up and
+    another with thumbs down” prompt. ChatGPT, 4, OpenAI, April 10th 2024\. [https://chat.openai.com.](https://chat.openai.com./)
+  prefs: []
+  type: TYPE_NORMAL
+- en: A series of blog posts to share our perspectives on how to evaluate and improve
+    your GenAI application pipelines
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(written by Pasquale Antonante and Yi Zhang at Relari.ai)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The world of LLM app development is always on the move — new tricks, models,
+    and apps pop up every week. As tech gets better, what users expect keeps ramping
+    up. Staying ahead in this game is key to making sure it’s the one users keep coming
+    back to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The problem now becomes: how do you measure performance improvements? When
+    you’re fiddling with prompts, tweaking the temperature, or switching up models,
+    do you ever pause and think, “Will my users actually like this more?”'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we’ll walk through how in-app user feedback from earlier deployments
+    (or internal human evaluation) can be instrumental in quickly shaping future versions
+    of a product. We’ll discuss the limitations of traditional feedback mechanisms
+    and introduce a new technique that allows AI developers to use feedback data directly
+    in offline testing and iterations (before a new deployment), making the development
+    cycle more adaptable and responsive to user preferences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Understanding the Value of User Feedback
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Why User Feedback Matters and Its Challenges
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'When developing LLM-based applications, we are often faced with a particular
+    problem we want to address, *e.g.*, a specific type of question has a low accuracy.
+    As we experiment with tweaks in prompts, parameters, architecture, etc., we want
+    to evaluate performance of the new pipeline, in particular whether users will
+    like the new version(s) of your AI application. The most straightforward way is
+    to A/B test each change with the end users and collect their feedback data such
+    as thumbs up / down, score rating, or written comments, but practically it is
+    challenging for a few reasons:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Slow to collect:** Unless your application is already seeing huge volume,
+    you don’t have that much feedback data. Anecdotally, we’ve seen the feedback participation
+    rate in our customers’ AI applications range from <1% (normal) to ~10% (exceptional,
+    often through deliberate UI/UX design to encourage more feedback). As a result,
+    it can take a long time before you get enough feedback data to make a statistically
+    confident judgment of whether a particular change resonated positively or negatively
+    with your users.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Risk of jeopardizing user relationships:** Testing directly with users is
+    the most effective way to gain insights, but there’s a real risk of damaging your
+    relationship with them if they encounter an unsatisfactory version. Users can
+    be quick to judge, potentially dismissing your application at the first sign of
+    a mistake. Consequently, developers tend to opt for more conservative or less
+    disruptive changes for A/B testing with users, reserving the bolder, more innovative
+    updates for internal testing. This approach allows for experimentation while minimizing
+    the risk of alienating the user base.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Inconsistent measurement:** With most AI applications being fairly open-ended,
+    it is often difficult to get truly apples-to-apples comparison of feedback data
+    given different users can interact with your product in a different way. As a
+    result, feedback data A/B testing for LLM-based applications tends to be more
+    noisy than those from traditional applications.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the next section, we’ll introduce a novel approach that we’ve deployed to
+    multiple customers to help them make the most out of their user feedback data
+    in offline development.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A Novel Approach: Simulate User Feedback'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In response to these challenges in collecting user feedback, we have developed
+    a novel approach to simulate user feedback using a small sample of user (or internally
+    labeled) feedback data. Specifically, we use metric ensembling and conformal prediction
+    to learn user preferences and use them offline during the development phase. At
+    its core, we learn how users weigh different criteria (e.g., tone, conciseness,
+    etc) and leverage conformal prediction to provide predictions to quantify confidence.
+    This method drastically accelerates LLM app development by providing a way to
+    anticipate how users might react to new features or changes before they are fully
+    implemented.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To evaluate its effectiveness, we compared this approach with the more conventional
+    one of using a single LLM call that assesses different aspects of the response
+    to make a judgment. To compare the two alternatives (the proposed approach vs.
+    the single LLM call), we conducted an experiment using the [Unified-Feedback](https://huggingface.co/datasets/llm-blender/Unified-Feedback)
+    dataset. We used Kendall’s tau, a measure of rank correlation, to compare the
+    rankings produced by our user feedback simulation and the single LLM call approach
+    against the ground truth established by human evaluations. This analysis allows
+    us to assess not only the degree of agreement, but also the order of preference
+    that each method predicts compared to the human rankings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Our experiment revealed that the user feedback simulation has a correlation
+    of 93% that significantly exceeded that of the single LLM call approach, which
+    attains roughly 70% correlation. This indicates that, in terms of ranking , the
+    simulated user feedback simulation provides a closer approximation to human judgment.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/60384adfaaf39c33f4a4ee9b84534c31.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Kendall’s tau of the two methods. Higher values indicate a stronger correlation
+    between the ranking produced by the method and the human. Simulated User Feedback
+    (proposed, lighter blue) shows higher agreement with humans when tasked with identifying
+    improvements, suggesting that it more accurately reflects human judgment in identifying
+    and evaluating improvements. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reason why the simulated user feedback performs better is twofold:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: it learns from actual user feedback the importance of different criteria, making
+    the approach custom to your use case
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: while individual criteria may have appeared in the LLM training set, the complex
+    (and potentially large) set of different criteria likely have not appeared in
+    the training data, making it more difficult for the LLM evaluator to get right.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: While single LLM calls can identify major improvements in the pipeline, they
+    fall short of detecting the more frequent, minor enhancements critical in mature
+    pipelines. Simulated user feedback, however, exhibits a high correlation with
+    human judgment, enabling the detection of these incremental advances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a side note, while we could have used the data to fine-tune an LLM, this
+    has the typical drawback of requiring more data and not being as interpretable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the next section, we will walk through an example on how to create your simulated
+    user feedback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: How It Works
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this section we will show how we can use the open-source library [continuous-eval](https://github.com/relari-ai/continuous-eval)
+    to create simulated user feedback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Consider a Q&A chatbot application. After deployment, users begin rating responses
+    with thumbs up or down, indicating a need for performance enhancement. For this
+    example we will use the example named `correctness` in continuous-eval:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: As we mentioned, we want to create some custom criteria. We leverage the `LLMBasedCustomMetric`
+    class to define the *Tone* and *Conciseness* metrics. To do so we need to define
+    the metric and provide a scoring rubric.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the tone:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'while for conciseness:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use *Tone* and *Conciseness* together with more standard metrics, in particular
+    we will consider the
+  prefs: []
+  type: TYPE_NORMAL
+- en: Answer Correctness (`DeterministicAnswerCorrectens` and `LLMBasedAnswerCorrectness)`
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Answer Relevance (`LLMBasedAnswerRelevance`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Style Consistency (`LLMBasedStyleConsistency`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Readability (`FleschKincaidReadability`)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The next step is to put all the metrics together and specify what field of the
+    dataset should be used to compute the metrics. To do that we can use the `SingleModulePipeline`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: and run all the metrics using the `EvaluationManager`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: The next step is to train simulated user feedback predictor
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This simulated user feedback predictor is able to correctly predict the human
+    feedback in the test split 96.67% of the time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can leverage the proposed approach to better understand what is important
+    to the user. Below is the learned importance of every metric by the simulated
+    user feedback predictor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6404708dceb38cba2037dde13c071620.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Learned importance of every metric by the simulated user feedback predictor.
+    Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Looking at the plot, we see that *Correctness* (including *token overlap*, which
+    is another measure for correctness) and *Relevance* to the question are the most
+    important predictors of user preference. But the user also weighs *tone* and *style
+    consistency* into the decision. At the same time, we can see that *conciseness*
+    and *readability* are not as important. Reviewing this graph provides valuable
+    insight into user preferences, giving a clear indication of what elements are
+    essential and what can be adjusted if compromises need to be made.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Wrapping Up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Collecting user feedback is challenging, yet it is the most important information
+    for developers of large language models (LLMs). By simulating user feedback during
+    offline testing, we significantly reduces the time it takes for feedback to travel
+    from the field back to developers, while maintaining positive user relationships.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In practice, our approach has proven to closely mirror actual human responses,
+    outperforming traditional methods that rely on isolated LLM responses. This strategy
+    allows for the incremental improvement of generative AI applications, fostering
+    continuous refinement and greater congruence with what users expect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: —
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: We will soon publish a research paper with more details on this methodology.
+    Stay tuned!'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coming Next
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Techniques for curating golden dataset
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How to make the most out of your Embedding Model?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What data should I use for Fine-Tuning?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Earlier Posts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Practical Guide to RAG Pipeline Evaluation Part 1: Retrieval](https://medium.com/p/27a472b09893)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Practical Guide to RAG Pipeline Evaluation Part 2: Generation](https://medium.com/relari/a-practical-guide-to-rag-evaluation-part-2-generation-c79b1bde0f5d)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[How important is a Golden Dataset for LLM pipeline evaluation?](https://medium.com/relari/how-important-is-a-golden-dataset-for-llm-pipeline-evaluation-4ef6deb14dc5)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Case Study: Reference-free vs Reference-based evaluation](https://medium.com/relari/case-study-reference-free-vs-reference-based-evaluation-of-rag-pipeline-9a49ef49866c)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[How to evaluate complex GenAI Apps: a granular approach](https://medium.com/relari/how-to-evaluate-complex-genai-apps-a-granular-approach-0ab929d5b3e2)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

@@ -1,0 +1,505 @@
+- en: 'Machine Learning on GCP: From Notebooks to Pipelines'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/machine-learning-on-gcp-from-dev-to-prod-with-vertex-ai-c9e42c4b366f?source=collection_archive---------4-----------------------#2024-05-11](https://towardsdatascience.com/machine-learning-on-gcp-from-dev-to-prod-with-vertex-ai-c9e42c4b366f?source=collection_archive---------4-----------------------#2024-05-11)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Notebooks are not enough for ML at scale
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@benjamin_47408?source=post_page---byline--c9e42c4b366f--------------------------------)[![Benjamin
+    Etienne](../Images/cad8bc2d4b900575e76b7cf9debc9eea.png)](https://medium.com/@benjamin_47408?source=post_page---byline--c9e42c4b366f--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c9e42c4b366f--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c9e42c4b366f--------------------------------)
+    [Benjamin Etienne](https://medium.com/@benjamin_47408?source=post_page---byline--c9e42c4b366f--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c9e42c4b366f--------------------------------)
+    ·15 min read·May 11, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a0f9612d168ba15a6cbadea7628ba7db.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Sylvain Mauroux](https://unsplash.com/@alpifree?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*All images, unless otherwise noted, are by the author*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Advocating for AI
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: There is a misunderstanding (not to say fantasy) which keeps coming back in
+    companies whenever it comes to AI and Machine Learning. People often misjudge
+    the complexity and the skills needed to bring Machine Learning projects to production,
+    either because they do not understand the job, or (even worse) because they think
+    they understand it, whereas they don’t.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Their first reaction when discovering AI might be something like “AI is actually
+    pretty simple, I just need a Jupyter Notebook, copy paste code from here and there
+    — or ask Copilot — and boom. No need to hire Data Scientists after all…” And the
+    story always end badly, with bitterness, disappointment and a feeling that AI
+    is a scam: difficulty to move to production, data drift, bugs, unwanted behavior.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So let’s write it down once and for all: AI/Machine Learning/any data-related
+    job, is a real job, not a hobby. It requires skills, craftsmanship, and tools.
+    **If you think you can do ML in production with notebooks, you are wrong.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This article aims at showing, with a simple example, all the effort, skills
+    and tools, it takes to move from a notebook to a real pipeline in production.
+    Because ML in production is, mostly, about being able to automate the run of your
+    code on a regular basis, with automation and monitoring.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And for those who are looking for an end-to-end “notebook to vertex pipelines”
+    tutorial, you might find this helpful.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A simple use case
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Let’s imagine you are a Data Scientist working at an e-commerce company. Your
+    company is selling clothes online, and the marketing team asks for your help:
+    they are preparing a special offer for specific products, and they would like
+    to efficiently target customers by tailoring email content that will be pushed
+    to them to maximize conversion. Your job is therefore simple: each customer should
+    be assigned a score which represents the probability he/she purchases a product
+    from the special offer.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The special offer will specifically target those brands, meaning that the marketing
+    team wants to know which customers will buy their next product from the below
+    brands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Allegra K, Calvin Klein, Carhartt, Hanes, Volcom, Nautica, Quiksilver, Diesel,
+    Dockers, Hurley*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will, for this article, use a publicly available dataset from Google, the
+    `*thelook_ecommerce*` [dataset](https://console.cloud.google.com/marketplace/product/bigquery-public-data/thelook-ecommerce).
+    It contains fake data with transactions, customer data, product data, everything
+    we would have at our disposal when working at an online fashion retailer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To follow this notebook, you will need access to Google Cloud Platform, but
+    the logic can be replicated to other Cloud providers or third-parties like Neptune,
+    MLFlow, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As a respectable Data Scientist, you start by creating a notebook which will
+    help us in exploring the data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We first import libraries which we will use during this article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before Production
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Getting and preparing the data
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will then load the data from BigQuery using the Python Client. Be sure to
+    use your own project id:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You should see something like that when looking at the dataframe:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/880c9b38a51bc63c48840f0c89577208.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: These represent the transactions / purchases made by the customers, enriched
+    with customer and product information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Given our objective is to predict which brand customers will buy in their next
+    purchase, we will proceed as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Group purchases chronologically for each customer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: If a customer has N purchases, we consider the Nth purchase as the target, and
+    the N-1 as our features.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: We therefore exclude customers with only 1 purchase
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Let’s put that into code:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Notice how we removed the last item in the sequence features: this is very
+    important as otherwise we get what we call a “data leakeage”: the target is part
+    of the features, the model is given the answer when learning.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We now get this new `df_agg` dataframe:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0b0974517e0f107036fa37d8339f6f23.png)![](../Images/5cb46a927920c0bb0df6c3465aa5ec81.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparing with the original dataframe, we see that user_id 2 has indeed purchased
+    IZOD, Parke & Ronen, and finally Orvis which is not in the target brands.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Splitting into train, validation and test
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: As a seasoned Data Scientist, you will now split your data into different sets,
+    as you obviously know that all three are required to perform some rigorous Machine
+    Learning. *(Cross-validation is out of the scope for today folks, let’s keep it
+    simple.)*
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One key thing when splitting the data is to use the not-so-well-known `stratify`
+    parameter from the scikit-learn `train_test_split()` method. The reason for that
+    is because of class-imbalance: if the target distribution (% of 0 and 1 in our
+    case) differs between training and testing, we might get frustrated with poor
+    results when deploying the model. *ML 101 kids: keep you data distributions as
+    similar as possible between training data and test data.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now this is done, we will gracefully split our dataset between features and
+    targets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Among the feature are different types. We usually separate those between:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'numerical features: they are continuous, and reflect a measurable, or ordered,
+    quantity.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'categorical features: they are usually discrete, and are often represented
+    as strings (ex: a country, a color, etc…)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'text features: they are usually sequences of words.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Of course there can be more like image, video, audio, etc.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The model: introducing CatBoost'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For our classification problem (you already knew we were in a classification
+    framework, didn’t you?), we will use a simple yet very powerful library: CatBoost.
+    It is built and maintained by Yandex, and provides a high-level API to easily
+    play with boosted trees. It is close to XGBoost, though it does not work exactly
+    the same under the hood.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: CatBoost offers a nice wrapper to deal with features from different kinds. In
+    our case, some features can be considered as “text” as they are the concatenation
+    of words, such as “Calvin Klein;BCBGeneration;Hanes”. Dealing with this type of
+    features can sometimes be painful as you need to handle them with text splitters,
+    tokenizers, lemmatizers, etc. Hopefully, CatBoost can manage everything for us!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are now ready to define and train our model. Going through each and every
+    parameter is out of today’s scope as the number of parameters is quite impressive,
+    but feel free to check the API yourself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And for brevity, we will not perform hyperparameter tuning today, but this is
+    obviously a large part of the Data Scientist’s job!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: And voila, our model is trained. Are we done?
+  prefs: []
+  type: TYPE_NORMAL
+- en: No. We need to check that our model’s performance between training and testing
+    is consistent. A huge gap between training and testing means our model is overfitting
+    (i.e. “learning the training data by heart and not good at predicting unseen data”).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For our model evaluation, we will use the ROC-AUC score. Not deep-diving on
+    this one either, but from my own experience this is a generally quite robust metric
+    and way better than accuracy.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A quick side note on accuracy: I usually do not recommend using this as your
+    evaluation metric. Think of an imbalanced dataset where you have 1% of positives
+    and 99% of negatives. What would be the accuracy of a very dumb model predicting
+    0 all the time? 99%. So accuracy not helpful here.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: To be honest, 0.62 AUC is not great at all and a little bit disappointing for
+    the expert Data Scientist you are. Our model definitely needs a little bit of
+    parameter tuning here, and maybe we should also perform feature engineering more
+    seriously.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'But it is already better than random predictions (phew):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s assume we are satisfied for now with our model and our notebook. This
+    is where amateur Data Scientists would stop. So how do we make the next step and
+    become production ready?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Moving to Production
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Meet Docker
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Docker is a set of platform as a service products that use OS-level virtualization
+    to deliver software in packages called containers. This being said, think of Docker
+    as code which can run everywhere, and allowing you to avoid the “works on your
+    machine but not on mine” situation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why use Docker? Because among cool things such as being able to share your code,
+    keep versions of it and ensure its easy deployment everywhere, it can also be
+    used to build pipelines. Bear with me and you will understand as we go.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step to building a containerized application is to refactor and clean
+    up our messy notebook. We are going to define 2 files, `preprocess.py` and `train.py`
+    for our very simple example, and put them in a `src` directory. We will also include
+    our `requirements.txt` file with everything in it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Much cleaner now. You can actually launch your script from the command line
+    now!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We are now ready to build our Docker image. For that we need to write a Dockerfile
+    at the root of the project:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will take our requirements, copy the `src` folder and its contents, and
+    install the requirements with pip when the image will build.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To build and deploy this image to a container registry, we can use the Google
+    Cloud SDK and the `gcloud` commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If everything goes well, you should see something like that:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/696d3dbba8791000cd8405119c1144d3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Vertex Pipelines, the move to production
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Docker images are the first step to doing some serious Machine Learning in production.
+    The next step is building what we call “pipelines”. Pipelines are a series of
+    operations orchestrated by a framework called Kubeflow. Kubeflow can run on Vertex
+    AI on Google Cloud.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The reasons for preferring pipelines over notebooks in production can be debatable,
+    but I will give you three based on my experience:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Monitoring and reproducibility**: each pipeline is stored with its artefacts
+    (datasets, models, metrics), meaning you can compare runs, re-run them, and audit
+    them. Each time you re-run a notebook, you lose the history (or you have to manage
+    artefacts yourself as weel as the logs. Good luck.)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Costs**: Running a notebook implies having a machine on which it runs. —
+    This machine has a cost, and for large models or huge datasets you will need virtual
+    machines with heavy specs.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: — You have to remember to switch it off when you don’t use it.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: — Or you may simply crash your local machine if you choose not to use a virtual
+    machine and have other applications running.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: — Vertex AI pipelines is a *serverless* service, meaning you do not have to
+    manage the underlying infrastructure, and only pay for what you use, meaning the
+    execution time.
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: '**Scalability**: Good luck when running dozens of experiments on your local
+    laptop simultaneously. You will roll back to using a VM, and scale that VM, and
+    re-read the bullet point above.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The last reason to prefer pipelines over notebooks is subjective and highly
+    debatable as well, but in my opinion notebooks are simply not designed for running
+    workloads on a schedule. They are great though for exploration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Use a cron job with a Docker image at least, or pipelines if you want to do
+    things the right way, but never, ever, run a notebook in production.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Without further ado, let’s write the components of our pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: The first component will download the data from Bigquery and store it as a CSV
+    file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The BASE_IMAGE we use is the image we build previously! We can use it to import
+    modules and functions we defined in our Docker image `src` folder:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next step: split data'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next step: model training. We will save the model scores to display them in
+    the next step:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The last step is computing the metrics (which are actually computed in the
+    training of the model). It is merely necessary but is nice to show you how easy
+    it is to build lightweight components. Notice how in this case we don’t build
+    the component from the BASE_IMAGE (which can be quite large sometimes), but only
+    build a lightweight image with necessary components:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: There are usually other steps which we can include, like if we want to deploy
+    our model as an API endpoint, but this is more advanced-level and requires crafting
+    another Docker image for the serving of the model. To be covered next time.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s now glue the components together:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'If everything works well, you will now see your pipeline in the Vertex UI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ed0f2a97ea1def0df9a9ccdac40f0be6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'You can click on it and see the different steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c8ce67a3cf2ebdcff0665e1cbc227d01.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Data Science, despite all the no-code/low-code enthusiasts telling you you don’t
+    need to be a developer to do Machine Learning, is a real job. Like every job,
+    it requires skills, concepts and tools which go beyond notebooks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: And for those who aspire to become Data Scientists, here is the reality of the
+    job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Happy coding.
+  prefs: []
+  type: TYPE_NORMAL

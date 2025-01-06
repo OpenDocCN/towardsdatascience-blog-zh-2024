@@ -1,0 +1,328 @@
+- en: Data Validation with Pandera in Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/data-validation-with-pandera-in-python-f07b0f845040?source=collection_archive---------0-----------------------#2024-11-18](https://towardsdatascience.com/data-validation-with-pandera-in-python-f07b0f845040?source=collection_archive---------0-----------------------#2024-11-18)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Validating your Dataframes for Production ML Pipelines
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)[![Gabriel
+    Furnieles](../Images/710c939d8114ea8a4db16fd9f2c71f8a.png)](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------)
+    [Gabriel Furnieles](https://gabrielfurnieles.medium.com/?source=post_page---byline--f07b0f845040--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f07b0f845040--------------------------------)
+    ·9 min read·Nov 18, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/53c2470e3fd017ad184018a7824bc84c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image generated with [NightCafe](https://creator.nightcafe.studio/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data validation is a crucial step for production applications. You need to ensure
+    the data you are ingesting is compatible with your pipeline and that unexpected
+    values aren’t present. Moreover, validating the data is a security measure that
+    prevents any corrupted or inaccurate information from being further processed,
+    raising a flag on the first steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Python already counts with a great OS project for this task called [Pydantic](https://docs.pydantic.dev/latest/).
+    However, when dealing with large dataframe-like objects such as in Machine Learning,
+    [Pandera](https://pandera.readthedocs.io/en/stable/index.html) is a much faster
+    and scalable way of validating data (check [this article](https://www.union.ai/blog-post/pandera-0-17-adds-support-for-pydantic-v2)
+    with public notebooks).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eb2c0f75b2f743dedaa7a6fe7b1a33b6.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Performance comparison between pandera and row-wise validation with Pydantic
+    for different-sized pandas.DataFrame objects. Image from [source](https://www.union.ai/blog-post/pandera-0-17-adds-support-for-pydantic-v2#:~:text=%22records%22))-,Benchmarking%20Pandera%E2%80%99s%20row%2Dwise%20validation%20with%20Pydantic,-Because%20Pandera%20validates).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In addition, Pandera offers support for a great variety of dataframe libraries
+    like `pandas`, `polars`, `dask`, `modin`, and `pyspark.pandas`. For more information
+    on these refer to [Pandera’s docs📄](https://pandera.readthedocs.io/en/stable/index.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Disclaimer.** Pandera is an open-source project licensed under the MIT License.
+    I have no affiliation with the Pandera team or Union.ai. This post has no commercial
+    interest.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Validating data with Pandera
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Pandera has two ways of defining validators: **Schemas** and **Models**. I
+    will focus on the second one because of its similarity with Pydantic models and
+    the cleanness of the code.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To define a Pandera model create a child class that inherits from DataframeModel
+    and start declaring the columns and dtypes that the dataframe must have:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that to define the user’s creation timestamp I used Pandas native date
+    type instead of others like `datetime.datetime`. Pandera only supports built-in
+    Python, NumPy, and Pandas data types. You can also create [custom data types](https://pandera.readthedocs.io/en/stable/dtypes.html#logical-data-types),
+    but this is an advanced topic and rarely necessary in most cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Validating column properties
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'With Pandera, you can also validate other column properties in addition to
+    the type of data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Here I am using pandera’s Field just like pydantics’.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, I am specifying that the `id` column must not contain duplicated values
+    and these have to be greater or equal to 0.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In `username` and `email` I’m checking using regex expressions if strings are
+    valid. User names must only contain alphanumeric characters and underscore, while
+    emails can also contain dashes and dots but always follow the pattern “smth@smth.smth”.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`membership` can only take a value from the list. A better approach is using
+    a StrEnum to define the valid values instead of hardcoding them.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, `creation_date` must be in nanosecond units and UTC timezone. This
+    line can be cleaner using Annotated from typing library `creation_date: Annotated[pd.DatetimeTZDtype,
+    "ns", "UTC"]`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Check out [the docs](https://pandera.readthedocs.io/en/stable/reference/generated/pandera.api.dataframe.model_components.Field.html#pandera.api.dataframe.model_components.Field)
+    to read all Field options😋
+  prefs: []
+  type: TYPE_NORMAL
+- en: Custom Validations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes it is necessary to add your own custom validations. Pandera allows
+    you to inject [column/index checks](https://pandera.readthedocs.io/en/stable/dataframe_models.html#dataframe-checks:~:text=as%20class%20methods.-,Column/Index%20checks,-%C2%B6)
+    (custom checks of single columns) and [dataframe checks](https://pandera.readthedocs.io/en/stable/dataframe_models.html#dataframe-checks:~:text=1%3A%20%3CCheck%20check_means%3E-,DataFrame%20Checks,-%C2%B6)
+    (checks between several columns).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Keep in mind that you are working with entire column objects (`Series`) so that
+    operations in checks should be vectorized for better performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Other Configurations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Aliases** When column names can’t be declared as Python variables due to
+    the language syntax, Pandera allows setting an alias for the column validator
+    to match the dataframe.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Strict and Coerce** When the `strict` option is set to true, it forces the
+    validated dataframe to only contain the columns defined in the Pandera DataFrameModel.
+    On the other hand, when the `coerce` option is activated, Pandera will try to
+    cast the column data to match the model’s dtype.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: The coerce option can be set at the Field level too using `pa.Field(..., coerce=True)`
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Lazy validation** By default, pandera raises an error whenever a validation
+    check isn’t passed. This can be annoying because it only displays the first validation
+    error encountered, and prevents the rest of the data from being checked.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In some cases, it is better to let the whole dataframe validate and collect
+    all errors in one run, rather than fixing them one by one and waiting for the
+    validation to run again. The first is what lazy validation does.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: An ML Production Pipeline with Data Validation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/c9b4dfd55516a8c114ec37de0fc9ae03.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image generated with [NightCafe](https://creator.nightcafe.studio/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because the majority of ML Pipelines are trained in Python with tabular data
+    encoded into dataframe structures, **Pandera** is a great and powerful tool to
+    validate their Inputs and Outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We want to avoid the model raising an error due to invalid data. That would
+    mean that we’ve done all the work of loading the model into memory and processing
+    the raw data for nothing, wasting resources and preventing the rest of the data
+    points from being evaluated.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarly, if the model’s output has an incorrect structure our postprocessing
+    pipeline (uploading results to DB, returning results by RESTful API, etc.) will
+    fail.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After defining the validation models using Pandera, we can leverage its [decorators
+    for pipeline integration](https://pandera.readthedocs.io/en/stable/decorators.html#:~:text=Auto%20color%20theme-,Decorators%20for%20Pipeline%20Integration,-%C2%B6)
+    to perform I/O validation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Because we are generating an intermediate dataframe object `df_transform` in
+    the ML Pipeline, it is a good practice to validate it too to prevent errors. The
+    *predict* method input is not validated as it is already done by *transform_data*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Handling invalid rows
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We don’t want our pipeline to break just because some data points have incorrect
+    data. In case of a validation error, the strategy should be to set aside the problematic
+    data points and continue running the pipeline with the rest of the data. The pipeline
+    cannot stop!🔥
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Pandera models have the option to automatically remove all invalid rows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: However, dropping all invalid rows without logging them can be dangerous. You
+    need to know why those data points were invalid so that later you can communicate
+    to the client or to the data engineer what was the cause of the error.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'That is why instead of using pandera decorators I rather create my own validation
+    helper functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Output forcing some errors and removing column `id`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: In case of an unresolvable error that involves an entire column, the pipeline
+    cannot continue.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Last but not least, Pandera models and schemas also incorporate a method for
+    generating sample data according to their definition. You will need to install
+    `[hypothesis](https://hypothesis.readthedocs.io/en/latest/)` library to use it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, after testing it with some examples I do not recommend it. As soon
+    as you start adding a few constraints, it takes too long to generate the synthetic
+    data and most of the time it isn’t varied (the generated data do not cover the
+    entire restriction space and repeats itself) The best alternative I found is to
+    add data generators for each model you want to test — after all, there aren’t
+    so many data frames to validate in a pipeline either — .
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Data validation is vital for every data processing pipeline and especially in
+    Machine Learning. Pandera simplifies a lot of this work by providing a flexible,
+    and efficient model-based approach to validating data in dataframes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: With Pandera, you can define model classes that enforce column types, ranges,
+    and even complex conditional constraints. This makes it easy to catch data quality
+    issues early in the pipeline, ensuring that the data conforms to expected standards
+    before it reaches the next steps.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By integrating Pandera into an ML pipeline, you can create robust data checks
+    that help prevent errors and improve the reliability of model outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Final pandera.DataFrameModel used in the tests:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '*Hi, I’m Gabriel Furnieles, a Mathematical Engineer specializing in Artificial
+    Intelligence, Data Pipelines, and MLOps. I hope you enjoyed the article and found
+    it helpful, if so, please consider following me* [*Gabriel Furnieles*](https://medium.com/u/e77c10fd9715?source=post_page---user_mention--f07b0f845040--------------------------------),
+    *and subscribing to my newsletter so stories will be sent directly to you 👇*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@gabrielfurnieles?source=post_page-----f07b0f845040--------------------------------)
+    [## Gabriel Furnieles - Medium'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Read writing from Gabriel Furnieles on Medium. Mathematical engineer specializing
+    in AI and ML. I write casually on…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@gabrielfurnieles?source=post_page-----f07b0f845040--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

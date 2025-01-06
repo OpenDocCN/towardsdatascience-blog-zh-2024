@@ -1,0 +1,491 @@
+- en: Productionizing a RAG App with Prefect, Weave, and RAGAS
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/productionizing-a-rag-app-04c857e0966e?source=collection_archive---------7-----------------------#2024-08-03](https://towardsdatascience.com/productionizing-a-rag-app-04c857e0966e?source=collection_archive---------7-----------------------#2024-08-03)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Adding evaluation, automated data pulling, and other improvements.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)[![Ed
+    Izaguirre](../Images/c9eded1f06c47571baa662107428483f.png)](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------)
+    [Ed Izaguirre](https://medium.com/@ed.izaguirre?source=post_page---byline--04c857e0966e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--04c857e0966e--------------------------------)
+    ·12 min read·Aug 3, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/105f6f4816994872796a36639b99148d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: From Film Search to Rosebud 🌹. Image from Unsplash.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Table of Contents**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Introduction](#d4f8)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Offline Evaluation](#fdde)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Online Evaluation](#9988)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Automated Data Pulling with Prefect](#690c)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '[Summary](#0875)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Relevant Links**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[GitHub repo](https://github.com/EdIzaguirre/Rosebud)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Link to earlier article discussing Film Search, a dev version of this project](https://medium.com/towards-data-science/how-to-build-a-rag-system-with-a-self-querying-retriever-in-langchain-16b4fa23e9ad)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Try out the app](https://filmsearch.azurewebsites.net/) (now 100% free! 🤑)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'A few months ago, I released the *Film Search* app, a Retrieval-Augmented Generation
+    (RAG) application designed to recommend films based on user queries. For example,
+    a user may ask: *“Find me drama movies in English that are less than 2 hours long
+    and feature dogs.”* and receive a recommendation like:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Title of Film: Hachi: A Dog’s Tale'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Runtime: 93 minutes'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Release Year: 2009'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Streaming: Not available for streaming'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This film tells the poignant true story of Hachiko, an Akita dog known for his
+    remarkable loyalty to his owner. The emotional depth and the themes of friendship
+    and loyalty resonate strongly, making it a touching drama that showcases the profound
+    bond between humans and dogs. It’s perfect for anyone looking for a heartfelt
+    story that highlights the importance of companionship.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: …
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This was not just a simple RAG app, however. It included what is known as **self-querying
+    retrieval**. This means that the bot takes the user’s query and transforms it
+    by adding metadata filters. This ensures any documents pulled into the chat model’s
+    context respects the constraints set by the user’s query. For more information,
+    I recommend checking out my earlier article linked above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Unfortunately, there were some issues with the app:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: There was no offline evaluation done, besides passing the ‘eye test’. This test
+    is necessary, but not sufficient.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Observability was non-existent. If a query went poorly, you had to manually
+    pull up the project and run some ad-hoc scripts in an attempt to see what went
+    wrong.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The Pinecone vector database had to be pulled manually. This meant the documents
+    would quickly be out of date if, say, a film got pulled from a streaming service.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In this article, I will briefly cover some of the improvements made to the
+    Film Search app. This will cover:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Offline Evaluation using RAGAS and Weave**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Online Evaluation and Observability**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Automated Data Pulling using Prefect**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'One thing before we jump in: I found the name *Film Search* to be a bit generic,
+    so I rebranded the app as *Rosebud* 🌹*,* hence the image shown above. Real film
+    geeks will [understand the reference](https://www.youtube.com/watch?v=O4mQqVqRB7I).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Offline Evaluation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: It is important to be able to judge if a change made to your LLM application
+    improves or degrades its performance. Unfortunately, evaluation of LLM apps is
+    a difficult and novel space. There is simply not much agreement on what constitutes
+    a good evaluation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For Rosebud🌹, I decided to tackle what is known as the [RAG triad](https://www.trulens.org/trulens_eval/getting_started/core_concepts/rag_triad/).
+    This approach is promoted by TruLens, a platform to evaluate and track LLM applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d536e3e20215d54bdf6e350f4f06a994.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The RAG Triad. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The triad covers three aspects of a RAG app:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Context Relevancy**: When a query is made by the user, documents fill the
+    context of the chat model. Is the retrieved context actually useful? If not, you
+    may need to tweak things like document embedding, chunking, or metadata filtering.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Faithfulness:** Is the model’s response actually grounded in the retrieved
+    documents? You don’t want the model making up facts; the whole point of RAG is
+    to help reduce hallucinations by using retrieved documents.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Answer Relevancy:** Does the model’s response actually answer the user’s
+    query? If the user asks for “*Comedy films made in the 1990s?*”, the model’s answer
+    better contain only comedy films made in the 1990s.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'There are a few ways to attempt to assess these three functions of a RAG app.
+    One way would be to use human expert evaluators. Unfortunately, this would be
+    expensive and wouldn’t scale. For Rosebud🌹 I decided to use **LLMs-as-a-judges**.
+    This means using a chat model to look at each of the three criteria above and
+    assigning a score of 0 to 1 for each. This method has the advantage of being cheap
+    and scaling well. To accomplish this, I used [RAGAS](https://github.com/explodinggradients/ragas),
+    a popular framework that helps you evaluate your RAG applications. The RAGAS framework
+    includes the three metrics mentioned above and makes it fairly easy to use them
+    to evaluate your apps. Below is a code snippet demonstrating how I conducted this
+    offline evaluation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'A few notes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With twenty questions and three criteria to judge across, you’re looking at
+    sixty LLM calls for a single evaluation! It gets even worse though; with the `rosebud_chat_model`
+    , there are two calls for every query: one to construct the metadata filter and
+    another to provide the answer, so really this is 120 calls for a single eval!
+    All models used in this evaluation are the new `gpt-4o-mini`, which I strongly
+    recommend. In my experience the calls cost $0.05 per evaluation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Note that we are using `asyncio.run` to run the evals. It is ideal to use asynchronous
+    calls because you don’t want to evaluate each question sequentially one after
+    the other. Instead, with `asyncio` we can begin evaluating other questions as
+    we wait for previous I/O operations to finish.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are a total of twenty questions for a single evaluation. These span a
+    variety of typical film queries a user may ask. I mostly came up with these myself,
+    but in practice it would be better to use queries actually asked by users in production.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Notice the `weave.init` and the `@weave.op` decorator that are being used. These
+    are part of the new [Weave library](https://wandb.ai/site/weave/) from Weights
+    & Biases (W&B). Weave is a complement to the traditional W&B library, with a focus
+    on LLM applications. It allows you to capture inputs and outputs of LLMs by using
+    a the simple `@weave.op` decorator. It also allows you to capture the results
+    of evaluations using `weave.Evaluation(…)` . By integrating RAGAS to perform evaluations
+    and Weave to capture and log them, we get a powerful duo that helps GenAI developers
+    iteratively improve their applications. You also get to log the model latency,
+    cost, and more.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/ec7f61849ae276bbcc97508920e22e5b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of Weave + RAGAS integration. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In theory, one can now tweak a hyperparameter (e.g. temperature), re-run the
+    evaluation, and see if the adjustment has a positive or negative impact. Unfortunately,
+    in practice I found the LLM judging to be finicky, and I am [not the only one](https://x.com/aparnadhinak/status/1748368364395721128).
+    LLM judges seem to be fairly bad at using a floating point value to assess these
+    metrics. Instead, it appears they seem to do better at classification e.g. a thumbs
+    up/thumbs down. RAGAS doesn’t yet support LLM judges performing classification.
+    Writing it by hand doesn’t seem too difficult, and perhaps in a future update
+    I may attempt this myself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Online Evaluation**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Offline evaluation is good for seeing how tweaking hyperparameters affects performance,
+    but in my opinion online evaluation is far more useful. In Rosebud🌹 I have now
+    incorporated the use of 👍/👎 buttons at the bottom of every response to provide
+    feedback.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c9351c7a2914be0e13e6295426c304fd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of online feedback. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'When a user clicks on either button they are told that their feedback was logged.
+    Below is a snippet of how this was accomplished in the Streamlit interface:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the process of sending the feedback to W&B runs on a separate thread
+    rather than on the main thread. This is to prevent the user from getting stuck
+    for a few seconds waiting for the logging to complete.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A W&B table is used to store the feedback. Five quantities are logged in the
+    table:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Sentiment:** Whether the user clicked thumbs up or thumbs down'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Query:** The user’s query, e.g. *Find me drama movies in English that are
+    less than 2 hours long and feature dogs.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Query_Constructor:** The results of the query constructor, which rewrites
+    the user’s query and includes metadata filtering if necessary, e.g.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '**Context:** The retrieved context based on the reconstructed query, e.g. *Title:
+    Hachi: A Dog’s Tale. Overview: A drama based on the true story of a college professor’s…*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Response:** The model’s response'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All of this is logged conveniently in the same project as the Weave evaluations
+    shown earlier. Now, when a query goes south it is as simple as hitting the thumbs
+    down button to see exactly what happened. This will allow much faster iteration
+    and improvement of the Rosebud🌹 recommendation application.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f1ec5605b853d379a932d40b1012a4c2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image showing observability of the model’s response. Note on the left-hand side
+    how it is seamless to transition between W&B and Weave. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Automated Data Pulling using Prefect**'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To ensure recommendations from Rosebud🌹 continue to stay accurate it was important
+    to automate the process of pulling data and uploading them to Pinecone. For this
+    task, I chose [Prefect](https://www.prefect.io/). Prefect is a popular workflow
+    orchestration tool. I was looking for something lightweight, easy to learn, and
+    Pythonic. I found all of this in Prefect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/74bf21e667d7580aa0f0a410a2ac3d9f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Automated flow for pulling and updating Pinecone vector store provided by Prefect.
+    Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Prefect offers a variety of ways to schedule your workflows. I decided to use
+    the [push work pools with automatic infrastructure provisioning](https://docs.prefect.io/latest/tutorial/work-pools/#push-work-pools-with-automatic-infrastructure-provisioning).
+    I found that this setup balances simplicity with configurability. It allows the
+    user to task Prefect with automatically provisioning all of the infrastructure
+    needed to run your flow in your cloud provider of choice. I chose to deploy on
+    Azure, but deploying on GCP or AWS only requires changing a few lines of code.
+    Refer to the `pinecone_flow.py` file for more details. A simplified flow is provided
+    below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice how simple it is to turn Python functions into a Prefect flow. All you
+    need are some sub-functions styled with `@task` decorators and a `@flow` decorator
+    on the main function. Also note that after uploading the documents to Pinecone,
+    the last step of our flow publishes the dataset to Weave. This is important for
+    reproducibility purposes. To learn the basics of Prefect I recommend going through
+    the tutorials [on their website](https://docs.prefect.io/latest/tutorial/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: At the bottom of the script we see how deployment is done in Prefect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We need to provide a `name` for the deployment. This is arbitrary.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We also need to specify a `work_pool_name` . Push work pools in Prefect automatically
+    send tasks to serverless computers without needing a middleman. This name needs
+    to match the name used to create the pool, which we’ll see below.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You also need to specify a `cron` , which is short for chronograph. This allows
+    you to specify how often to repeat a workflow. The value `“0 0 * * 0”` means repeat
+    this workflow every week. Check out [this website](https://cloud.google.com/scheduler/docs/configuring/cron-job-schedules)
+    for details on how the `cron` syntax works.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, you need to specify a `DeploymentImage` . Here you specify both a `name`
+    and a `platform` . The name is arbitrary, but the platform is not. Since I want
+    to deploy to Azure compute instances, and these instances run Linux, it’s important
+    I specify that in the `DeploymentImage` .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'To deploy this flow on Azure using the CLI, run the following commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'These commands will automatically provision all of the necessary infrastructure
+    on Azure. This includes an Azure Container Registry (ACR) that will hold a Docker
+    image containing all files in your directory as well as any necessary libraries
+    listed in a `requirements.txt` . It will also include an Azure Container Instance
+    (ACI) Identity that will have permissions necessary to deploy a container with
+    the aforementioned Docker image. Finally, the `deployment run` command will schedule
+    the code to be run every week. You can check the Prefect dashboard to see your
+    flow get run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd1b54cdc71bbf012184a5f21cddd770.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image of a flow in Prefect being successfully run. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By updating my Pinecone vector store weekly, I can ensure that the recommendations
+    from Rosebud 🌹 remain accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, I discussed my experience improving the Rosebud 🌹 app. This
+    included the process of incorporating offline and online evaluation, as well as
+    automating the update of my Pinecone vector store.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Some other improvements not mentioned in this article:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Including ratings from [The Movie Database](https://www.themoviedb.org/?language=en-US)
+    in the film data. You can now ask for “*highly rated films*” and the chat model
+    will filter for films above a 7/10.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Upgraded chat models. Now the query and summary models are using `gpt-4o-mini`
+    . Recall that the LLM judge model is also using `gpt-4o-mini` .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Embedding model upgraded to `text-embedding-3-small` from `text-embedding-ada-002`
+    .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Years now span 1950–2023, instead of starting at 1920\. Film data from 1920–1950
+    was not high quality, and only messed up recommendations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: UI is cleaner, with all details regarding the project relegated to a sidebar.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vastly improved documentation on GitHub.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bug fixes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: As mentioned at the top of the article, the app is now 100% free to use! I will
+    foot the bill for queries for the foreseeable future (hence the choice of `gpt-4o-mini`
+    instead of the more expensive `gpt-4o`). I really want to get the experience of
+    running an app in production, and having my readers test out Rosebud🌹 is a great
+    way to do this. In the unlikely event that the app really blows up, I will have
+    to come up with some other model of funding. But that would a great problem to
+    have.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Enjoy discovering awesome films! 🎥
+  prefs: []
+  type: TYPE_NORMAL

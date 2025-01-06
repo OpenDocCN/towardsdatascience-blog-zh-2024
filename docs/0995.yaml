@@ -1,0 +1,333 @@
+- en: Fine-tune Llama 3 with ORPO
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/fine-tune-llama-3-with-orpo-56cfab2f9ada?source=collection_archive---------3-----------------------#2024-04-19](https://towardsdatascience.com/fine-tune-llama-3-with-orpo-56cfab2f9ada?source=collection_archive---------3-----------------------#2024-04-19)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*A cheaper and faster unified fine-tuning technique*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mlabonne?source=post_page---byline--56cfab2f9ada--------------------------------)[![Maxime
+    Labonne](../Images/a7efdd305e3cc77d5509bbb1076d57d8.png)](https://medium.com/@mlabonne?source=post_page---byline--56cfab2f9ada--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--56cfab2f9ada--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--56cfab2f9ada--------------------------------)
+    [Maxime Labonne](https://medium.com/@mlabonne?source=post_page---byline--56cfab2f9ada--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--56cfab2f9ada--------------------------------)
+    ·8 min read·Apr 19, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0024fbce8d1d7e5a96348655f9f40d35.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image generated with DALL-E 3 by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: ORPO is a **new exciting fine-tuning technique** that combines the traditional
+    supervised fine-tuning and preference alignment stages into a single process.
+    This reduces the computational resources and time required for training. Moreover,
+    empirical results demonstrate that ORPO outperforms other alignment methods on
+    various model sizes and benchmarks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will fine-tune the new Llama 3 8B model using ORPO with
+    the TRL library. The code is available on [Google Colab](https://colab.research.google.com/drive/1eHNWg9gnaXErdAa8_mcvjMupbSS6rDvi?usp=sharing)
+    and in the [LLM Course](https://github.com/mlabonne/llm-course) on GitHub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ⚖️ ORPO
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Instruction tuning and preference alignment are essential techniques for adapting
+    Large Language Models (LLMs) to specific tasks. Traditionally, this involves a
+    multi-stage process: 1/ **Supervised Fine-Tuning** (SFT) on instructions to adapt
+    the model to the target domain, followed by 2/ **preference alignment methods**
+    like Reinforcement Learning with Human Feedback (RLHF) or Direct Preference Optimization
+    (DPO) to increase the likelihood of generating preferred responses over rejected
+    ones.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/29cac2fc31790a8a74230a95bd7e7b4b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, researchers have identified a limitation in this approach. While SFT
+    effectively adapts the model to the desired domain, it inadvertently **increases
+    the probability of generating undesirable answers** alongside preferred ones.
+    This is why the preference alignment stage is necessary to widen the gap between
+    the likelihoods of preferred and rejected outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d27c0588ee55984b02754a279bb715f4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Note how the probability of rejected responses increases during supervised fine-tuning
+    (image from the ORPO paper).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduced by [Hong and Lee (2024)](https://arxiv.org/abs/2403.07691), ORPO
+    offers an elegant solution to this problem by combining instruction tuning and
+    preference alignment into a single, monolithic training process. ORPO modifies
+    the standard language modeling objective, combining the negative log-likelihood
+    loss with an odds ratio (OR) term. This OR loss weakly penalizes rejected responses
+    while strongly rewarding preferred ones, allowing the model to simultaneously
+    learn the target task and align with human preferences.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/246e9df3fef5d97400c82a00263c7f5d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ORPO has been implemented in the major fine-tuning libraries, like [TRL](https://github.com/huggingface/trl),
+    [Axolotl](https://github.com/OpenAccess-AI-Collective/axolotl), and [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory).
+    In the next section, we will see how to use with TRL.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 💻 Fine-tuning Llama 3 with ORPO
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Llama 3](https://github.com/meta-llama/llama3/tree/main) is the latest family
+    of LLMs developed by Meta. The models were trained on an extensive dataset of
+    **15 trillion tokens** (compared to 2T tokens for Llama 2). Two model sizes have
+    been released: a 70 billion parameter model and a smaller 8 billion parameter
+    model. The 70B model has already demonstrated impressive performance, scoring
+    82 on the MMLU benchmark and 81.7 on the HumanEval benchmark.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Llama 3 models also increased the context length up to 8,192 tokens (4,096 tokens
+    for Llama 2), and potentially scale up to 32k with RoPE. Additionally, the models
+    use a new tokenizer with a 128K-token vocabulary, reducing the number of tokens
+    required to encode text by 15%. This vocabulary also explains the bump from 7B
+    to 8B parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1fb24c5aea241733ae340216214e0bb8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '*Samples from ORPO-DPO-mix-40k (image by author).*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'ORPO requires a preference dataset, including a prompt, a chosen answer, and
+    a rejected answer. In this example, we will use `[mlabonne/orpo-dpo-mix-40k](https://huggingface.co/datasets/mlabonne/orpo-dpo-mix-40k)`,
+    a combination of the following high-quality DPO datasets:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`[argilla/distilabel-capybara-dpo-7k-binarized](https://huggingface.co/datasets/argilla/distilabel-capybara-dpo-7k-binarized)`:
+    highly scored chosen answers >=5 (2,882 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[argilla/distilabel-intel-orca-dpo-pairs](https://huggingface.co/datasets/argilla/distilabel-intel-orca-dpo-pairs)`:
+    highly scored chosen answers >=9, not in GSM8K (2,299 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[argilla/ultrafeedback-binarized-preferences-cleaned](https://huggingface.co/datasets/argilla/ultrafeedback-binarized-preferences-cleaned)`:
+    highly scored chosen answers >=5 (22,799 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[argilla/distilabel-math-preference-dpo](https://huggingface.co/datasets/argilla/distilabel-math-preference-dpo)`:
+    highly scored chosen answers >=9 (2,181 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[unalignment/toxic-dpo-v0.2](https://huggingface.co/datasets/unalignment/toxic-dpo-v0.2)`
+    (541 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[M4-ai/prm_dpo_pairs_cleaned](https://huggingface.co/datasets/M4-ai/prm_dpo_pairs_cleaned)`
+    (7,958 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`[jondurbin/truthy-dpo-v0.1](https://huggingface.co/datasets/jondurbin/truthy-dpo-v0.1)`
+    (1,016 samples)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Thanks to [argilla](https://huggingface.co/argilla), [unalignment](https://huggingface.co/unalignment),
+    [M4-ai](https://huggingface.co/M4-ai), and [jondurbin](https://huggingface.co/jondurbin)
+    for providing the source datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'As per usual, let’s start by installing the required libraries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Once it’s installed, we can import the necessary libraries and log in to W&B
+    (optional):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you have a recent GPU, you should also be able to use the [Flash Attention
+    library](https://github.com/Dao-AILab/flash-attention) to replace the default
+    eager attention implementation with a more efficient one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the following, we will load the Llama 3 8B model in 4-bit precision thanks
+    to [bitsandbytes](https://github.com/TimDettmers/bitsandbytes). We then set the
+    LoRA configuration using [PEFT](https://github.com/huggingface/peft) for QLoRA.
+    I’m also using the convenient `setup_chat_format()` function to modify the model
+    and tokenizer for [ChatML](https://huggingface.co/docs/transformers/en/chat_templating#what-template-should-i-use)
+    support. It automatically applies this chat template, adds special tokens, and
+    resizes the model's embedding layer to match the new vocabulary size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that you need to submit a request to access [meta-llama/Meta-Llama-3-8B](https://huggingface.co/meta-llama/Meta-Llama-3-8B)
+    and be logged in to your Hugging Face account. Alternatively, you can load ungated
+    copies of the model, like [NousResearch/Meta-Llama-3-8B](https://huggingface.co/NousResearch/Meta-Llama-3-8B).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that the model is ready for training, we can take care of the dataset. We
+    load `[mlabonne/orpo-dpo-mix-40k](https://huggingface.co/datasets/mlabonne/orpo-dpo-mix-40k)`
+    and use the `apply_chat_template()` function to convert the "chosen" and "rejected"
+    columns into the ChatML format. Note that I'm only using 1,000 samples and not
+    the entire dataset, as it would take too long to run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'First, we need to set a few hyperparameters:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`learning_rate`: ORPO uses very low learning rates compared to traditional
+    SFT or even DPO. This value of 8e-6 comes from the original paper, and roughly
+    corresponds to an SFT learning rate of 1e-5 and a DPO learning rate of 5e-6\.
+    I would recommend increasing it around 1e-6 for a real fine-tune.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`beta`: It is the $\lambda$ parameter in the paper, with a default value of
+    0.1\. An appendix from the original paper shows how it''s been selected with an
+    ablation study.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Other parameters, like `max_length` and batch size are set to use as much VRAM
+    as available (~20 GB in this configuration). Ideally, we would train the model
+    for 3-5 epochs, but we'll stick to 1 here.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we can train the model using the ORPOTrainer, which acts as a wrapper.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Training the model on these 1,000 samples took about 2 hours on an L4 GPU.
+    Let’s check the W&B plots:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ea31a21aa2d957cab4982835b4be4e9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'While the loss goes down, the difference between the chosen and rejects answers
+    is not clear: the average margin and accuracy are only slightly above zero and
+    0.5, respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the original paper, the authors trained models on the `[Anthropic/hh-rlhf](https://huggingface.co/datasets/Anthropic/hh-rlhf)`
+    dataset (161k samples) for 10 epochs, which is a lot longer than our quick run.
+    They also experimented with Llama 3 and kindly [shared their logs](https://huggingface.co/orpo-explorers/hf-llama3-8b-orpo-v0.0/tensorboard)
+    with me (thanks [Jiwoo Hong](https://twitter.com/jiwoohong98)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: To end this tutorial, let’s merge the QLoRA adapter with the base model and
+    push it to the Hugging Face Hub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Congrats, we finished this quick fine-tune of Llama 3: [mlabonne/OrpoLlama-3–8B](https://huggingface.co/mlabonne/OrpoLlama-3-8B).
+    You can play with it using this [Hugging Face Space](https://huggingface.co/spaces/mlabonne/OrpoLlama-3-8B)
+    (here’s a [notebook](https://colab.research.google.com/drive/1LcVUW5wsJTO2NGmozjji5CkC--646LgC?usp=sharing)
+    to make your own). Although the model is undertrained, as highlighted by the W&B
+    curves, I ran some evaluations on Nous’ benchmark suite using [LLM AutoEval](https://github.com/mlabonne/llm-autoeval).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/127c1583eb4512d807a080e6d4bc4223.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Our ORPO fine-tune is actually pretty decent and improves the base model’s performance
+    on every benchmark. This is encouraging and likely means that a fine-tune on the
+    entire 40k samples would yield great results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is an exciting time for the open-source community, with more and more high-quality
+    open-weight models being released. The gap between closed-source and open-weight
+    models is slowly closing, and fine-tuning is an essential tool to get the best
+    performance for your use cases.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/885096bd13d294fa53f7589664afdd0b.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we introduced the ORPO algorithm and explained how it unifies
+    the SFT and preference alignment stages into a single process. Then, we used TRL
+    to fine-tune a Llama 3 8B model on a custom preference dataset. The final model
+    shows encouraging results and highlights ORPO’s potential as a new fine-tuning
+    paradigm.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I hope it was useful, and I recommend running the [Colab notebook](https://colab.research.google.com/drive/1eHNWg9gnaXErdAa8_mcvjMupbSS6rDvi?usp=sharing)
+    to fine-tune your own Llama 3 models. In future articles, we will see how to create
+    high-quality datasets — a point that is often overlooked. If you liked this article,
+    please follow me on [Hugging Face](https://huggingface.co/mlabonne/) and Twitter
+    [@maximelabonne](https://twitter.com/maximelabonne).
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'J. Hong, N. Lee, and J. Thorne, [ORPO: Monolithic Preference Optimization without
+    Reference Model](https://arxiv.org/abs/2403.07691). 2024.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'L. von Werra et al., TRL: Transformer Reinforcement Learning. GitHub, 2020\.
+    [Online]. Available: [https://github.com/huggingface/trl](https://github.com/huggingface/trl)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Bartolome, A., Martin, G., & Vila, D. (2023). Notus. In GitHub Repository. GitHub.
+    [https://github.com/argilla-io/notus](https://github.com/argilla-io/notus)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: AI at Meta, [Introducing Meta Llama 3](https://ai.meta.com/blog/meta-llama-3/),
+    2024.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

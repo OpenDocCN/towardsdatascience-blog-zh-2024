@@ -1,0 +1,1125 @@
+- en: Self-Attention Explained with Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/contextual-transformer-embeddings-using-self-attention-explained-with-diagrams-and-python-code-d7a9f0f4d94e?source=collection_archive---------1-----------------------#2024-02-09](https://towardsdatascience.com/contextual-transformer-embeddings-using-self-attention-explained-with-diagrams-and-python-code-d7a9f0f4d94e?source=collection_archive---------1-----------------------#2024-02-09)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: How large language models create rich, contextual embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@bradneysmith?source=post_page---byline--d7a9f0f4d94e--------------------------------)[![Bradney
+    Smith](../Images/32634347ac8cfd7c542eca402262fa81.png)](https://medium.com/@bradneysmith?source=post_page---byline--d7a9f0f4d94e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d7a9f0f4d94e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d7a9f0f4d94e--------------------------------)
+    [Bradney Smith](https://medium.com/@bradneysmith?source=post_page---byline--d7a9f0f4d94e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d7a9f0f4d94e--------------------------------)
+    ·32 min read·Feb 9, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Part 3 in the “LLMs from Scratch” series — a complete guide to understanding
+    and building Large Language Models. If you are interested in learning more about
+    how these models work I encourage you to read:**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Part 1: Tokenization — A Complete Guide](https://medium.com/p/cedc9f72de4e)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Part 2: Word Embeddings with word2vec from Scratch in Python](https://medium.com/p/eb9326c6ab7c)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Part 3: Self-Attention Explained with Code**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Part 4: A Complete Guide to BERT with Code](https://medium.com/p/9f87602e4a11/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Part 5: Mistral 7B Explained: Towards More Efficient Language Models](https://medium.com/p/7f9c6e6b7251)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The paper “Attention is All You Need” debuted perhaps the single largest advancement
+    in Natural Language Processing (NLP) in the last 10 years: the Transformer [1].
+    This architecture massively simplified the complex designs of language models
+    at the time while achieving unparalleled results. State-of-the-art (SOTA) models,
+    such as those in the GPT, Claude, and Llama families, owe their success to this
+    design, at the heart of which is self-attention. In this deep dive, we will explore
+    how this mechanism works and how it is used by transformers to create contextually
+    rich embeddings that enable these models to perform so well.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**1** — [Overview of the Transformer Embedding Process](#cc4f)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**2** — [Positional Encoding](#365f)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**3** — [The Self-Attention Mechanism](#4489)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**4** — [Transformer Embeddings in Python](#cb34)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**5** — [Conclusion](#126e)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**6** — [Further Reading](#776b)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1 — Overview of the Transformer Embedding Process
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 1.1 — Recap on Transformers
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In the prelude article of this series, we briefly explored the history of the
+    Transformer and its impact on NLP. To recap: the Transformer is a deep neural
+    network architecture that is the foundation for almost all LLMs today. Derivative
+    models are often called Transformer-based models or **transformers** for short,
+    and so these terms will be used interchangeably here. Like all machine learning
+    models, transformers work with numbers and linear algebra rather than processing
+    human language directly. Because of this, they must convert textual inputs from
+    users into numerical representations through several steps. Perhaps the most important
+    of these steps is applying the self-attention mechanism, which is the focus of
+    this article. The process of representing text with vectors is called **embedding**
+    (or **encoding**), hence the numerical representations of the input text are known
+    as **transformer embeddings**.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.2 — The Issue with Static Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'In [Part 2 of this series](https://medium.com/p/eb9326c6ab7c), we explored
+    static embeddings for language models using word2vec as an example. This embedding
+    method predates transformers and suffers from one major drawback: the lack of
+    contextual information. Words with multiple meanings (called **polysemous** words)
+    are encoded with somewhat ambiguous representations since they lack the context
+    needed for precise meaning. A classic example of a polysemous word is `bank`.
+    Using a static embedding model, the word `bank` would be represented in vector
+    space with some degree of similarity to words such as `money` and `deposit` and
+    some degree of similarity to words such as `river` and `nature`. This is because
+    the word will occur in many different contexts within the training data. This
+    is the core problem with static embeddings: they do not change based on context
+    — hence the term “static”.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.3 — Fixing Static Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Transformers overcome the limitations of static embeddings by producing their
+    own context-aware transformer embeddings. In this approach, fixed word embeddings
+    are augmented with positional information (where the words occur in the input
+    text) and contextual information (how the words are used). These two steps take
+    place in distinct components in transformers, namely the positional encoder and
+    the self-attention blocks, respectively. We will look at each of these in detail
+    in the following sections. By incorporating this additional information, transformers
+    can produce much more powerful vector representations of words based on their
+    usage in the input sequence. Extending the vector representations beyond static
+    embeddings is what enables Transformer-based models to handle polysemous words
+    and gain a deeper understanding of language compared to previous models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1.4 — Introducing Learned Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Much like the word2vec approach released four years prior, transformers store
+    the initial vector representation for each token in the weights of a linear layer
+    (a small neural network). In the word2vec model, these representations form the
+    static embeddings, but in the Transformer context these are known as **learned
+    embeddings**. In practice they are very similar, but using a different name emphasises
+    that these representations are only a starting point for the transformer embeddings
+    and not the final form.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The linear layer sits at the beginning of the Transformer architecture and contains
+    only weights and no bias terms (bias = 0 for every neuron). The layer weights
+    can be represented as a matrix of size *V* × *d_model*, where *V* is the vocabulary
+    size (the number of unique words in the training data) and *d_model* is the number
+    of embedding dimensions. In the previous article, we denoted *d_model* as *N*,
+    in line with word2vec notation, but here we will use *d_model* which is more common
+    in the Transformer context. The original Transformer was proposed with a *d_model*
+    size of 512 dimensions, but in practice any reasonable value can be used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d06e44ef1d0d9e9f5a7f5b0990725f24.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A diagram showing the location of the linear layer in the Transformer architecture,
+    which stores the learned embeddings. Image by author, adapted from the Transformer
+    architecture diagram in the “Attention is All You Need” paper [1].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**1.5 — Creating Learned Embeddings**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A key difference between static and learned embeddings is the way in which they
+    are trained. Static embeddings are trained in a separate neural network (using
+    the Skip-Gram or Continuous Bag of Words architectures) using a word prediction
+    task within a given window size. Once trained, the embeddings are then extracted
+    and used with a range of different language models. Learned embeddings, however,
+    are integral to the transformer you are using and are stored as weights in the
+    first linear layer of the model. These weights, and consequently the learned embedding
+    for each token in the vocabulary, are trained in the same backpropagation steps
+    as the rest of the model parameters. Below is a summary of the training process
+    for learned embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1: Initialisation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Randomly initialise the weights for each neuron in the linear layer at the beginning
+    of the model, and set the bias terms to 0\. This layer is also called the **embedding
+    layer,** since it is the linear layer that will store the learned embeddings.
+    The weights can be represented as a matrix of size *V* × *d_model*, where the
+    word embedding for each word in the vocabulary is stored along the rows. For example,
+    the embedding for the first word in the vocabulary is stored in the first row,
+    the second word is stored in the second row, and so on.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2: Training**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: At each training step, the Transformer receives an input word and the aim is
+    to predict the next word in the sequence — a task known as Next Token Prediction
+    (NTP). Initially, these predictions will be very poor, and so every weight and
+    bias term in the network will be updated to improve performance against the loss
+    function, including the embeddings. After many training iterations, the learned
+    embeddings should provide a strong vector representation for each word in the
+    vocabulary.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3: Extract the Learned Embeddings**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: When new input sequences are given to the model, the words are converted into
+    tokens with an associated token ID, which corresponds to the position of the token
+    in the tokenizer’s vocabulary. For example, the word `cat` may lie at position
+    `349` in the tokenizer’s vocabulary and so will take the ID `349`. Token IDs are
+    used to create one-hot encoded vectors that extract the correct learned embeddings
+    from the weights matrix (that is, *V*-dimensional vectors where every element
+    is 0 except for the element at the token ID position, which is 1).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Note:*** *PyTorch is a very popular deep learning library in Python that
+    powers some of the most well-known machine learning packages, such as the HuggingFace*
+    `*Transformers*` *library [2]. If you are familiar with PyTorch, you may have
+    encountered the* `*nn.Embedding*` *class, which is often used to form the first
+    layer of transformer networks (the* `*nn*` *denotes that the class belongs to
+    the neural network package). This class returns a regular linear layer that is
+    initialised with the identity function as the activation function and with no
+    bias term. The weights are randomly initialised since they are parameters to be
+    learned by the model during training. This essentially carries out the steps described
+    above in one simple line of code. Remember, the* `*nn.Embeddings*` *layer does
+    not provide pre-trained word embeddings out-of-the-box, but rather initialises
+    a blank canvas of embeddings before training. This is to allow the transformer
+    to learn its own embeddings during the training phase.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 1.6 — Transformer Embedding Process
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Once the learned embeddings have been trained, the weights in the embedding
+    layer never change. That is, the learned embedding for each word (or more specifically,
+    token) always provides the same starting point for a word’s vector representation.
+    From here, the positional and contextual information will be added to produce
+    a unique representation of the word that is reflective of its usage in the input
+    sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Transformer embeddings are created in a four-step process, which is demonstrated
+    below using the example prompt: `Write a poem about a man fishing on a river bank.`.
+    Note that the first two steps are the same as the word2vec approach we saw before.
+    Steps 3 and 4 are the further processing that add contextual information to the
+    embeddings.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1) Tokenization:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tokenization is the process of dividing a longer input sequence into individual
+    words (and parts of words) called tokens. In this case, the sentence will be broken
+    down into:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`write`, `a`, `poem`, `about`, `a`, `man`, `fishing`, `on`, `a`, `river`, `bank`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, the tokens are associated with their token IDs, which are integer values
+    corresponding to the position of the token in the tokenizer’s vocabulary (see
+    [Part 1 of this series](https://medium.com/p/cedc9f72de4e) for an in-depth look
+    at the tokenization process).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2) Map the Tokens to Learned Embeddings:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the input sequence has been converted into a set of token IDs, the tokens
+    are then mapped to their learned embedding vector representations, which were
+    acquired during the transformer’s training. These learned embeddings have the
+    “lookup table” behaviour as we saw in the word2vec example in [Part 2 of this
+    series](https://medium.com/p/eb9326c6ab7c)). The mapping takes place by multiplying
+    a one-hot encoded vector created from the token ID with the weights matrix, just
+    as in the word2vec approach. The learned embeddings are denoted *V* in the image
+    below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3) Add Positional Information with Positional Encoding:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Positional Encoding** is then used to add positional information to the word
+    embeddings. Whereas Recurrent Neural Networks (RNNs) process text sequentially
+    (one word at a time), transformers process all words in parallel. This removes
+    any implicit information about the position of each word in the sentence. For
+    example, the sentences `the cat ate the mouse` and `the mouse ate the cat` use
+    the same words but have very different meanings. To preserve the word order, positional
+    encoding vectors are generated and added to the learned embedding for each word.
+    In the image below, the positional encoding vectors are denoted *P*, and the sums
+    of the learned embeddings and positional encodings are denoted *X*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 4) Modify the Embeddings using Self-Attention:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final step is to add contextual information using the self-attention mechanism.
+    This determines which words give context to other words in the input sequence.
+    In the image below, the transformer embeddings are denoted *y*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d8ef956e6f7cf243b5882eeafc7d5998.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An overview of the transformer embedding process from input text through to
+    transformer embeddings. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2 — Positional Encoding
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 2.1 — The Need for Positional Encoding
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Before the self-attention mechanism is applied, positional encoding is used
+    to add information about the order of tokens to the learned embeddings. This compensates
+    for the loss of positional information caused by the parallel processing used
+    by transformers described earlier. There are many feasible approaches for injecting
+    this information, but all methods must adhere to a set of constraints. The functions
+    used to generate positional information must produce values that are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Bounded** — values should not explode in the positive or negative direction
+    but be constrained (e.g. between 0 and 1, -1 and 1, etc)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Periodic** — the function should produce a repeating pattern that the model
+    can learn to recognise and discern position from'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Predictable** — positional information should be generated in such a way
+    that the model can understand the position of words in sequence lengths it was
+    not trained on. For example, even if the model has not seen a sequence length
+    of exactly 412 tokens in its training, the transformer should be able to understand
+    the position of each of the embeddings in the sequence.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These constraints ensure that the positional encoder produces positional information
+    that allows words to **attend** to (gain context from) any other important word,
+    regardless of their relative positions in the sequence. In theory, with a sufficiently
+    powerful computer, words should be able to gain context from every relevant word
+    in an infinitely long input sequence. The length of a sequence from which a model
+    can derive context is called the **context length**. In chatbots like ChatGPT,
+    the context includes the current prompt as well as all previous prompts and responses
+    in the conversation (within the context length limit). This limit is typically
+    in the range of a few thousand tokens, with GPT-3 supporting up to 4096 tokens
+    and GPT-4 enterprise edition capping at around 128,000 tokens [3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.2 — Positional Encoding in “Attention is All You Need”
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The original transformer model was proposed with the following positional encoding
+    functions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/efb7118b8809dfcffe5ae7e06de1f2a0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An image of the equations for positional encoding, as proposed in the paper
+    “Attention is All You Need” [1]. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'where:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*pos* is the position of the word in the input, where *pos = 0* corresponds
+    to the first word in the sequence'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*i* is the index of each embedding dimension, ranging from *i=0* (for the first
+    embedding dimension) up to *d_model*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '*d_model* is the number of embedding dimensions for each learned embedding
+    vector (and therefore each positional encoding vector). This was previously denoted
+    *N* in the article on word2vec.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The two proposed functions take arguments of *2i* and *2i+1*, which in practice
+    means that the sine function generates positional information for the even-numbered
+    dimensions of each word vector (*i* is even), and the cosine function does so
+    for the odd-numbered dimensions (*i* is odd). According to the authors of the
+    transformer:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“The positional encoding corresponds to a sinusoid. The wavelengths form a
+    geometric progression from 2π to 10000·2π. We chose this function because we hypothesised
+    it would allow the model to easily learn to attend by relative positions, since
+    for any fixed offset* k*,* PE_pos+k *can be represented as a linear function of*
+    PE_pos*”.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The value of the constant in the denominator being `10_000` was found to be
+    suitable after some experimentation, but is a somewhat arbitrary choice by the
+    authors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.3 — Other Positional Encoding Approaches
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The positional encodings shown above are considered **fixed** because they are
+    generated by a known function with deterministic (predictable) outputs. This represents
+    the most simple form of positional encoding. It is also possible to use **learned
+    positional encodings** by randomly initialising some positional encodings and
+    training them with backpropagation. Derivatives of the BERT architecture are examples
+    of models that take this learned encoding approach. More recently, the Rotary
+    Positional Encoding (RoPE) method has gained popularity, finding use in models
+    such as Llama 2 and PaLM, among other positional encoding methods.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 2.4 — Implementing a Positional Encoder in Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Creating a positional encoder class in Python is fairly straightforward. We
+    can start by defining a function that accepts the number of embedding dimensions
+    (`d_model`), the maximum length of the input sequence (`max_length`), and the
+    number of decimal places to round each value in the vectors to (`rounding`). Note
+    that transformers define a maximum input sequence length, and any sequence that
+    has fewer tokens than this limit is appended with padding tokens until the limit
+    is reached. To account for this behaviour in our positional encoder, we accept
+    a `max_length` argument. In practice, this limit is typically thousands of characters
+    long.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also exploit a mathematical trick to save computation. Instead of calculating
+    the denominator for both *PE_{pos, 2i}* and *PE_{pos, 2i}*, we can note that the
+    denominator is identical for consecutive pairs of *i*. For example, the denominators
+    for *i=0* and *i=1* are the same, as are the denominators for *i=2* and *i=3*.
+    Hence, we can perform the calculations to determine the denominators once for
+    the even values of *i* and reuse them for the odd values of *i*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 2.5 — Visualising the Positional Encoding Matrix
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Recall that the positional information generated must be bounded, periodic,
+    and predictable. The outputs of the sinusoidal functions presented earlier can
+    be collected into a matrix, which can then be easily combined with the learned
+    embeddings using element-wise addition. Plotting this matrix gives a nice visualisation
+    of the desired properties. In the plot below, curving bands of negative values
+    (blue) emanate from the left edge of the matrix. These bands form a pattern that
+    the transformer can easily learn to predict.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/f1e9343ea758e9c210dd01735917fbb3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A visualisation of the positional encoding matrix for a model with 400 embedding
+    dimensions (d_model = 400), and a maximum sequence length of 100 (max_length =
+    100). Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3 — The Self-Attention Mechanism
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 3.1 — Overview of Attention Mechanisms
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have covered an overview of transformer embeddings and the positional
+    encoding step, we can turn our focus to the self-attention mechanism itself. In
+    short, self-attention modifies the vector representation of words to capture the
+    context of their usage in an input sequence. The “self” in self-attention refers
+    to the fact that the mechanism uses the surrounding words within a single sequence
+    to provide context. As such, self-attention requires all words to be processed
+    in parallel. This is actually one of the main benefits of transformers (especially
+    compared to RNNs) since the models can leverage parallel processing for a significant
+    performance boost. In recent times, there has been some rethinking around this
+    approach, and in the future we may see this core mechanism being replaced [4].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another form of attention used in transformers is cross-attention. Unlike self-attention,
+    which operates within a single sequence, cross-attention compares each word in
+    an output sequence to each word in an input sequence, crossing between the two
+    embedding matrices. Note the difference here compared to self-attention, which
+    focuses entirely within a single sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.2 — Visualising How Self-Attention Contextualises Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The plots below show a simplified set of learned embedding vectors in two dimensions.
+    Words associated with nature and rivers are concentrated in the top right quadrant
+    of the graph, while words associated with money are concentrated in the bottom
+    left. The vector representing the word `bank` is positioned between the two clusters
+    due to its polysemic nature. The objective of self-attention is to move the learned
+    embedding vectors to regions of vector space that more accurately capture their
+    meaning within the context of the input sequence. In the example input `Write
+    a poem about a man fishing on a river bank.`, the aim is to move the vector for
+    `bank` in such a way that captures more of the meaning of nature and rivers, and
+    less of the meaning of money and deposits.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '***Note:*** *More accurately, the goal of self-attention here is to update
+    the vector for every word in the input, so that all embeddings better represent
+    the context in which they were used. There is nothing special about the word*
+    `*bank*` *here that transformers have some special knowledge of — self-attention
+    is applied across all the words. We will look more at this shortly, but for now,
+    considering solely how* `*bank*` *is affected by self-attention gives a good intuition
+    for what is happening in the attention block. For the purpose of this visualisation,
+    the positional encoding information has not been explicitly shown. The effect
+    of this will be minimal, but note that the self-attention mechanism will technically
+    operate on the sum of the learned embedding plus the positional information and
+    not solely the learned embedding itself.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5f354932182eeb198f54b475bbb48d5f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A visualisation of the vector representation for the word “bank” moving through
+    the embedding space following the addition of contextual information. Image by
+    author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.3 — The Self-Attention Algorithm
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: In the section above, we stated that the goal of self-attention is to move the
+    embedding for each token to a region of vector space that better represents the
+    context of its use in the input sequence. What we didn’t discuss is how this is
+    done. Here we will show a step-by-step example of how the self-attention mechanism
+    modifies the embedding for `bank`, by adding context from the surrounding tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b3d91328fafccbbaae297fafcc98024d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A simplified overview of a self-attention block (with the key, query, and value
+    matrices excluded). Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 1) Calculate the Similarity Between Words using the Dot Product:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The context of a token is given by the surrounding tokens in the sentence. Therefore,
+    we can use the embeddings of all the tokens in the input sequence to update the
+    embedding for any word, such as `bank`. Ideally, words that provide significant
+    context (such as `river`) will heavily influence the embedding, while words that
+    provide less context (such as `a`) will have minimal effect.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The degree of context one word contributes to another is measured by a similarity
+    score. Tokens with similar learned embeddings are likely to provide more context
+    than those with dissimilar embeddings. The similarity scores are calculated by
+    taking the dot product of the current embedding for one token (its learned embedding
+    plus positional information) with the current embeddings of every other token
+    in the sequence. For clarity, the current embeddings have been termed s**elf-attention
+    inputs** in this article and are denoted *x*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are several options for measuring the similarity between two vectors,
+    which can be broadly categorised into: distance-based and angle-based metrics.
+    Distance-based metrics characterise the similarity of vectors using the straight-line
+    distance between them. This calculation is relatively simple and can be thought
+    of as applying Pythagoras’s theorem in *d_model*-dimensional space. While intuitive,
+    this approach is computationally expensive.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For angle-based similarity metrics, the two main candidates are: **cosine similarity**
+    and **dot-product similarity**. Both of these characterise similarity using the
+    cosine of the angle between the two vectors, θ. For orthogonal vectors (vectors
+    that are at right angles to each other) *cos(θ)* *= 0*, which represents no similarity.
+    For parallel vectors, *cos(θ) = 1*, which represents that the vectors are identical.
+    Solely using the angle between vectors, as is the case with cosine similarity,
+    is not ideal for two reasons. The first is that the magnitude of the vectors is
+    not considered, so distant vectors that happen to be aligned will produce inflated
+    similarity scores. The second is that cosine similarity requires first computing
+    the dot product and then dividing by the product of the vectors’ magnitudes —
+    making cosine similarity a computationally expensive metric. Therefore, the dot
+    product is used to determine similarity. The dot product formula is given below
+    for two vectors *x_1* and *x_2*.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/dd1c4f8b7ee67b05504226a91925408f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The dot product formula for two vectors x_1 and x_2\. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The diagram below shows the dot product between the self-attention input vector
+    for `bank`, *x_bank,* and the matrix of vector representations for every token
+    in the input sequence, *X^T*. We can also write *x_bank* as *x_11* to reflect
+    its position in the input sequence. The matrix *X* stores the self-attention inputs
+    for every token in the input sequence as rows. The number of columns in this matrix
+    is given by *L_max*, the maximum sequence length of the model. In this example,
+    we will assume that the maximum sequence length is equal to the number of words
+    in the input prompt, removing the need for any padding tokens (see [Part 4 in
+    this series](https://medium.com/p/9f87602e4a11) for more about padding). To compute
+    the dot product directly, we can transpose *X* and calculate the vector of similarity
+    scores, *S_bank* using *S_bank = x_bank ⋅ X^T*. The individual elements of *S_bank*
+    represent the similarity scores between `bank` and each token in the input sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/18b5ae2730dc2264ecc4a624d440c469.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example calculation of the similarity scores for X_11 with every self-attention
+    input (the sum of the learned embedding and positional information for each token
+    in the input sequence). Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 2) Scale the Similarity Scores:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The dot product approach lacks any form of normalisation (unlike cosine similarity),
+    which can cause the similarity scores to become very large. This can pose computational
+    challenges, so normalisation of some form becomes necessary. The most common method
+    is to divide each score by √*d_model*, resulting in **scaled dot-product attention**.
+    Scaled dot-product attention is not restricted to self-attention and is also used
+    for cross-attention in transformers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 3) Calculate the Attention Weights using the Softmax Function:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The output of the previous step is the vector *S_bank*, which contains the similarity
+    scores between `bank` and every token in the input sequence. These similarity
+    scores are used as weights to construct a transformer embedding for `bank` from
+    the weighted sum of embeddings for each surrounding token in the prompt. The weights,
+    known as **attention weights**, are calculated by passing *S_bank* into the softmax
+    function. The outputs are stored in a vector denoted *W_bank*. To see more about
+    the softmax function, refer to the previous article on word2vec.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2517faf278824d683631ffda0065dc21.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example calculation of the attention weights for “bank” based on the similarity
+    with every self-attention input. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Step 4) Calculate the Transformer Embedding**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the transformer embedding for `bank` is obtained by taking the weighted
+    sum of `write`, `a`, `prompt`, …, `bank`. Of course, `bank` will have the highest
+    similarity score with itself (and therefore the largest attention weight), so
+    the output embedding after this process will remain similar to before. This behaviour
+    is ideal since the initial embedding already occupies a region of vector space
+    that encodes some meaning for bank. The goal is to nudge the embedding towards
+    the words that provide more context. The weights for words that provide little
+    context, such as `a` and `man`, are very small. Hence, their influence on the
+    output embedding will be minimal. Words that provide significant context, such
+    as `river` and `fishing`, will have higher weights, and therefore pull the output
+    embedding closer to their regions of vector space. The end result is a new embedding,
+    *y_bank*, that reflects the context of the entire input sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/05cded56f34d6004d381e21e7c9b16a1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example calculation for the new embedding of “bank” by taking a weighted
+    sum of the other embeddings for each token in the sequence. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.4 — Expanding Self-Attention using Matrices
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Above, we walked through the steps to calculate the transformer embedding for
+    the singular word `bank`. The input consisted of the learned embedding vector
+    for bank plus its positional information, which we denoted *x_11* or *x_bank*.
+    The key point here, is that we considered only one vector as the input. If we
+    instead pass in the matrix *X* (with dimensions *L_max* × *d_model*) to the self-attention
+    block, we can calculate the transformer embedding for every token in the input
+    prompt simultaneously. The output matrix, *Y*, contains the transformer embedding
+    for every token along the rows of the matrix. This approach is what enables transformers
+    to quickly process text.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/389598fcf770519eb023c556cb59def4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A black box diagram of a self-attention block. The matrix of word vectors is
+    represented by X for the input sequence, and Y for the output sequence. Image
+    by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.5 — The Query, Key, and Value Matrices
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The above description gives an overview of the core functionality of the self-attention
+    block, but there is one more piece of the puzzle. The simple weighted sum above
+    does not include any trainable parameters, but we can introduce some to the process.
+    Without trainable parameters, the performance of the model may still be good,
+    but by allowing the model to learn more intricate patterns and hidden features
+    from the training data, we observe much stronger model performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The self-attention inputs are used three times to calculate the new embeddings,
+    these include the *x_bank* vector, the *X^T* matrix in the dot product step, and
+    the *X^T* matrix in the weighted sum step. These three sites are the perfect candidates
+    to introduce some weights, which are added in the form of matrices (shown in red).
+    When pre-multiplied by their respective inputs (shown in blue), these form the
+    **key**, **query**, and **value** matrices, *K*, *Q*, and *V* (shown in purple).
+    The number of columns in these weight matrices is an architectural choice by the
+    user. Choosing a value for *d_q*, *d_k*, and *d_v* that is less than *d_model*
+    will result in dimensionality reduction, which can improve model speed. Ultimately,
+    these values are hyperparameters that can be changed based on the specific implementation
+    of the model and the use-case, and are often all set equal to *d_model* if unsure
+    [5].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ad982632d2b0892f30068585882c9cc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A diagram of a complete self-attention block including the key, query, and value
+    matrices. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3.6 — The Database Analogy
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The names for these matrices come from an analogy with databases, which is explained
+    briefly below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Query:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A query in a database is what you are looking for when performing a search.
+    For example, “show me all the albums in the database that have sold more than
+    1,000,000 records”. In the self-attention block, we are essentially asking the
+    same question, but phrased as “show me the transformer embedding for this vector
+    (e.g. *x_bank*)”. For the sake of this example, we have only considered a single
+    vector, *x_bank*, but recall that we can perform the self-attention step on as
+    many vectors as we like by collecting them into a matrix. Therefore, we can just
+    as easily pass in the matrix *X* as the query, which changes the question to “show
+    me the transformer embedding for each vector in the input sequence”. This is what
+    actually happens in Transformer-based models.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Key:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The keys in the database are the attributes or columns that are being searched
+    against. In the example given earlier, you can think of this as the “Albums Sold”
+    column, which stores the information we are interested in. In self-attention,
+    we are interested in the embeddings for every word in the input prompt, so we
+    can compute a set of attention weights. Therefore, the key matrix is a collection
+    of all the input embeddings.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Value:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The values correspond to the actual data in the database, that is, the actual
+    sale figures in our example (e.g. 2,300,000 copies). For self-attention, this
+    is exactly the same as the input for the key matrix (and query matrix as we just
+    discussed): a collection of all the input embeddings. Hence, the query, key, and
+    value matrices all take in the matrix *X* as the input.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 3.7 — A Note on Multi-Head Attention
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Distributing Computation Across Multiple Heads:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The “Attention is All You Need” paper extends standard self-attention into **Multi-Head
+    Attention (MHA)** by dividing the attention mechanism into multiple **heads**.
+    In standard self-attention, the model learns a single set of weight matrices (*W_Q*,
+    *W_K*, and *W_V*) that transform the token embedding matrix *X* into query, key,
+    and value matrices (*Q*, *K*, and *V*). These matrices are then used to compute
+    attention scores and update *X* with contextual information as we have seen above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In contrast, MHA splits the attention mechanism into *H* independent heads,
+    each learning its own smaller set of weight matrices. These weights are used to
+    calculate a set of smaller, head-specific query, key, and value matrices (denoted
+    *Q^h*, *K^h*, and *V^h*). Each head processes the input sequence independently,
+    generating distinct attention outputs. These outputs are then concatenated (stacked
+    on top of each other) and passed through a final linear layer to produce the updated
+    *X* matrix, shown as *Y* in the diagram below, with rich contextual information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: By introducing multiple heads, MHA increases the number of learnable parameters
+    in the attention process, enabling the model to capture more complex relationships
+    within the data. Each head learns its own weight matrices, allowing them to focus
+    on different aspects of the input such as long-range dependencies (relationships
+    between distant words), short-range dependencies (relationships between nearby
+    words), grammatical syntax, etc. The overall effect produces a model with a more
+    nuanced understanding of the input sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c975eac45848ff41a478756ae0f5683e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An overview of the Multi-Head Attention process. For an in-depth explanation
+    of terms and each process step, see Section 2.8 in Part 5 of this series. Image
+    by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The paragraphs below focus on building a broad intuition for how this works
+    and why this step is useful. However, if you are keen to dive into the implementation
+    details for MHA, see Section 2.8 in the Part 5 — A Complete Guide to Mistral 7B
+    with Code [Link coming soon!].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**The Benefits of Using Multiple Heads:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The core idea is to allow each head to learn different types of relationships
+    between words in the input sequence, and to combine them to create deep text representations.
+    For example, some heads might learn to capture long-term dependencies (relationships
+    between words that are distant in the text), while others might focus on short-term
+    dependencies (words that are close in text).
+  prefs: []
+  type: TYPE_NORMAL
+- en: If the model is given the sentence `A man withdrew money from the bank then
+    sat on the river bank`, the use of multi-head attention allows the model capture
+    the short-term dependency between `money` and the first instance of `bank`, and
+    a separate dependency between `river` and the second instance of `bank`. Thus,
+    the two uses of the word `bank` would be correctly updated with different contextual
+    information for their respective meanings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Building Intuition for Multi-Head Attention:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: To deepen this intuition for the usefulness of multiple attention heads, consider
+    words in a sentence that require a lot of context. For example, in the sentence
+    `I ate some of Bob’s chocolate cake`, the word `ate` should attend to `I`, `Bob’s`
+    and `cake` to gain full context. This is a rather simple example, but if you extend
+    this concept to complex sequences spanning thousands of words, hopefully it seems
+    reasonable that distributing the computational load across separate attention
+    mechanisms will be beneficial.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a35f4b3cf73ce16a174a3bd127e35164.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: An example of attention heads capturing different word dependencies in an input
+    sequence. Image by author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4 — Transformer Embeddings in Python
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 4.1 — Extracting Learned Embeddings and Transformer Embeddings from Transformer
+    Models
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Python has many options for working with transformer models, but none are perhaps
+    as well-known as Hugging Face. Hugging Face provides a centralised resource hub
+    for NLP researchers and developers alike, including tools such as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`transformers`: The library at the core of Hugging Face, which provides an
+    interface for using, training, and fine-tuning pre-trained transformer models.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`tokenizers`: A library for working with tokenizers for many kinds of transformers,
+    either using pre-built tokenizer models or constructing brand new ones from scratch.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`datasets`: A collection of datasets to train models on a variety of tasks,
+    not just restricted to NLP.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Model Hub: A large repository of cutting-edge models from published papers,
+    community-developed models, and everything in between. These are made freely available
+    and can be easily imported into Python via the `transformers` API.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The code cell below shows how the `transformers` library can be used to load
+    a transformer-based model into Python, and how to extract both the learned embeddings
+    for words (without context) and the transformer embeddings (with context). The
+    remainder of this article will break down the steps shown in this cell and describe
+    additional functionalities available when working with embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4.2 — Import the `Transformers` Library
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The first step to produce transformer embeddings is to choose a model from the
+    Hugging Face `transformers` library. In this article, we will not use the model
+    for inference but solely to examine the embeddings it produces. This is not a
+    standard use-case, and so we will have to do some extra digging in order to access
+    the embeddings. Since the `transformers` library is written in PyTorch (referred
+    to as `torch` in the code), we can import `torch` to extract data from the inner
+    workings of the models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.3 — Choose a Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'For this example, we will use DistilBERT, a smaller version of Google’s BERT
+    model which was released by Hugging Face themselves in October 2019 [6]. According
+    to the Hugging Face documentation [7]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*DistilBERT is a small, fast, cheap and light Transformer model trained by
+    distilling BERT base. It has 40% less parameters than* `*bert-base-uncased*`*,
+    runs 60% faster while preserving over 95% of BERT’s performances as measured on
+    the GLUE language understanding benchmark*.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We can import DistilBERT and its corresponding tokenizer into Python either
+    directly from the `transformers` library or using the `AutoModel` and `AutoTokenizer`
+    classes. There is very little difference between the two, although `AutoModel`
+    and `AutoTokenizer` are often preferred since the model name can be parameterised
+    and stored in a string, which makes it simpler to change the model being used.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: After importing DistilBERT and its corresponding tokenizer, we can call the
+    `from_pretrained` method for each to load in the specific version of the DistilBERT
+    model and tokenizer we want to use. In this case, we have chosen `distilbert-base-uncased`,
+    where `base` refers to the size of the model, and `uncased` indicates that the
+    model was trained on uncased text (all text is converted to lowercase).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4.4 — Create Some Example Sentences
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next, we can create some sentences to give the model some words to embed. The
+    two sentences, `s1` and `s2`, both contain the word `bank` but in different contexts.
+    The goal here is to show that the word `bank` will begin with the same learned
+    embedding in both sentences, then be modified by DistilBERT using self-attention
+    to produce a unique, contextualised embedding for each input sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4.5 — Tokenize an Input Sequence
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'The tokenizer class can be used to tokenize an input sequence (as shown below)
+    and convert a string into a list of token IDs. Optionally, we can also pass a
+    `return_tensors` argument to format the token IDs as a PyTorch tensor (`return_tensors=pt`)
+    or as TensorFlow constants (`return_tensors=tf`). Leaving this argument empty
+    will return the token IDs in a Python list. The return value is a dictionary that
+    contains `input_ids`: the list-like object containing token IDs, and `attention_mask`
+    which we will ignore for now.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Note:** BERT-based models include a `[CLS]` token at the beginning of each
+    sequence, and a `[SEP]` token to distinguish between two bodies of text in the
+    input. These are present due to the tasks that BERT was originally trained on
+    and can largely be ignored here. For a discussion on BERT special tokens, model
+    sizes, `cased` vs `uncased`, and the attention mask, see [Part 4 of this series](https://medium.com/p/9f87602e4a11).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4.6 — Extract the Learned Embeddings from a Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Each transformer model provides access to its learned embeddings via the `embeddings.word_embeddings`
+    method. This method accepts a token ID or collection of token IDs and returns
+    the learned embedding(s) as a PyTorch tensor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4.7 — Extract the Transformer Embeddings from a Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Converting a context-lacking learned embedding into a context-aware transformer
+    embedding requires a forward pass of the model. Since we are not updating the
+    weights of the model here (i.e. training the model), we can use the `torch.no_grad()`
+    context manager to save on memory. This allows us to pass the tokens directly
+    into the model and compute the transformer embeddings without any unnecessary
+    calculations. Once the tokens have been passed into the model, a `BaseModelOutput`
+    is returned, which contains various information about the forward pass. The only
+    data that is of interest here is the activations in the last hidden state, which
+    form the transformer embeddings. These can be accessed using the `last_hidden_state`
+    attribute, as shown below, which concludes the explanation for the code cell shown
+    at the top of this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 4.8 — Convert Token IDs to Tokens
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: It is possible to convert token IDs back into textual tokens, which shows exactly
+    how the tokenizer divided the input sequence. This is useful when longer or rarer
+    words are divided into multiple subwords when using subword tokenizers such as
+    WordPiece (e.g. in BERT-based models) or Byte-Pair Encoding (e.g. in the GPT family
+    of models).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 5 — Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The self-attention mechanism generates rich, context-aware transformer embeddings
+    for text by processing each token in an input sequence simultaneously. These embeddings
+    build on the foundations of static word embeddings (such as word2vec) and enable
+    more capable language models such as BERT and GPT. Further work in this field
+    will continue to improve the capabilities of LLMs and NLP as a whole.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 6 — Further Reading
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] A. Vaswani, N. Shazeer, N. Parmar, J. Uszkoreit, L. Jones, A. N. Gomez,
+    Ł. Kaiser, and I. Polosukhin, [Attention is All You Need](https://arxiv.org/pdf/1706.03762)
+    (2017), Advances in Neural Information Processing Systems 30 (NIPS 2017)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Hugging Face, [Transformers](https://huggingface.co/docs/transformers/index)
+    (2024), HuggingFace.co'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] OpenAI, [ChatGPT Pricing](https://openai.com/chatgpt/pricing/) (2024),
+    OpenAI.com'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] A. Gu and T. Dao, [Mamba: Linear-Time Sequence Modelling with Selective
+    State Spaces](https://arxiv.org/abs/2312.00752) (2023), ArXiv abs/2312.00752'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] J. Alammar, [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
+    (2018). GitHub'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] V. Sanh, L. Debut, J. Chaumond, and T. Wolf, [DistilBERT, a distilled version
+    of BERT: smaller, faster, cheaper and lighter](https://arxiv.org/pdf/1910.01108)
+    (2019), 5th Workshop on Energy Efficient Machine Learning and Cognitive Computing
+    — NeurIPS 2019'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[7] Hugging Face, [DistilBERT Documentation](https://huggingface.co/docs/transformers/en/model_doc/distilbert)
+    (2024) HuggingFace.co'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[8] Hugging Face, [BERT Documentation](https://huggingface.co/docs/transformers/model_doc/bert)
+    (2024) HuggingFace.co'
+  prefs: []
+  type: TYPE_NORMAL

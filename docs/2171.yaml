@@ -1,0 +1,1114 @@
+- en: How to Implement Graph RAG Using Knowledge Graphs and Vector Databases
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-implement-graph-rag-using-knowledge-graphs-and-vector-databases-60bb69a22759?source=collection_archive---------0-----------------------#2024-09-06](https://towardsdatascience.com/how-to-implement-graph-rag-using-knowledge-graphs-and-vector-databases-60bb69a22759?source=collection_archive---------0-----------------------#2024-09-06)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/bb57df531853e6ba435c6662113afbce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Step-by-Step Tutorial on Implementing Retrieval-Augmented Generation (RAG),
+    Semantic Search, and Recommendations
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://stevehedden.medium.com/?source=post_page---byline--60bb69a22759--------------------------------)[![Steve
+    Hedden](../Images/af7bec4a191ab857eccd885dd89e88b4.png)](https://stevehedden.medium.com/?source=post_page---byline--60bb69a22759--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--60bb69a22759--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--60bb69a22759--------------------------------)
+    [Steve Hedden](https://stevehedden.medium.com/?source=post_page---byline--60bb69a22759--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--60bb69a22759--------------------------------)
+    ·39 min read·Sep 6, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*The accompanying code for this tutorial is* [*here.*](https://github.com/SteveHedden/kg_llm)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'My [last blog post](https://medium.com/towards-data-science/how-to-implement-knowledge-graphs-and-large-language-models-llms-together-at-the-enterprise-level-cf2835475c47)
+    was about how to implement knowledge graphs (KGs) and Large Language Models (LLMs)
+    together at the enterprise level. In that post, I went through the two ways KGs
+    and LLMs are interacting right now: LLMs as tools to build KGs; and KGs as inputs
+    into LLM or GenAI applications. The diagram below shows the two sides of integrations
+    and the different ways people are using them together.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a8660e076ec5e3ba690aac08a47eceac.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this post, I will focus on one popular way KGs and LLMs are being used together:
+    RAG using a knowledge graph, sometimes called [Graph RAG](https://www.ontotext.com/knowledgehub/fundamentals/what-is-graph-rag/),
+    [GraphRAG](https://microsoft.github.io/graphrag/), [GRAG](https://arxiv.org/abs/2405.16506),
+    or [Semantic RAG](https://www.poolparty.biz/semantic-retrieval-augmented-generation).
+    Retrieval-Augmented Generation (RAG) is about **retrieving** relevant information
+    to **augment** a prompt that is sent to an LLM, which **generates** a response.
+    The idea is that, rather than sending your prompt directly to an LLM, which was
+    not trained on your data, you can supplement your prompt with the relevant information
+    needed for the LLM to answer your prompt accurately. The example I used in my
+    previous post is copying a job description and my resume into ChatGPT to write
+    a cover letter. The LLM is able to provide a much more relevant response to my
+    prompt, ‘write me a cover letter,’ if I give it my resume and the description
+    of the job I am applying for. Since knowledge graphs are built to store knowledge,
+    they are a perfect way to store internal data and supplement LLM prompts with
+    additional context, improving the accuracy and contextual understanding of the
+    responses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What is important, and I think often misunderstood, is that RAG and RAG using
+    a KG (Graph RAG) are methodologies for combining technologies, not a product or
+    technology themselves. No one invented, owns, or has a monopoly on Graph RAG.
+    Most people can see the potential that these two technologies have when combined,
+    however, and there are [more](https://arxiv.org/pdf/2311.07509) and [more](https://arxiv.org/pdf/2405.11706)
+    studies proving the benefits of combining them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Generally, there are three ways of using a KG for the retrieval part of RAG:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Vector-based retrieval:** Vectorize your KG and store it in a vector database.
+    If you then vectorize your natural language prompt, you can find vectors in the
+    vector database that are most similar to your prompt. Since these vectors correspond
+    to entities in your graph, you can return the most ‘relevant’ entities in the
+    graph given a natural language prompt. *Note that you can do vector-based retrieval
+    without a graph. That is actually the original way RAG was implemented, sometimes
+    called Baseline RAG. You’d vectorize your SQL database or content and retrieve
+    it at query time.*'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Prompt-to-query retrieval:** Use an LLM to write a SPARQL or Cypher query
+    for you, use the query against your KG, and then use the returned results to augment
+    your prompt.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Hybrid (vector + SPARQL):** You can combine these two approaches in all kinds
+    of interesting ways. In this tutorial, I will demonstrate some of the ways you
+    can combine these methods. I will primarily focus on using vectorization for the
+    initial retrieval and then SPARQL queries to refine the results.'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: There are, however, many ways of combining vector databases and KGs for search,
+    similarity, and RAG. This is just an illustrative example to highlight the pros
+    and cons of each individually and the benefits of using them together. The way
+    I am using them together here — vectorization for initial retrieval and then SPARQL
+    for filtering — is not unique. I have seen this implemented elsewhere. A good
+    example I have heard anecdotally was from someone at a large furniture manufacturer.
+    He said the vector database might recommend a lint brush to people buying couches,
+    but the knowledge graph would understand materials, properties, and relationships
+    and would ensure that the lint brush is not recommended to people buying leather
+    couches.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In this tutorial I will:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vectorize a dataset into a vector database to test semantic search, similarity
+    search, and RAG *(vector-based retrieval)*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Turn the data into a KG to test semantic search, similarity search, and RAG
+    *(prompt-to-query retrieval, though really more like query retrieval since I’m
+    just using SPARQL directly rather than having an LLM turn my natural language
+    prompt into a SPARQL query)*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Vectorize dataset with tags and URIs from the knowledge graph into a vector
+    database (what I’ll refer to as a “vectorized knowledge graph”) and test semantic
+    search, similarity, and RAG *(hybrid)*
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The goal is to illustrate the differences between KGs and vector databases for
+    these capabilities and to show some of the ways they can work together. Below
+    is a high-level overview of how, together, vector databases and knowledge graphs
+    can execute advanced queries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bb57df531853e6ba435c6662113afbce.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you don’t feel like reading any further, here is the TL;DR:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Vector databases can run semantic searches, similarity calculations and some
+    basic forms of RAG pretty well with a few caveats. The first caveat is that the
+    data I am using contains abstracts of journal articles, i.e. it has a good amount
+    of unstructured text associated with it. Vectorization models are trained primarily
+    on unstructured data and so perform well when given chunks of text associated
+    with entities.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: That being said, there is very little overhead in getting your data into a vector
+    database and ready to be queried. If you have a dataset with some unstructured
+    data in it, you can vectorize and start searching in 15 minutes.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Not surprisingly, one of the biggest drawbacks of using a vector database alone
+    is the lack of explainability. The response might have three good results and
+    one that doesn’t make much sense, and there is no way to know why that fourth
+    result is there.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The chance of unrelated content being returned by a vector database is a nuisance
+    for search and similarity, but a huge problem for RAG. If you’re augmenting your
+    prompt with four articles and one of them is about a completely unrelated topic,
+    the response from the LLM is going to be misleading. This is often referred to
+    as ‘context poisoning’.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What is especially dangerous about context poisoning is that the response isn’t
+    necessarily factually inaccurate, and it isn’t based on an inaccurate piece of
+    data, it’s just using the wrong data to answer your question. The example I found
+    in this tutorial is for the prompt, “therapies for mouth neoplasms.” One of the
+    retrieved articles was about a study conducted on therapies for rectal cancer,
+    which was sent to the LLM for summarization. I’m no doctor but I’m pretty sure
+    the rectum’s not part of the mouth. The LLM accurately summarized the study and
+    the effects of different therapy options on both mouth and rectal cancer, but
+    didn’t always mention type of cancer. The user would therefore be unknowingly
+    reading an LLM describe different treatment options for rectal cancer, after having
+    asked the LLM to describe treatments for mouth cancer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The degree to which KGs can do semantic search and similarity search well is
+    a function of the quality of your metadata and the controlled vocabularies the
+    metadata connects to. In the example dataset in this tutorial, the journal articles
+    have all been tagged already with topical terms. These terms are part of a rich
+    controlled vocabulary, the [Medical Subject Headings](https://www.ncbi.nlm.nih.gov/mesh/)
+    (MeSH) from the National Institutes of Health. Because of that, we can do semantic
+    search and similarity relatively easily out of the box.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There is likely some benefit of vectorizing a KG directly into a vector database
+    to use as your knowledge base for RAG, but I didn’t do that for this tutorial.
+    I just vectorized the data in tabular format but added a column for a URI for
+    each article so I could connect the vectors back to the KG.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'One of the biggest strengths of using a KG for semantic search, similarity,
+    and RAG is in explainability. You can always explain why certain results were
+    returned: they were tagged with certain concepts or had certain metadata properties.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another benefit of the KG that I did not foresee is something sometimes called,
+    “enhanced data enrichment” or “[graph as an expert](https://www.ontotext.com/knowledgehub/fundamentals/what-is-graph-rag/)”
+    — you can use the KG to expand or refine your search terms. For example, you can
+    find similar terms, narrower terms, or terms related to your search term in specific
+    ways, to expand or refine your query. For example, I might start with searching
+    for “mouth cancer,” but based on my KG terms and relationships, refine my search
+    to “gingival neoplasms and palatal neoplasms.”
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One of the biggest obstacles to getting started with using a KG is that you
+    need to build a KG. That being said, there are many ways to use LLMs to speed
+    up the construction of a KG (figure 1 above).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: One downside of using a KG alone is that you’ll need to write SPARQL queries
+    to do everything. Hence the popularity of prompt-to-query retrieval described
+    above.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The results from using Jaccard similarity on terms to find similar articles
+    in the knowledge graph were poor. Without specification, the KG returned articles
+    that had overlapping tags such as, “Aged”, “Male”, and “Humans”, that are probably
+    not nearly as relevant as “Treatment Options” or “Mouth Neoplasms”.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Another issue I faced was that Jaccard similarity took forever (like 30 minutes)
+    to run. I don’t know if there is a better way to do this (open to suggestions)
+    but I am guessing that it is just very computationally intensive to find overlapping
+    tags between an article and 9,999 other articles.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since the example prompts I used in this tutorial were something simple like
+    ‘summarize these articles’ — the accuracy of the response from the LLM (for both
+    the vector-based and KG-based retrieval methods) was much more dependent on the
+    retrieval than the generation. What I mean is that as long as you give the LLM
+    the relevant context, it is very unlikely that the LLM is going to mess up a simple
+    prompt like ‘summarize’. This would be very different if our prompts were more
+    complicated questions of course.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Using the vector database for the initial search and then the KG for filtering
+    provided the best results. This is somewhat obvious —you wouldn’t filter to get
+    worse results. But that’s the point: it’s not that the KG necessarily improves
+    results by itself, it’s that the KG provides you the ability to control the output
+    to optimize your results.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Filtering results using the KG can improve the accuracy and relevancy based
+    on the prompt, but it can also be used to customize results based on the person
+    writing the prompt. For example, we may want to use similarity search to find
+    similar articles to recommend to a user, but we’d only want to recommend articles
+    that that person has access to. The KG allows for query-time access control.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: KGs can also help reduce the likelihood of context poisoning. In the RAG example
+    above, we can search for ‘therapies for mouth neoplasms,’ in the vector database,
+    but then filter for only articles that are tagged with mouth neoplasms (or related
+    concepts).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: I only focused on a simple implementation in this tutorial where we sent the
+    prompt directly to the vector database and then filter the results using the graph.
+    There are far better ways of doing this. For example, you could extract entities
+    from the prompt that align with your controlled vocabulary and enrich them (with
+    synonyms and narrower terms) using the graph; you could parse the prompt into
+    semantic chunks and send them separately to the vector database; you could turn
+    the RDF data into text before vectorizing so the language model understands it
+    better, etc. Those are topics for future blog posts.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Step 1: Vector-based retrieval'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The diagram below shows the plan at a high level. We want to vectorize the
+    abstracts and titles from journal articles into a vector database to run different
+    queries: semantic search, similarity search, and a simple version of RAG. For
+    semantic search, we will test a term like ‘mouth neoplasms’ — the vector database
+    should return articles relevant to this topic. For similarity search, we will
+    use the ID of a given article to find its nearest neighbors in the vector space
+    i.e. the articles most similar to this article. Finally, vector databases allow
+    for a form of RAG where we can supplement a prompt like, “please explain this
+    like you would to someone without a medical degree,” with an article.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e466e1c2961bfa2db76099214cf93fe0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I’ve decided to use [this](https://www.kaggle.com/datasets/owaiskhan9654/pubmed-multilabel-text-classification)
+    dataset of 50,000 research articles from the PubMed repository (License [CC0:
+    Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)). This dataset
+    contains the title of the articles, their abstracts, as well as a field for metadata
+    tags. These tags are from the Medical Subject Headings (MeSH) controlled vocabulary
+    thesaurus. For the purposes of this part of the tutorial, we are only going to
+    use the abstracts and the titles. This is because we are trying to compare a vector
+    database with a knowledge graph and the strength of the vector database is in
+    its ability to ‘understand’ unstructured data without rich metadata. I only used
+    the top 10,000 rows of the data, just to make the calculations run faster.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Here](https://weaviate.io/developers/weaviate/quickstart) is Weaviate’s official
+    quickstart tutorial. I also found [this](/getting-started-with-weaviate-a-beginners-guide-to-search-with-vector-databases-14bbb9285839)
+    article helpful in getting started.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we can establish a connection to our Weaviate cluster:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Before we vectorize the data into the vector database, we must define the schema.
+    Here is where we define which columns from the csv we want to vectorize. As mentioned,
+    for the purposes of this tutorial, to start, I only want to vectorize the title
+    and abstract columns.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we push this schema to our Weaviate cluster:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can check that this worked by looking directly in your Weaviate cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have established the schema, we can write all of our data into the
+    vector database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'To check that the data went into the cluster, you can run this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: For some reason, only 9997 of my rows were vectorized. ¯\_(ツ)_/¯
+  prefs: []
+  type: TYPE_NORMAL
+- en: Semantic search using vector database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When we talk about semantics in the vector database, we mean that the terms
+    are vectorized into the vector space using the LLM API which has been trained
+    on lots of unstructured content. This means that the vector takes the context
+    of the terms into consideration. For example, if the term Mark Twain is mentioned
+    many times near the term Samuel Clemens in the training data, the vectors for
+    these two terms should be close to each other in the vector space. Likewise, if
+    the term Mouth Cancer appears together with Mouth Neoplasms many times in the
+    training data, we would expect the vector for an article about Mouth Cancer to
+    be near an article about Mouth Neoplasms in the vector space.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You can check that it worked by running a simple query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 1:** *“Gingival metastasis as first sign of multiorgan dissemination
+    of epithelioid malignant mesothelioma.”* This article is about a study conducted
+    on people who had malignant mesothelioma (a form of lung cancer) that spread to
+    their gums. The study was to test the effects of different treatments (chemotherapy,
+    decortication, and radiotherapy) on the cancer. This seems like an appropriate
+    article to return — it is about gingival neoplasms, a subset of mouth neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 2:** *“Myoepithelioma of minor salivary gland origin. Light and electron
+    microscopical study.”* This article is about a tumor that was removed from a 14-year-old
+    boy’s gum, had spread to part of the upper jaw, and was composed of cells which
+    originated in the salivary gland. This also seems like an appropriate article
+    to return — it is about a neoplasm that was removed from a boy’s mouth.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 3:** *“Metastatic neuroblastoma in the mandible. Report of a case.”*
+    This article is a case study of a 5-year-old boy who had cancer in his lower jaw.
+    This is about cancer, but technically not mouth cancer — mandibular neoplasms
+    (neoplasms in the lower jaw) are not a subset of mouth neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: This is what we mean by semantic search — none of these articles have the word
+    ‘mouth’ anywhere in their titles or abstracts. The first article is about gingival
+    (gums) neoplasms, a subset of mouth neoplasms. The second article is about a gingival
+    neoplasms that originated in the subject’s salivary gland, both subsets of mouth
+    neoplasms. The third article is about mandibular neoplasms — which is, technically,
+    according to the MeSH vocabulary **not** a subset of mouth neoplasms. Still, the
+    vector database knew that a mandible is close to a mouth.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarity search using vector database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We can also use the vector database to find similar articles. I chose an article
+    that was returned using the mouth neoplasms query above titled, *“Gingival metastasis
+    as first sign of multiorgan dissemination of epithelioid malignant mesothelioma.”*
+    Using the ID for that article, I can query the vector database for all similar
+    entities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The results are ranked in order of similarity. Similarity is calculated as distance
+    in the vector space. As you can see, the top result is the Gingival article —
+    this article is the most similar article to itself.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The other articles are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 4***: “Feasability study of screening for malignant lesions in the
+    oral cavity targeting tobacco users.”* This is about mouth cancer, but about how
+    to get tobacco smokers to sign up for screenings rather than on the ways they
+    were treated.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 5:** *"Extended Pleurectomy and Decortication for Malignant Pleural
+    Mesothelioma Is an Effective and Safe Cytoreductive Surgery in the Elderly."*
+    This article is about a study on treating pleural mesothelioma (cancer in the
+    lungs) with pleurectomy and decortication (surgery to remove cancer from the lungs)
+    in the elderly. So this is similar in that it is about treatments for mesothelioma,
+    but not about gingival neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 3 (from above):** *“Metastatic neuroblastoma in the mandible. Report
+    of a case.”* Again, this is the article about the 5-year-old boy who had cancer
+    in his lower jaw. This is about cancer, but technically not mouth cancer, and
+    this is not really about treatment outcomes like the gingival article.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: All of these articles, one could argue, are similar to our original gingival
+    article. It is difficult to assess how similar they are and to therefore assess
+    how well the similarity search performed because that is largely a matter of what
+    the user means by similar. Were you interested in other articles about treatments
+    for mesothelioma and the fact that the first article is about how it spread to
+    the gums is irrelevant? In that case, **Article 5** is the most similar. Or are
+    you interested in reducing any type of mouth cancer, whether through treatment
+    or prevention? In that case, **Article 4** is the most similar. One drawback of
+    the vector database, is that it is a black box — we have no idea why these articles
+    were returned.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieval-Augmented Generation (RAG) using a vector database
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Here is how you can use the vector database to retrieve results which are then
+    sent to an LLM for summarization — an example of RAG.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'You can see the response below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '"Sure! This article is talking about a case where a person had a type of cancer
+    called epithelioid malignant mesothelioma. This cancer usually starts in the lining
+    of the lungs or abdomen. However, in this case, the first sign of the cancer spreading
+    to other parts of the body was seen in the gums (gingiva). This is called gingival
+    metastasis.\n\nMetastasis means that cancer cells have spread from the original
+    tumor to other parts of the body. In this case, the cancer had spread to the gums
+    before spreading to other organs. This is important because it shows that the
+    cancer was already advanced and had spread to multiple organs before it was even
+    detected.\n\nOverall, this article highlights the importance of early detection
+    and monitoring of cancer, as well as the potential for cancer to spread to unexpected
+    parts of the body."'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: I am actually disappointed by this response. The abstract clearly explains that
+    this is a study that follows 13 patients with metastatic malignant mesothelioma
+    that underwent different treatments and the outcomes. The RAG output describes
+    the article as about ‘a person’ and doesn’t mention the study at all.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rather than just summarize one article, let’s try to summarize several. In this
+    next example, we use the same search term as above (Mouth Neoplasms) and then
+    send the top three articles along with a prompt, ‘Summarize the key information
+    here in bullet points. Make it understandable to someone without a medical degree,’
+    to an LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: This looks better to me than the previous response — it mentions the study conducted
+    in **Article 1**, the treatments, and the outcomes. The second to last bullet
+    is about the *“Myoepithelioma of minor salivary gland origin. Light and electron
+    microscopical study,”* article and seems to be an accurate one line description.
+    The final bullet is about **Article 3** referenced above, and, again, seems to
+    be an accurate one line description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: use a knowledge graph for data retrieval'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here is a high-level overview of how we use a knowledge graph for semantic
+    search, similarity search, and RAG:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7625e519cdfa5e2d9290ba765ec43526.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step of using a knowledge graph to retrieve your data is to turn your
+    data into RDF format. The code below creates classes and properties for all of
+    the data types, and then populates it with instances of articles and MeSH terms.
+    I have also created properties for date published and access level and populated
+    them with random values just as a demonstration.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Semantic search using a knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we can test semantic search. The word semantic is slightly different in
+    the context of knowledge graphs, however. In the knowledge graph, we are relying
+    on the tags associated with the documents and their relationships in the MeSH
+    taxonomy for the semantics. For example, an article might be about Salivary Neoplasms
+    (cancer in the salivary glands) but still be tagged with the term Mouth Neoplasms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Rather than query all articles tagged with Mouth Neoplasms, we will also look
+    for any concept narrower than Mouth Neoplasms. The MeSH vocabulary contains definitions
+    of terms but it also contains relationships like broader and narrower.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below are all of the alternative names and narrower concepts for Mouth Neoplasms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1c30892d8e9629891ef3cf1da34f904c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We turn this into a flat list of terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we turn the terms into MeSH URIs so we can incorporate them into our SPARQL
+    query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we write a SPARQL query to find all articles that are tagged with ‘Mouth
+    Neoplasms’, its alternative name, ‘Cancer of Mouth,’ or any of the narrower terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The articles returned are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 2 (from above):** *“Myoepithelioma of minor salivary gland origin.
+    Light and electron microscopical study.”*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 4 (from above):** “Feasability study of screening for malignant lesions
+    in the oral cavity targeting tobacco users.”'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 6:** *“Association between expression of embryonic lethal abnormal
+    vision-like protein HuR and cyclooxygenase-2 in oral squamous cell carcinoma.”*
+    This article is about a study to determine whether the presence of a protein called
+    HuR is linked to a higher level of cyclooxygenase-2, which plays a role in cancer
+    development and the spread of cancer cells. Specifically, the study was focused
+    on oral squamous cell carcinoma, a type of mouth cancer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: These results are not dissimilar to what we got from the vector database. Each
+    of these articles is about mouth neoplasms. What is nice about the knowledge graph
+    approach is that we do get explainability — we know exactly why these articles
+    were chosen. Article 2 is tagged with “Gingival Neoplasms”, and “Salivary Gland
+    Neoplasms.” Articles 4 and 6 are both tagged with “Mouth Neoplasms.” Since Article
+    2 is tagged with 2 matching terms from our search terms, it is ranked highest.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarity search using a knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Rather than using a vector space to find similar articles, we can rely on the
+    tags associated with articles. There are different ways of doing similarity using
+    tags, but for this example, I will use a common method: Jaccard Similarity. We
+    will use the gingival article again for comparison across methods.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results are below. Since we are searching on the Gingival article again,
+    that is the most similar article, which is what we would expect. The other results
+    are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 7:** *“Calcific tendinitis of the vastus lateralis muscle. A report
+    of three cases.”* This article is about calcific tendinitis (calcium deposits
+    forming in tendons) in the vastus lateralis muscle (a muscle in the thigh). This
+    has nothing to do with mouth neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Overlapping terms:** Tomography, Aged, Male, Humans, X-Ray computed'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 8:** *“What is the optimal duration of androgen deprivation therapy
+    in prostate cancer patients presenting with prostate specific antigen levels.”*
+    This article is about how long prostate cancer patients should receive a specific
+    treatment (androgen deprivataion therapy). This is about a treatment for cancer
+    (radiotherapy), but not mouth cancer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Overlapping terms:** Radiotherapy, Aged, Male, Humans, Adjuvant'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 9:** *CT scan cerebral hemisphere asymmetries: predictors of recovery
+    from aphasia.* This article is about how differences between the left and right
+    sides of the brain (cerebral hemisphere assymetries) might predict how well someone
+    recovers from aphasia after a stroke.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Overlapping terms:** Tomography, Aged, Male, Humans, X-Ray Computed'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The best part of this method is that, because of the way we are calculating
+    similarity here, we can see WHY the other articles are similar — we see exactly
+    which terms are overlapping i.e. which terms are common on the Gingival article
+    and each of the comparisons.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The downside of explainability is that we can see that these do not seem like
+    the most similar articles, given the previous results. They all have three terms
+    in common (Aged, Male, and Humans) that are probably not nearly as relevant as
+    Treatment Options or Mouth Neoplasms. You could re-calculate using some weight
+    based on the prevalence of the term across the corpus — Term Frequency-Inverse
+    Document Frequency (TF-IDF) — which would probably improve the results. You could
+    also select the tagged terms that are most relevant for you when conducting similarity
+    for more control over the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The biggest downside of using Jaccard similarity on terms in a knowledge graph
+    for calculating similarity is the computational efforts — it took like 30 minutes
+    to run this one calculation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: RAG using a knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We can also do RAG using just the knowledge graph for the retrieval part. We
+    already have a list of articles about mouth neoplasms saved as results from the
+    semantic search above. To implement RAG, we just want to send these articles to
+    an LLM and ask it to summarize the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we combine the titles and abstracts for each of the articles into one
+    big chunk of text called combined_text:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then set up a client so that we can send this text directly to an LLM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we give the context and the prompt to the LLM:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results look as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: The results look good i.e. it is a good summary of the three articles that were
+    returned from the semantic search. The quality of the response from a RAG application
+    using a KG alone is a function of the ability of your KG to retrieve relevant
+    documents. As seen in this example, if your prompt is simple enough, like, “summarize
+    the key information here,” then the hard part is the retrieval (giving the LLM
+    the correct articles as context), not in generating the response.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 3: use a vectorized knowledge graph to test data retrieval'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now we want to combine forces. We will add a URIs to each article in the database
+    and then create a new collection in Weaviate where we vectorize the article name,
+    abstract, the MeSH terms associated with it, as well as the URI. The URI is a
+    unique identifier for the article and a way for us to connect back to the knowledge
+    graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First we add a new column in the data for the URI:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we create a new schema for the new collection with the additional fields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Push that schema to the vector database:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we vectorize the data into the new collection:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Semantic search with a vectorized knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now we can do semantic search over the vector database, just like before, but
+    with more explainability and control over the results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 1:** "Gingival metastasis as first sign of multiorgan dissemination
+    of epithelioid malignant mesothelioma."'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 10:** *"Angiocentric Centrofacial Lymphoma as a Challenging Diagnosis
+    in an Elderly Man."* This article is about how it was challenging to diagnose
+    a man with nasal cancer.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 11:** *"Mandibular pseudocarcinomatous hyperplasia."* This is a very
+    hard article for me to decipher but I believe it is about how pseudocarcinomatous
+    hyperplasia can look like cancer (hence the pseuo in the name), but that is non-cancerous.
+    While it does seem to be about mandibles, it is tagged with the MeSH term “Mouth
+    Neoplasms”.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It is hard to say whether these results are better or worse than the KG or the
+    vector database alone. In theory, the results should be better because the MeSH
+    terms associated with each article are now vectorized alongside the articles.
+    We are not really vectorizing the knowledge graph, however. The relationships
+    between the MeSH terms, for example, are not in the vector database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'What is nice about having the MeSH terms vectorized is that there is some explainability
+    right away — Article 11 is also tagged with Mouth Neoplasms, for example. But
+    what is really cool about having the vector database connected to the knowledge
+    graph is that we can apply any filters we want from the knowledge graph. Remember
+    how we added in date published as a field in the data earlier? We can now filter
+    on that. Suppose we want to find articles about mouth neoplasms published after
+    May 1st, 2020:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The originally query returned ten results (we gave it a max of ten) but only
+    six of these were published after Jan 1st, 2023\. See the results below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ada8d32d499aa914c3251e746b68c4c5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similarity search using a vectorized knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We can run a similarity search on this new collection just like we did before
+    on our gingival article (Article 1):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The results are below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 3:** *"Metastatic neuroblastoma in the mandible. Report of a case."*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 4:** *“Feasability study of screening for malignant lesions in the
+    oral cavity targeting tobacco users.”*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 12:** *“Diffuse intrapulmonary malignant mesothelioma masquerading
+    as interstitial lung disease: a distinctive variant of mesothelioma.*” This article
+    is about five male patients with a form of mesothelioma that looks a lot like
+    another lung disease: interstitial lung disease.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Since we have the MeSH tagged vectorized, we can see the tags associated with
+    each article. Some of them, while perhaps similar in some respects, are not about
+    mouth neoplasms. Suppose we want to find articles similar to our gingival article,
+    but specifically about mouth neoplasms. We can now combine the SPARQL filtering
+    we did with the knowledge graph earlier on these results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The MeSH URIs for the synonyms and narrower concepts of Mouth Neoplasms is
+    already saved, but do need the URIs for the 50 articles returned by the vector
+    search:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can rank the results based on the tags, just like we did before for semantic
+    search using a knowledge graph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Of the 50 articles originally returned by the vector database, only five of
+    them are tagged with Mouth Neoplasms or a related concept.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 2:** *“Myoepithelioma of minor salivary gland origin. Light and electron
+    microscopical study.”* Tagged with: Gingival Neoplasms, Salivary Gland Neoplasms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 4:** *“Feasability study of screening for malignant lesions in the
+    oral cavity targeting tobacco users.”* Tagged with: Mouth Neoplasms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 13:** *“Epidermoid carcinoma originating from the gingival sulcus.”*
+    This article describes a case of gum cancer (gingival neoplasms). Tagged with:
+    Gingival Neoplasms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 1: *“****Gingival metastasis as first sign of multiorgan dissemination
+    of epithelioid malignant mesothelioma.”* Tagged with: Gingival Neoplasms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 14:** *“Metastases to the parotid nodes: CT and MR imaging findings.”*
+    This article is about neoplasms in the parotid glands, major salivary glands.
+    Tagged with: Parotid Neoplasms'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Finally, suppose we want to serve these similar articles to a user as a recommendation,
+    but we only want to recommend the articles that that user has access to. Suppose
+    we know that this user can only access articles tagged with access levels 3, 5,
+    and 7\. We can apply a filter in our knowledge graph using a similar SPARQL query:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There was one article that the user did not have access to. The four remaining
+    articles are:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 2:** *“Myoepithelioma of minor salivary gland origin. Light and electron
+    microscopical study.”* Tagged with: Gingival Neoplasms, Salivary Gland Neoplasms.
+    Access level: 5'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 4:** *“Feasability study of screening for malignant lesions in the
+    oral cavity targeting tobacco users.”* Tagged with: Mouth Neoplasms. Access level:
+    7'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 1: *“****Gingival metastasis as first sign of multiorgan dissemination
+    of epithelioid malignant mesothelioma.”* Tagged with: Gingival Neoplasms. Access
+    level: 3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 14:** *“Metastases to the parotid nodes: CT and MR imaging findings.”*
+    This article is about neoplasms in the parotid glands, major salivary glands.
+    Tagged with: Parotid Neoplasms. Access level: 3'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: RAG with a vectorized knowledge graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Finally, let’s see how RAG works once we combine a vector database with a knowledge
+    graph. As a reminder, you can run RAG directly against the vector database and
+    send it to an LLM to get a generated response:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'In this example, I am using the search term, ‘therapies for mouth neoplasms,’
+    with the same prompt, ‘Summarize the key information here in bullet points. Make
+    it understandable to someone without a medical degree.’ We are only returning
+    the top three articles to generate this response. Here are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'As a test, we can see exactly which three articles were chosen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: Interestingly, the first article is about gingival neoplasms, which is a subset
+    of mouth neoplasms, but the second article is about rectal cancer, and the third
+    is about nasopharyngeal cancer. They are about therapies for cancers, just not
+    the kind of cancer I searched for. What is concerning is that the prompt was,
+    “therapies for mouth neoplasms” and the results contain information about therapies
+    for other kinds of cancer. This is what is sometimes called ‘context poisoning’
+    — irrelevant or misleading information is getting injected into the prompt which
+    leads to misleading responses from the LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can use the KG to address the context poisoning. Here is a diagram of how
+    the vector database and the KG can work together for a better RAG implementation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0d64f10c44a2ffa30daa4a207c094e12.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First, we run a semantic search on the vector database using the same prompt:
+    therapies for mouth cancer. I’ve upped the limit to 20 articles this time since
+    we are going to filter some out.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next we use the same sorting technique as before, using the Mouth Neoplasms
+    related concepts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'There are only three articles that are tagged with one of the Mouth Neoplasms
+    terms:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Article 4:** *“Feasability study of screening for malignant lesions in the
+    oral cavity targeting tobacco users.”* Tagged with: Mouth Neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 15:** *“Photofrin-mediated photodynamic therapy of chemically-induced
+    premalignant lesions and squamous cell carcinoma of the palatal mucosa in rats.”*
+    This article is about an experimental cancer therapy (photodynamic therapy) for
+    palatal cancer tested on rats. Tagged with: Palatal Neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Article 1:** *“Gingival metastasis as first sign of multiorgan dissemination
+    of epithelioid malignant mesothelioma.”* Tagged with: Gingival Neoplasms.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Let’s send these to the LLM to see if the results improve:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: We can definitely see an improvement — these results are not about rectal cancer
+    or nasopharyngeal neoplasms. This looks like a relatively accurate summary of
+    the three articles selected, which are about therapies for mouth neoplasms
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Overall, vector databases are great at getting search, similarity (recommendation),
+    and RAG applications up and running quickly. There is little overhead required.
+    If you have unstructured data associated with your structured data, like in this
+    example of journal articles, it can work well. This would not work nearly as well
+    if we didn’t have article abstracts as part of the dataset, for example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: KGs are great for accuracy and control. If you want to be sure that the data
+    going into your search application is ‘right,’ and by ‘right’ I mean whatever
+    you decide based on your needs, then a KG is going to be needed. KGs can work
+    well for search and similarity, but the degree to which they will meet your needs
+    will depend on the richness of your metadata, and the quality of the tagging.
+    Quality of tagging might also mean different things depending on your use case
+    — the way you build and apply a taxonomy to content might look different if you’re
+    building a recommendation engine rather than a search engine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using a KG to filter results from a vector database leads to the best results.
+    This is not surprising — I am using the KG to filter out irrelevant or misleading
+    results **as determined by me**, so of course the results are better, according
+    to me. But that’s the point: it’s not that the KG necessarily improves results
+    by itself, it’s that the KG provides you the ability to control the output to
+    optimize your results.'
+  prefs: []
+  type: TYPE_NORMAL

@@ -1,0 +1,797 @@
+- en: Leverage KeyBERT, HDBSCAN and Zephyr-7B-Beta to Build a Knowledge Graph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b?source=collection_archive---------0-----------------------#2024-01-07](https://towardsdatascience.com/leverage-keybert-hdbscan-and-zephyr-7b-beta-to-build-a-knowledge-graph-33d7534ee01b?source=collection_archive---------0-----------------------#2024-01-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*LLM-enhanced natural language processing and traditional machine learning
+    techniques are used to extract structure and to build a knowledge graph from unstructured
+    corpus.*'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@silviaonofrei?source=post_page---byline--33d7534ee01b--------------------------------)[![Silvia
+    Onofrei](../Images/198b04b2063b4269eaff52402dc5f8d5.png)](https://medium.com/@silviaonofrei?source=post_page---byline--33d7534ee01b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--33d7534ee01b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--33d7534ee01b--------------------------------)
+    [Silvia Onofrei](https://medium.com/@silviaonofrei?source=post_page---byline--33d7534ee01b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--33d7534ee01b--------------------------------)
+    ·19 min read·Jan 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f81dc37979040a1df7f80c88c9bfba77.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Designed by Freepik](https://www.freepik.com/)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: While the Large Language Models (LLMs) are useful and skilled tools, relying
+    entirely on their output is not always advisable as they often require verification
+    and grounding. However, merging traditional NLP methods with the capabilities
+    of generative AI typically yields satisfactory results. An excellent example of
+    this synergy is the enhancement of KeyBERT with KeyLLM for keyword extraction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog, I intend to explore the efficacy of combining traditional NLP
+    and machine learning techniques with the versatility of LLMs. This exploration
+    includes integrating simple keyword extraction using KeyBERT, sentence embeddings
+    with BERT, and employing UMAP for dimensionality reduction coupled with HDBSCAN
+    for clustering. All these are used in conjunction with Zephyr-7B-Beta, a highly
+    performant LLM. The findings are uploaded into a knowledge graph for enhanced
+    analysis and discovery.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My goal is to develop structure on a corpus of unstructured arXiv article titles
+    in computer science. I selected these articles based on abstract length, not expecting
+    inherent topics clusters. Indeed, a preliminary community analysis revealed nearly
+    as many clusters as articles. Consequently, I’m exploring a different approach
+    to linking these titles. Despite lacking clear communities, the titles often share
+    common words. By extracting and clustering these keywords, I aim to uncover underlying
+    connections between the titles, offering a versatile strategy for structuring
+    the dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To simplify and enhance data exploration, I upload my results in a Neo4j knowledge
+    graph. Here’s a snapshot of the output:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/96e2d0b9ac4a38c4edcf1392d6108b9f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'The two purple nodes represent the titles: “Cores of Countably Categorical
+    Structures” (left) and “Transforming Structures by Set Interpretations” (right).
+    They are linked by the common theme of “Mathematical Logic” (tan node) via the
+    keyword “structures”. — Image by author —'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Outlined below are the project’s steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c16d1bc3d9daa4b48d465d17360fc24e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: — Diagram by author —
+  prefs: []
+  type: TYPE_NORMAL
+- en: Collect and parse the dataset, focusing on titles while retaining the abstracts
+    for context.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Employ KeyBERT to extract candidate keywords, which are then refined using KeyLLM,
+    based on Zephyr-7B-Beta, to generate a list of enhanced keywords and keyphrases.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Gather all extracted keywords and keyphrases and cluster them using HDBSCAN.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Use Zephyr-7B-Beta again, to derive labels and descriptions for each cluster.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Combine these elements in a knowledge graph whith nodes representing Articles,
+    Keywords and (cluster) Topics.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s important to note that each step in this process offers the flexibility
+    to experiment with alternative methods, algorithms, or models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The work is done in a Google Colab Pro with a V100 GPU and High RAM setting
+    for the steps involving LLM. The notebook is divided into self-contained sections,
+    most of which can be executed independently, minimizing dependency on previous
+    steps. Data is saved after each section, allowing continuation in a new session
+    if needed. Additionally, the parsed dataset and the Python modules, are readily
+    available in this [Github repository.](https://github.com/SolanaO/Blogs_Content/tree/master/keyllm_neo4j)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data Preparation
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I use a subset of the [arXiv Dataset](https://www.kaggle.com/datasets/Cornell-University/arxiv)
+    that is openly available on the Kaggle platform and primarly maintained by Cornell
+    University. In a machine readable format, it contains a repository of 1.7 million
+    scholarly papers across STEM, with relevant features such as article titles, authors,
+    categories, abstracts, full text PDFs, and more. It is updated regularly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset is clean and in an easy to use format, so we can focus on our task,
+    without spending too much time on data preprocessing. To further simplify the
+    data preparation process, I built a Python module that performs the relevant steps.
+    It can be found at `[utils/arxiv_parser.py](https://github.com/SolanaO/Blogs_Content/blob/master/keyllm_neo4j/utils/arxiv_parser.py)`
+    if you want to take a peek at the code, otherwise follow along the Google Colab:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: download the zipped arXiv file (1.2 GB) in the directory of your choice which
+    is labelled `data_path`,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: download the `arxiv_parser.py` in the directory `utils`,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: import and initialize the module in your Google Colab notebook,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'unzip the file, this will extract a 3.7 GB file: `archive-metadata-oai-snapshot.json`,'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: specify a general topic (I work with `cs` which stands for computer science),
+    so you’ll have a more maneagable size data,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: choose the features to keep (there are 14 features in the downloaded dataset),
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the abstracts can vary in length quite a bit, so I added the option of selecting
+    entries for which the number of tokens in the abstract is in a given interval
+    and used this feature to downsize the dataset,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: although I choose to work with the `title` feature, there is an option to take
+    the more common approach of concatenating the title and the abstact in a single
+    feature denoted `corpus` .
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: With the options above I extract a dataset of 983 computer science articles.
+    We are ready to move to the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you want to skip the data processing steps, you may use the `cs` dataset,
+    available in the Github repository.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Keyword Extraction with KeyBERT and KeyLLM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The Method
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[KeyBERT](https://maartengr.github.io/KeyBERT/guides/quickstart.html) is a
+    method that extracts keywords or keyphrases from text. It uses document and word
+    embeddings to find the sub-phrases that are most similar to the document, via
+    cosine similarity. KeyLLM is another minimal method for keyword extraction but
+    it is based on LLMs. Both methods are developed and maintained by Maarten Grootendorst.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The two methods can be combined for enhanced results. Keywords extracted with
+    KeyBERT are fine-tuned through KeyLLM. Conversely, candidate keywords identified
+    through traditional NLP techniques help grounding the LLM, minimizing the generation
+    of undesired outputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For details on different ways of using KeyLLM see [Maarten Grootendorst, Introducing
+    KeyLLM — Keyword Extraction with LLMs](/introducing-keyllm-keyword-extraction-with-llms-39924b504813).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f59f1b8d7f5ad0fadf9cd40a15394682.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: — Diagram by author —
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Use KeyBERT [[source](https://github.com/MaartenGr/KeyBERT/blob/master/keybert/_model.py)]
+    to extract keywords from each document — these are the candidate keywords provided
+    to LLM to fine-tune:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: documents are embedded using Sentence Transformers to build a document level
+    representation,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: word embeddings are extracted for N-grams words/phrases,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: cosine similarity is used to find the words or phrases that are most similar
+    to each document.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Use KeyLLM [[source](https://github.com/MaartenGr/KeyBERT/blob/master/keybert/_llm.py)]
+    to finetune the kewords extracted by KeyBERT via text generation with transformers
+    [[source](https://github.com/MaartenGr/KeyBERT/blob/master/keybert/llm/_textgeneration.py)]:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the community detection method in Sentence Transformers [[source](https://github.com/UKPLab/sentence-transformers/blob/master/sentence_transformers/util.py)]
+    groups the similar documents, so we will extract keywords only from one document
+    in each group,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the candidate keywords are provided the LLM which fine-tunes the keywords for
+    each cluster.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Besides Sentence Transformers, KeyBERT supports other embedding models, see
+    [[here](https://maartengr.github.io/KeyBERT/guides/embeddings.html)].
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Sentence Transformers facilitate community detection by using a specified threshold.
+    When documents lack inherent clusters, clear groupings may not emerge. In my case,
+    out of 983 titles, approximately 800 distinct communities were identified. More
+    naturally clustered data tends to yield better-defined communities.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The Large Language Model
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'After experimting with various smaller LLMs, I choose [Zephyr-7B-Beta](https://arxiv.org/pdf/2310.16944.pdf)
+    for this project. This model is based on [Mistral-7B](https://mistral.ai/news/announcing-mistral-7b/),
+    and it is one of the first models fine-tuned with Direct Preference Optimization
+    (DPO). It not only outperforms other models in its class but also surpasses Llama2–70B
+    on some benchmarks. For more insights on this LLM take a look at [Benjamin Marie,
+    Zephyr 7B Beta: A Good Teacher is All You Need](/zephyr-7b-beta-a-good-teacher-is-all-you-need-c931fcd0bfe7).
+    Although it’s feasible to use the model directly on a Google Colab Pro, I opted
+    to work with a GPTQ quantized version prepared by [TheBloke](https://huggingface.co/TheBloke).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start by downloading the model and its tokenizer following the instructions
+    provided in the [model card:](https://huggingface.co/TheBloke/zephyr-7B-beta-GPTQ)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Additionally, build the text generation pipeline:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: The Keyword Extraction Prompt
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Experimentation is key in this step. Finding the optimal prompt requires some
+    trial and error, and the performance depends on the chosen model. Let’s not forget
+    that LLMs are probabilistic, so it is not guaranteed that they will return the
+    same output every time. To develop the prompt below, I relied on both experimentation
+    and the following considerations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'the prompt template provided in the [model card](https://huggingface.co/TheBloke/zephyr-7B-beta-GPTQ):'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: the suggestions from the [KeyLLM blogpost](https://medium.com/towards-data-science/introducing-keyllm-keyword-extraction-with-llms-39924b504813)
+    and from the [documentation](https://maartengr.github.io/KeyBERT/guides/keyllm.html#2-extract-keywords-with-keyllm),
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: some experimentation with ChatGPT and KeyBERT to build an example,
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: the [code for text_generation wrapper for KeyLLM](https://github.com/MaartenGr/KeyBERT/blob/master/keybert/llm/_textgeneration.py).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'And here is the prompt I use to fine-tune the keywords extracted with KeyBERT:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Keyword Extraction and Parsing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We now have everything needed to proceed with the keyword extraction. Let me
+    remind you, that I work with the titles, so the input documents are short, staying
+    well within the token limits for the BERT embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Start with creating a [TextGeneration pipeline wrapper](https://github.com/MaartenGr/KeyBERT/blob/master/keybert/llm/_textgeneration.py)
+    for the LLM and instantiate [KeyBERT](https://github.com/MaartenGr/KeyBERT/blob/master/keybert/_model.py).
+    Choose the embedding model. If no embedding model is specified, the default model
+    is `all-MiniLM-L6-v2`. In this case, I select the highest-performant pretrained
+    model for sentence embeddings, see [here](https://www.sbert.net/docs/pretrained_models.html)
+    for a complete list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Recall that the dataset was prepared and saved as a pandas dataframe `df`.
+    To process the titles, just call the `extract_keywords` method:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `threshold` parameter determines the minimum similarity required for documents
+    to be grouped into the same community. A higher value will group nearly identical
+    documents, while a lower value will cluster documents covering similar topics.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The choice of embeddings significantly influences the appropriate threshold,
+    so it’s advisable to consult the model card for guidance. I’m grateful to Maarten
+    Grootendorst for highlighting this aspect, as can be seen [here](https://github.com/MaartenGr/KeyBERT/issues/190).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: It’s important to note that my observations apply exclusively to sentence transformers,
+    as I haven’t experimented with other types of embeddings.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Let’s take a look at some outputs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c770ad00ee29463c4e22dd7621eb95fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**Comments**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the second example provided here, we observe keywords or keyphrases not present
+    in the original text. If this poses a problem in your case, consider enabling
+    `check_vocab=True` as done [[here](https://maartengr.github.io/KeyBERT/guides/keyllm.html#2-extract-keywords-with-keyllm)].
+    However, it's important to remember that these results are highly influenced by
+    the LLM choice, with quantization having a minor effect, as well as the construction
+    of the prompt.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: With longer input documents, I noticed more deviations from the required output.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'One consistent observation is that the number of keywords extracted often deviates
+    from five. It’s common to encounter titles with fewer extracted keywords, especially
+    when the input is brief. Conversely, some titles yield as many as 10 extracted
+    keywords. Let’s examine the distribution of keyword counts for this run:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '![](../Images/77b2a23d02c46e836763d01129a71041.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'These variations complicate the subsequent parsing steps. There are a few options
+    for addressing this: we could investigate these cases in detail, request the model
+    to revise and either trim or reiterate the keywords, or simply overlook these
+    instances and focus solely on titles with exactly five keywords, as I’ve decided
+    to do for this project.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Clustering Keywords with HDBSCAN
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The following step is to cluster the keywords and keyphrases to reveal common
+    topics across articles. To accomplish this I use two algorithms: UMAP for dimensionality
+    reduction and HDBSCAN for clustering.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Algorithms: HDBSCAN and UMAP'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[Hierarchical Density-Based Spatial Clustering of Applications with Noise](https://hdbscan.readthedocs.io/en/latest/basic_hdbscan.html#)
+    or **HDBSCAN**, is a highly performant unsupervised algorithm designed to find
+    patterns in the data. It finds the optimal clusters based on their density and
+    proximity. This is especially useful in cases where the number and shape of the
+    clusters may be unknown or difficult to determine.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The results of HDBSCAN clustering algorithm can vary if you run the algorithm
+    multiple times with the same hyperparameters. This is because HDBSCAN is a stochastic
+    algorithm, which means that it involves some degree of randomness in the clustering
+    process. Specifically, HDBSCAN uses a random initialization of the cluster hierarchy,
+    which can result in different cluster assignments each time the algorithm is run.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, the degree of variation between different runs of the algorithm can
+    depend on several factors, such as the dataset, the hyperparameters, and the seed
+    value used for the random number generator. In some cases, the variation may be
+    minimal, while in other cases it can be significant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are two clustering options with HDBSCAN.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primary clustering algorithm, denoted `hard_clustering` assigns each data
+    point to a cluster or labels it as noise. This is a hard assignment; there are
+    no mixed memberships. This approach might result in one large cluster categorized
+    as noise (cluster labelled -1) and numerous smaller clusters. Fine-tuning the
+    hyperparameters is crucial [[see here](https://hdbscan.readthedocs.io/en/latest/faq.html)],
+    as it is selecting an embedding model specifically tailored for the domain. Take
+    a look at the associated [Google Colab](https://github.com/SolanaO/Blogs_Content/blob/master/keyllm_neo4j/KeyBERT_LLM_Neo4j.ipynb)
+    for the results of hard clustering on the project’s dataset.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Soft clustering` on the other side is a newer feature of the HDBSCAN library.
+    In this approach points are not assigned cluster labels, but instead they are
+    assigned a vector of probabilities. The length of the vector is equal to the number
+    of clusters found. The probability value at the entry of the vector is the probability
+    the point is a member of the the cluster. This allows points to potentially be
+    a mix of clusters. If you want to better understand how soft clustering works
+    please refer to [How Soft Clustering for HDBSCAN Works](https://hdbscan.readthedocs.io/en/latest/soft_clustering_explanation.html).
+    This approach is better suited for the present project, as it generates a larger
+    set of rather similar sizes clusters.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: While HDBSCAN can perform well on low to medium dimensional data, the performance
+    tends to decrease significantly as dimension increases. In general HDBSCAN performs
+    best on up to around 50 dimensional data, [[see here](https://hdbscan.readthedocs.io/en/latest/faq.html)].
+  prefs: []
+  type: TYPE_NORMAL
+- en: Documents for clustering are typically embedded using an efficient transformer
+    from the BERT family, resulting in a several hundred dimensions data set.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To reduce the dimension of the embeddings vectors we use **UMAP** ([Uniform
+    Manifold Approximation and Projection)](https://umap-learn.readthedocs.io/en/latest/basic_usage.html),
+    a non-linear dimension reduction algorithm and the best performing in its class.
+    It seeks to learn the manifold structure of the data and to find a low dimensional
+    embedding that preserves the essential topological structure of that manifold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: UMAP has been shown to be highly effective at preserving the overall structure
+    of high-dimensional data in lower dimensions, while also providing superior performance
+    to other popular algorithms like t-SNE and PCA.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Keyword Clustering
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Install and import the required packages and libraries.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Prepare the dataset by aggregating all keywords and keyphrases from each title’s
+    individual quintet into a single list of unique keywords and save it as a pandas
+    dataframe.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'I obtain almost 3000 unique keywords and keyphrases from the 884 processed
+    titles. Here is a sample: n-colorable graphs, experiments, constraints, tree structure,
+    complexity, etc.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate 768-dimensional embeddings with Sentence Transformers.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Perform dimensionality reduction with UMAP.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Cluster the 10-dimensional vectors with HDBSCAN. To keep this blog succinct,
+    I will omit descriptions of the parameters that pertain more to hard clustering.
+    For detailed information on each parameter, please refer to [[Parameter Selection
+    for HDBSCAN*](https://hdbscan.readthedocs.io/en/latest/parameter_selection.html)].
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Below is the distribution of keywords across clusters. Examination of the spread
+    of keywords and keyphrases into soft clusters reveals a total of 60 clusters,
+    with a fairly even distribution of elements per cluster, varying from about 20
+    to nearly 100.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/07b5e9852a75b59e177d37efc1149ad4.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Extract Cluster Descriptions and Labels
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Having clustered the keywords, we are now ready to employ GenAI once more to
+    enhance and refine our findings. At this step, we will use a LLM to analyze each
+    cluster, summarize the keywords and keyphrases while assigning a brief label to
+    the cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While it’s not necessary, I choose to continue with the same LLM, Zephyr-7B-Beta.
+    Should you require downloading the model, please consult the relevant section.
+    Notably, I will adjust the prompt to suit the distinct nature of this task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The following function is designed to extract a label and a description for
+    a cluster, parse the output and integrate it into a pandas dataframe.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now we can apply the above function to each cluster and collect the results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s take a look at a sample of outputs. For complete list of outputs please
+    refer to the [Google Colab](https://github.com/SolanaO/Blogs_Content/blob/master/keyllm_neo4j/KeyBERT_LLM_Neo4j.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bd5b0a43c213efe4df24d1d6b122cb5f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We must remember that LLMs, with their inherent probabilistic nature, can be
+    unpredictable. While they generally adhere to instructions, their compliance is
+    not absolute. Even slight alterations in the prompt or the input text can lead
+    to substantial differences in the output. In the `extract_description()` function,
+    I''ve incorporated a feature to log the *response* in both *label* and *description*
+    columns in those cases where the *Label: Description* format is not followed,
+    as illustrated by the irregular output for cluster 7 above. The outputs for the
+    entire set of 60 clusters are available in the accompanying [Google Colab](https://github.com/SolanaO/Blogs_Content/blob/master/keyllm_neo4j/KeyBERT_LLM_Neo4j.ipynb)
+    notebook.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A second observation, is that each cluster is parsed independently by the LLM
+    and it is possible to get repeated labels. Additionally, there may be instances
+    of recurring keywords extracted from the input list.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The effectiveness of the process is highly reliant on the choice of the LLM
+    and issues are minimal with a highly performant LLM. The output also depends on
+    the quality of the keyword clustering and the presence of an inherent topic within
+    the cluster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Strategies to mitigate these challenges depend on the cluster count, dataset
+    characteristics and the required accuracy for the project. Here are two options:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Manually rectify each issue, as I did in this project. With only 60 clusters
+    and merely three erroneous outputs, manual adjustments were made to correct the
+    faulty outputs and to ensure unique labels for each cluster.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Employ an LLM to make the corrections, although this method does not guarantee
+    flawless results.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Build the Knowledge Graph
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Data to Upload into the Graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: There are two csv files (or pandas dataframes if working in a single session)
+    to extract the data from.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`articles` - it contains unique `id` for each article, `title` , `abstract`
+    and `titles_keys` which is the list of five extracted keywords or keyphrases;'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`keywords` - with columns `key` , `cluster` , `description` and `label` , where
+    `key` contains a complete list of unique keywords or keyphrases, and the remaining
+    features describe the cluster the keyword belongs to.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Neo4j Connection
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To build a knowledge graph, we start with setting up a Neo4j instance, choosing
+    from options like Sandbox, AuraDB, or Neo4j Desktop. For this project, I’m using
+    AuraDB’s free version. It is straightforward to launch a blank instance and download
+    its credentials.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, establish a connection to Neo4j. For convenience, I use a custom Python
+    module, which can be found at `[utils/neo4j_conn.py](<https://github.com/SolanaO/Blogs_Content/blob/master/keyllm_neo4j/utils/neo4j_conn.py>)`
+    . This module contains methods for connecting and interacting with the graph database.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The graph we are about to build has a simple schema consisting of three nodes
+    and two relationships:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71d425143be8fb32291f099340ec6c1e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: — Image by author —
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Building the graph now is straightforward with just two Cypher queries:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Query the Graph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s check the distribution of the nodes and relationships on types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/01877831cc27975b9ded0373be022c78.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We can find what individual topics (or clusters) are the most popular among
+    our collection of articles, by counting the cumulative number of articles associated
+    to the keywords they are connected to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cb582327dfffc75475762e64f9ecad96.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here is a snapshot of the node `Semantics` that corresponds to cluster 58 and
+    its connected keywords:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/42523efd9df95b35eb5d9ef5c4743273.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: — Image by author —
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also identify commonly occurring works in titles, using the query below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0fe0b27744cbcc18c6df860cf2221184.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We saw how we can structure and enrich a collection of semingly unrelated short
+    text entries. Using traditional NLP and machine learning, we first extract keywords
+    and then we cluster them. These results guide and ground the refinement process
+    performed by Zephyr-7B-Beta. While some oversight of the LLM is still neccessary,
+    the initial output is significantly enriched. A knowledge graph is used to reveal
+    the newly discovered connections in the corpus.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our key takeaway is that no single method is perfect. However, by strategically
+    combining different techniques, acknowledging their strenghts and weaknesses,
+    we can achieve superior results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '**Google Colab Notebook and Code**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Link to associated Github Repo.](https://github.com/SolanaO/Blogs_Content/tree/master/keyllm_neo4j)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Data**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Repository of scholary articles: [arXiv Dataset](https://www.kaggle.com/datasets/Cornell-University/arxiv)
+    that has [CC0: Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)
+    license.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Technical Documentation**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[KeyBERT and KeyLLM](https://maartengr.github.io/KeyBERT/guides/quickstart.html)
+    — repository pages.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[HDBSCAN](https://hdbscan.readthedocs.io/en/latest/basic_hdbscan.html#) — documentation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[UMAP](https://umap-learn.readthedocs.io/en/latest/) — documentation.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Blogs and Articles**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Maarten Grootendorst, Introducing KeyLLM — Keyword Extraction with LLMs](/introducing-keyllm-keyword-extraction-with-llms-39924b504813),
+    Towards Data Science, Oct 5, 2023.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Benjamin Marie, Zephyr 7B Beta: A Good Teacher Is All You Need](/zephyr-7b-beta-a-good-teacher-is-all-you-need-c931fcd0bfe7),
+    Towards Data Science, Nov 10, 2023.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The H4 Team, Zephyr: Direct Distillation of LM Alignment, Technical Report,
+    [arXiv: 2310.16944](https://arxiv.org/pdf/2310.16944.pdf), Oct 25, 2023.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL

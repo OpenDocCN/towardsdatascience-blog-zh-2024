@@ -1,0 +1,495 @@
+- en: Is Less More? Do Deep Learning Forecasting Models Need Feature Reduction?
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/is-less-more-do-deep-learning-forecasting-models-need-feature-reduction-25d8968ac15c?source=collection_archive---------7-----------------------#2024-09-30](https://towardsdatascience.com/is-less-more-do-deep-learning-forecasting-models-need-feature-reduction-25d8968ac15c?source=collection_archive---------7-----------------------#2024-09-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: To curate, or not to curate, that is the question
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)[![Philippe
+    Ostiguy, M. Sc.](../Images/8b292bc1baa848a0c5de821dc9576534.png)](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------)
+    [Philippe Ostiguy, M. Sc.](https://ostiguyphilippe.medium.com/?source=post_page---byline--25d8968ac15c--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--25d8968ac15c--------------------------------)
+    ·12 min read·Sep 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d06437fd932d3128b235a26000f217c7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: AI image created on MidJourney V6.1 by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Time series forecasting is a powerful tool in data science, offering insights
+    into future trends based on historical patterns. In our previous article, we explored
+    [how making your time series stationary automatically](https://levelup.gitconnected.com/want-to-decrease-your-models-prediction-errors-by-20-follow-this-simple-trick-97354102098e)
+    can significantly enhance model performance. But stationarity is just one piece
+    of the puzzle. As we continue to refine our forecasting models, another crucial
+    question arises: how do we handle the multitude of features our data may present?'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As you work with time series data, you’ll often find yourself with many potential
+    features to include in your model. While it’s tempting to use all available data,
+    adding more features isn’t always better. It can make your model more complex
+    and slower to train, without necessarily improving its performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'You might be wondering: is it important to simplify the feature set and what
+    are the techniques available out there? That’s exactly what we’ll discuss in this
+    article.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s a quick summary of what will be covered:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Feature reduction in time series** — *We’ll explain the concept of feature
+    reduction in time series analysis and why it matters.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Practical implementation guide** — *Using Python, we’ll walk through evaluating
+    and selecting features for your time series model, providing hands-on tools to
+    optimize your approach. We’ll also assess whether trimming down features is necessary
+    for our forecasting models.*'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Once you’re familiar with techniques like stationarity and feature reduction
+    as explained in this article, and you’re looking to elevate your models even further?
+    Check out this article on [using a custom validation loss](https://medium.com/@ostiguyphilippe/enhancing-deep-learning-model-evaluation-for-stock-market-forecasting-bea30b905b80)
+    in your deep learning model to get better stock forecasts — it’s a great next
+    step!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Feature reduction in time series : a simple explanation'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Feature reduction is like cleaning up your workspace to make it easier to find
+    what you need. In time series analysis, it means cutting down the number of input
+    variables (features) that your model uses to make predictions. The goal is to
+    simplify the model while retaining its predictive power. This is important because
+    too many and correlated features can make your model complicated, slow, and less
+    accurate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Specifically, simplifying the feature set can :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Reduced complexity:** Fewer features means a simpler model, which is often
+    faster to train and use.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Improved generalization**: By removing noise, eliminating correlated features
+    and focusing on key information, it helps the model to learn the true underlying
+    patterns rather than memorizing redundant information. This enhances the model’s
+    ability to generalize its predictions to different datasets.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Easier interpretation**: A model with fewer features is often easier for
+    humans to understand and explain.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Computational efficiency**: Fewer features requires less memory and processing
+    power, which can be crucial for large datasets or real-time applications.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: It’s also important to note that most time series packages in Python for forecasting
+    don’t perform feature reduction automatically. This is a step you typically need
+    to handle on your own before using these packages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To better understand these concepts, let’s walk through a practical example
+    using real-world daily data from the Federal Reserve Economic Data (FRED) database.
+    We’ll skip the data retrieval process here, as we’ve already covered how to get
+    free and reliable data from the FRED API in a [previous article](https://levelup.gitconnected.com/get-free-and-reliable-financial-market-data-machine-learning-ready-246e59b00cea).
+    You can get the data we’ll be using [this script](https://github.com/philippe-ostiguy/free-fin-data).
+    Once you’ve fetched the data :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Create a`data` directory in your current directory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Copy the data in your directory
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that we have our data, let’s dive into our feature reduction example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ve previously demonstrated how to clean the daily data fetched from the FRED
+    API in [another article](https://levelup.gitconnected.com/get-free-and-reliable-financial-market-data-machine-learning-ready-246e59b00cea),
+    so we’ll skip that process here and use the `processed_dataframes`(list of dataframes)
+    that resulted from the steps outlined in that article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: You might be wondering why we’ve divided our data into training and testing
+    sets? The reason is to ensure that there is no data leakage before applying any
+    transformation or reduction technique.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`initial_model_data` contains the S&P 500 daily prices (stored originally `processed_dataframes`),
+    which will be the data we’ll be trying to forecast.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, we need to ensure our data is stationary. For a detailed explanation on
+    how to automatically make your data stationary and improve your model by 20%,
+    refer to [this article](https://levelup.gitconnected.com/want-to-decrease-your-models-prediction-errors-by-20-follow-this-simple-trick-97354102098e).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we will count the number of variables that have at least a 95% correlation
+    coefficient with another variable.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/3e88d562d5f155546e490822fecc2ca8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Number of variables highly correlated. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Having 260 out of 438 variables that have a correlation of 95% or more with
+    at least another variable can be an issue. It indicates significant multicollinearity
+    in the dataset. This redundancy can lead to several issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: It complicates the model without adding substantial new information
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Potentially causes instability in coefficient estimates
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Increases the risk of overfitting
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Makes interpretation of individual variable impacts challenging
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Feature evaluation and selection
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We understand that feature reduction can be important, but how do we perform
+    it? Which techniques should we use? These are the questions we’ll explore now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first technique we’ll examine is Principal Component Analysis (PCA). It’s
+    a common and an effective dimensionality reduction technique. PCA identifies linear
+    relationships between features and retains the principal components that explain
+    a predetermined percentage of the variance in the original dataset. In our use
+    case, we’ve set the `EXPLAINED_VARIANCE` threshold to 90%.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/5544416f6efe78886454deea283a782d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Feature reduction using Principal Component Analysis. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s an impressive: only 76 components out of 438 features remaining after
+    the reduction while keeping 90% of the variance explained! Now let’s move to a
+    non-linear reduction technique.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The [Temporal Fusion Transformers (TFT)](https://arxiv.org/pdf/1912.09363.pdf)
+    is an advanced model for time series forecasting. It includes the Variable Selection
+    Network (VSN), which is a key component of the model. It’s specifically designed
+    to automatically identify and focus on the most relevant features within a dataset.
+    It achieves this by assigning learned weights to each input variable, effectively
+    highlighting which features contribute most to the predictive task.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This VSN-based approach will be our second reduction technique. We’ll implement
+    it using [PyTorch Forecasting](https://pytorch-forecasting.readthedocs.io/en/stable/),
+    which allows us to leverage the Variable Selection Network from the TFT model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll use a basic configuration. Our goal isn’t to create the highest-performing
+    model possible, but rather to identify the most relevant features while using
+    minimal resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `VARIABLES_IMPORTANCE` threshold is set to 0.8, which means we'll retain
+    features in the top 80th percentile of importance as determined by the Variable
+    Selection Network (VSN). For more information about the Temporal Fusion Transformers
+    (TFT) and its parameters, please refer to the [documentation](https://pytorch-forecasting.readthedocs.io/en/stable/api/pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer.html#pytorch_forecasting.models.temporal_fusion_transformer.TemporalFusionTransformer).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we’ll train the TFT model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: We intentionally set `max_epochs=20` so the model doesn’t train too long. Additionally,
+    we implemented an `early_stop_callback` that halts training if the model shows
+    no improvement for 5 consecutive epochs (`patience=5`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, using the best model obtained, we select the 80th percentile of the
+    most important features as determined by the VSN.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/752a7a4f43f1726c1de6b2236a68e5c7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Feature reduction using Variable Selection Network. Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The original dataset contained 438 features, which were then reduced to 1 feature
+    only after applying the VSN method! This drastic reduction suggests several possibilities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many of the original features may have been redundant.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The feature selection process may have oversimplified the data.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Using only the target variable’s historical values (autoregressive approach)
+    might perform as well as, or possibly better than, models incorporating exogenous
+    variables.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Evaluating feature reduction techniques
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this final section, we compare out reduction techniques applied to our model.
+    Each method is tested while maintaining identical model configurations, varying
+    only the features subjected to reduction.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We’ll use [TiDE](https://arxiv.org/pdf/2304.08424.pdf), a small state-of-the-art
+    Transformer-based model. We’ll use the implementation provided by [NeuralForecast](https://nixtlaverse.nixtla.io/neuralforecast/models.tide.html).
+    Any model from NeuralForecast [here](https://nixtlaverse.nixtla.io/neuralforecast/docs/capabilities/overview.html)
+    would work as long as it allows exogenous historical variables.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We’ll train and test two models using daily SPY (S&P 500 ETF) data. Both models
+    will have the same:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Train-test split ratio
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Hyperparameters
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Single time series (SPY)
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Forecasting horizon of 1 step ahead
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: The only difference between the models will be the feature reduction technique.
+    That’s it!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'First model: Original features (no feature reduction)'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Second model: Feature reduction using PCA'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: 'Third model: Feature reduction using VSN'
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: This setup allows us to isolate the impact of each feature reduction technique
+    on model performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we train the 3 models with the same configuration except for the features.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then, we make the predictions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We forecast the daily returns using the model, then convert these back to prices.
+    This approach allows us to calculate prediction errors using prices and compare
+    the actual prices to the forecasted prices in a plot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/269abd534c5abdfe8194df39136fd090.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Comparison of prediction errors with different feature reduction techniques.
+    Image by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The similar performance of the TiDE model across both original and reduced
+    feature sets reveals a crucial insight: feature reduction did not lead to improved
+    predictions as one might expect. This suggests potential key issues:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Information loss: despite aiming to preserve essential data, dimensionality
+    reduction techniques discarded information relevant to the prediction task, explaining
+    the lack of improvement with fewer features.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Generalization struggles: consistent performance across feature sets indicates
+    the model’s difficulty in capturing underlying patterns, regardless of feature
+    count.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Complexity overkill: similar results with fewer features suggest TiDE’s sophisticated
+    architecture may be unnecessarily complex. A simpler model, like ARIMA, could
+    potentially perform just as well.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Then, let’s examine the chart to see if we can observe any significant differences
+    among the three forecasting methods and the actual prices.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/198959fd7771ea78751d923086b0820d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SPY price forecast using all original features. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/12c100de5f3352051765fbd2db5be6e0.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SPY price forecast using PCA. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ba26bb6bbb1727805ee38cd8788db4cd.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: SPY price forecast using VSN. Image created by the author.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The difference between true and predicted prices appears consistent across all
+    three models, with no noticeable variation in performance between them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'We did it! We explored the importance of feature reduction in time series analysis
+    and provided a practical implementation guide:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Feature reduction aims to simplify models while maintaining predictive power.
+    Benefits include reduced complexity, improved generalization, easier interpretation,
+    and computational efficiency.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We demonstrated two reduction techniques using FRED data:'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Principal Component Analysis (PCA), a linear dimensionality reduction method,
+    reduced features from 438 to 76 while retaining 90% of explained variance.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Variable Selection Network (VSN) from the Temporal Fusion Transformers, a non-linear
+    approach, drastically reduced features to just 1 using an 80th percentile importance
+    threshold.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Evaluation using TiDE models showed similar performance across original and
+    reduced feature sets, suggesting feature reduction may not always improve forecasting
+    performance. This could be due to information loss during reduction, the model’s
+    difficulty in capturing underlying patterns, or the possibility that a simpler
+    model might be equally effective for this particular forecasting task.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: On a final note, we didn’t explore all feature reduction techniques, such as
+    SHAP (SHapley Additive exPlanations), which provides a unified measure of feature
+    importance across various model types. Even if we didn’t improve our model, it’s
+    still better to perform feature curation and compare performance across different
+    reduction methods. This approach helps ensure you’re not discarding valuable information
+    while optimizing your model’s efficiency and interpretability.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In future articles, we’ll apply these feature reduction techniques to more complex
+    models, comparing their impact on performance and interpretability. Stay tuned!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Ready to put these concepts into action? You can find the complete code implementation
+    [here](https://github.com/philippe-ostiguy/feature-reduction-ts).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Liked this article? Show your support!
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 👏 Clap it up to 50 times
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🤝 Send me a [LinkedIn](https://www.linkedin.com/in/philippe-ostiguy/) connection
+    request to stay in touch
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Your support means everything!* 🙏'
+  prefs: []
+  type: TYPE_NORMAL

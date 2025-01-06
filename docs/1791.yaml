@@ -1,0 +1,655 @@
+- en: 'Line-By-Line, Let’s Reproduce GPT-2: Section 1'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/line-by-line-lets-reproduce-gpt-2-section-1-b26684f98492?source=collection_archive---------8-----------------------#2024-07-23](https://towardsdatascience.com/line-by-line-lets-reproduce-gpt-2-section-1-b26684f98492?source=collection_archive---------8-----------------------#2024-07-23)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: This blog post will go line-by-line through the code in Section 1 of Andrej
+    Karpathy’s “Let’s reproduce GPT-2 (124M)”
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@mgunton7?source=post_page---byline--b26684f98492--------------------------------)[![Matthew
+    Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--b26684f98492--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--b26684f98492--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--b26684f98492--------------------------------)
+    [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--b26684f98492--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--b26684f98492--------------------------------)
+    ·21 min read·Jul 23, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6eaaa728ea0ae6b47ebb70bbe5b558fc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author — SDXL
+  prefs: []
+  type: TYPE_NORMAL
+- en: Andrej Karpathy is one of the foremost Artificial Intelligence (AI) researchers
+    out there. He is a founding member of OpenAI, previously led AI at Tesla, and
+    continues to be at the forefront of the AI community. He recently released an
+    incredible [4 hour video walking through how to build a high-quality LLM model
+    from scratch](https://www.youtube.com/watch?v=l8pRSuU81PU).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In that video, we go through all of the major parts of training an LLM, from
+    coding the architecture to speeding up its training time to adjusting the hyperparameters
+    for better results. There’s an incredible amount of knowledge there, so I wanted
+    to expand upon it by going line-by-line through the code Karpathy creates and
+    explaining how it is working. This blog post will be part of a series I do covering
+    each section of Karpathy’s video.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In section one, we focus on implementing the architecture of GPT-2\. While GPT-2
+    was open-sourced by OpenAI in 2018, it was written in Tensor Flow, which is a
+    harder framework to debug than PyTorch. Consequently, we are going to recreate
+    GPT-2 using more commonly used tools. Using only the code we are going to create
+    today, you can create a LLM of your own!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s dive in!
+  prefs: []
+  type: TYPE_NORMAL
+- en: High Level Vocabulary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before we begin, let’s get on the same page about some terminology. While there
+    may be some naming collisions with other sources, I’ll try to be consistent within
+    these blog posts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Block Size* — tells us how many positions in the input length our Transformer
+    can process. Once you go over this limit, performance degrades as you have to
+    wrap around (y[ou can learn more about how we expand this without training a new
+    model from scratch in my Long RoPE Blog](/understanding-long-rope-in-llms-29337dc7e4a9))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Vocabulary Size* — tells us how many unique tokens the model will be able
+    to understand and use. In general, researchers have found that larger vocabulary
+    sizes allow models to be more precise with their language and to capture more
+    nuances in their responses.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Layer —* part of the hidden layers of our neural network. Specifically here
+    we refer to how many times we repeat the calculations shown in the grey box below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eaf2574408a9f1c397a50330b3e663ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A layer in our model from [“Attention is All You Need”](https://arxiv.org/pdf/1706.03762)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Embedding* — a vector representation of data we pass to the model.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Multi-Head Attention* — rather than running attention once, we run it n-times
+    and then concatenate all of the results together to get the final result.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s go into the code!
+  prefs: []
+  type: TYPE_NORMAL
+- en: GPT Class & Its Parameters
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: To begin, we are setting 5 hyper-parameters in the GPTConfig class. `block_size`
+    appears to be somewhat arbitrary along with `n_layer`and `n_head`. Put differently,
+    these values were chosen empirically based on what the researchers saw had the
+    best performance. Moreover, we choose 786 for `n_embd` as this is the value chosen
+    for the GPT-2 paper, which we’ve decided to emulate.
+  prefs: []
+  type: TYPE_NORMAL
+- en: However, `vocab_size` is set based off the `tiktoken` gpt-2 tokenizer that we
+    will use. The GPT-2 tokenizer was created by using the *Byte-Pair Encoding* algorithm
+    ([read more here](https://www.geeksforgeeks.org/byte-pair-encoding-bpe-in-nlp/)).
+    This starts off with an initial set of vocab (in our case 256) and then goes through
+    the training data creating new vocab based on the frequency it sees the new vocabulary
+    appearing in the training set. It keeps doing this until it has hit a limit (in
+    our case 50,000). Finally, we have vocab set aside for internal use (in our case
+    the end token character). Adding these up we get 50,257.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: With our configs set, we create a GPT class which is an instance of the torch
+    `nn.Module` class. This is the base class for all PyTorch neural networks, and
+    so by using this we get access to all of the optimizations that PyTorch has for
+    these types of models. Each `nn.Module` will have a `forward` function that defines
+    what happens during a forward pass of the model (more on these in a moment).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We begin by running the super constructor in the base class and then create
+    a `transformer` object as a `ModuleDict`. This was created because it allows us
+    to index into `transformer` like an object, which will come in handy both when
+    we want to load in weights from HuggingFace and when we want to debug and quickly
+    go through our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Our `transformer` here has 4 major pieces we are going to load in: the weights
+    of the token embeddings (`wte`), the weights of the positional encodings (`wpe`),
+    the hidden layers (`h`), and the layer normalization (`ln_f`). This setup is following
+    *mostly* the decoder part of the Transformer architecture from [“Attention is
+    All You Need”](https://arxiv.org/pdf/1706.03762) (output embeddings ~ `wte`, positional
+    encoding ~ `wte`, hidden layers ~`h` ). One key difference is that we have an
+    additional normalization layer `ln_f` done after all of the hidden layers have
+    finished in our architecture.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a919d91bb480f5f3fede3f15e3f10fc5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Decoder Half of the Architecture shown in [“Attention is All You Need”](https://arxiv.org/pdf/1706.03762)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `wte` and the `wpe` are both embeddings so naturally we use the `nn.Embedding`
+    class to represent them. Our hidden layers are where we will have most of the
+    logic for the Transformer, so I will go into this more later. For now, just note
+    that we are creating a loop of the object `Block` so that we have `n.layer`‘s
+    of them. Finally, we use the built-in `nn.LayerNorm` for `ln_f` , which will normalize
+    our output based on the equation below (where x and y are input and output, E[x]
+    is the mean value, and γ and β are learnable weights).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/5a98c158cb71d90f31987dcb5e82662e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Equation for [Layer Normalization in PyTorch](https://pytorch.org/docs/stable/generated/torch.nn.LayerNorm.html)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we setup the final linear layer of our network which will generate the
+    logits of the model. Here we are projecting from the embedding dimension of our
+    model (768) to the vocabulary size of our model (50,257). The idea here is that
+    we have taken the hidden state and expanded it to map onto our vocabulary so that
+    our decoder head can use the values on each vocab to figure out what the next
+    token should be.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally in our constructor, we have an interesting optimization where we tell
+    the model to make the tokenizer weights the same as the linear layer weights.
+    This is done because we want the linear layer and the tokenizer to have the same
+    understanding of the tokens (if two tokens are similar when being input into the
+    model, the same two tokens should be similar when being output by the model).
+    Finally, we initialize the weights for the model so we can start training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our forward function is where we lay out exactly how our model will behave during
+    a forward pass. We start off by verifying that our sequence length is not greater
+    than our configured max value (`block_size`). Once that’s true, we create a tensor
+    with values of 0 to T-1 (for example if T = 4, we’d have tensor([0, 1, 2, 3])
+    and run them through our positional embedding weights. Once that’s complete, we
+    run the input tensor through the token embedding weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We combine both the token and the positional embeddings into `x`, requiring
+    a broadcast to combine them. As the `tok_emb` are bigger than the `pos_emb` (in
+    our example 50257 vs 1024), x will have the dimensions of `tok_emb` . `x` is now
+    our hidden state, which we will pass through the hidden layers via the for loop.
+    We are careful to update `x` after each time through a Block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we normalize `x` via our LayerNormalization `ln_f` and then do our linear
+    projection to get the logits necessary to predict the next token. If we are training
+    the model (which we signal via the `targets` parameter), we will then compute
+    cross entropy between the logits we have just produced and the ground truth values
+    held in our `targets` variable. We accomplish this via our `cross_entropy` loss
+    function. To do this right, we need to convert our `logits` and `target` to the
+    right shape via `.view()`. We ask pytorch to infer the correct size when we pass
+    through -1.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There’s one more function in this class, the initialization function, but we’ll
+    get to the initialization logic a little later. For now, let’s dive into the Block
+    logic that will help us implement our multi-head attention and MLPs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Block Class
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Block is instantiated as a `nn.Module` , so we also call the super constructor
+    at the beginning for its optimizations. Next, we setup the same calculations as
+    set out in the [“Attention is All You Need”](https://arxiv.org/pdf/1706.03762)
+    paper — 2 layer normalizations, an attention calculation, and a feed forward layer
+    via MLPs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eaf2574408a9f1c397a50330b3e663ab.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A Hidden Layer from [“Attention is All You Need”](https://arxiv.org/pdf/1706.03762)
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: We then define our `forward` function which PyTorch will call for every forward
+    pass of the model. Note that this is where we do something different than Attention
+    is All You Need. We setup the layer normalizations to happen before attention
+    and the feedforward respectively. This is part of the insights from GPT-2 paper,
+    and you can see how making little changes like this can make a big difference.
+    Note the addition to the original tensor remains in the corresponding same position.
+    These 2 additions will be important when we setup our weight initialization function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This class is a nice abstraction, as it lets us swap out implementations of
+    attention or choose another type of feed forward function other than MLP without
+    having to majorly refactor the code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: CausalSelfAttention Class
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Attention is an important part of our model, so naturally there are a number
+    of configurations here. We have the assert statement as a debugging tool to make
+    sure that the configuration dimensions we pass through are compatible. Then we
+    create some helper functions that will assist us when we do our self-attention.
+    First, we have our `c_attn` and `c_proj` which are linear projections that convert
+    our hidden state into new dimensions needed for the attention calculation. The
+    `c_proj.NANOGPT_SCALE_INIT` is a flag we set here and in the MLP that will help
+    us with the weight initialization later (in truth this could be named anything).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we tell torch to create a buffer that will not be updated during training
+    called `bias`. Bias will be a lower triangular matrix of dimensions `block_size`
+    x `block_size` that we will then turn into a 4D tensor with dimensions 1 x 1 x
+    `block_size` x `block_size` . The 1 x 1 is done so that we can compute these in
+    a batch in a single channel. This buffer will be used to apply a mask on our multi-headed
+    attention.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now comes the implementation of attention, with a focus on making this performant
+    in torch. Going line by line, we begin by finding the batch size, sequence length,
+    and channels in our input tensor x. We then will call our `c_attn` from before
+    to project our hidden state into the dimensions we’ll need. We then split that
+    result into 3 tensors of (B, T, C) shape (specifically one for query, one for
+    key, and one for value).
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then adjust the dimensions of q, k, and v so that we can do multi-head attention
+    on these performantly. By changing the dimensions from (B, T, C) to (B, T, self.n_head,
+    C // self.n_head), we are dividing up the data so that each head gets its own
+    unique data to operate on. We transpose our view so that we can make `T` the third
+    dimension and `self.n_head` the second dimension, allowing us to more easily concatenate
+    the heads.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bb9433415775d70b3ab32f88ec34a6e3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Attention equation from “[Attention is All You Need](https://youtu.be/l8pRSuU81PU?feature=shared)”
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have our values, we can start to calculate. We perform a matrix
+    multiplication between query and key (making sure to transpose key so that it
+    is in the proper direction), then divide by the square root of the size of k.
+    After this calculation, we then apply the bias from our register so that the attention
+    data from tokens in the future cannot impact tokens in the present (hence why
+    we apply the mask only for tokens greater than T for the time and channel dimension).
+    Once that is complete, we apply the softmax to only pass through certain information
+    through.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once the mask is on, we multiply the values by v, and then transpose our values
+    back to (B, T, self.n_head, C // self.n_head) setup. We call `.contiguous()` to
+    ensure that in memory all of the data is laid out next to each other, and finally
+    convert our tensor back to the (B, T, C) dimensions it came in with (thus, concatenating
+    our attention heads in this step).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we use our linear projection `c_proj` to convert back to the original
+    dimensions of the hidden state.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MLP Class
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Like all the classes before, MLP inherits from `nn.Module`. We begin by setting
+    some helper functions — specifically the `c_fc` and `c_proj` linear projection
+    layers, expanding from our embedding to 4 times the size and then back again respectively.
+    Next, we have GELU. Karpathy makes a point to say that the approximate parameter
+    here is only set so that we can closely match the GPT-2 paper. While at the time,
+    the approximation of GELU was necessary, now a days we no longer need to approximate
+    — we can calculate precisely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: Our forward pass then is relatively straight forward. We call each function
+    on our input tensor and return the final result.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Hugging Face Connection Code
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Because GPT-2 is open-source, it is available on Hugging Face. While our goal
+    here is to train our own model, it is nice to be able to compare what our results
+    will be with the ones OpenAI found in their training. To allow us to do so, we
+    have the below function that pulls in the weights and populates them into our
+    `GPT` class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This code also allows us to reuse this code to pull in foundation models from
+    Hugging Face and fine-tune them (*with some modifications as right now it’s optimized
+    only for gpt-2*).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: Starting from the top, we bring in HuggingFace’s `transformers` library and
+    setup the hyperparameters that vary between different variants of the GPT-2 model.
+    As the `vocab_size` and `block_size` don’t change, you can see we hard-code them
+    in. We then pass these variables into the `GPTConfig` class from before, and then
+    instantiate the model object (`GPT`). Finally, we remove all keys from the model
+    that end with `.attn.bias` , as these are not weights, but rather the register
+    we setup to help with our attention function before.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we load in the model from the HuggingFace class `GPT2LMHeadModel`. We
+    take the keys out from this model and likewise ignore the `attn.masked_bias` and
+    `attn.bias` keys. We then have an assert to make sure that we have the same number
+    of keys in the hugging face model as we do in our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: To round out the function, we loop through every key in the Hugging Face model
+    and add its weights to the corresponding key in our model. There are certain keys
+    that need to be manipulated so that they fit the data structure we’re using. We
+    run the function `.t()` to transpose the hugging face matrix into the dimensions
+    we need. For the rest, we copy them over directly. You’ll notice we are using
+    `torch.no_grad()` . This is telling torch that it doesn’t need to cache the values
+    for a backward propagation of the model, another optimization to make this run
+    faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generating Our First Predictions (Sampling Loop)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the classes we have now, we can run the model and have it give us output
+    tokens (*just make sure if you’re following this sequentially that you comment
+    out the _init_weights call in the GPT constructor*). The below code shows how
+    we would do that.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: We start off by determining what devices we have access to. Cuda is NVIDIA’s
+    platform that runs extremely fast GPU calculations, so if we have access to chips
+    that use CUDA we will use them. If we don’t have access but we’re on Apple Silicon,
+    then we will use that. Finally, if we have neither, then we fall back to CPU (this
+    will be the slowest, but every computer has one so we know we can still train
+    on it).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then, we instantiate our model using the default configurations, and put the
+    model into ‘`eval`’ mode — (this does a number of things, like disabling dropout,
+    but from a high level it makes sure that our model is more consistent during inferencing).
+    Once set, we move the model onto our device. Note that if we wanted to use the
+    HuggingFace weights instead of our training weights, we would modify the third-to-last-line
+    to read: `model = GPT.from_pretrained(‘gpt2’)`'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now bring in `tiktoken` using the gpt2 encodings and have it tokenize our
+    prompt. We take these tokens and put them into a tensor, which we then convert
+    to batches in the below line. `unsqueeze()` will add a new first dimension of
+    size 1 to the tensor, and `repeat` will repeat the entire tensor `num_return_sequences`
+    times within the first dimension and once within the second dimension. What we’ve
+    done here is formatted our data to fit the batched schema our model is expecting.
+    Specifically we now match the (B, T) format: `num_return_sequences` x encoded
+    length of prompt. Once we pass through the input tensor into the beginning of
+    the model, our `wte` and `wpe` will create the C dimension.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now that they’re ready, we send them to the device and begin our sampling loop.
+    The loop will be exclusively a forward pass, so we wrap it in the `torch.no_grad`
+    to stop it from caching for any backward propagation. Our logits come out with
+    shape (batch_size, seq_len, vocab_size) — (B,T,C) with C coming after a forward
+    pass of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We only need the last item in the sequence to predict the next token, so we
+    pull out `[:, -1, :]` We then take those logits and run it through a `softmax`
+    to get the token probabilities. Taking the top 50, we then choose a random index
+    of the top 50 and pick that one as our predicted token. We then get the information
+    about that and add it to our tensor `x`. By concatenating `xcol` to `x`, we set
+    ourselves up to go into the next token given what we just predicted. This is how
+    we code up autoregression.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: After the sampling loop is done, we can go through each of the selected tokens
+    and decode them, showing the response to the user. We grab data from the `i`-th
+    in our batch and decode it to get the next token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you run the sampling loop on our initial model, you will notice that the
+    output leaves a lot to be desired. This is because we haven’t trained any of the
+    weights. The next few classes show how we can begin a naive training of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: DataLoaderLite
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: All training requires high quality data. For Karpathy’s videos, he likes to
+    use public domain Shakespeare text ([find it here](https://github.com/karpathy/char-rnn/blob/master/data/tinyshakespeare/input.txt)).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: We begin by simply opening the file and reading in the text. This data source
+    is ASCII only, so we don’t need to worry about any unexpected binary characters.
+    We use `tiktoken` to get the encodings for the body, and then convert these tokens
+    into a tensor. We then create a variable called `current_position`, which will
+    let us know where in the token tensor we are currently training from (naturally,
+    this is initialized to the beginning). Note, this class is not inheriting from
+    `nn.Module`, mainly because we have no need for the `forward` function here. Just
+    as with the prompt part of the sampling loop, our DataLoaderLite class only needs
+    to generate tensors of shape (B, T).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: In the above we define the function `next_batch` to help with training. To make
+    programs run faster, we like to run the calculations in batches. We use the B
+    and T fields to determine the batch size (B) and sequence length (T) we’ll be
+    training on. Using these variables, we create a buffer that holds the tokens we
+    are going to train with, setting the dimensions to be of rows B and columns T.
+    Note that we read from `current_position` to `current_position + (B*T + 1)` ,
+    where the +1 is to make sure we have all of the ground truth values for our `B*T`
+    batch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then setup our model input (`x`) and our expected output (`y`) along the
+    same lines. `x` is the entire buffer except for the last character, and `y` is
+    the entire buffer except for the first. The basic idea is that given the first
+    value in token buffer, we expect to get back the second token in the token buffer
+    from our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we update the `current_position` and return `x` and `y`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Weight Initialization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As we are dealing with probabilities, we’d like to pick initial values for our
+    weights that are likely to require fewer epochs to get right. Our `_init_weights`
+    function helps us do so, by initializing the weights with either zeroes or with
+    a normal distribution.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: If you remember from before, we’re passing in every field of the GPT class into
+    `_init_weights`, so we’re processing `nn.Module`s. We are using the Xavier method
+    to initialize our weights, which means we set the standard deviation of our sampling
+    distribution equal to `1 / sqrt(hidden_layers)` . You will notice that in the
+    code, we are often using the hardcoded 0.02 as the standard deviation. While this
+    might seem arbitrary, from the below table you can see that as the hidden dimensions
+    GPT-2 uses are all roughly 0.02, this is a fine-approximation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Going through the code, we start off by checking which subtype of `nn.Module`
+    the module we’re operating on is.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If the module is Linear, then we will check if it is one of our projections
+    from `MLP` or `CasualSelfAttention` classes (by checking if it has the `NANO_GPT_INIT`
+    flag set). If it is, then our 0.02 approximation won’t work because the number
+    of hidden layers in these modules is increasing (this is a function of our addition
+    of the tensors in the `Block` class). Consequently, the GPT-2 paper uses a scaling
+    function to account for this: `1/sqrt(2 * self.config.n_layer)`. The `2*` is because
+    our `Block` has 2 places where we are adding the tensors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we have a bias in the Linear module, we will start by initializing these
+    all to zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: If we have an `Embedding` Module (like the Token or Positional Encoding pieces),
+    we will initialize this with the same normal distribution with standard deviation
+    of 0.02.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If you remember, we have another subtype of module that is in our model: `nn.LayerNorm`
+    . This class already is initialized with a normal distribution and so we decide
+    that this is good enough to not need any changes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training Loop
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we have the training fundamentals setup, let’s put together a quick
+    training loop to train our model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: You can see that we repeat our device calculations to get optimal performance.
+    We then set our data loader to use batch sizes of 4 and sequence lengths of 32
+    (set arbitrarily, although powers of 2 are best for memory efficiency).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we have the optimizer, which will help us train our model. The optimizer
+    is a PyTorch class that takes in the parameters it should be training (in our
+    case the ones given from the `GPT` class) and then the learning rate which is
+    a hyperparameter during training determining how quickly we should be adjusting
+    parameters — a higher learning rate means more drastic changes to the weights
+    after each run. We chose our value based off of Karpathy’s recommendation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We then use 50 training steps to train the model. We start by getting the training
+    batch and moving them onto our device. We set the optimizer’s gradients to zero
+    (gradients in pytorch are sums, so if we don’t zero it out we will be carrying
+    information over from the last batch). We calculate the logits and loss from our
+    model, and then run backwards propagation to figure out what the new weight models
+    should be. Finally, we run `optimizer.step()` to update all of our model parameters.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sanity Check
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To see how all of the above code runs, you can [check out my Google Colab where
+    I combine all of it and run it on the NVIDIA T4 GPU](https://colab.research.google.com/drive/1tJjzDP2wTq6R5LF0AWESlNheTn1YEYzI).
+    Running our training loop, we see that the loss starts off at ~11\. To sanity
+    test this, we expect that at the beginning the odds of predicting the right token
+    is (1/`vocab_size`). Taking this through a simplified loss function of `-ln`,
+    we get ~10.88, which is just about where we begin!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7a46cc240486e0eb1f38cf0bc67d2947.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Closing
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Thanks for reading through to the end!
+  prefs: []
+  type: TYPE_NORMAL
+- en: I tried to include as much detail as I could in this blog post, but naturally
+    there were somethings I had to leave out. If you enjoyed the blog post or see
+    anything you think should be modified / expanded upon, please let me know!
+  prefs: []
+  type: TYPE_NORMAL
+- en: It’s an exciting time to be building!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Karpathy, A., [“Let’s reproduce GPT-2 (124M)”](https://youtu.be/l8pRSuU81PU?feature=shared)
+    (2024), YouTube'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] Radford, A., et al., [“Language Models are Unsupervised Multitask Learners”](https://d4mucfpksywv.cloudfront.net/better-language-models/language-models.pdf)
+    (2018), Papers With Code'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] Vaswani, A., et al., “[Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf)”
+    (2017), arXiv'
+  prefs: []
+  type: TYPE_NORMAL

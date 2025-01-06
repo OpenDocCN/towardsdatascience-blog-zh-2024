@@ -1,0 +1,398 @@
+- en: An Agentic Approach to Reducing LLM Hallucinations
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/an-agentic-approach-to-reducing-llm-hallucinations-f7ffd6eedcf2?source=collection_archive---------1-----------------------#2024-12-22](https://towardsdatascience.com/an-agentic-approach-to-reducing-llm-hallucinations-f7ffd6eedcf2?source=collection_archive---------1-----------------------#2024-12-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Simple techniques to alleviate LLM hallucinations using LangGraph
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@CVxTz?source=post_page---byline--f7ffd6eedcf2--------------------------------)[![Youness
+    Mansar](../Images/b68fe2cbbe219ab0231922c7165f2b6a.png)](https://medium.com/@CVxTz?source=post_page---byline--f7ffd6eedcf2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--f7ffd6eedcf2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--f7ffd6eedcf2--------------------------------)
+    [Youness Mansar](https://medium.com/@CVxTz?source=post_page---byline--f7ffd6eedcf2--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--f7ffd6eedcf2--------------------------------)
+    ·8 min read·Dec 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/630e9d5af9ca9f6e315c751334d7460c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Greg Rakozy](https://unsplash.com/@grakozy?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: If you’ve worked with LLMs, you know they can sometimes hallucinate. This means
+    they generate text that’s either nonsensical or contradicts the input data. It’s
+    a common issue that can hurts the reliability of LLM-powered applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this post, we’ll explore a few simple techniques to reduce the likelihood
+    of hallucinations. By following these tips, you can (hopefully) improve the accuracy
+    of your AI applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are multiple types of hallucinations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Intrinsic hallucinations](https://arxiv.org/pdf/2311.05232): the LLM’s response
+    contradicts the user-provided context. This is when the response is verifiably
+    wrong withing the current context.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Extrinsic hallucinations](https://arxiv.org/pdf/2311.05232): the LLM’s response
+    cannot be verified using the user-provided context. This is when the response
+    may or may not be wrong but we have no way of confirming that using the current
+    context.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Incoherent hallucinations: the LLM’s response does not answer the question
+    or does not make sense. This is when the LLM is unable to follow the instructions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In this post, we will target all the types mentioned above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will list out a set of tips and tricks that work in different ways in reducing
+    hallucinations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip 1: Use Grounding'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Grounding is using in-domain relevant additional context in the input of the
+    LLM when asking it to do a task. This gives the LLM the information it needs to
+    correctly answer the question and reduces the likelihood of a hallucination. This
+    is one the reason we use Retrieval augmented generation (RAG).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example asking the LLM a math question OR asking it the same question while
+    providing it with relevant sections of a math book will yield different results,
+    with the second option being more likely to be right.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is an example of such implementation in one of my previous tutorials where
+    I provide document-extracted context when asking a question:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=post_page-----f7ffd6eedcf2--------------------------------)
+    [## Build a Document AI pipeline for ANY type of PDF With Gemini'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tables, Images, figures or handwriting are not problem anymore ! Full Code provided.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/build-a-document-ai-pipeline-for-any-type-of-pdf-with-gemini-9221c8e143db?source=post_page-----f7ffd6eedcf2--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip 2: Use structured outputs'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Using structured outputs means forcing the LLM to output valid JSON or YAML
+    text. This will allow you to reduce the useless ramblings and get “straight-to-the-point”
+    answers about what you need from the LLM. It also will help with the next tips
+    as it makes the LLM responses easier to verify.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is how you can do this with Gemini’s API:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Where “prepare_schema_for_gemini” is a utility function that prepares the schema
+    to match Gemini’s weird requirements. You can find its definition here: [code](https://github.com/CVxTz/document_ai_agents/blob/498d8ee6e8597f8ba43b336c64178d186461dba0/document_ai_agents/schema_utils.py#L38).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This code defines a Pydantic schema and sends this schema as part of the query
+    in the field “response_schema”. This forces the LLM to follow this schema in its
+    response and makes it easier to parse its output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip 3: Use chain of thoughts and better prompting'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Sometimes, giving the LLM the space to work out its response, before committing
+    to a final answer, can help produce better quality responses. This technique is
+    called Chain-of-thoughts and is widely used as it is effective and very easy to
+    implement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can also explicitly ask the LLM to answer with “N/A” if it can’t find enough
+    context to produce a quality response. This will give it an easy way out instead
+    of trying to respond to questions it has no answer to.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For example, lets look into this simple question and context:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Context**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thomas Jefferson (April 13 [O.S. April 2], 1743 — July 4, 1826) was an American
+    statesman, planter, diplomat, lawyer, architect, philosopher, and Founding Father
+    who served as the third president of the United States from 1801 to 1809.[6] He
+    was the primary author of the Declaration of Independence. Following the American
+    Revolutionary War and before becoming president in 1801, Jefferson was the nation’s
+    first U.S. secretary of state under George Washington and then the nation’s second
+    vice president under John Adams. Jefferson was a leading proponent of democracy,
+    republicanism, and natural rights, and he produced formative documents and decisions
+    at the state, national, and international levels. (Source: Wikipedia)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Question**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What year did davis jefferson die?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'A naive approach yields:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Response**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: answer=’1826'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Which is obviously false as Jefferson Davis is not even mentioned in the context
+    at all. It was Thomas Jefferson that died in 1826.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'If we change the schema of the response to use chain-of-thoughts to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: We are also adding more details about what we expect as output when the question
+    is not answerable using the context “Answer with ‘N/A’ if answer is not found”
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this new approach, we get the following **rationale** (remember, chain-of-thought):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The provided text discusses Thomas Jefferson, not Jefferson Davis. No information
+    about the death of Jefferson Davis is included.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'And the final **answer**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: answer=’N/A’
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Great ! But can we use a more general approach to hallucination detection?
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can, with Agents!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Tip 4: Use an Agentic approach'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We will build a simple agent that implements a three-step process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first step is to include the context and ask the question to the LLM in
+    order to get the first candidate response and the relevant context that it had
+    used for its answer.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The second step is to reformulate the question and the first candidate response
+    as a declarative statement.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The third step is to ask the LLM to verify whether or not the relevant context
+    **entails** the candidate response. It is called “Self-verification”: [https://arxiv.org/pdf/2212.09561](https://arxiv.org/pdf/2212.09561)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In order to implement this, we define three nodes in LangGraph. The first node
+    will ask the question while including the context, the second node will reformulate
+    it using the LLM and the third node will check the entailment of the statement
+    in relation to the input context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first node can be defined as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And the second one as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The third one as:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Full code in [https://github.com/CVxTz/document_ai_agents](https://github.com/CVxTz/document_ai_agents)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice how each node uses its own schema for structured output and its own prompt.
+    This is possible due to the flexibility of both Gemini’s API and LangGraph.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Lets work through this code using the same example as above ➡️
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*(Note: we are not using chain-of-thought on the first prompt so that the verification
+    gets triggered for our tests.)*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Context**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thomas Jefferson (April 13 [O.S. April 2], 1743 — July 4, 1826) was an American
+    statesman, planter, diplomat, lawyer, architect, philosopher, and Founding Father
+    who served as the third president of the United States from 1801 to 1809.[6] He
+    was the primary author of the Declaration of Independence. Following the American
+    Revolutionary War and before becoming president in 1801, Jefferson was the nation’s
+    first U.S. secretary of state under George Washington and then the nation’s second
+    vice president under John Adams. Jefferson was a leading proponent of democracy,
+    republicanism, and natural rights, and he produced formative documents and decisions
+    at the state, national, and international levels. (Source: Wikipedia)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Question**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: What year did davis jefferson die?
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**First node result (First answer):**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**relevant_context**=’Thomas Jefferson (April 13 [O.S. April 2], 1743 — July
+    4, 1826) was an American statesman, planter, diplomat, lawyer, architect, philosopher,
+    and Founding Father who served as the third president of the United States from
+    1801 to 1809.’'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**answer=’1826''**'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Second node result (Answer Reformulation):**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**declarative_answer**=’Davis Jefferson died in 1826'''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**Third node result (Verification):**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**rationale**=’The context states that Thomas Jefferson died in 1826\. The
+    assertion states that Davis Jefferson died in 1826\. The context does not mention
+    Davis Jefferson, only Thomas Jefferson.’'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '**entailment**=’No’'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: So the verification step **rejected** (*No entailment between the two*) the
+    initial answer. We can now avoid returning a hallucination to the user.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Bonus Tip : Use stronger models'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'This tip is not always easy to apply due to budget or latency limitations but
+    you should know that stronger LLMs are less prone to hallucination. So, if possible,
+    go for a more powerful LLM for your most sensitive use cases. You can check a
+    benchmark of hallucinations here: [https://github.com/vectara/hallucination-leaderboard](https://github.com/vectara/hallucination-leaderboard).
+    We can see that the top models in this benchmark (least hallucinations) also ranks
+    at the top of conventional NLP leader boards.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/28143041199f3dd4c5130c62985a0f62.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Source: [https://github.com/vectara/hallucination-leaderboard](https://github.com/vectara/hallucination-leaderboard)
+    Source License: Apache 2.0'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this tutorial, we explored strategies to improve the reliability of LLM outputs
+    by reducing the hallucination rate. The main recommendations include careful formatting
+    and prompting to guide LLM calls and using a workflow based approach where Agents
+    are designed to verify their own answers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This involves multiple steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Retrieving the exact context elements used by the LLM to generate the answer.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Reformulating the answer for easier verification (In declarative form).
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Instructing the LLM to check for consistency between the context and the reformulated
+    answer.
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: While all these tips can significantly improve accuracy, you should remember
+    that no method is foolproof. There’s always a risk of rejecting valid answers
+    if the LLM is overly conservative during verification or missing real hallucination
+    cases. Therefore, rigorous evaluation of your specific LLM workflows is still
+    essential.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Full code in [https://github.com/CVxTz/document_ai_agents](https://github.com/CVxTz/document_ai_agents)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Thank you for reading !
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL

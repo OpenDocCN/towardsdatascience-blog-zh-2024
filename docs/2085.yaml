@@ -1,0 +1,444 @@
+- en: The MMD-Critic Method, Explained
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/the-mmd-critic-method-explained-c6a77f2dbf18?source=collection_archive---------7-----------------------#2024-08-27](https://towardsdatascience.com/the-mmd-critic-method-explained-c6a77f2dbf18?source=collection_archive---------7-----------------------#2024-08-27)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A powerful yet under-the-radar method for data summarization and explainable
+    AI
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)[![Matthew
+    Chak](../Images/88881eb5a7c8f08c15555bc8c3c613d3.png)](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)
+    [Matthew Chak](https://medium.com/@physboom?source=post_page---byline--c6a77f2dbf18--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c6a77f2dbf18--------------------------------)
+    ·11 min read·Aug 27, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Despite being a powerful tool for data summarization, the MMD-Critic method
+    has a surprising lack of both usage and “coverage”. Perhaps this is because simpler
+    and more established methods for data summarization exist (e.g. K-medoids, see
+    [1] or, more simply, the [Wikipedia page](https://en.wikipedia.org/wiki/K-medoids)),
+    or perhaps this is because no Python package for the method existed (before now).
+    Regardless, the results presented in the [original paper](https://papers.nips.cc/paper_files/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html)
+    [2] warrant more use than MMD-Critic has currently. As such, I’ll explain the
+    MMD-Critic method here with as much clarity as possible. I’ve also published an
+    [open-source Python package](https://pypi.org/project/mmd-critic/) with an implementation
+    of the technique so you can use it easily.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prototypes and Criticisms
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Before jumping into the MMD-Critic method itself, it’s worth discussing what
+    exactly we’re trying to accomplish. Ultimately, we wish to take a dataset and
+    find examples that are representative of the data (**prototypes**), as well as
+    edge-case examples that may confound our machine learning models (**criticisms**).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/71c22de7c81736578e26d81da3a21ce2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Prototypes and criticisms for the MNIST dataset, taken from [2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'There are many reasons why this may be useful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We can get a very nice summarized view of our dataset by seeing both stereotypical
+    and atypical examples
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We can test models on the criticisms to see how they handle edge cases (this
+    is, for obvious reasons, very important)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Though perhaps not as useful, we can use prototypes to create a naturally explainable
+    K-means-esque algorithm wherein the closest prototype to the new data point is
+    used to label it. Then explanations are simple since we just show the user the
+    most similar data point.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: More
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: You can see section 6.3 in [this book](https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5)
+    for more info on the applications of this (and for a decent explanation of MMD-Critic
+    as well), but it suffices to say that finding these examples is useful for a wide
+    variety of reasons. MMD-Critic allows us to do this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Maximal Mean Discrepancy
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I unfortunately cannot claim to have a hyper-rigorous understanding of Maximal
+    Mean Discrepancy (MMD), as such an understanding would require a strong background
+    in functional analysis. If you have such a background, you can find the paper
+    that introduced the measure [here](https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In simple terms though, MMD is a way to determine the difference between two
+    probability distributions. Formally, for two probability distributions *P* and
+    *Q*, we define the MMD of the two as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/806f69f4f5fb7bdfddc1e2b7e198f203.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The formula for the MMD of two distributions P, Q
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, *F* is any **function space** — that is, any set of functions with the
+    same domain and codomain. Note also that the notation *x~P* means that we are
+    treating *x* as if it’s a random variable drawn from the distribution *P* — that
+    is, *x* is **described by** *P*. This formula thus finds the highest difference
+    in the expected values of *X* and *Y* when they are transformed by some function
+    from our space *F*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This may be a little hard to wrap your head around, but here’s an example.
+    Suppose that *X* is `Uniform(0, 1)` (i.e. a distribution that is equivalent to
+    picking a random number from 0 to 1), and *Y* is `Uniform(-1, 1)` . Let’s also
+    let *F* be a fairly simple family containing three functions — *f(x) = 0*, *f(x)
+    = x*, and *f(x) = x²*. Iterating over each function in our space, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the *f(x)* *= 0* case, E[f(x)] when *x ~ P* is 0 since no matter what *x*
+    we choose, *f(x)* will be 0\. The same holds for when *x ~ Q*. Thus, we get a
+    mean discrepancy of 0
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the *f(x) = x* case, we have E[f(x)] = 0.5 for the *P* case and 0 for the
+    *Q* case, so our mean discrepancy is 0.5
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: In the *f(x) = x²* case, we note that
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '![](../Images/ea72888c6295343ec4a233c883265a0a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Formula for the expected value of a random variable *x* transformed by a function
+    f
+  prefs: []
+  type: TYPE_NORMAL
+- en: thus in the P case, we get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f96988df2e03471d79f8585d36fc3596.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Expected value of f(x) under the distribution P
+  prefs: []
+  type: TYPE_NORMAL
+- en: and in the Q case, we get
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/25a4e021d3c2c5b36bcaaa3c774de110.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Expected value of f(x) under the distribution Q
+  prefs: []
+  type: TYPE_NORMAL
+- en: thus our discrepancy in this case is also 0\. The supremum over our function
+    space is thus 0.5, so that’s our MMD.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may now notice a few problems with our MMD. It seems highly dependent on
+    our choice of function space and also appears highly expensive (or even impossible)
+    to compute for a large or infinite function space. Not only that, but it also
+    requires us to know our distributions *P* and *Q*, which is not realistic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The latter problem is easily solvable, as we can rewrite our MMD metric to
+    use estimates of P and Q based on our dataset:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2140a40093f3dd0d76850321ceb07100.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: MMD using estimates of P and Q
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here, our *x*’s are our samples from the dataset drawing from *P*, and the *y*’s
+    are the samples drawn from *Q*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The first two problems are solvable with a bit of extra math. Without going
+    into too much detail, it turns out that if *F* is something called a **Reproducing
+    Kernel Hilbert Space** (RKHS), we know what function is going to give us our MMD
+    in advance. Namely, it’s the following function, called the **witness function**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e46b5d340b5f3db6a69efe75e2b8cc47.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Our optimal f(x) in an RKHS
+  prefs: []
+  type: TYPE_NORMAL
+- en: where *k* is the **kernel** (inner product) associated with the RKHS***¹***.
+    Intuitively, this function “witnesses” the discrepancy between *P* and *Q* at
+    the point *x*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We thus only need to choose a sufficiently expressive RKHS/kernel — usually,
+    the RBF kernel is used which has the kernel function
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f5ea568dd5266a59359ef3961d188f9c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The RBF kernel, where sigma is a hyperparameter
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This generally gets fairly intuitive results. Here, for instance, is the plot
+    of the witness function with the RBF kernel when estimated (in the same way as
+    mentioned before — that is, replacing expectations with a sum) on two datasets
+    drawn from `Uniform(-0.5, 0.5)` and `Uniform(-1, 1)` :'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/fd302a4cc896b43064206d874d7409da.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Values of the witness function at different points for two uniform distributions
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The code for generating the above graph is here:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: The MMD-Critic Method, Finally
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The idea behind MMD-Critic is now fairly simple — if we want to find *k* prototypes,
+    we need to find the set of prototypes that best matches the distribution of the
+    original dataset given by their squared MMD. In other words, we wish to find a
+    subset *P* of cardinality *k* of our dataset that minimizes *MMD²(F, X, P)*. Without
+    going into too much detail about why, the square MMD is given by
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0dff52d10b914ee9e6082e9b47cb6292.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The square MMD metric, with X ~ P, Y ~ Q, and k the kernel for our RKHS F
+  prefs: []
+  type: TYPE_NORMAL
+- en: After finding these prototypes, we then select the points where the hypothetical
+    distribution of our prototypes is most different from our dataset distribution
+    as criticisms. As we’ve seen before, the difference between two distributions
+    at a point can be measured by our witness function, so we just find points that
+    maximize its absolute value in the context of *X* and *P*. In other words, we
+    define our criticism “score” as
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d19b02d21f693952776695457da054ee.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The “score” for a criticism c
+  prefs: []
+  type: TYPE_NORMAL
+- en: Or, in the more usable approximate form,
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2a763ae077e95c0041dba13b5c4fab86.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: The approximated S(c) for a criticism c
+  prefs: []
+  type: TYPE_NORMAL
+- en: Then, to find our desired amount of criticisms, say *m* of them, we simply wish
+    to find the set *C* of size *m* that maximizes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8eacec3442f5cc088cb6704f587a7190.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: To promote picking more varied criticisms, the paper also suggests adding a
+    regularizer term that encourages selected criticisms to be as far apart as possible.
+    The suggested regularizer in the paper is the log determinant regularizer, though
+    this is not required. I won’t go into much detail here since it’s not critical,
+    but the paper suggests reading [6]***²***.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can thus implement an ***extremely* naive** MMD-Critic without criticism
+    regularization as follows (**do NOT use this**):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Optimizing MMD-Critic
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The above implementation is so impractical that, when I ran it, I failed to
+    find 5 prototypes in a dataset with 25 points in a reasonable time. This is because
+    our MMD calculation is *O(max(|X|, |Y|)²)*, and iterating over every length-n
+    subset is *O(C(|X|, n))* (where C is the choose function), which gives us a horrendous
+    runtime complexity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Disregarding using more efficient computation methods (e.g. using pure numpy/numexpr/matrix
+    calculations instead of loops/whatever) and caching repeated calculations, there
+    are a few optimizations we can make on the theoretical level. Firstly, the most
+    obvious slowdown we have is looping over the *C(|X|, n)* subsets in our prototype
+    and criticism methods. Instead of that, we can use an approximation that loops
+    *n* times, greedily selecting the best prototype each time. This allows us to
+    change our prototype selection code to
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: and similar for the criticisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There’s one other important lemma that makes this problem much more optimizable.
+    It turns out that by changing our prototype selection into a minimization problem
+    and adding a regularization term to the cost, we can compute the cost function
+    very efficiently with matrix operations. I won’t go into much detail here, but
+    you can check out the original paper for details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Playing With the `MMD-Critic` Package
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we understand the MMD-Critic method, we can finally play with it! You
+    can install it by running
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The implementation in the package itself is much faster than the one presented
+    here, so don’t worry.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can run a fairly simple example using blobs as such:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then plotting the points and criticisms gets us
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ad6879f3f0b021cff94f57e71b28503f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Plotting the found prototypes (green) and criticisms (red)
+  prefs: []
+  type: TYPE_NORMAL
+- en: You’ll notice that I provided the option to use a separate kernel for prototype
+    and criticism selection. This is because I’ve found that results for criticisms
+    especially can be *extremely* sensitive to the sigma hyperparameter. This is an
+    unfortunate limitation of the MMD Critic method and kernel methods in general.
+    Overall, I’ve found good results using a large sigma for prototypes and a smaller
+    one for criticisms.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We can also, of course, use a more complicated dataset. Here, for instance,
+    is the method used on MNIST***³***:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: which gets us the following prototypes
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6b5e036ce193ebc12d8db963cca7fcfb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Prototypes found by MMD critic for MNIST. MNIST is free for commercial use under
+    the GPL-3.0 License.
+  prefs: []
+  type: TYPE_NORMAL
+- en: and criticisms
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/37ca1ea60129a1dc22e293b08e4442e7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Criticisms found by the MMD Critic method
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pretty neat, huh?
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: And that’s about it for the MMD-Critic method. It is quite simple at the core,
+    and it is nice to use save for having to fiddle with the Sigma hyperparameter.
+    I hope that the newly released Python package gives it more use.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Please contact mchak@calpoly.edu for any inquiries. All images by author unless
+    stated otherwise.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Footnotes
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] You may be familiar with RKHSs and kernels if you’ve ever studied SVMs
+    and the kernel trick — the kernels used there are just inner products in *some*
+    RKHS. The most common is the RBF kernel, for which the associated RKHS of functions
+    is an infinite-dimensional set of smooth functions.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] I have not read this source beyond a brief skim. It seems mostly irrelevant,
+    and the log determinant regularizer is fairly simple to implement. If you want
+    to read it though, go for it.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] For legal reasons, you can find a repository with the MNIST dataset [here](https://github.com/sharmaroshan/MNIST-Dataset/tree/master).
+    It is free for commercial use under the GPL-3.0 License.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[1] [https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801](https://onlinelibrary.wiley.com/doi/book/10.1002/9780470316801)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2][https://proceedings.neurips.cc/paper_files/paper/2016/file/5680522b8e2bb01943234bce7bf84534-Paper.pdf](https://papers.nips.cc/paper_files/paper/2016/hash/5680522b8e2bb01943234bce7bf84534-Abstract.html)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5](https://f0nzie.github.io/interpretable_ml-rsuite/proto.html#examples-5)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[4] [https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf](https://jmlr.csail.mit.edu/papers/volume13/gretton12a/gretton12a.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[5] [https://www.stat.cmu.edu/~ryantibs/journalclub/mmd.pdf](https://www.stat.cmu.edu/~ryantibs/journalclub/mmd.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[6] [https://jmlr.org/papers/volume9/krause08a/krause08a.pdf](https://jmlr.org/papers/volume9/krause08a/krause08a.pdf)'
+  prefs: []
+  type: TYPE_NORMAL

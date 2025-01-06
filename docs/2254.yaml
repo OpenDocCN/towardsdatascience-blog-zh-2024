@@ -1,0 +1,262 @@
+- en: Build a Tokenizer for the Thai Language from Scratch
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14](https://towardsdatascience.com/build-a-tokenizer-for-the-thai-language-from-scratch-0e4ea5f2a8b3?source=collection_archive---------6-----------------------#2024-09-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A step-by-step guide to building a Thai multilingual sub-word tokenizer based
+    on a BPE algorithm trained on Thai and English datasets using only Python
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Milan
+    Tamang](../Images/18e8be296bcef18e8792bfc18240469a.png)](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
+    [Milan Tamang](https://medium.com/@tamangmilan?source=post_page---byline--0e4ea5f2a8b3--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--0e4ea5f2a8b3--------------------------------)
+    ·14 min read·Sep 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/a876522a3058062625e355547ef07b75.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**[Image by writer]: Thai Tokenizer encode and decode Thai text to Token Ids
+    and vice versa**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The primary task of the **Tokenizer** is to translate the raw input texts (Thai
+    in our case but can be in any foreign language) into numbers and pass them to
+    the model’s transformers. The model’s transformer then generates output as numbers.
+    Again, **Tokenizer** translates these numbers back to texts which is understandable
+    to end users. The high level diagram below describes the flow explained above.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/9fc0dc22dc54e54c85fdbc1377f4f4a3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Image by writer]: Diagram showing tokenizers role in LLM’s input and output
+    flow.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generally, many of us are only interested in learning how the model’s transformer
+    architecture works under the hood. We often overlook learning some important components
+    such as tokenizers in detail. Understanding how tokenizer works under the hood
+    and having good control of its functionalities gives us good leverage to improve
+    our model’s accuracy and performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Similar to Tokenizer, some of the most important components of LLM implementation
+    pipelines are Data preprocessing, Evaluation, Guardrails/Security, and Testing/Monitoring.
+    I would highly recommend you study more details on these topics. I realized the
+    importance of these components only after I was working on the actual implementation
+    of my foundational multilingual model ThaiLLM in production.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Why do you need a Thai tokenizer or any other foreign language tokenizer?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Suppose you are using generic English-based tokenizers to pre-train a multilingual
+    large language model such as Thai, Hindi, Indonesian, Arabic, Chinese, etc. In
+    that case, your model might not likely give a suitable output that makes good
+    sense for your specific domain or use cases. Hence, building your own tokenizer
+    in your choice of language certainly helps make your model’s output much more
+    coherent and understandable.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Building your own tokenizer also gives you full control over how comprehensive
+    and inclusive vocabulary you want to build. During the attention mechanism, because
+    of comprehensive vocabulary, the token can attend and learn from more tokens within
+    the limited context length of the sequence. Hence it makes learning more coherent
+    which eventually helps in better model inference.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The good news is that after you finish building Thai Tokenizer, you can easily
+    build a tokenizer in any other language. All the building steps are the same except
+    that you’ll have to train on the dataset of your choice of language.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Now that we’ve all the good reason to build our own tokenizer. Below are
+    steps to building our tokenizer in the Thai language.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build our own BPE algorithm
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Train the tokenizer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Tokenizer encode and decode function
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Load and test the tokenizer
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: '**Step 1: Build our own BPE (Byte Pair Encoding) algorithm:**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The BPE algorithm is used in many popular LLMs such as Llama, GPT, and others
+    to build their tokenizer. We can choose one of these LLM tokenizers if our model
+    is based on the English language. Since we’re building the Thai Tokenizer, the
+    best option is to create our own BPE algorithm from scratch and use it to build
+    our tokenizer. Let’s first understand how the BPE algorithm works with the help
+    of the simple flow diagram below and then we’ll start building it accordingly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bdc0fe33fb3088b9db81b36efeeed005.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Image by writer]: BPE flow diagram. Example reference from a wiki page ([https://en.wikipedia.org/wiki/Byte_pair_encoding](https://en.wikipedia.org/wiki/Byte_pair_encoding))'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The examples in the flow diagram are shown in English to make it easier to understand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Let’s write code to implement the BPE algorithm for our Thai Tokenizer.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: The two functions ***get_stats***and ***merge***defined above in the code block
+    are the implementation of the BPE algorithm for our Thai Tokenizer. Now that the
+    algorithm is ready. Let’s write code to train our tokenizer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Step 2: Train the tokenizer:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Training tokenizer involves generating a vocabulary which is a database of unique
+    tokens (word and sub-words) along with a unique index number assigned to each
+    token. We’ll be using **the Thai Wiki dataset** from the Hugging Face to train
+    our Thai Tokenizer. Just like training an LLM requires a huge data, you’ll also
+    require a good amount of data to train a tokenizer. You could also use the same
+    dataset to train the LLM as well as tokenizer though not mandatory. For a multilingual
+    LLM, it is advisable to use both the English and Thai datasets in the ratio of
+    2:1 which is a standard approach many practitioners follow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Let’s begin writing the training code.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 3: Tokenizer encode and decode function:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '**Tokenizer Encode:** The tokenizer encoding function looks into vocabulary
+    and translates the given input texts or prompts into the list of integer IDs.
+    These IDs are then fed into the transformer blocks.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Tokenizer Decode:** The tokenizer decoding function looks into vocabulary
+    and translates the list of IDs generated from the transformer’s classifier block
+    into output texts.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s take a look at the diagram below to have further clarity.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/8d677b110b92dc2cb9ac0c4822965467.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '[Image by writer]: Thai tokenizer encode and decode function'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Let’s write code to implement the tokenizer’s encode and decode function.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Step 4: Load and test the tokenizer:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, here comes the best part of this article. In this section, we’ll perform
+    two interesting tasks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, train our tokenizer with the Thai Wiki Dataset from the Hugging Face.
+    We have chosen a small dataset size (2.2 MB) to make training faster. However,
+    for real-world implementation, you should choose a much larger dataset for better
+    results. After the training is complete, we’ll save the model.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Second, we’ll load the saved tokenizer model and perform testing the tokenizer’s
+    encode and decode function.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Let’s dive in.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/935f6773b6e220ece558ac08625cfef3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '**[Thai Tokenizer]: Encoding and decoding output for the texts in Thai and
+    English language.**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Perfect. Our Thai Tokenizer can now successfully and accurately encode and decode
+    texts in both Thai and English languages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Have you noticed that the encoded IDs for English texts are longer than Thai
+    encoded IDs? This is because we’ve only trained our tokenizer with the Thai dataset.
+    Hence the tokenizer is only able to build a comprehensive vocabulary for the Thai
+    language. Since we didn’t train with an English dataset, the tokenizer has to
+    encode right from the character level which results in longer encoded IDs. As
+    I have mentioned before, for multilingual LLM, you should train both the English
+    and Thai datasets with a ratio of 2:1\. This will give you balanced and quality
+    results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**And that is it!** We have now successfully created our own Thai Tokenizer
+    from scratch only using Python. And, I think that was pretty cool. With this,
+    you can easily build a tokenizer for any foreign language. This will give you
+    a lot of leverage while implementing your Multilingual LLM.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Thanks a lot for reading!**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Link to Google Colab notebook](https://github.com/tamangmilan/thai_tokenizer/blob/main/build_thai_tokenizer.ipynb)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**References**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[1] Andrej Karpathy, Git Hub: [Karpthy/minbpe](https://github.com/karpathy/minbpe?tab=readme-ov-file)'
+  prefs: []
+  type: TYPE_NORMAL

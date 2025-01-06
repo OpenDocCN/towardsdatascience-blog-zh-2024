@@ -1,0 +1,728 @@
+- en: Designing and Deploying a Machine Learning Python Application (Part 2)
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/designing-and-deploying-a-machine-learning-python-application-part-2-99eb37787b2b?source=collection_archive---------4-----------------------#2024-02-24](https://towardsdatascience.com/designing-and-deploying-a-machine-learning-python-application-part-2-99eb37787b2b?source=collection_archive---------4-----------------------#2024-02-24)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You don’t have to be Atlas to get your model into the cloud
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)[![Noah
+    Haglund](../Images/edfcc90677444ebced16549a1524d7fe.png)](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------)
+    [Noah Haglund](https://medium.com/@noahhaglund?source=post_page---byline--99eb37787b2b--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--99eb37787b2b--------------------------------)
+    ·16 min read·Feb 24, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea381d092591530df711ecba890d8217.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Midjourney
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we have our trained Detectron2 model ([see Part 1](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)),
+    let’s deploy it as a part of an application to provide its inferencing abilities
+    to others.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even though Part 1 and 2 of this series use Detectron2 for Object Detection,
+    no matter the machine learning library you are using (*Detectron, Yolo, PyTorch,
+    Tensorflow, etc*) and no matter your use case (*Computer Vision, Natural Language
+    Processing, Deep Learning, etc*), various topics discussed here concerning model
+    deployment will be useful for all those developing ML processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Although the fields of Data Science and Computer Science overlap in many ways,
+    training and deploying an ML model combines the two, as those concerned with developing
+    an efficient and accurate model are not typically the ones trying to deploy it
+    and vice versa. On the other hand, someone more CS oriented may not have the understanding
+    of ML or its associated libraries to determine whether application bottlenecks
+    could be fixed with configurations to the ML process or rather the backend and
+    hosting service/s.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In order to aid you in your quest to deploy an application that utilizes ML,
+    this article will begin by discussing: (1) high level CS design concepts that
+    can help DS folks makes decisions in order to balance load and mitigate bottlenecks
+    and (2) low level design by walking through deploying a Detectron2 inferencing
+    process using the Python web framework Django, an API using Django Rest Framework,
+    the distributed task queue Celery, Docker, Heroku, and AWS S3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For following along with this article, it will be helpful to have in advance:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Strong Python Knowledge
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Understanding of Django, Django Rest Framework, Docker, Celery, and AWS
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Familiarity with Heroku
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: High Level Design
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In order to dig into the high level design, let’s discuss a couple key problems
+    and potential solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Problem 1: Memory'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The saved ML model from [Part 1](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b),
+    titled model_final.pth, will start off at ~325MB. Additionally, an application
+    based on (1) a Python runtime, (2) Detectron2, (3) large dependencies such as
+    Torch, and (4) a Django web framework will utilize ~150MB of memory on deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So at minimum, we are looking at ~475MB of memory utilized right off the bat.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We could load the Detectron2 model only when the ML process needs to run, but
+    this would still mean that our application would eat up ~475MB eventually. If
+    you have a tight budget and are unable to vertically scale your application, memory
+    now becomes a substantial limitation on many hosting platforms. For example, Heroku
+    offers containers to run applications, termed “dynos”, that started with 512MB
+    RAM for base payment plans, will begin writing to disk beyond the 512MB threshold,
+    and will crash and restart the dyno at 250% utilization (1280MB).
+  prefs: []
+  type: TYPE_NORMAL
+- en: On the topic of memory, Detectron2 inferencing will cause spikes in memory usage
+    depending on the amount of objects detected in an image, so it is important to
+    ensure memory is available during this process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For those of you trying to speed up inferencing, but are cautious of memory
+    constraints, batch inferencing will be of no help here either. [As noted by one
+    of the contributors to the Detectron2 repo](https://github.com/facebookresearch/detectron2/issues/1539),
+    with batch inferencing:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: N images use N times more memory than 1 image…You can predict on N images one
+    by one in a loop instead.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Overall, this summarizes **problem #1**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: running a long ML processes as a part of an application will most likely be
+    memory intensive, due to the size of the model, ML dependencies, and inferencing
+    process.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Problem 2: Time'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: A deployed application that incorporates ML will likely need to be designed
+    to manage a long-running process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Using the example of an application that uses Detectron2, the model would be
+    sent an image as input and output inference coordinates. With one image, inference
+    may only take a few seconds, but say for instance we are processing a long PDF
+    document with one image per page (as per the training data in [Part 1](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)),
+    this could take a while.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'During this process, Detectron2 inferencing would be either CPU or GPU bound,
+    depending on your configurations. See the below Python code block to change this
+    (CPU is entirely fine for inferencing, however, GPU/Cuda is necessary for training
+    as mentioned in [Part 1](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b)):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Additionally, saving images after inferencing, say to AWS S3 for example, would
+    introduce I/O bound processes. Altogether, this could serve to clog up the backend,
+    which introduces **problem #2**:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: single-threaded Python applications will not process additional HTTP requests,
+    concurrently or otherwise, while running a process.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Problem 3: Scale'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When considering the horizontal scalability of a Python application, it is important
+    to note that Python (assuming it is compiled/interpreted by CPython) suffers from
+    the limitations of the Global Interpreter Lock (GIL), which [allows only one thread
+    to hold the control of the Python interpreter](https://realpython.com/python-gil/).
+    Thus, the paradigm of multithreading doesn’t correctly apply to Python, as applications
+    can still implement multithreading, using web servers such as Gunicorn, but will
+    do so concurrently, meaning that the threads aren’t running in parallel.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I know all of this sounds fairly abstract, perhaps especially for the Data Science
+    folks, so let me provide an example to illustrate this problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You are your application and right now your hardware, brain, is processing two
+    requests, cleaning the counter and texting on your phone. With two arms to do
+    this, you are now a multithreaded Python application, doing both simultaneously.
+    But you’re not actually thinking about both at the same *exact* time, you start
+    your hand in a cleaning motion, then switch your attention to your phone to look
+    at what you are typing, then look back at the counter to make sure you didn’t
+    miss a spot.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In actuality, you are processing these tasks concurrently.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The GIL functions in the same way, processing one thread at a time but switching
+    between them for concurrency. This means that multithreading a Python application
+    is still useful for running background or I/O bound-oriented tasks, such as downloading
+    a file, while the main execution’s thread is still running. To take the analogy
+    this far, your background task of cleaning the counter (i.e. downloading a file)
+    continues to happen while you are thinking about texting, but you still need to
+    change your focus back to your cleaning hand in order to process the next step.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This “change in focus” may not seem like a big deal when concurrently processing
+    multiple requests, but when you need to handle hundreds of requests simultaneously,
+    suddenly this becomes a limiting factor for large scale applications that need
+    to be adequately responsive to end users.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Thus, we have problem #3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the GIL prevents multithreading from being a good scalability solution for Python
+    applications.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Solutions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Now that we have identified key problems, let’s discuss a few potential solutions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The aforementioned problems are ordered in terms of importance, as we need
+    to manage memory first and foremost (problem #1) to ensure the application doesn’t
+    crash, then leave room for the app to process more than one request at a time
+    (problem #2) while still ensuring our means of simultaneous request handling is
+    effective at scale (problem #3).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So, let’s jump right into addressing problem #1.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Depending on the hosting platform, we will need to be fully aware of the configurations
+    available in order to scale. As we will be using Heroku, feel free to check out
+    the guidance on [dyno scaling](https://devcenter.heroku.com/articles/scaling).
+    Without having to vertically scale up your dyno, *we can scale out by adding another*
+    [*process*](https://devcenter.heroku.com/articles/process-model). For instance,
+    with the [Basic dyno type](https://devcenter.heroku.com/articles/dyno-types),
+    a developer is able to deploy both a web process and a worker process on the same
+    dyno. A few reasons this is useful:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: This enables a means of multiprocessing.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The dyno resources are now duplicated, meaning each process has a 512MB RAM
+    threshold.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cost wise, we are looking at $7 per month per process (so $14 a month with both
+    a web and worker process). Much cheaper than vertically scaling the dyno to get
+    more RAM, with $50 a month per dyno if you want to increase the 512MB allocation
+    to 1024MB.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Hopping back to the previous analogy of cleaning the counter and texting on
+    your phone, instead of threading yourself further by adding additional arms to
+    your body, we can now have two people (multiprocessing in parallel) to perform
+    the separate tasks. We are scaling out by increasing workload diversity as opposed
+    to scaling up, in turn saving us money.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Okay, but with two separate processes, what’s the difference?
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Using Django, our web process will be initialized with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And using a distributed task queue, such as Celery, the worker will be initialized
+    with:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[As intended by Heroku](https://devcenter.heroku.com/articles/process-model#mapping-the-unix-process-model-to-web-apps),
+    the web process is the server for our core web framework and the worker process
+    is intended for queuing libraries, cron jobs, or other work performed in the background.
+    Both represent an instance of the deployed application, so will be running at
+    ~150MB given the core dependencies and runtime. However, we can ensure that the
+    worker is the only process that runs the ML tasks, saving the web process from
+    using ~325MB+ in RAM. This has multiple benefits:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Memory usage, although still high for the worker, will be distributed to a
+    node outside of the system, ensuring any problems encountered during the execution
+    of an ML task can be handled and monitored separately from the web process. This
+    helps to mitigate problem #1.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The newly found means of parallelism ensures that the web process can still
+    respond to requests during a long-running ML task, helping to address problem
+    #2.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'We are preparing for scale by implementing a means of multiprocessing, helping
+    to address problem #3.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'As we haven’t quite solved the key problems, let’s dig in just a bit further
+    before getting into the low-level nitty-gritty. [As stated by Heroku](https://devcenter.heroku.com/articles/python-gunicorn):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Web applications that process incoming HTTP requests concurrently make much
+    more efficient use of dyno resources than web applications that only process one
+    request at a time. Because of this, we recommend using web servers that support
+    concurrent request processing whenever developing and running production services.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: The Django and Flask web frameworks feature convenient built-in web servers,
+    but these blocking servers only process a single request at a time. If you deploy
+    with one of these servers on Heroku, your dyno resources will be underutilized
+    and your application will feel unresponsive.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'We are already ahead of the game by utilizing worker multiprocessing for the
+    ML task, but can take this a step further by using Gunicorn:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[Gunicorn](https://gunicorn.org/) is a pure-Python HTTP server for WSGI applications.
+    It allows you to run any Python application concurrently by running multiple Python
+    processes within a single dyno. It provides a perfect balance of performance,
+    flexibility, and configuration simplicity.'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'Okay, awesome, now we can utilize even more processes, but there’s a catch:
+    each new worker Gunicorn worker process will represent a copy of the application,
+    meaning that they too will utilize the base ~150MB RAM *in addition* to the Heroku
+    process. So, say we pip install gunicorn and now initialize the Heroku web process
+    with the following command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The base ~150MB RAM in the web process turns into ~300MB RAM (base memory usage
+    multipled by # gunicorn workers).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'While being cautious of the limitations to multithreading a Python application,
+    we can add threads to workers as well using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Even with problem #3, we can still find a use for threads, as we want to ensure
+    our web process is capable of processing more than one request at a time while
+    being careful of the application’s memory footprint. Here, our threads could process
+    miniscule requests while ensuring the ML task is distributed elsewhere.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Either way, by utilizing gunicorn workers, threads, or both, we are setting
+    our Python application up to process more than one request at a time. We’ve more
+    or less solved problem #2 by incorporating various ways to implement concurrency
+    and/or parallel task handling while ensuring our application’s critical ML task
+    doesn’t rely on potential pitfalls, such as multithreading, setting us up for
+    scale and getting to the root of problem #3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Okay so what about that tricky problem #1\. At the end of the day, ML processes
+    will typically end up taxing the hardware in one way or another, whether that
+    would be memory, CPU, and/or GPU. *However*, by using a distributed system, our
+    ML task is integrally linked to the main web process yet handled in parallel via
+    a Celery worker. We can track the start and end of the ML task via the chosen
+    Celery [broker](https://docs.celeryq.dev/en/3.1/getting-started/brokers/index.html),
+    as well as review metrics in a more isolated manner. Here, curtailing Celery and
+    Heroku worker process configurations are up to you, but it is an excellent starting
+    point for integrating a long-running, memory-intensive ML process into your application.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Low Level Design and Setup
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Now that we’ve had a chance to really dig in and get a high level picture of
+    the system we are building, let’s put it together and focus on the specifics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For your convenience, [here is the repo](https://github.com/nzh2534/mltutorial/tree/main)
+    I will be mentioning in this section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First we will begin by setting up Django and Django Rest Framework, with installation
+    guides [here](https://docs.djangoproject.com/en/5.0/intro/install/) and [here](https://www.django-rest-framework.org/#installation)
+    respectively. All requirements for this app can be found in the repo’s requirements.txt
+    file (and Detectron2 and Torch will be built from Python wheels specified in the
+    Dockerfile, in order to keep the Docker image size small).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next part will be setting up the Django app, configuring the backend to
+    save to AWS S3, and exposing an endpoint using DRF, so if you are already comfortable
+    doing this, feel free to skip ahead and go straight to the *ML Task Setup and
+    Deployment* section.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Django Setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Go ahead and create a folder for the Django project and cd into it. Activate
+    the virtual/conda env you are using, ensure Detectron2 is installed as per the
+    installation instructions in [Part 1](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b),
+    and install the requirements as well.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Issue the following command in a terminal:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will create a Django project root directory titled “mltutorial”. Go ahead
+    and cd into it to find a manage.py file and a mltutorial sub directory (which
+    is the actual Python package for your project).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Open settings.py and add ‘rest_framework’, ‘celery’, and ‘storages’ (needed
+    for boto3/AWS) in the INSTALLED_APPS list to register those packages with the
+    Django project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In the root dir, let’s create an app which will house the core functionality
+    of our backend. Issue another terminal command:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: This will create an app in the root dir called docreader.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s also create a file in docreader titled mltask.py. In it, define a simple
+    function for testing our setup that takes in a variable, file_path, and prints
+    it out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Now getting to structure, Django apps use the [Model View Controller](https://www.geeksforgeeks.org/mvc-design-pattern/)
+    (MVC) design pattern, defining the Model in [models.py](https://docs.djangoproject.com/en/5.0/topics/db/models/),
+    View in [views.py](https://docs.djangoproject.com/en/5.0/topics/http/views/),
+    and Controller in Django [Templates](https://docs.djangoproject.com/en/5.0/topics/templates/)
+    and [urls.py](https://docs.djangoproject.com/en/5.0/topics/http/urls/). Using
+    Django Rest Framework, we will include serialization in this pipeline, which provide
+    a way of serializing and deserializing native Python data structures into representations
+    such as json. Thus, the application logic for exposing an endpoint is as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Database ← → models.py ← → serializers.py ← → views.py ← → urls.py
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'In docreader/models.py, write the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: This sets up a model Document that will require a title and file for each entry
+    saved in the database. Once saved, the @receiver decorator listens for a post
+    save signal, meaning that the specified model, Document, was saved in the database.
+    Once saved, user_created_handler() takes the saved instance’s file field and passes
+    it to, what will become, our Machine Learning function.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Anytime changes are made to models.py, you will need to run the following two
+    commands:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Moving forward, create a serializers.py file in docreader, allowing for the
+    serialization and deserialization of the Document’s title and file fields. Write
+    in it:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next in views.py, where we can define our CRUD operations, let’s define the
+    ability to create, as well as list, Document entries using [generic views](https://www.django-rest-framework.org/api-guide/generic-views/)
+    (which essentially allows you to quickly write views using an abstraction of common
+    view patterns):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Finally, update urls.py in mltutorial:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'And create urls.py in docreader app dir and write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we are all setup to save a Document entry, with title and field fields,
+    at the /api/create/ endpoint, which will call mltask() post save! So, let’s test
+    this out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To help visualize testing, let’s register our Document model with the Django
+    [admin interface](https://docs.djangoproject.com/en/5.0/ref/contrib/admin/), so
+    we can see when a new entry has been created.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In docreader/admin.py write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Create a user that can login to the Django admin interface using:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, let’s test the endpoint we exposed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To do this without a frontend, run the Django server and go to Postman. Send
+    the following POST request with a PDF file attached:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/b9a6e26e977b4778e759baa5aca0f5fa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: If we check our Django logs, we should see the file path printed out, as specified
+    in the post save mltask() function call.
+  prefs: []
+  type: TYPE_NORMAL
+- en: AWS Setup
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: You will notice that the PDF was saved to the project’s root dir. Let’s ensure
+    any media is instead saved to AWS S3, getting our app ready for deployment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to the [S3 console](https://s3.console.aws.amazon.com/) (and create an account
+    and get our your account’s [Access and Secret keys](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html)
+    if you haven’t already). Create a new bucket, here we will be titling it ‘djangomltest’.
+    Update the permissions to ensure the bucket is public for testing (and revert
+    back, as needed, for production).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now, let’s configure Django to work with AWS.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Add your model_final.pth, trained in [Part 1](https://medium.com/towards-data-science/training-and-deploying-a-custom-detectron2-model-for-object-detection-using-pdf-documents-part-1-c724f61d8b4b),
+    into the docreader dir. Create a .env file in the root dir and write the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Update settings.py to include AWS configurations:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Optionally, with AWS serving our static and media files, you will want to run
+    the following command in order to serve static assets to the admin interface using
+    S3:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: If we run the server again, our admin should appear the same as how it would
+    with our static files served locally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Once again, let’s run the Django server and test the endpoint to make sure the
+    file is now saved to S3.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ML Task Setup and Deployment
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With Django and AWS properly configured, let’s set up our ML process in mltask.py.
+    As the file is long, see the repo [here](https://github.com/nzh2534/mltutorial/blob/main/docreader/mltask.py)
+    for reference (with comments added in to help with understanding the various code
+    blocks).
+  prefs: []
+  type: TYPE_NORMAL
+- en: What’s important to see is that Detectron2 is imported and the model is loaded
+    only when the function is called. Here, we will call the function only through
+    a Celery task, ensuring the memory used during inferencing will be isolated to
+    the Heroku worker process.
+  prefs: []
+  type: TYPE_NORMAL
+- en: So finally, let’s setup Celery and then deploy to Heroku.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In mltutorial/_init__.py write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Create celery.py in the mltutorial dir and write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Lastly, make a tasks.py in docreader and write:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This Celery task, ml_celery_task(), should now be imported into models.py and
+    used with the post save signal instead of the mltask function pulled directly
+    from mltask.py. Update the post_save signal block to the following:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: And to test Celery, let’s deploy!
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the root project dir, include a Dockerfile and heroku.yml file, both specified
+    in the [repo](https://github.com/nzh2534/mltutorial/tree/main). Most importantly,
+    editing the heroku.yml *commands* will allow you to configure the gunicorn web
+    process and the Celery worker process, which can aid in further mitigating potential
+    problems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Make a Heroku account and create a new app called “mlapp” and gitignore the
+    .env file. Then initialize git in the projects root dir and change the Heroku
+    app’s stack to container (in order to deploy using Docker):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: Once pushed, we just need to add our env variables into the Heroku app.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Go to settings in the online interface, scroll down to Config Vars, click Reveal
+    Config Vars, and add each line listed in the .env file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0cb721c6c2ac8c4e9fbadf33d1aa882f.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: You may have noticed there was a CLOUDAMQP_URL variable specified in celery.py.
+    We need to provision a Celery Broker on Heroku, for which there are a variety
+    of options. I will be using [CloudAMQP](https://elements.heroku.com/addons/cloudamqp)
+    which has a free tier. Go ahead and add this to your app. Once added, the CLOUDAMQP_URL
+    environment variable will be included automatically in the Config Vars.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, let’s test the final product.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'To monitor requests, run:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Issue another Postman POST request to the Heroku app’s url at the /api/create/
+    endpoint. You will see the POST request come through, Celery receive the task,
+    load the model, and start running pages:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/96ab69c4cda3ae0833d35f08f528b544.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: We will continue to see the “Running for page…” until the end of the process
+    and you can check the AWS S3 bucket as it runs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Congrats! You’ve now deployed and ran a Python backend using Machine Learning
+    as a part of a distributed task queue running in parallel to the main web process!
+  prefs: []
+  type: TYPE_NORMAL
+- en: As mentioned, you will want to adjust the heroku.yml *commands* to incorporate
+    gunicorn threads and/or worker processes and fine tune celery. For further learning,
+    here’s a [great article](https://medium.com/building-the-system/gunicorn-3-means-of-concurrency-efbb547674b7)
+    on configuring gunicorn to meet your app’s needs, one for digging into [Celery
+    for production](https://progressstory.com/tech/python/production-ready-celery-configuration/),
+    and another for exploring Celery [worker pools](https://celery.school/celery-worker-pools),
+    in order to help with properly managing your resources.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Happy coding!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Unless otherwise noted, all images used in this article are by the author*'
+  prefs: []
+  type: TYPE_NORMAL

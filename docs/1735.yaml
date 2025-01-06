@@ -1,0 +1,333 @@
+- en: From Scratch to Deep Quantile Forecasting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/from-scratch-to-deep-quantile-forecasting-366d84b7dd22?source=collection_archive---------5-----------------------#2024-07-16](https://towardsdatascience.com/from-scratch-to-deep-quantile-forecasting-366d84b7dd22?source=collection_archive---------5-----------------------#2024-07-16)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: An end-2-end empirical sharing of multi-step quantile forecasting with Tensorflow,
+    NeuralForecast, and Zero-shot LLMs.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://jinhangjiang.medium.com/?source=post_page---byline--366d84b7dd22--------------------------------)[![Jinhang
+    Jiang](../Images/35a4006e02b358f732af46a78d8b7bac.png)](https://jinhangjiang.medium.com/?source=post_page---byline--366d84b7dd22--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--366d84b7dd22--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--366d84b7dd22--------------------------------)
+    [Jinhang Jiang](https://jinhangjiang.medium.com/?source=post_page---byline--366d84b7dd22--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--366d84b7dd22--------------------------------)
+    ·11 min read·Jul 16, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d9966f81b1656b76977dac86cc86b3af.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Content
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Short Introduction
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Data
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Build a Toy Version of Quantile Recurrent Forecaster
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Quantile Forecasting with the State-of-Art Models
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Zero-shot Quantile Forecast with LLMs
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_OL
+  type: TYPE_NORMAL
+- en: Short Introduction
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Quantile forecasting is a statistical technique used to predict different quantiles
+    (e.g., the median or the 90th percentile) of a response variable’s distribution,
+    providing a more comprehensive view of potential future outcomes. Unlike traditional
+    mean forecasting, which only estimates the average, quantile forecasting allows
+    us to understand the range and likelihood of various possible results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantile forecasting is essential for decision-making in contexts with asymmetric
+    loss functions or varying risk preferences. In supply chain management, for example,
+    predicting the 90th percentile of demand ensures sufficient stock levels to avoid
+    shortages, while predicting the 10th percentile helps minimize overstock and associated
+    costs. This methodology is particularly advantageous in sectors such as finance,
+    meteorology, and energy, where understanding distribution extremes is as critical
+    as the mean.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Both quantile forecasting and conformal prediction address uncertainty, yet
+    their methodologies differ significantly. Quantile forecasting directly models
+    specific quantiles of the response variable, providing detailed insights into
+    its distribution. Conversely, conformal prediction is a model-agnostic technique
+    that constructs prediction intervals around forecasts, guaranteeing that the true
+    value falls within the interval with a specified probability. Quantile forecasting
+    yields precise quantile estimates, whereas conformal prediction offers broader
+    interval assurances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The implementation of quantile forecasting can markedly enhance decision-making
+    by providing a sophisticated understanding of future uncertainties. This approach
+    allows organizations to tailor strategies to different risk levels, optimize resource
+    allocation, and improve operational efficiency. By capturing a comprehensive range
+    of potential outcomes, quantile forecasting enables organizations to make informed,
+    data-driven decisions, thereby mitigating risks and enhancing overall performance.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'To demonstrate the work, I chose to use the data from the M4 competition as
+    an example. The data is under [CC0: Public Domain](https://creativecommons.org/publicdomain/zero/1.0/)
+    license which can be accessed [here](https://www.kaggle.com/datasets/yogesh94/m4-forecasting-competition-dataset).
+    The data can also be loaded through datasetsforecast package:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: '![](../Images/b2fc47f942462df4c37eb76000b6218c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The original data contains over 300 unique time series. To demonstrate, I randomly
+    selected three time series: W96, W99, and W100, as they all have the same history
+    length. The original timestamp is masked as integer numbers (i.e., 1–2296), I
+    manually converted it back to normal date format with the first date to be January
+    4th, 1970\. The following figure is a preview of W99:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/7218697744c1bb3df13b004055f82502.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by Author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Build a Toy Version of Quantile Recurrent Forecaster
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: First, let’s build a quantile forecaster from scratch to understand how the
+    target data flows through the pipeline and how the forecasts are generated. I
+    picked the idea from the paper [A Multi-Horizon Quantile Recurrent Forecaster](https://arxiv.org/pdf/1711.11053)
+    by Wen et al. The authors proposed a Multi-Horizon Quantile Recurrent Neural Network
+    (MQ-RNN) framework that combines Sequence-to-Sequence Neural Networks, Quantile
+    Regression, and Direct Multi-Horizon Forecasting for accurate and robust multi-step
+    time series forecasting. By leveraging the expressiveness of neural networks,
+    the nonparametric nature of quantile regression, and a novel training scheme called
+    forking-sequences, the model can effectively handle shifting seasonality, known
+    future events, and cold-start situations in large-scale forecasting applications.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We cannot reproduce everything in this short blog, but we can try to replicate
+    part of it using the TensorFlow package as a demo. If you are interested in the
+    implementation of the paper, there is an ongoing project that you can leverage:
+    [MQRNN](https://github.com/tianchen101/MQRNN?tab=readme-ov-file).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s first load the necessary package and define some global parameters. We
+    will use the LSTM model as the core, and we need to do some preprocessing on the
+    data to obtain the rolling windows before fitting. The input_shape is set to (104,
+    1) meaning we are using two years of data for each training window. In this walkthrough,
+    we will only look into an 80% confidence interval with the median as the point
+    forecast, which means the quantiles = [0.1, 0.5, 0.9]. We will use the last 12
+    weeks as a test dataset, so the output_steps or horizon is equal to 12 and the
+    cut_off_date will be ‘2013–10–13’.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, let’s convert the data to rolling windows which is the desired input
+    shape for RNN-based models:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Then we split the data into train, val, and test:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The authors of the MQRNN utilized both horizon-specific local context, essential
+    for temporal awareness and seasonality mapping, and horizon-agnostic global context
+    to capture non-time-sensitive information, enhancing the stability of learning
+    and the smoothness of generated forecasts. To build a model that sort of reproduces
+    what the MQRNN is doing, we need to write a quantile loss function and add layers
+    that capture local context and global context. I added an attention layer to it
+    to show you how the attention mechanism can be included in such a process:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the plotted forecasting results:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4ea0f97ef17dc6a16096bdb67e253103.png)![](../Images/aa8e3a035e57c8e122e5a273c123f59e.png)![](../Images/45150e4f2fcc64899238d7a063f66b11.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'We also evaluated the SMAPE for each item, as well as the percentage coverage
+    of the interval (how much actual was covered by the interval). The results are
+    as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3e7cd6245fd2ac4b3a1f5ebc96c21338.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: This toy version can serve as a good baseline to start with quantile forecasting.
+    The distributed training is not configured for this setup nor the model architecture
+    is optimized for large-scale forecasting, thus it might suffer from speed issues.
+    In the next section, we will look into a package that allows you to do quantile
+    forecasts with the most advanced deep-learning models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Quantile Forecasting with the SOTA Models
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The [neuralforecast](https://nixtlaverse.nixtla.io/neuralforecast/index.html)
+    package is an outstanding Python library that allows you to use most of the SOTA
+    deep neural network models for time series forecasting, such as PatchTST, NBEATs,
+    NHITS, TimeMixer, etc. with easy implementation. In this section, I will use [PatchTST](https://arxiv.org/pdf/2211.14730)
+    as an example to show you how to perform quantile forecasting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, load the necessary modules and define the parameters for PatchTST. Tuning
+    the model will require some empirical experience and will be project-dependent.
+    If you are interested in getting the potential-optimal parameters for your data,
+    you may look into the auto modules from the neuralforecast. They will allow you
+    to use Ray to perform hyperparameter tuning. And it is quite efficient! The neuralforecast
+    package carries a great set of models that are based on different sampling approaches.
+    The ones with the base_window approach will allow you to use MQLoss or HuberMQLoss,
+    where you can specify the quantile levels you are looking for. In this work, I
+    picked HuberMQLoss as it is more robust to outliers.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are plotted forecasts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4a38d8c1bebc0c8f483c2d49256c5179.png)![](../Images/d58e7495e1d8e68bbd54a5762d0dab56.png)![](../Images/2c352b71e91e103da2630ea6ea9576ef.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here are the metrics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/c293307afec86c1ea8c10d27dd0e7dc7.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Through the demo, you can see how easy to implement the model and how the performance
+    of the model has been lifted. However, if you wonder if there are any easier approaches
+    to do this task, the answer is YES. In the next section, we will look into a T5-based
+    model that allows you to conduct zero-shot quantile forecasting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Zero-shot Quantile Forecast with LLMs
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have been witnessing a trend where the advancement in NLP will also further
+    push the boundaries for time series forecasting as predicting the next word is
+    a synthetic process for predicting the next period’s value. Given the fast development
+    of large language models (LLMs) for generative tasks, researchers have also started
+    to look into pre-training a large model on millions of time series, allowing users
+    to do zero-shot forecasts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, before we draw an equal sign between the LLMs and Zero-shot Time Series
+    tasks, we have to answer one question: what is the difference between training
+    a language model and training a time series model? It would be “tokens from a
+    finite dictionary versus values from an unbounded.” Amazon recently released a
+    project called [Chronos](https://github.com/amazon-science/chronos-forecasting?tab=readme-ov-file)
+    which well handled the challenge and made the large time series model happen.
+    As the authors stated: “Chronos tokenizes time series into discrete bins through
+    simple scaling and quantization of real values. In this way, we can train off-the-shelf
+    language models on this ‘language of time series,’ with no changes to the model
+    architecture”. The original paper can be found [here](https://arxiv.org/pdf/2403.07815).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Currently, Chronos is available in multiple versions. It can be loaded and used
+    through the [autogluon API](https://auto.gluon.ai/stable/tutorials/timeseries/forecasting-chronos.html)
+    with only a few lines of code.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are the plotted forecasts:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/6d0ddda57ed01a537385312010594c39.png)![](../Images/c3a8bec841edbc3b6eaa37e050c79b9d.png)![](../Images/391aa8dbfff1f7334ef9eaa094e26e46.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Here are the metrics:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1e32cc1bbfbe54001b6019a2e6860001.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: As you can see, Chronos showed a very decent performance compared to PatchTST.
+    However, it does not mean it has surpassed PatchTST, since it is very likely that
+    Chronos has been trained on M4 data. In their original paper, the authors also
+    evaluated their model on the datasets that the model has not been trained on,
+    and Chronos still yielded very comparable results to the SOTA models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: There are many more large time series models being developed right now. One
+    of them is called [TimeGPT](https://docs.nixtla.io/docs/getting-started-about_timegpt)
+    which was developed by NIXTLA. The invention of this kind of model not only made
+    the forecasting task easier, more reliable, and consistent, but it is also a good
+    starting point to make reasonable guesses for time series with limited historical
+    data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: From building a toy version of a quantile recurrent forecaster to leveraging
+    state-of-the-art models and zero-shot large language models, this blog has demonstrated
+    the power and versatility of quantile forecasting. By incorporating models like
+    TensorFlow’s LSTM, NeuralForecast’s PatchTST, and Amazon’s Chronos, we can achieve
+    accurate, robust, and computationally efficient multi-step time series forecasts.
+    Quantile forecasting not only enhances decision-making by providing a nuanced
+    understanding of future uncertainties but also allows organizations to optimize
+    strategies and resource allocation. The advancements in neural networks and zero-shot
+    learning models further push the boundaries, making quantile forecasting a pivotal
+    tool in modern data-driven industries.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Note: All the images, numbers and tables are generated by the author. The complete
+    code can be found here: [Quantile Forecasting](https://github.com/jinhangjiang/Medium_Demo/blob/4ed201b4130c940106dd70ec7fe8a0d7b5b847a8/From%20Scratch%20to%20Deep%20Quantile%20Forecasting/Quantile_Forecast.ipynb).'
+  prefs: []
+  type: TYPE_NORMAL

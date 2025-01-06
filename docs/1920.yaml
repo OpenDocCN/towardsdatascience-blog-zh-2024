@@ -1,0 +1,326 @@
+- en: Create Synthetic Dataset Using Llama 3.1 to Fine-Tune Your LLM
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/create-a-synthetic-dataset-using-llama-3-1-405b-for-instruction-fine-tuning-9afc22fb6eef?source=collection_archive---------2-----------------------#2024-08-07](https://towardsdatascience.com/create-a-synthetic-dataset-using-llama-3-1-405b-for-instruction-fine-tuning-9afc22fb6eef?source=collection_archive---------2-----------------------#2024-08-07)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Using the giant Llama 3.1 405B and Nvidia Nemotron 4 reward model to create
+    a synthetic dataset for instruction fine-tuning.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)[![Hesam
+    Sheikh](../Images/b8d5f4f285eef77634e4c1d4321580ed.png)](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)
+    [Hesam Sheikh](https://medium.com/@itshesamsheikh?source=post_page---byline--9afc22fb6eef--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--9afc22fb6eef--------------------------------)
+    ·9 min read·Aug 7, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d59b24212f7745714c66c7591192d4a8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Created by AI using Leonardo.AI
+  prefs: []
+  type: TYPE_NORMAL
+- en: Data is the heart of AI and while it is a valuable asset, we know how challenging
+    and costly it is to develop high-quality datasets. A well-curated and filtered
+    dataset can make up for a lack of complexity in a model. This is also the case
+    with Large Language Models where smaller-sized models have shown to outperform
+    bigger LLMs by leveraging good data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we will explore how to use **Llama 3.1 405B** to create a synthetic
+    dataset of **git commands in natural language**. I will show how you can use this
+    405B beast without running tens of GPUs in parallel. After having an initial dataset
+    of instructions and responses, we will use **Nvidia’s Nemotron 4** as a reward
+    model to filter out any bad prompt/response pairs. Finally, we will push this
+    dataset to HuggingFace for later fine-tuning of our LLM.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This will be fast, free, and will leave you much in control.
+  prefs: []
+  type: TYPE_NORMAL
+- en: I will keep this post concise and knowledge-packed, so make sure to **read through
+    the end** and familiarize yourself with this essential skill.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🦙 Why Llama 3.1
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Meta has gained a firm foothold with the release of their latest family of LLMs,
+    [Llama 3.1](https://huggingface.co/collections/meta-llama/llama-31-669fc079a0c406a149a5738f).
+    The new family includes an upgraded version of the previous 8B and 70B models
+    with increased reasoning abilities and a giant 405B model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cbadf588e2561f45221657f93c764fa2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Llama 3.1 405 has been successful in reaching nearly the benchmark of the best
+    closed-source models. (diagram by [Maxime Labonne](https://medium.com/u/dc89da634938?source=post_page---user_mention--9afc22fb6eef--------------------------------),
+    with permission)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Llama 3.1 405B isn’t just impressive in terms of the sheer scale, but also by
+    closing the gap between closed-source and open-source models, more than ever before
+    (above figure).
+  prefs: []
+  type: TYPE_NORMAL
+- en: This capability of the 405B model makes it ideal for some of the most important
+    and nuanced workflows, such as Retrieval-Augmented Generation (RAG), supervised
+    fine-tuning (SFT), and most importantly **synthetic data generation**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Why Synthetic Data?
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Synthetic data is created using an artificial model by reproducing the characteristics
+    and features of real-world data. At some point, you will need to work with it
+    *when you need more data than you have*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Our example of a dataset of git commands in natural language can show this perfectly.
+    If we want to create an application that takes as input, what the user needs and
+    then suggests the right git command for it, then at the heart of this application
+    we will need an expert LLM. We could use GPT-4o or Claude and will most likely
+    get good results. But there is the problem of the cost. So the alternative would
+    be to **fine-tune** a Small Language Model (SML) such as Llama 3.1 8B or Gemma
+    2 2B (which I will get to in a later post).
+  prefs: []
+  type: TYPE_NORMAL
+- en: And guess what we need for fine-tuning… Data!
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Since I didn’t find the right dataset for this task, we are left with only
+    one solution: to create our dataset **synthetically** using Llama 3.1 405B.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 🛠️Building the Dataset
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To build a synthetic dataset using AI, we will use the following outline. You
+    can choose any other LLMs from what I have chosen.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/07a1f36079f8e08fdc8b2bb76c584e37.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Our outline of creating a synthetic dataset. (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Setting Up the API Key
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We will use the **Nvidia NIM API** to leverage these big LLMs without the hassle
+    of running them locally. Running a model like Llama 3.1 405B on the device would
+    normally require multiple H100 GPUs and unless you work in an organization with
+    such resources, you need to use external APIs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To access your free Nvidia credits, go to [Llama 3.1 on Nvidia NIM](https://build.nvidia.com/explore/discover#llama-3_1-405b-instruct),
+    and click on **Get API Key**. This is what we will use in our code or a `.env`
+    file. Once we have the API, we can set up our connection to the Nvidia server
+    to use the models remotely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: Generate Subtopics
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Ideally, we like our dataset to cover various scenarios and situations as much
+    as possible. One way to ensure this is to define **subtopics** and ask Llama 3.1
+    to provide instructions/response pairs for each of the subtopics. We can choose
+    these subtopics ourselves or leave it to the LLM to decide. I took the second
+    approach in the following code snippet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The LLM suggests five topics: Branching, Merging, Committing, Remote repositories,
+    and Resolving conflicts. It seems like a fair selection of subjects to cover.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Generate Instructions
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Having five subtopics of working with Git, we need Llama 3.1 to generate a set
+    of instructions (or prompts) regarding each of the subtopics. I have asked for
+    one hundred instructions per topic, so ideally, I should get 500 prompts.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'One thing to keep in mind is that when asking for *N* number of instructions:
+    it is rare that the model would return exactly as many as you want, even a big
+    model like this.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Eventually, I got a total of 335 instructions for 5 subtopics, which is very
+    different from 500\. There are methods to ensure this doesn’t happen but for the
+    sake of simplicity, we won’t dwell on this.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here are some examples of the generated instructions:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Response Generation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: For each of the provided instructions, we will also ask for a response. As you
+    can see in the following code snippet, I have specifically asked my responses
+    to be *on-topic, informative, and concise*. By the end, I will have a list of
+    `instruction` and `response` pairs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: Filtering Responses with Nemotron 4
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Even though we have our instruction/response pairs, not all of the responses
+    are high-quality. They may be verbose, complex, or false. This is where Nvidia’s
+    [**Nemotron 4 340B Reward**](https://huggingface.co/nvidia/Nemotron-4-340B-Reward)model
+    comes into play. It is made exactly for our use case, as according to Nvidia,
+    it *“can be used as part of a synthetic data generation pipeline to create training
+    data that helps researchers and developers build their own LLMs.”*
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/68716e2a3af1320dfe4da92f01e82d06.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example use of Nemotron 4\. (by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: We will give each one of our instruction/response pairs to Nemotron 4, and receive
+    five scores ranging from 0 to 4\. These five scores are *helpfulness, correctness,
+    coherence, complexity, and verbosity*. To use the model, I will first define a
+    simple function to feed an instruction and a response to the model and receive
+    the five scores in the shape of a dict.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: After we have a score for each of the rows in our dataset, we can filter the
+    dataset using each of the five provided criteria. I will filter out bad responses
+    based on **helpfulness** and **verbosity**, as I want to keep my responses concise
+    and informative.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: Push the Dataset to HuggingFace
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Finally, once you have the finished dataset, it’s a good practice to push it
+    to HuggingFace to use it later or to share it with other developers. To do this,
+    first log in to HuggingFace and provide a **token**, following the provided link
+    on the login page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then you can load the saved dataset and upload it on your HuggingFace page.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Congrats 🏆! So far you have been able to use Llama 3.1 to create a dataset of
+    instructions and responses, and Nemotron 4 to refine the dataset and filter out
+    bad responses. In the end, we saw how easy it is to push the dataset to HuggingFace
+    with no effort. [Create Synthetic Dataset from 1 TOPIC for Instruction Finetuning](https://www.youtube.com/watch?v=FAdRMVAWiak)
+    is also a great inspiration for this article and I would suggest you watch it
+    if you like this topic.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here is also the **repository** where you can find the complete code I have
+    used. Don’t forget to **star** ⭐the repo if you check it out.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[***Creating Synthetic Dataset Using Llama 3.1 405B and Nemotron 4***](https://github.com/hesamsheikh/dataset_git_commands)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: T***hank you*** *for reading through the article!* Please share your opinions
+    and suggestions if you think any modifications are required.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s Connect!
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*Subscribe for FREE to be notified of new articles! You can also find me on*
+    [*LinkedIn*](https://www.linkedin.com/in/hesamsheikh/) *and* [*Twitter*](https://x.com/itsHesamSheikh)*.*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@itshesamsheikh/subscribe?source=post_page-----9afc22fb6eef--------------------------------)
+    [## Get an email whenever Hesam Sheikh publishes.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Get an email whenever Hesam Sheikh publishes. By signing up, you will create
+    a Medium account if you don't already have not…
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: medium.com](https://medium.com/@itshesamsheikh/subscribe?source=post_page-----9afc22fb6eef--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Further Reads
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'If you have reached so far, you might also find these articles interesting:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=post_page-----9afc22fb6eef--------------------------------)
+    [## What We Still Don’t Understand About Machine Learning'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Machine Learning unknowns that researchers struggle to understand — from Batch
+    Norm to what SGD hides
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/what-we-still-dont-understand-about-machine-learning-699e0002a057?source=post_page-----9afc22fb6eef--------------------------------)
+    [](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----9afc22fb6eef--------------------------------)
+    [## A Comprehensive Guide to Collaborative AI Agents in Practice
+  prefs: []
+  type: TYPE_NORMAL
+- en: the definition, and building a team of agents that refine your CV and Cover
+    Letter for job applications
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: towardsdatascience.com](/a-comprehensive-guide-to-collaborative-ai-agents-in-practice-1f4048947d9c?source=post_page-----9afc22fb6eef--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL

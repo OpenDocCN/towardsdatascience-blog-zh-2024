@@ -1,0 +1,553 @@
+- en: 'How X (Twitter) Designed Its Home Timeline API: Lessons to Learn'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/api-design-of-x-twitter-home-timeline-da426f19edfe?source=collection_archive---------7-----------------------#2024-12-12](https://towardsdatascience.com/api-design-of-x-twitter-home-timeline-da426f19edfe?source=collection_archive---------7-----------------------#2024-12-12)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: 'A closer look at X’s API: fetching data, linking entities, and solving under-fetching.'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)[![Oleksii
+    Trekhleb](../Images/9419c8111bc8907db115c822b2d11773.png)](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------)
+    [Oleksii Trekhleb](https://trekhleb.medium.com/?source=post_page---byline--da426f19edfe--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--da426f19edfe--------------------------------)
+    ·17 min read·Dec 12, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d08c0fd3e725c601bde9d1ec4e754bf2.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'When designing a system’s API, software engineers often evaluate various approaches,
+    such as [REST vs RPC vs GraphQL](https://okso.app/showcase/system-design/page/0d03d895-b5b1-40c6-3549-945df9d98dcd),
+    or hybrid models, to determine the best fit for a specific task or project. These
+    approaches define how data flows between the backend and frontend, as well as
+    the structure of the response data:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Should all data be packed into a single “batch” and returned in one response?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Can the “batch” be configured to include only the required fields for a specific
+    client (e.g., browser vs. mobile) to avoid over-fetching?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: What happens if the client under-fetches data and requires additional backend
+    calls to retrieve missing entities?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: How should parent-child relationships be handled? Should child entities be embedded
+    within their parent, or should normalization be applied, where parent entities
+    only reference child entity IDs to improve reusability and reduce response size?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'In this article, we explore how the X (formerly Twitter) home timeline API
+    (x.com/home) addresses these challenges, including:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Fetching the list of tweets
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Returning hierarchical or linked data (e.g., tweets, users, media)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Sorting and paginating results
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Retrieving tweet details
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Liking a tweet
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Our focus will be on the API design and functionality, treating the backend
+    as a black box since its implementation is inaccessible.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/1ff17b3000177d4493d993014e3ce514.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of X home timeline
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Showing the exact requests and responses here might be cumbersome and hard
+    to follow since the deeply nested and repetitive objects are hard to read. To
+    make it easier to see the request/response payload structure, I’ve made my attempt
+    to “type out” the home timeline API in TypeScript. So when it comes to the request/response
+    examples I’ll use the request and response types instead of actual JSON objects.
+    Also, remember that the types are simplified and many properties are omitted for
+    brevity.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '*You may find all types in* [*types/x.ts*](https://github.com/trekhleb/trekhleb.github.io/blob/master/src/posts/2024/api-design-x-home-timeline/types/x.ts)
+    *file or at the bottom of this article in the “Appendix: All types at one place”
+    section.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: ''
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: All images, unless othewise noted, are by the author.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Fetching the list of tweets
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The endpoint and request/response structure
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Fetching the list of tweets for the home timeline starts with the `POST` request
+    to the following endpoint:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is a simplified request body type:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is a simplified response body type (we’ll dive deeper into the response
+    sub-types below):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is interesting to note here, that “getting” the data is done via “POSTing”,
+    which is not common for the REST-like API but it is common for a GraphQL-like
+    API. Also, the `graphql` part of the URL indicates that X is using the GraphQL
+    flavor for their API.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'I’m using the word *“flavor”* here because the request body itself doesn’t
+    look like a pure [GraphQL query](https://graphql.org/learn/queries/), where we
+    may describe the required response structure, listing all the properties we want
+    to fetch:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: The assumption here is that the home timeline API is not a pure GraphQL API,
+    but is a mix of several approaches. Passing the parameters in a POST request like
+    this seems closer to the “functional” RPC call. But at the same time, it seems
+    like the GraphQL features might be used somewhere on the backend behind the *HomeTimeline*
+    endpoint handler/controller. A mix like this might also be caused by a legacy
+    code or some sort of ongoing migration. But again, these are just my speculations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You may also notice that the same `TimelineRequest.queryId` is used in the API
+    URL as well as in the API request body. This queryId is most probably generated
+    on the backend, then it gets embedded in the `main.js` bundle, and then it is
+    used when fetching the data from the backend. It is hard for me to understand
+    how this `queryId` is used exactly since X's backend is a black box in our case.
+    But, again, the speculation here might be that, it might be needed for some sort
+    of performance optimization (re-using some pre-computed query results?), caching
+    (Apollo related?), debugging (join logs by queryId?), or tracking/tracing purposes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is also interesting to note, that the `TimelineResponse` contains not a list
+    of tweets, but rather a list of instructions, like *"add a tweet to the timeline"*
+    (see the `TimelineAddEntries` type), or *"terminate the timeline"* (see the `TimelineTerminateTimeline`
+    type).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The `TimelineAddEntries` instruction itself may also contain different types
+    of entities:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tweets — see the `TimelineItem` type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Cursors — see the `TimelineCursor` type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Conversations/comments/threads — see the `TimelineModule` type
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: This is interesting from the extendability point of view since it allows a wider
+    variety of what can be rendered in the home timeline without tweaking the API
+    too much.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pagination
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The `TimelineRequest.variables.count` property sets how many tweets we want
+    to fetch at once (per page). The default is 20\. However, more than 20 tweets
+    can be returned in the `TimelineAddEntries.entries` array. For example, the array
+    might contain 37 entries for the first page load, because it includes tweets (29),
+    pinned tweets (1), promoted tweets (5), and pagination cursors (2). I'm not sure
+    why there are 29 regular tweets with the requested count of 20 though.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `TimelineRequest.variables.cursor` is responsible for the cursor-based pagination.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*“Cursor pagination is most often used for real-time data due to the frequency
+    new records are added and because when reading data you often see the latest results
+    first. It eliminates the possibility of skipping items and displaying the same
+    item more than once. In cursor-based pagination, a constant pointer (or cursor)
+    is used to keep track of where in the data set the next items should be fetched
+    from.” See the* [*Offset pagination vs Cursor pagination*](https://stackoverflow.com/questions/55744926/offset-pagination-vs-cursor-pagination)
+    *thread for the context.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: When fetching the list of tweets for the first time the `TimelineRequest.variables.cursor`
+    is empty, since we want to fetch the top tweets from the default (most probably
+    pre-computed) list of personalized tweets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'However, in the response, along with the tweet data, the backend also returns
+    the cursor entries. Here is the response type hierarchy: `TimelineResponse → TimelineAddEntries
+    → TimelineCursor`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Every page contains the list of tweets along with “top” and “bottom” cursors:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e7fccea0dff69df5fc3f4350d2e732eb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Examples of how cursors are passed along with tweets
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After the page data is loaded, we can go from the current page in both directions
+    and fetch either the “previous/older” tweets using the “bottom” cursor or the
+    “next/newer” tweets using the “top” cursor. My assumption is that fetching the
+    “next” tweets using the “top” cursor happens in two cases: when the new tweets
+    were added while the user is still reading the current page, or when the user
+    starts scrolling the feed upwards (and there are no cached entries or if the previous
+    entries were deleted for the performance reasons).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The X’s cursor itself might look like this: `DAABCgABGemI6Mk__9sKAAIZ6MSYG9fQGwgAAwAAAAIAAA`.
+    In some API designs, the cursor may be a Base64 encoded string that contains the
+    id of the last entry in the list, or the timestamp of the last seen entry. For
+    example: `eyJpZCI6ICIxMjM0NTY3ODkwIn0= --> {"id": "1234567890"}`, and then, this
+    data is used to query the database accordingly. In the case of X API, it looks
+    like the cursor is being Base64 decoded into some custom binary sequence that
+    might require some further decoding to get any meaning out of it (i.e. via the
+    Protobuf message definitions). Since we don''t know if it is a `.proto` encoding
+    and also we don''t know the `.proto` message definition we may just assume that
+    the backend knows how to query the next batch of tweets based on the cursor string.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `TimelineResponse.variables.seenTweetIds` parameter is used to inform the
+    server about which tweets from the currently active page of the infinite scrolling
+    the client has already seen. This most probably helps ensure that the server does
+    not include duplicate tweets in subsequent pages of results.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Linked/hierarchical entities
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'One of the challenges to be solved in the APIs like home timeline (or Home
+    Feed) is to figure out how to return the linked or hierarchical entities (i.e.
+    `tweet → user`, `tweet → media`, `media → author`, etc):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Should we only return the list of tweets first and then fetch the dependent
+    entities (like user details) in a bunch of separate queries on-demand?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or should we return all the data at once, increasing the time and the size of
+    the first load, but saving the time for all subsequent calls?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Do we need to normalize the data in this case to reduce the payload size (i.e.
+    when the same user is an author of many tweets and we want to avoid repeating
+    the user data over and over again in each tweet entity)?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Or should it be a combination of the approaches above?
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Let’s see how X handles it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Earlier in the `TimelineTweet` type the `Tweet` sub-type was used. Let''s see
+    how it looks:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: What’s interesting here is that most of the dependent data like `tweet → media`
+    and `tweet → author` is embedded into the response on the first call (no subsequent
+    queries).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Also, the `User` and `Media` connections with `Tweet` entities are not normalized
+    (if two tweets have the same author, their data will be repeated in each tweet
+    object). But it seems like it should be ok, since in the scope of the home timeline
+    for a specific user the tweets will be authored by many authors and repetitions
+    are possible but sparse.
+  prefs: []
+  type: TYPE_NORMAL
+- en: My assumption was that the `UserTweets` API (that we don't cover here), which
+    is responsible for fetching the tweets of *one particular user* will handle it
+    differently, but, apparently, it is not the case. The `UserTweets` returns the
+    list of tweets of the same user and embeds the same user data over and over again
+    for each tweet. It's interesting. Maybe the simplicity of the approach beats some
+    data size overhead (maybe user data is considered pretty small in size). I'm not
+    sure.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another observation about the entities’ relationship is that the `Media` entity
+    also has a link to the `User` (the author). But it does it not via direct entity
+    embedding as the `Tweet` entity does, but rather it links via the `Media.source_user_id_str`
+    property.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The “comments” (which are also the “tweets” by their nature) for each “tweet”
+    in the home timeline are not fetched at all. To see the tweet thread the user
+    must click on the tweet to see its detailed view. The tweet thread will be fetched
+    by calling the `TweetDetail` endpoint (more about it in the "Tweet detail page"
+    section below).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Another entity that each `Tweet` has is `FeedbackActions` (i.e. "Recommend less
+    often" or "See fewer"). The way the `FeedbackActions` are stored in the response
+    object is different from the way the `User` and `Media` objects are stored. While
+    the `User` and `Media` entities are part of the `Tweet`, the `FeedbackActions`
+    are stored separately in `TimelineItem.content.feedbackInfo.feedbackKeys` array
+    and are linked via the `ActionKey`. That was a slight surprise for me since it
+    doesn't seem to be the case that any action is re-usable. It looks like one action
+    is used for one particular tweet only. So it seems like the `FeedbackActions`
+    could be embedded into each tweet in the same way as `Media` entities. But I might
+    be missing some hidden complexity here (like the fact that each action can have
+    children actions).
+  prefs: []
+  type: TYPE_NORMAL
+- en: More details about the actions are in the “Tweet actions” section below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sorting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The sorting order of the timeline entries is defined by the backend via the
+    `sortIndex` properties:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The `sortIndex` itself might look something like this `'1867231621095096312'`.
+    It likely corresponds directly to or is derived from a [Snowflake ID](https://en.wikipedia.org/wiki/Snowflake_ID).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*Actually most of the IDs you see in the response (tweet IDs) follow the “Snowflake
+    ID” convention and look like* `*''1867231621095096312''*`*.*'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: If this is used to sort entities like tweets, the system leverages the inherent
+    chronological sorting of Snowflake IDs. Tweets or objects with a higher sortIndex
+    value (a more recent timestamp) appear higher in the feed, while those with lower
+    values (an older timestamp) appear lower in the feed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here’s the step-by-step decoding of the Snowflake ID (in our case the `sortIndex`)
+    `1867231621095096312`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Extract the Timestamp:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The timestamp is derived by right-shifting the Snowflake ID by 22 bits (to
+    remove the lower 22 bits for data center, worker ID, and sequence): `1867231621095096312
+    → 445182709954`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Add Twitter’s Epoch:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Adding Twitter’s custom epoch (1288834974657) to this timestamp gives the UNIX
+    timestamp in milliseconds: `445182709954 + 1288834974657 → 1734017684611ms`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Convert to a human-readable date:**'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Converting the UNIX timestamp to a UTC datetime gives: `1734017684611ms → 2024-12-12
+    15:34:44.611 (UTC)`'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: So we can assume here that the tweets in the home timeline are sorted chronologically.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tweet actions
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Each tweet has an “Actions” menu.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/99e8c98d9b3e8ea09c2e5906f3a0ee5e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Example of tweet actions
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The actions for each tweet are coming from the backend in a `TimelineItem.content.feedbackInfo.feedbackKeys`
+    array and are linked with the tweets via the `ActionKey`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: It is interesting here that this flat array of actions is actually a tree (or
+    a graph? I didn’t check), since each action may have child actions (see the `TimelineAction.value.childKeys`
+    array). This makes sense, for example, when after the user clicks on the "Don't
+    Like" action, the follow-up might be to show the "This post isn’t relevant" action,
+    as a way of explaining why the user doesn't like the tweet.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Tweet detail page
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Once the user would like to see the tweet detail page (i.e. to see the thread
+    of comments/tweets), the user clicks on the tweet and the `GET` request to the
+    following endpoint is performed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: I was curious here why the list of tweets is being fetched via the `POST` call,
+    but each tweet detail is fetched via the `GET` call. Seems inconsistent. Especially
+    keeping in mind that similar query parameters like `query-id`, `features`, and
+    others this time are passed in the URL and not in the request body. The response
+    format is also similar and is re-using the types from the list call. I'm not sure
+    why is that. But again, I'm sure I might be might be missing some background complexity
+    here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here are the simplified response body types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: The response is pretty similar (in its types) to the list response, so we won’t
+    for too long here.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One interesting nuance is that the “comments” (or conversations) of each tweet
+    are actually other tweets (see the `TimelineModule` type). So the tweet thread
+    looks very similar to the home timeline feed by showing the list of `TimelineTweet`
+    entries. This looks elegant. A good example of a universal and re-usable approach
+    to the API design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Liking the tweet
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'When a user likes the tweet, the `POST` request to the following endpoint is
+    being performed:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the request body types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Here is the response body types:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: Looks straightforward and also resembles the RPC-like approach to the API design.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conclusion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We have touched on some basic parts of the home timeline API design by looking
+    at X’s API example. I made some assumptions along the way to the best of my knowledge.
+    I believe some things I might have interpreted incorrectly and I might have missed
+    some complex nuances. But even with that in mind, I hope you got some useful insights
+    from this high-level overview, something that you could apply in your next API
+    Design session.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initially, I had a plan to go through similar top-tech websites to get some
+    insights from Facebook, Reddit, YouTube, and others and to collect battle-tested
+    best practices and solutions. I’m not sure if I’ll find the time to do that. Will
+    see. But it could be an interesting exercise.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Appendix: All types in one place'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: For the reference, I’m adding all types in one go here. You may also find all
+    types in [types/x.ts](https://github.com/trekhleb/trekhleb.github.io/blob/master/src/posts/2024/api-design-x-home-timeline/types/x.ts)
+    file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE

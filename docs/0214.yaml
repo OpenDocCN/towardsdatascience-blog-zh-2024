@@ -1,0 +1,516 @@
+- en: 'AI for Groups: Build a Multi-User Chat Assistant Using 7B-Class Models'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/ai-for-groups-build-a-multi-user-chat-assistant-using-7b-class-models-7071ca8b4aa0?source=collection_archive---------6-----------------------#2024-01-22](https://towardsdatascience.com/ai-for-groups-build-a-multi-user-chat-assistant-using-7b-class-models-7071ca8b4aa0?source=collection_archive---------6-----------------------#2024-01-22)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Have you ever wanted to build an assistant that knows when to talk and when
+    to remain silent? Learn how to do it using open-source models.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@jjezabek?source=post_page---byline--7071ca8b4aa0--------------------------------)[![Jan
+    Jezabek, Ph.D.](../Images/eb78f321cc347a9e619b2c474e7bc192.png)](https://medium.com/@jjezabek?source=post_page---byline--7071ca8b4aa0--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--7071ca8b4aa0--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--7071ca8b4aa0--------------------------------)
+    [Jan Jezabek, Ph.D.](https://medium.com/@jjezabek?source=post_page---byline--7071ca8b4aa0--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--7071ca8b4aa0--------------------------------)
+    ·15 min read·Jan 22, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: Intelligent chat assistants have become a central application made possible
+    by the recent generative AI progress, with ChatGPT and Bing Chat/Copilot becoming
+    household names. Typically, this takes the form of a back and forth between a
+    user, who provides prompts or instructions, and an assistant, who in turn provides
+    responses.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'A scenario that has received comparatively less attention is one in which an
+    assistant is a semi-active participant in a conversation between two or more users.
+    Examples of such interactions are conversations between groups of friends planning
+    activities together — with the assistant providing recommendations when applicable
+    and staying silent otherwise — or customer support chats, with the assistant providing
+    suggestions to the customer service representative. In these cases, the assistant
+    is not expected to respond at every turn: It would be awkward if it regularly
+    barged in during casual chit-chat between friends.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/2ae3c2938854108e952881ce1da19d1a.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: '(Image credit: DALL-E 3 with post-processing by the author to remove extra
+    fingers)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this series I’ll go through the steps needed to build a lightweight assistant
+    for this purpose using open-source LLMs. In this context “lightweight” means a
+    model that requires 16GB and 8GB of GPU RAM for training and inference respectively,
+    and that it can efficiently run on a CPU if needed. For this purpose, I will be
+    using Llama-2-7b-hf-chat, Zephyr-7b-beta, and OpenChat-3.5-0106, which all fit
+    this description.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ChatGPT-3.5-Turbo Baseline
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To get a feeling for the task we’ll first implement it using ChatGPT. This will
+    give us a reference point from a strong model and will give us an estimate of
+    the task’s difficulty.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s think about some of the unique aspects of our use case:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We don’t want the assistant to be overzealous: It should only chime in if asked
+    directly or if it has some interesting trivia to add. To this end the assistant
+    needs the possibility to remain silent.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are multiple human users in the conversation. To make sense of it, we
+    need to indicate which user is the speaker for each chat message.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: For the first aspect we need to define the mechanism for when the assistant
+    chooses to remain silent. To achieve this, we’ll instruct the model to return
+    “(silence)” as its response. Such a prediction can then be filtered during post-processing.
+    An alternative is to ask the model to return an empty prediction, but anecdotally
+    this seems not to be working reliably with some models (they are not used to staying
+    silent!).
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the second aspect, OpenAI’s API conveniently lets us provide the name of
+    the participant for each message in the conversation (curiously this functionality
+    is not exposed in the [Playground](https://platform.openai.com/playground)). This
+    is unfortunately not true for the common open-source models (where we will need
+    a workaround), but for ChatGPT we should be fine.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This leaves one more crucial decision: The prompt. For our use case I’m deliberately
+    picking something short and precise (it can always be adjusted if the tone of
+    the responses ends up being off):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We now have everything we need, let’s give it a try. Using a chat loop as implemented
+    in [this notebook](https://colab.research.google.com/drive/18Lsn3ws5H3jCEJ-loLmuL4_195BOEEoa?usp=drive_link),
+    we get the following conversation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The initial results are encouraging if not perfect: The assistant occasionally
+    chooses to remain silent (adhering to the format from the instructions) or chimes
+    in with helpful information, but it also sometimes responds with unnecessary chit-chat.
+    Changing the prompt to:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and inserting this reminder system message after every user message:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'does not seem to make a big difference, as seen in this conversation:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It’s likely that the model’s performance can be improved significantly with
+    more work on the prompt, but for now this is sufficient for our purposes: We have
+    a baseline to compare against and we also get an indication that the problem is
+    tractable, if not trivial.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Open-Source Models and Finetuning
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We’ve seen that despite some hiccups, ChatGPT-3.5-Turbo is able to act as a
+    semi-active participant in a group conversation. The same is unfortunately not
+    true for common open-source models in the 7B parameter class, which end up responding
+    at every turn. Fortunately, the great thing about open-source LLMs is that we
+    can adapt them to our task via finetuning.
+  prefs: []
+  type: TYPE_NORMAL
+- en: It is worth pointing out that finetuning is not applicable to every situation.
+    For example, if you want to teach a model new facts, finetuning will not be the
+    right tool (a better approach is Retrieval Augmented Generation). However, if
+    you want to alter the tone or format of the responses (as we do here), finetuning
+    is just the thing you need.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Dataset Generation
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'A critical thing to decide for finetuning is the dataset. We’ll need to provide
+    a set of good examples of multi-user conversations where an assistant largely
+    remains silent, but occasionally chimes in with helpful information. To quickly
+    bootstrap such a set, I enrolled the help of Mixtral-8x7B-Instruct-v0.1, hosted
+    on replicate.com. Specifically, I generated 50 synthetic conversations using this
+    prompt (along with some variations in the topic of discussion and participant
+    names, see [this notebook](https://colab.research.google.com/drive/1JWAK3ecaO4EjUqIk1LBIfGQ8zV4oWmDk?usp=drive_link)
+    for details):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Obviously, the result is not a high quality, curated dataset, so using it for
+    a production model is not recommended. I will discuss some ways to improve the
+    dataset’s quality, as well as approaches for evaluating the resultant model in
+    a subsequent article. However, the dataset is good enough for our purpose right
+    now, that is to validate that a small model can be adapted for the purpose of
+    a multi-user chat assistant.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The dataset generation notebook is available here, and the generated dataset
+    was uploaded to [this HuggingFace repository](https://huggingface.co/jjezabek/multi_user_chat_synthetic).
+    Below is an example generated dialog:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: A Note About Chat Templates
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When using a pretrained chat model, it is a good idea to ensure that the format
+    of your input matches the one that the model had been trained with. This has become
+    a bit easier with HuggingFace in September 2023 with the introduction of the *apply_chat_template*
+    method of the tokenizer. This method takes care of formatting the various user,
+    system and assistant prompts and responses into the required format expected by
+    the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unfortunately, not all models have been updated to have a chat template, so
+    I recommend inspecting the output from *apply_chat_template* for each model and
+    comparing it to the model’s documentation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the context of finetuning (as opposed to just using on off-the-shelf model
+    for inference) we don’t necessarily have to follow a prescribed format. In fact,
+    for non-chat models defining your own chat template is a necessity. However, for
+    chat models sticking with the existing chat template is likely to make the finetuning
+    task easier, resulting in fewer training steps and a smaller possibility of unwanted
+    side effects (think catastrophic forgetting).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'For the models we’ve chosen, Zephyr, Llama-7b-chat, and OpenChat-3.5, we are
+    in luck: All of them have their chat templates defined correctly and *apply_chat_template*
+    works as expected.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finetuning
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We are now ready to kick off the finetuning. As mentioned before, the goal is
+    to fit the training into 16GB of GPU memory, allowing it to run on a single T4
+    GPU (no need to hunt for the ultra-rare Pokémon… err, I mean A100s). To achieve
+    this, we’ll use 4-bit quantization and LoRA. If you’re unfamiliar with these terms,
+    I highly recommend [this article](https://www.mercity.ai/blog-post/guide-to-fine-tuning-llms-with-lora-and-qlora)
+    as an introduction. This section will go through the main steps needed for finetuning,
+    the complete training notebook can be accessed [here](https://colab.research.google.com/drive/1MDXvw8ie3XnpR0OujFhwLgTU0XIeepSv?usp=drive_link).
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Before starting training, we need to slightly massage the synthetic dataset
+    created earlier:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We need to add information about who the speaker is in each user turn. Remember
+    the helpful *name* field in OpenAI’s API that allowed us to differentiate between
+    various human speakers? It’s sadly not present in Zephyr’s, Llama’s and OpenChat’s
+    chat templates. As a workaround we will just prepend “{name}: ” at the start of
+    each line.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We also need to add assistant lines saying “(silence)” every time the assistant
+    chooses not to respond in a turn. In addition, we will also prepend “(response)”
+    before each assistant line. This is not strictly necessary for the basic chat
+    case but will allow us to cajole the model into answering even if it preferred
+    to remain silent (this will come handy during evaluation but can also be a product
+    feature).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Finally, we also need to apply the chat template.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'The dataset preprocessing is implemented as follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Note that no system prompt is included. The reason is that we’re finetuning
+    a model for this one specific task, so providing the instructions to the model
+    is redundant: It learns what it is supposed to do from its training. This has
+    the nice side effect of both shorter training and slightly quicker inference.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Having finished preparing the dataset, we now load the quantized model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We then define the adapter model (i.e. the low rank “diff” from the base model):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'and instantiate the trainer and the training arguments:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: The settings used above are fairly standard (and I encourage you to tweak them
+    as needed). The ones that really matter are the number of epochs, the learning
+    rate, and the batch size. The above is a particular configuration that worked
+    for me and might be a good starting point but is obviously not a substitute for
+    a real hyperparameter search.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We are now ready to instantiate the trainer and kick off the training:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'That was quick, just 8 minutes on a T4! Let’s test how it does by creating
+    a conversational pipeline and a loop, using the same [notebook](https://colab.research.google.com/drive/18Lsn3ws5H3jCEJ-loLmuL4_195BOEEoa?usp=drive_link)
+    as for the OpenAI API case. Here is an example conversation using a model finetuned
+    from OpenChat-3.5–0106:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'This is pretty encouraging: The model follows our format requirements and seems
+    to make reasonable decisions on when to chime in and when to remain silent.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: So — are we done? One thing to note about the training is that the model is
+    taught to predict all of the tokens in each sample, including the user messages
+    and any special tokens. The following section will show how this can be suppressed.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training on Completions Only
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'First things first: Why do we even care about not teaching the model to predict
+    the user messages? One argument can be made on the grounds of privacy: If real
+    conversations are used as training data, a model could possibly be persuaded by
+    an end user to leak some of the user messages (for what it’s worth, assistant
+    responses can contain sensitive information as well). A second argument is that
+    trying to predict user messages is unnecessary, and as a result wasteful. This
+    can mean that you will need to train for a longer time to get good results, and
+    hence risk unwanted side effects (again, this is chiefly catastrophic forgetting).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Depending on your use case both of these arguments might be moot, and the model
+    might do well with the training procedure described above. If, however, it’s not,
+    or if you are just curious, I encourage you to keep reading.
+  prefs: []
+  type: TYPE_NORMAL
+- en: HuggingFace’s *trl* library provides us with a tool to solve this particular
+    problem, implemented as *DataCollatorForCompletionsOnlyLM*. This collator changes
+    the labels for the tokens representing user messages to an “ignore” label, meaning
+    the models are not trained to predict them. The user messages are of course still
+    used as context for predicting assistant messages.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '*DataCollatorForCompletionsOnlyLM* requires us to pass two strings that it
+    can use to find the start of the user messages (the *instruction_template* parameter)
+    and the assistant messages (*response_template*). We can find them by inspecting
+    the output of *apply_chat_template*: In the case of Zephyr, they are “<|user|>”
+    and “<|assistant|>”, for Llama they are “[INST]” and “[/INST]”. Let’s try it out:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Uh oh, this looks bad. Essentially the trainer cannot find our template fragments
+    and as a result ignores all our samples. The reason for this is explained in [this
+    article](https://huggingface.co/docs/trl/sft_trainer#using-tokenids-directly-for-responsetemplate):
+    Depending on the preceding context, a string like “<|user|>” can have different
+    tokenized representations. Fortunately, *DataCollatorForCompletionsOnlyLM* allows
+    us to pass the tokenized versions of these delimiter strings instead of the literal
+    ones. In order to find these tokenized versions, we can inspect the tokenized
+    output of a chat template:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: From the output we can infer that “<|assistant|>” is tokenized as [28789, 28766,
+    489, 11143, 28766, 28767], and “<|user|>” is tokenized as [28789, 28766, 1838,
+    28766, 28767]. I have included the tokenized sequences for a few common models
+    in the table below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'With this in hand, we can now retry training using the updated data collator:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: This gets rid of the warning and the training loss starts decreasing. We can
+    now wait for the model training to finish and upload the model to HuggingFace
+    Hub.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: Smoke Testing
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s now see how the model is doing in practice by running [this notebook](https://colab.research.google.com/drive/18Lsn3ws5H3jCEJ-loLmuL4_195BOEEoa?usp=drive_link)
+    (which can be executed locally using a consumer grade 8GB GPU). Here is an example
+    conversation, again for a model finetuned from OpenChat-3.5–0106:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'So — are we done now? This depends on the goal: We do have a model that I like
+    to call “syntactically competent”, meaning that it follows our defined format
+    and is able to decide when to talk and when to remain silent. If the goal is a
+    toy assistant, this might be sufficient. However, for any serious production use,
+    there is still a fair amount of work to do, which I’ll discuss in subsequent articles.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Follow-ups
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Let’s list some of the things that are worth consideration as follow-up steps:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**High quality training set:** So far, we have only used a synthetic training
+    set generated by Mixtral. This set does not have too much variation and may contain
+    falsehoods. It was useful for bootstrapping but is insufficient for production
+    use.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Evaluation:** So far, we’ve only done a few smoke tests, but we don’t have
+    a good grasp of how the model is performing: Is it responding truthfully, is it
+    doing a good job in determining when to chime in? We also don’t know how much
+    the finetuned model diverged from the base one. In a follow-up article I’ll show
+    how to shed some light on these questions.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Context:** We cannot expect a model with just 7B parameters to be knowledgeable
+    on every topic. In fact, for practical purposes, we may want to constrain the
+    model to particular topics relevant to our product. To this end, we may want to
+    provide contextual information to our model that is relevant to the users’ questions
+    and condition the model to only answer based on this information. This approach
+    is known as Retrieval Augmented Generation (RAG), and I’ll show how it can be
+    applied in our multi-user setting.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Resources and Artifacts
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The notebooks used for training and evaluation are available on Colab: [Dataset
+    generation](https://colab.research.google.com/drive/1JWAK3ecaO4EjUqIk1LBIfGQ8zV4oWmDk?usp=drive_link),
+    [training](https://colab.research.google.com/drive/1MDXvw8ie3XnpR0OujFhwLgTU0XIeepSv?usp=drive_link)
+    and [inference](https://colab.research.google.com/drive/18Lsn3ws5H3jCEJ-loLmuL4_195BOEEoa?usp=drive_link).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The synthetic dataset is available [here](https://huggingface.co/jjezabek/multi_user_chat_synthetic).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, the models are available on HuggingFace, finetuned from [Zephyr](https://huggingface.co/jjezabek/multi-user-chat-zephyr-7b-beta-completions-only),
+    [Llama-2](https://huggingface.co/jjezabek/multi-user-chat-llama-2-7b-chat-completions-only)
+    and [OpenChat-3.5](https://huggingface.co/jjezabek/multi-user-chat-openchat-3.5-0106-completions-only).
+    If you are interested in the models trained on whole conversations (as opposed
+    to completions only), they are available as well, finetuned from [Zephyr](https://huggingface.co/jjezabek/multi-user-chat-zephyr-7b-beta-full-conversations),
+    [Llama-2](https://huggingface.co/jjezabek/multi-user-chat-llama-2-7b-chat-full-conversations)
+    and [OpenChat-3.5](https://huggingface.co/jjezabek/multi-user-chat-openchat-3.5-0106-full-conversations).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Troubleshooting
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Below I’m listing some pitfalls that I’ve encountered frequently during finetuning,
+    these might come handy when finetuning other models.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pad Token
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'I’ve seen the pad token set to the EOS token in multiple tutorials (and also
+    by default in the Zephyr model). This doesn’t play well with HuggingFace’s data
+    collators though: [this line](https://github.com/huggingface/transformers/blob/976189a6df796a2ff442dd81b022626c840d8c27/src/transformers/data/data_collator.py#L752)
+    in *DataCollatorForLanguageModeling* means that models are not trained to predict
+    pad tokens. If the pad and EOS tokens are the same, you might end up with a model
+    that continues generating tokens without stopping. My recommendation is to set
+    the pad token to the UNK token if available (and distinct from EOS). Alternatively,
+    you can use the tokenizer’s *add_token* method to add it to the vocabulary.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'In short: **Make sure the pad token is not the same as the EOS token.** Recent
+    versions of HuggingFace started adding this warning, which adds visibility to
+    the issue:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: Loss Falling to 0.0 During Training
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: When using half precision floats (that is torch.float16), I’ve seen situations
+    where the loss goes to 0.0 after a few steps and remains there. Specifically,
+    this happens with our training notebook with the Llama-2 model. There are reports
+    online of similar issues (for example [here](https://gist.github.com/younesbelkada/9f7f75c94bdc1981c8ca5cc937d4a4da?permalink_comment_id=4634125#gistcomment-4634125)),
+    curiously they were resolved at that time by setting the tokenizer’s *padding_side*
+    to “right”. In our case the padding is already on the right-hand side, so that
+    fix does not apply.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The workaround is to use a different type for training: Either torch.bfloat16
+    (which is unavailable on older instances like T4 and V100) or torch.float32 (which
+    results in a performance hit at training time, but otherwise works fine).'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '“RuntimeError: element 0 of tensors does not require grad…”'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'Depending on the model, you might come across this error:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The simple fix is to add this line after instantiating the model:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE

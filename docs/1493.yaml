@@ -1,0 +1,952 @@
+- en: GPT from Scratch with MLX
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/gpt-from-scratch-with-mlx-acf2defda30e?source=collection_archive---------0-----------------------#2024-06-15](https://towardsdatascience.com/gpt-from-scratch-with-mlx-acf2defda30e?source=collection_archive---------0-----------------------#2024-06-15)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Define and train GPT-2 on your MacBook
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@pranavj1?source=post_page---byline--acf2defda30e--------------------------------)[![Pranav
+    Jadhav](../Images/363dc9008e3e4d94a9566057cad59806.png)](https://medium.com/@pranavj1?source=post_page---byline--acf2defda30e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--acf2defda30e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--acf2defda30e--------------------------------)
+    [Pranav Jadhav](https://medium.com/@pranavj1?source=post_page---byline--acf2defda30e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--acf2defda30e--------------------------------)
+    ·31 min read·Jun 15, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/e34fda6779460bc952923c13f0e9e939.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Sergey Zolkin](https://unsplash.com/@szolkin?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: My goal with this post is to walk you through defining and training GPT-2 from
+    scratch with [MLX](https://github.com/ml-explore/mlx), Apple’s machine-learning
+    library for Apple silicon. I want to leave no stone unturned from tokenizer to
+    sampling. In the spirit of [Karpathy’s excellent GPT from scratch tutorial](https://www.youtube.com/watch?v=kCc8FmEb1nY&t=5978s),
+    we will train a model on the works of Shakespeare [1]. We will start with a blank
+    Python file and end with a piece of software that can write Shakespeare-like text.
+    And we’ll build it all in MLX, which makes training on inference on Apple silicon
+    much faster.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This post is best experienced by following along. The code is contained in the
+    following repo which I suggest opening and referencing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[](https://github.com/pranavjad/mlx-gpt2?source=post_page-----acf2defda30e--------------------------------)
+    [## GitHub - pranavjad/mlx-gpt2'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contribute to pranavjad/mlx-gpt2 development by creating an account on GitHub.
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: github.com](https://github.com/pranavjad/mlx-gpt2?source=post_page-----acf2defda30e--------------------------------)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Table of Contents
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[Preparing the data](#c3a0)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Coding GPT-2](#1d50)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Input Embeddings](#9d27)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Positional Embeddings](#5507)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Self Attention](#b6bc)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Keys, Queries, and Values](#718c)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Multi-Head Attention](#38de)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[MLP](#43c1)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Block](#91b3)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Layernorms and Skip Connections](#dc6e)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Forward Pass](#c593)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Sampling](#c3cc)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Initialization](#2077)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Training Loop](#56cf)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[References](#0e89)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Preparing the data
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Install mlx and run the following imports.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The first step to training an LLM is collecting a large corpus of text data
+    and then tokenizing it. Tokenization is the process of mapping text to integers,
+    which can be fed into the LLM. Our training corpus for this model will be the
+    works of Shakespeare concatenated into one file. This is roughly 1 million characters
+    and looks like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we read the file as a single long string into the `text` variable. Then
+    we use the `set()` function to get all the unique characters in the text which
+    will be our vocabulary. By printing `vocab` you can see all the characters in
+    our vocabulary as one string, and we have a total of 65 characters which till
+    be our tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: Production models will use tokenization algorithms like byte-pair encoding to
+    generate a larger vocabulary of sub-word chunks. Since our focus today is on the
+    architecture, we will continue with character-level tokenization. Next, we will
+    map our vocabulary to integers known as token IDs. Then we can encode our text
+    into tokens and decode them back to a string.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use the`enumerate()` function to iterate over all characters and their index
+    in the vocabulary and create a dictionary `itos` which maps integers to characters
+    and `stoi` which maps strings to integers. Then we use these mappings to create
+    our encode and decode functions. Now we can encode the entire text and split training
+    and validation data.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: Currently, our training data is just a very long string of tokens. However,
+    we are trying to train our model to predict the next token some given previous
+    tokens. Therefore our dataset should be comprised of examples where the input
+    is some string of tokens and the label is the correct next token. We need to define
+    a model parameter called *context length* which is the maximum number of tokens
+    used to predict the next token. Our training examples will be the length of our
+    context length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at the first `ctx_len+1` tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This is one training example where the input is “18, 47, 56, 57, 58, 1, 15,
+    47” and the desired output is “58”. This is 8 tokens of context. However, we also
+    want to train the model to predict the next token given only 7, 6, 5 … 0 tokens
+    as context which is needed during generation. Therefore we also consider the 8
+    sub examples packed into this example:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: Notice that the labels are simply the inputs shifted left.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: At index 0 the input is 18 and the label is 47\. At index 1 the input is everything
+    before and including index 1 which is [18, 47] and the label is 56, etc. Now that
+    we understand that the labels are simply the input sequence indexed one higher
+    we can build our datasets.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: We loop through the data and take chunks of size `ctx_len` as the inputs (X)
+    and then take the same chunks but at 1 higher index as the labels (y). Then we
+    take these Python lists and create mlx array objects from them. The model internals
+    will be written with mlx so we want our inputs to be mlx arrays.
+  prefs: []
+  type: TYPE_NORMAL
+- en: One more thing. During training we don’t want to feed the model one example
+    at a time, we want to feed it multiple examples in parallel for efficiency. This
+    group of examples is called our batch, and the number of examples in a group is
+    our batch size. Thus we define a function to generate batches for training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: If shuffle=True, we shuffle the data by indexing it with a randomly shuffled
+    index. Then we loop through our dataset and return batch-size chunks from input
+    and label datasets. These chunks are known as mini-batches and are just stacked
+    examples that we process in parallel. These mini-batches will be our input to
+    the model during training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Here’s an example of a minibatch of 4 examples with context length 8.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/92f8cb95ed41ef0d51156a6ba2aad2f5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: A single minibatch (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This minibatch packs 32 next-token prediction problems. The model will predict
+    the next token for each token in the input and the labels will be used to calculate
+    the loss. Notice that the labels contain the next token for each index of the
+    inputs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: You’ll want to keep this picture in your mind because the shapes of these tensors
+    will get hairy. For now, just remember that we will input a tensor of shape (batch_size,
+    ctx_len) to the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Coding GPT-2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s look at the GPT-2 architecture to get an overview of what we are trying
+    to implement.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/eefb8f6fd70479937d7b028ab70083a8.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: GPT-2 Architecture (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: Don’t worry if this looks confusing. We will implement it step by step from
+    bottom to top. Let’s start by implementing the input embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Input Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: The purpose of the input embedding layer is to map token IDs to vectors. Each
+    token will be mapped to a vector which will be its representation as it is forwarded
+    through the model. The vectors for each token will accumulate and exchange information
+    as they pass through the model and eventually be used to predict the next token.
+    These vectors are called embeddings.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The simplest way to map token IDs to vectors is through a lookup table. We create
+    a matrix of size (vocab_size, n_emb) where each row is the embedding vector for
+    the corresponding token. This matrix is known as the embedding weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/bc9c1b7194ed45e12e28d4c3e95db59c.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Embedding Layer (image by author)
+  prefs: []
+  type: TYPE_NORMAL
+- en: The diagram shows an example embedding layer of size (65, 6). This means there
+    are 65 tokens in the vocabulary and each one will be represented by a length 6
+    embedding vector. The inputted sequence will be used to index the embedding weights
+    to get the vector corresponding to each token. Remember the minibatches we input
+    into the model? Originally the minibatch is size (batch_size, ctx_len). After
+    passing through the embedding layer it is size (batch_size, ctx_len, n_emb). Instead
+    of each token being a single integer, each token is now a vector of length n_emb.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s define the embedding layer in code now.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE10]'
+  prefs: []
+  type: TYPE_PRE
+- en: We will define a class to organize our implementation. We subclass nn.Module
+    to take advantage of mlx’s features. Then in the init function, we call the superclass
+    constructor and initialize our token embedding layer called `wte` .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Positional Embeddings
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Next up is the positional embeddings. The purpose of positional embeddings is
+    to encode information about the position of each token in the sequence. This can
+    be added to our input embeddings to get a complete representation of each token
+    that contains information about the token’s position in the sequence.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE11]'
+  prefs: []
+  type: TYPE_PRE
+- en: The position embeddings work the same as token embeddings, except instead of
+    having a row for each token we have a row for each possible position index. This
+    means our embedding weights will be of shape (ctx_len, n_emb). Now we implement
+    the __call__ function in our GPT class. This function will contain the forward
+    pass of the model.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE12]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we break out the dimensions of our input into variables B and T for easy
+    handling. In sequence modeling contexts B and T are usually used as shorthand
+    for “batch” and “time” dimensions. In this case, the “time” dimension of our sequence
+    is the context length.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we calculate token and position embeddings. Notice that for the position
+    embeddings, our input is `mx.arange(T)` . This will output an array of consecutive
+    integers from 0 to T-1 which is exactly what we want because those are the positions
+    we want to embed. After passing that through the embedding layer we will have
+    a tensor of shape (T, n_emb) because the embedding layer plucks out the n_emb
+    length vector for each of the T positions. Note that even though pos_emb is not
+    the same shape as tok_emb we can add the two because mlx will broadcast, or replicate
+    pos_emb across the batch dimension to allow elementwise addition. Finally, we
+    perform the addition to get the new representations of the tokens with positional
+    information.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Self-Attention
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: So far the representation vectors for each token have been calculated independently.
+    They have not had the opportunity to exchange any information. This is intuitively
+    bad in language modeling because the meaning and usage of words depend on the
+    surrounding context. Self-attention is how we incorporate information from previous
+    tokens into a given token.
+  prefs: []
+  type: TYPE_NORMAL
+- en: First, let’s consider a naive approach. What if we simply represented each token
+    as the average of its representation vector and the vectors of all the tokens
+    before it? This achieves our goal of packing information from previous tokens
+    into the representation for a given token. Here’s what it would look like.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/d1af7ef1560b69aaa50ff00af108fba9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: But self-attention doesn’t involve writing a for-loop. The key insight is we
+    can achieve this previous token averaging with matrix multiplication!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4033f38082734c80ea099705718c3e00.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: By multiplying our input sequence on the left by a special matrix we get the
+    desired result. This matrix is known as the attention weights. Notice that each
+    row of the attention weight matrix specificies “how much” of each other token
+    goes into the representation for any given token. For example in row two, we have
+    [0.5, 0.5, 0, 0]. This means that row two of the result will be `0.5*token1 +
+    0.5*token2 + 0*token3 + 0*token4` , or the average of token1 and token2\. Note
+    that the attention weights are a lower-triangular matrix (zeros in upper right
+    entries). This ensures that future tokens will not be included in the representation
+    of a given token. This ensures that tokens can only communicate with the previous
+    tokens because during generation the model will only have access to previous tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Let’s look at how we can construct the attention weight matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/03c45bdcb15092d5ba7d2ca01b63e5c1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that if we create an array of zeros with -inf in the upper right entries
+    and then perform row-wise softmax we get the desired attention weights. A good
+    exercise is to step through the softmax calculation for a row to see how this
+    works. The takeaway is that we can take some array of size (ctx_len, ctx_len)
+    and softmax each row to get attention weights that sum to one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we can leave the realm of naive self-attention. Instead of simply averaging
+    previous tokens, we use arbitrary weighted sums over previous tokens. Notice what
+    happens when we do row-wise softmax of an arbitrary matrix.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/11897ada690ad865eea3d6617a738316.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We still get weights that sum to one on each row. During training, we can learn
+    the numbers in the matrix on the left which will specify how much each token goes
+    into the representation for another token. This is how tokens pay “attention”
+    to each other. But we still haven’t understood where this matrix on the left came
+    from. These pre-softmax attention weights are calculated from the tokens themselves,
+    but indirectly through three linear projections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Keys, Queries, and Values**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/ea6acf7b1fde813fde398d59348b6dbc.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Each token in our sequence emits 3 new vectors. These vectors are called keys,
+    queries, and values. We use the dot product of the query vector of one token and
+    the key vector of another token to quantify the “affinity” those two tokens have.
+    We want to calculate the pairwise affinities of each token with every other token,
+    therefore we multiply the query vector (4x3) with the key vector transposed (3x4)
+    to get the raw attention weights (4x4). Due to the way matrix multiplication works
+    the (i,j) entry in the raw attention weights will be the query of token i dot
+    the key of token j or the “affinity” between the two. Thus we have calculated
+    interactions between every token. However, we don’t want past tokens interacting
+    with future tokens so we apply a mask of -inf to the upper right entries to ensure
+    they will zero out after softmax. Then we perform row-wise softmax to get the
+    final attention weights. Instead of multiplying these weights directly with the
+    input, we multiply them with the value projection. This results in the new representations.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now that we understand attention conceptually, let’s implement it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE13]'
+  prefs: []
+  type: TYPE_PRE
+- en: We start by defining the key, query, and value projection layers. Note that
+    instead of going from n_emb to n_emb, we project from n_emb to head_size. This
+    doesn’t change anything, it just means the new representations calculated by attention
+    will be dimension head_size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE14]'
+  prefs: []
+  type: TYPE_PRE
+- en: The forward pass begins by calculating the key, query, and value projections.
+    We also break out the input shape into the variables B, T, and C for future convenience.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE15]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Next, we calculate the attention weights. We only want to transpose the last
+    two dimensions of the key tensor, because the batch dimension is just there so
+    we can forward multiple training examples in parallel. The mlx transpose function
+    expects the new order of the dimensions as input, so we pass it [0, 2, 1] to transpose
+    the last two dimensions. One more thing: we scale the attention weights by the
+    inverse square root of head_size. This is known as scaled attention and the purpose
+    is to ensure that when Q and K are unit variance, attn_weights will be unit variance.
+    If the variance of attn_weights is high, then the softmax will map these small
+    and large values to 0 or 1which results in less complex representations.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The next step is to apply the mask to ensure we are doing causal language modeling
+    i.e. ensuring tokens cannot attend to future tokens.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE16]'
+  prefs: []
+  type: TYPE_PRE
+- en: We create the mask with a clever broadcasting trick. Let’s say our ctx_len=4
+    like in the diagrams above. First, we use mx.arange(4) to set the indices variable
+    to [0, 1, 2, 3].
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/776a8fa277964a2ae02319291108f577.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Then we can index like so `indices[:, None]` to generate a column vector with
+    the values of indices. Similarly, we can get a row vector using `indices[None]`.
+    Then when we do the < comparison, mlx broadcasts the vectors because they have
+    mismatching shapes so they can’t be compared elementwise. Broadcasting means mlx
+    will replicate the vectors along the lacking dimension. This results in an elementwise
+    comparison of two (4, 4) matrices which makes sense. Side note: I recommend familiarizing
+    yourself with the details of broadcasting by reading [this](https://pytorch.org/docs/stable/notes/broadcasting.html),
+    it comes up all the time when dealing with tensors.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'After the elementwise comparison, we are left with the following tensor:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE17]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'Multiplying this tensor by -1e9, we get:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE18]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we have an additive mask. We can add this matrix to our attention weights
+    to make all the upper right entries very large negative numbers. This will cause
+    them to be zeroed out after the softmax operation. Also, note that we add “_”
+    as a prefix to the attribute name `_causal_mask` which marks it as a private variable.
+    This signals to mlx that it is not a parameter and should not be updated during
+    training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE19]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can softmax row-wise to get the final attention weights and multiply
+    these weights by the values to get our output. Note we pass `axis=-1` to softmax
+    which specifies that we want to softmax across the last dimension which are the
+    rows.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The final step is output linear projection and dropout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE20]'
+  prefs: []
+  type: TYPE_PRE
+- en: We add two new layers, `c_proj` and `resid_dropout` which are the output projection
+    and residual dropout. The output projection is to return the vectors to their
+    original dimension n_emb. The dropout is added for regularization and training
+    stability which is important as we start layering the transformer blocks to get
+    a deep network. And that’s it for implementing one attention head!
+  prefs: []
+  type: TYPE_NORMAL
+- en: Multi-Head Attention
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Instead of having just one attention head LLMs often use multiple attention
+    heads in parallel and concatenate their outputs to create the final representation.
+    For example, let’s say we had one attention head with head_size=64 so the vector
+    it produced for each token was 64 dimensional. We could achieve the same thing
+    with 4 parallel attention heads each with head_size=16 by concatenating their
+    outputs to produce a 16x4 = 64 dimensional output. Multi-head attention allows
+    the model to learn more complex representations because each head learns different
+    projections and attention weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE21]'
+  prefs: []
+  type: TYPE_PRE
+- en: The straightforward implementation is to create a list of `n_heads` attention
+    heads where each one has size equal to our final head size divided by n_heads.
+    Then we concatenate the output of each head over the last axis. However, this
+    implementation is inefficient and does not take advantage of the speed of tensors.
+    Let’s implement multi-head attention with the power of tensors.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE22]'
+  prefs: []
+  type: TYPE_PRE
+- en: We start with our single-head attention implementation. The `__init__()` function
+    has not changed. The forward pass begins as normal with the creation of the key,
+    query, and value projections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE23]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'The next thing we need to do is introduce a new dimension for the number of
+    heads `n_heads` . In the naive implementation, we had separate attention objects
+    each with their own key, query, and value tensors but now we have them all in
+    one tensor, therefore we need a dimension for the heads. We define the new shape
+    we want in `mha_shape` . Then we use `mx.as_strided()` to reshape each tensor
+    to have the head dimension. This function is equivalent to `view` from pytorch
+    and tells mlx to treat this array as a different shape. But we still have a problem.
+    Notice that we if try to multiply `Q @ K_t` (where K_t is K transposed over it’s
+    last 2 dims) to compute attention weights as we did before, we will be multiplying
+    the following shapes:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE24]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'This would result in a tensor of shape `(B, T, n_heads, n_heads)` which is
+    incorrect. With one head our attention weights were shape `(B, T, T)` which makes
+    sense because it gives us the interaction between each pair of tokens. So now
+    our shape should be the same but with a heads dimension: `(B, n_heads, T, T)`
+    . We achieve this by transposing the dimensions of keys, queries, and values after
+    we reshape them to make `n_heads` dimension 1 instead of 2.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE25]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can calculate the correction attention weights. Notice that we scale
+    the attention weights by the size of an individual attention head rather than
+    head_size which would be the size after concatenation. We also apply dropout to
+    the attention weights.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Finally, we perform the concatenation and apply the output projection and dropout.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE26]'
+  prefs: []
+  type: TYPE_PRE
+- en: Since we have everything in one tensor, we can do some shape manipulation to
+    do the concatenation. First, we move `n_heads` back to the second to last dimension
+    with the transpose function. Then we reshape back to the original size to undo
+    the splitting into heads we performed earlier. This is the same as concatenating
+    the final vectors from each head. And that’s it for multi-head attention! We’ve
+    gotten through the most intense part of our implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: MLP
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The next part of the architecture is the multilayer perception or MLP. This
+    is a fancy way of saying 2 stacked linear layers. There’s not much to be said
+    here, it is a standard neural network.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE27]'
+  prefs: []
+  type: TYPE_PRE
+- en: We take the input and project it to a higher dimension with `c_fc` . Then we
+    apply gelu nonlinearity and project it back down to the embedding dimension with
+    `c_proj` . Finally, we apply dropout and return. The purpose of the MLP is to
+    allow for some computation after the vectors have communicated during attention.
+    We will stack these communication layers (attention) and computation layers (mlp)
+    into a block.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Block
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A GPT block consists of attention followed by an MLP. These blocks will be repeated
+    to make the architecture deep.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE28]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now, we need to add two more features to improve training stability. Let’s take
+    a look at the architecture diagram again.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Layernorms and Skip Connections
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '![](../Images/406a59dd5cb9bb6780808b2e94787f92.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We still need to implement the components highlighted in red. The arrows are
+    skip connections. Instead of the input being transformed directly, the effect
+    of the attention and MLP layers is additive. Their result is added to the input
+    instead of directly replacing it. This is good for the training stability of deep
+    networks since in the backward pass, the operands of an addition operation will
+    receive the same gradient as their sum. Gradients can thus flow backwards freely
+    which prevents issues like vanishing/exploding gradients that plague deep networks.
+    Layernorm also helps with training stability by ensuring activations are normally
+    distributed. Here is the final implementation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE29]'
+  prefs: []
+  type: TYPE_PRE
+- en: Layernorm is applied before multi-head attention and MLP. The skip connections
+    are added with `x = x + ...` making the operations additive.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Forward Pass
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: With the Block defined, we can finish the full GPT-2 forward pass.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE30]'
+  prefs: []
+  type: TYPE_PRE
+- en: We create a container for the blocks using `nn.Sequential` which takes any input
+    and passes it sequentially through the contained layers. Then we can apply all
+    the blocks with `self.blocks(x)` . Finally, we apply a layer norm and then the
+    lm_head. The lm_head or language modeling head is just a linear layer that maps
+    from the embedding dimension to the vocab size. The model will output a vector
+    containing some value for each word in our vocabulary, or the logits. We can softmax
+    the logits to get a probability distribution over the vocabulary which we can
+    sample from to get the next token. We will also use the logits to calculate the
+    loss during training. There are just two more things we need to implement before
+    we begin training.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Sampling
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We need to write a generate function to sample from the model once training
+    is complete. The idea is that we start with some sequence of our choice, then
+    we predict the next token and append this to our sequence. Then we feed the new
+    sequence in and predict the next token again. This continues until we decide to
+    stop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE31]'
+  prefs: []
+  type: TYPE_PRE
+- en: We prompt the model with a single token, zero. Zero is the newline character
+    so it is a natural place to start the generation since we just want to see how
+    Shakespeare-like our model can get. Note that we initialize the shape to (1, 1)
+    to simulate a single batch with a sequence length of one.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE32]'
+  prefs: []
+  type: TYPE_PRE
+- en: Then we get the logits for the next token by passing in the last ctx_len characters
+    to the model. However, our model output is of shape `(B, T, vocab_size)` since
+    it predicts the next token logits for each token in the input. We use all of that
+    during training, but now we only want the logits for the last token because we
+    can use this to sample a new token. Therefore we index the logits to get the last
+    element in the first dimension which is the sequence dimension. Then we sample
+    the next token using the `mx.random.categorical()` function which takes the logits
+    and the number of samples we want as input. This function will softmax the logits
+    to turn them into a probability distribution and then randomly sample a token
+    according to the probabilities. Finally, we concatenate the new token to the context
+    and repeat the process `max_new_tokens` number of times.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Initialization
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: The last thing to do is handle weight initialization which is important for
+    training dynamics.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE33]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we define two different `nn.init.normal` functions. The first one is
+    for initializing all linear and embedding layers. The second one is for initializing
+    linear layers that are specifically residual projections i.e. the last linear
+    layer inside multi-head attention and MLP. The reason for this special initialization
+    is that it checks accumulation along the residual path as model depth increases
+    according to the GPT-2 paper [2].
+  prefs: []
+  type: TYPE_NORMAL
+- en: In mlx we can change the parameters of the model using the `[mx.update()](https://ml-explore.github.io/mlx/build/html/python/nn/_autosummary/mlx.nn.Module.update.html#mlx.nn.Module.update)`
+    function. Checking the docs, it expects a complete or partial dictionary of the
+    new model parameters. We can see what this dictionary looks like by printing out
+    `self.parameters()` inside the GPT class.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE34]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'It’s a nested dictionary containing each model weight as an mx.array. So to
+    initialize the parameters of our model we need to build up a dictionary like this
+    with our new params and pass them to `self.update()` . We can achieve this as
+    follows:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE35]'
+  prefs: []
+  type: TYPE_PRE
+- en: 'We maintain a list of tuples called `new_params` which will contain tuples
+    of (parameter_name, new_value). Next, we loop through each nn.Module object in
+    our model with `self.named_modules()` which returns tuples of (name, module).
+    If we print out the module names within the loop we see that they look like this:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE36]'
+  prefs: []
+  type: TYPE_PRE
+- en: We use the `isinstance()` function to find the linear and embedding layers and
+    then add them to our list. For example, say we are looping and reach “blocks.layers.0.mlp.c_fc”
+    which is the first linear layer in the MLP. This would trigger the first if statement,
+    and the tuple `("block.layers.0.mlp.c_fc.weight", [<normally initialized weight
+    here>])` would be added to our list. We have to add “.weight” to the name because
+    we specifically want to initialize the weight in this way, not the bias. Now we
+    need to handle the residual projection initialization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE37]'
+  prefs: []
+  type: TYPE_PRE
+- en: After checking if the module is a linear layer, we check if “c_proj” is in the
+    name because that’s how we named the residual projections. Then we can apply the
+    special initialization. Finally, we need to initialize the biases to be zero.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE38]'
+  prefs: []
+  type: TYPE_PRE
+- en: We add another if statement under our linear branch to check if the nn.Module
+    object has a bias attribute. If it does, we add it to the list initialized to
+    zeros. Finally, we need to transform our list of tuples into a nested dictionary.
+    Luckily mlx has some functions implemented for dealing with parameter dictionaries,
+    and we can use `util.tree_unflatten()` to convert this list of tuples to a nested
+    parameter dictionary. This is passed into the update method to initialize the
+    parameters. Now we can call `_init_parameters()` in the constructor.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE39]'
+  prefs: []
+  type: TYPE_PRE
+- en: We also add 2 lines of code in the constructor to print the total number of
+    params. Finally, we are ready to build the training loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Training Loop
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: To train the model we need a loss function. Since we are predicting classes
+    (next token) we use cross-entropy loss.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE40]'
+  prefs: []
+  type: TYPE_PRE
+- en: First, we get the logits from the model. Then we reshape logits to make a list
+    of vocab_size length arrays. We also reshape y, the correct token ids, to have
+    the same length. Then we use the built-in cross-entropy loss function to calculate
+    the loss for each example and average them to get a single value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE41]'
+  prefs: []
+  type: TYPE_PRE
+- en: Next, we instantiate the model, but since mlx is lazy evaluation it won’t allocate
+    and create the parameters. We need to call mx.eval on the parameters to ensure
+    they get created. Then we can use `[nn.value_and_grad()](https://ml-explore.github.io/mlx/build/html/python/_autosummary/mlx.nn.value_and_grad.html)`
+    to get a function that returns the loss and gradient of model parameters w.r.t
+    the loss. This is all we need to optimize. Finally, we initialize an AdamW optimizer.
+  prefs: []
+  type: TYPE_NORMAL
+- en: A quick note on nn.value_and_grad(). If you are used to PyTorch you might expect
+    us to use loss.backward() which goes through the computation graph and updates
+    the .grad attribute of each tensor in our model. However, mlx automatic differentiation
+    works on functions instead of computation graphs [3]. Therefore, mlx has built-ins
+    that take in a function and return the gradient function such as `nn.value_and_grad()`
+    .
+  prefs: []
+  type: TYPE_NORMAL
+- en: Now we define the training loop.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE42]'
+  prefs: []
+  type: TYPE_PRE
+- en: The outer loop runs through the epochs. We first set the model to training mode
+    because some modules have different behaviors during training and testing such
+    as dropout. Then we use our `get_batches` function from earlier to loop through
+    batches of the training data. We get the loss over the batch and the gradient
+    using `loss_and_grad` . Then we pass the model and gradients to the optimizer
+    to update the model parameters. Finally we call mx.eval (remember mlx does lazy
+    evaluation) to ensure the parameters and optimizer state get updated. Then we
+    calculate the average train loss over the data to print later. This is one pass
+    through the training data. Similarly, we calculate the validation loss and then
+    print the average train and val loss over the epoch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE43]'
+  prefs: []
+  type: TYPE_PRE
+- en: Finally, we add some code to generate from our model. Since the generation output
+    is still in the (B, T) shape we have to index it at 0 to make it 1D and then convert
+    it from an mlx array to a Python list. Then we can pass it to our decode function
+    from earlier, and write it to a file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'These are the parameters we will use for training (you can play around with
+    this):'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE44]'
+  prefs: []
+  type: TYPE_PRE
+- en: Now we can run the file to start training. With the settings above training
+    took around 10 minutes on my m2 MacBook. I achieved the following training loss
+    last epoch.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE45]'
+  prefs: []
+  type: TYPE_PRE
+- en: Let’s look at some output.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE46]'
+  prefs: []
+  type: TYPE_PRE
+- en: Not bad for just 10 minutes of training with a tiny model that is predicting
+    characters! It clearly has the form of Shakespeare, although it is nonsense. The
+    only difference between our model and the real GPT-2 now is scale! Now I encourage
+    you to experiment — try out different settings, maybe tinker with the architecture,
+    and see how low of a loss you can achieve.
+  prefs: []
+  type: TYPE_NORMAL
+- en: References
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '[1] Karpathy A (2015).*Tiny Shakespeare* [Data set]. [https://github.com/karpathy/char-rnn](https://github.com/karpathy/char-rnn)
+    (MIT license)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[2] A. Radford, J. Wu, R. Child, D. Luan, D. Amodei, I. Sutskever, [Language
+    Models are Unsupervised Multitask Learners](https://d4mucfpksywv.cloudfront.net/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)
+    (2019), OpenAI'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[3] [Automatic Differentiation — mlx docs](https://ml-explore.github.io/mlx/build/html/usage/function_transforms.html#auto-diff)'
+  prefs: []
+  type: TYPE_NORMAL

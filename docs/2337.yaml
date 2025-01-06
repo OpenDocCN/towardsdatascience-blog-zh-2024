@@ -1,0 +1,506 @@
+- en: Exposing Jailbreak Vulnerabilities in LLM Applications with ARTKIT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/exposing-jailbreak-vulnerabilities-in-llm-applications-with-artkit-d2df5f56ece8?source=collection_archive---------5-----------------------#2024-09-25](https://towardsdatascience.com/exposing-jailbreak-vulnerabilities-in-llm-applications-with-artkit-d2df5f56ece8?source=collection_archive---------5-----------------------#2024-09-25)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Automated prompt-based testing to extract hidden passwords in the popular Gandalf
+    challenge
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[![Kenneth
+    Leung](../Images/2514dffb34529d6d757c0c4ec5f98334.png)](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)
+    [Kenneth Leung](https://kennethleungty.medium.com/?source=post_page---byline--d2df5f56ece8--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--d2df5f56ece8--------------------------------)
+    ·8 min read·Sep 25, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/230fce087f3a477a98c22383a35031b3.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Matthew Ball](https://unsplash.com/@tex450?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: As large language models (LLMs) become more widely adopted across different
+    industries and domains, significant security risks have emerged and intensified.
+    Several of these key concerns include breaches of data privacy, the potential
+    for biases, and the risk of information manipulation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The Open Worldwide Application Security Project recently published the [ten
+    most critical security risks](https://owasp.org/www-project-top-10-for-large-language-model-applications/)
+    of LLM applications, as described below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Source: [OWASP Top 10 for LLM Applications v1.1](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-2023-slides-v1_1.pdf)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Identifying these risks is essential for ensuring that LLM applications continue
+    to provide value in real-world situations while maintaining their safety, effectiveness,
+    and robustness.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this article, we explore how to use the open-source [ARTKIT](https://github.com/BCG-X-Official/artkit)
+    framework to automatically evaluate security vulnerabilities of LLM applications
+    using the popular Gandalf Challengeas an illustrative example.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Contents
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '*(1)* [*About Prompt Injection Vulnerabilities*](#fc75) *(2)* [*Gandalf Challenge*](#cae4)
+    *(3)* [*Introducing ARTKIT*](#ec2d) *(4)* [*Approach Overview*](#3d85) *(5)* [*Step-by-Step
+    Walkthrough*](#15ac)'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: You can find the codes in the accompanying [GitHub repo of this article](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (1) About Prompt Injection Vulnerabilities
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A prompt injection vulnerability is a type of cyberattack that arises when attackers
+    exploit an LLM with carefully crafted inputs, leading it to execute malicious
+    instructions unintentionally.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Prompt injection attacks can be difficult to detect and can lead to serious
+    consequences such as leakage of sensitive information, unauthorized access, and
+    manipulation of decision-making processes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'It can be performed directly or indirectly:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (i) Direct (Jailbreaking)
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Attackers directly modify underlying system prompts, thereby convincing the
+    LLM system to disregard its safeguards. It allows attackers to generate harmful
+    responses or exploit backend systems by interacting with insecure functions and
+    data stores.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Example**: An attacker crafts prompts instructing the LLM to ignore the instructions
+    in the original system prompts and instead return private information like passwords.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (ii) Indirect
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Attackers manipulate external inputs (e.g., files, websites) that the LLM ingests,
+    allowing them to control the LLM’s responses and actions, even if the injected
+    text is invisible to users.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '**Example**: An attacker uploads a document embedded with prompts—concealed
+    in a zero-point font—instructing LLMs to evaluate the user’s resume as that of
+    an exceptional job candidate. When the recruiter uses an LLM to assess the resume,
+    it inadvertently showcases the candidate as highly qualified, thereby skewing
+    the hiring process.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: There are different types of prompt injection attacks, such as virtualization,
+    obfuscation, and role-playing attacks. Details can be found [here](https://www.lakera.ai/blog/guide-to-prompt-injection#prompt-injection-techniques-attack-types).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: (2) Gandalf Challenge
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this project, we attempt to automatically crack the [**Gandalf Challenge**](https://gandalf.lakera.ai/),
+    an interactive game that demonstrates the security vulnerabilities of LLM applications
+    and highlights mitigation strategies.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/3c37ec2b522eb01071335a12740ac61e.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Screenshot from publicly accessible Gandalf website, utilized under fair use
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The objective of the game is simple: use prompt engineering techniques to trick
+    the LLM behind Gandalf’s interface to reveal a password.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The game consists of ten progressively difficult levels based on various defenses
+    employed to prevent password disclosure, such as prompts instructing not to reveal
+    the password, input guardrails that filter user prompts, and output guardrails
+    that block responses containing passwords.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (3) Introducing ARTKIT
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: As LLM systems become more commonplace, it is important to build user trust
+    by ensuring that the models perform reliably even in adversarial conditions. This
+    is where **ARTKIT** comes in handy in testing LLM systems for their proficiency,
+    equitability, safety, and security.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ARTKIT is an open-source framework for developing powerful automated end-to-end
+    pipelines to test and evaluate LLM-based applications like chatbots and virtual
+    assistants.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Its simplicity and flexibility in building fit-for-purpose pipelines make it
+    an excellent tool for data scientists and engineers to conduct human-in-the-loop
+    testing of LLM systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: For example, ARTKIT facilitates the effective use of LLMs to automate critical
+    steps in **red-teaming**, such as generating adversarial prompts to exploit LLMs
+    and analyzing their responses to uncover potential vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The structured process of simulating attacks on a system to uncover its vulnerabilities
+    and improve security is known as **red-teaming**. It allows organizations to strengthen
+    their defenses against real-world threats by understanding potential breaches
+    from an attacker’s perspective.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: '![](../Images/7fe0d3eb40497cdea6525577914f96cb.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: ARTKIT allows for the clever use of Generative AI (GenAI) models like LLMs as
+    part of powerful pipelines to automate testing and evaluation of GenAI systems
+    | Image used under [Apache License 2.0](https://github.com/BCG-X-Official/artkit/blob/1.0.x/LICENSE)
+  prefs: []
+  type: TYPE_NORMAL
+- en: One of ARTKIT’s standout features is its support for automated [multi-turn conversations](https://bcg-x-official.github.io/artkit/user_guide/generating_challenges/multi_turn_personas.html)
+    between an attacker system and a target system, which we will explore in this
+    article.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Given that LLM systems may struggle to maintain context and coherence over prolonged
+    chats, the ability to scale the testing of extended, multi-turn interactions is
+    crucial in identifying potential vulnerabilities.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (4) Approach Overview
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'Here is an overview of our approach to demonstrating LLM jailbreaking:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Conduct **model-based** **red-teaming**, where we use an LLM model to attack
+    a target system (i.e., Gandalf)
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Utilize ARTKIT and OpenAI’s GPT-4o to create an attacker LLM that employs password
+    extraction techniques in its adversarial prompts while engaging in multi-turn
+    conversations until the password is divulged.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: OpenAI API keys can be found on the [API key page](https://platform.openai.com/api-keys).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: (5) Step-by-Step Walkthrough
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Let’s review the steps for using ARTKIT to extract passwords in the Gandalf
+    challenge. You can find the accompanying Jupyter notebook [**here**](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge/blob/main/gandalf_challenge.ipynb).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (5.1) Install ARTKIT
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: ARTKIT can be installed via either PyPI (`pip install artkit`) or Conda (`conda
+    install -c conda-forge artkit`). For this project, I am using **version 1.0.7**.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because ARTKIT provides out-of-the-box support for popular model providers like
+    OpenAI and Anthropic, there is no need to install those packages separately.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Since we will utilize services from external model providers, it is recommended
+    to store the access keys in `.env` files and load them with `python-dotenv`. The
+    steps to do so can be found [here](https://github.com/BCG-X-Official/artkit?tab=readme-ov-file#environment-variables).
+  prefs: []
+  type: TYPE_NORMAL
+- en: (5.2) Load Dependencies
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We load the necessary dependencies and access keys:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: (5.3) Create Class to Access Gandalf
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: To facilitate interaction with the LLM behind Gandalf, we create a class called
+    `GandalfChat` to encapsulate the necessary functionality to chat with Gandalf
+    and handle message formatting and response processing.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Let’s take a closer look at the`GandalfChat` class:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`GandalfChat` inherits from ARTKIT’s `HTTPXChatConnector` class. Because Gandalf
+    serves as a custom HTTP endpoint rather than a standalone LLM object, `HTTPXChatConnector`
+    enables us to establish a seamless connection to it'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`Level` enumeration structures the difficulty levels so that they can be referenced
+    using member names like `LEVEL_01`.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`build_request_arguments` formats the request to include arguments such as
+    the difficulty level and input prompt.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`parse_httpx_response` processes the LLM output based on the HTTP response
+    object returned by the API.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`get_default_api_key_env`provides the environment variable name where the API
+    key for the chat system might be stored.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In addition to supporting custom systems like Gandalf, ARTKIT also offers pre-built
+    classes for seamless connections to popular LLM platforms like OpenAI and AWS
+    Bedrock.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This integration flexibility is another key strength of ARTKIT, enabling efficient
+    red-teaming against mainstream LLMs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Details about `*HTTPXConnector*` can be found in “Calling custom endpoints via
+    HTTP”section [of this tutorial](https://github.com/BCG-X-Official/artkit/blob/1.0.x/sphinx/source/user_guide/advanced_tutorials/creating_new_model_classes.ipynb).
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: (5.4) Instantiate Chat Model Instance for Gandalf
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We create an instance of `GandalfChat` as a model object containing the URL
+    of the Gandalf API endpoint and the desired difficulty level. In this example,
+    we will be tackling Level 4.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also utilize ARTKIT’s `CachedChatModel` as a wrapper around `GandalfChat`
+    to enable the caching of responses into an SQLite database (`gandalf_cache.db`).
+  prefs: []
+  type: TYPE_NORMAL
+- en: The advantage of storing these chat interactions is that we can minimize redundant
+    API calls for repeated queries, which in turn speeds up response time and reduces
+    costs.
+  prefs: []
+  type: TYPE_NORMAL
+- en: We also set a 10-second cutoff using `Timeout` to limit the wait time for API
+    responses, ensuring our requests do not hang indefinitely.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (5.5) Setup Attacker LLM
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: 'We use OpenAI’s GPT-4o model to jailbreak Gandalf, which we instantiate using
+    the `OpenAIChat` class designed for OpenAI LLMs:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Just as we did with the Gandalf chat object, we use `CachedChatModel` to wrap
+    the GPT-4o LLM to enable response caching.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (5.6) Define Attacker LLM Objective and System Prompts
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: With the attacker LLM ready, we proceed with prompt engineering to define the
+    objective prompt and the attacker system prompt.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Because we will use ARTKIT’s multi-turn interaction feature, we need to explicitly
+    specify a separate prompt to describe the attacker LLM’s objective (i.e., make
+    Gandalf reveal its password) so that its responses are well-guided.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The objective prompt is saved as a dictionary in a list because we can store
+    and use more than one objective for different steps in the pipeline.
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: Next, we define the system prompt that guides the attacker LLM’s strategy in
+    extracting passwords. The prompt is crafted such that the attacker LLM devises
+    indirect and creative techniques to mislead Gandalf about the true intent of the
+    inquiry, thereby bypassing its guardrails.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Notice that the system prompt contains the `{objective}` parameter in which
+    the objective prompt will be dynamically injected.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Moreover, we need to include the following two dynamic parameters for multi-turn
+    interactions to happen:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '`{max_turns}`: Maximum turns allowed for the LLM to accomplish the objective,
+    preventing it from engaging in endless conversations.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '`{success_token}`: The token to output when the LLM achieves its objective.
+    It serves as a signal to terminate the conversation early.'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: (5.7) Run Multi-Turn Interactions with Gandalf
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We are now one step away from initiating our jailbreaking attempts on Gandalf;
+    all that remains is to link the components and execute them.
+  prefs: []
+  type: TYPE_NORMAL
+- en: ARTKIT’s `run` function allows us to orchestrate the execution of a sequence
+    of steps in a processing pipeline and return the result of the executed flow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Here is a look at the parameters of `ak.run`:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The `input` parameter accepts the `objectives` variable that contains the objective
+    defined in the preceding step.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: The `steps`parameter accepts a set of steps to execute, where each step is defined
+    with the `ak.step` function. In this case, we only have one `ak.step` step to
+    run, which is to conduct multi-turn interactions between the attacker LLM (`challenger_llm`)
+    and Gandalf (`target_llm`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: In the `ak.step` function, we use `ak.multi_turn` to orchestrate multi-turn
+    conversations, thereby maintaining the context and conversation history.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We also specify the success token (`success_token`), the maximum turns (`max_turns`),
+    and the attacker LLM system prompt (`attacker_prompt`).
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Executing the code above kickstarts the multi-turn interactions aimed at breaking
+    through Gandalf’s defenses, with the output saved in `results`.
+  prefs: []
+  type: TYPE_NORMAL
+- en: (5.8) View Interaction History and Secret Password
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: After executing the jailbreak, it is time for us to review the outcome. We run
+    the following helper code to structure the conversation history and output more
+    clearly.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'And now, the moment of truth! Below is an instance of the interactions between
+    our attacker LLM and Gandalf:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Through a series of clever prompt techniques (e.g., generating riddles, extracting
+    letters), we successfully extracted the hidden password (i.e., **UNDERGROUND**)
+    despite Gandalf’s best efforts to guard it.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Spoiler: Password for every level can be found [here](https://www.lakera.ai/blog/who-is-gandalf).'
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: (6) Wrap-up
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In this article, we demonstrated how ARTKIT can be used for automated prompt-based
+    testing of LLM systems to unveil jailbreaking vulnerabilities. Leveraging LLMs’
+    capabilities for model-based red-teaming offers a powerful means to scale and
+    accelerate the testing of LLM systems.
+  prefs: []
+  type: TYPE_NORMAL
+- en: While we focused on Level 4 in this showcase, the ARTKIT setup was able to smoothly
+    overcome Levels 1 to 6\. Beyond that, human intervention became necessary, involving
+    advanced prompt engineering and parameter adjustments.
+  prefs: []
+  type: TYPE_NORMAL
+- en: This highlights the importance of combining automation with human-led red-teaming,
+    where automation saves time by identifying basic vulnerabilities, allowing humans
+    to focus on more complex risks.
+  prefs: []
+  type: TYPE_NORMAL
+- en: The integration of human oversight can be tailored to different sophistication
+    levels, ensuring a balanced and comprehensive testing approach.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Before you go
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: I welcome you to follow this [Medium](https://kennethleungty.medium.com/) page
+    and visit my [GitHub](https://github.com/kennethleungty) to stay updated with
+    more engaging and practical content. Meanwhile, have fun red-teaming LLM systems
+    with ARTKIT!
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[View this project’s GitHub Repo](https://github.com/kennethleungty/ARTKIT-Gandalf-Challenge)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Visit ARTKIT GitHub Repo](https://github.com/BCG-X-Official/artkit)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[Play Gandalf Challenge](https://gandalf.lakera.ai/)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: '[](https://levelup.gitconnected.com/inside-the-leaked-system-prompts-of-gpt-4-gemini-1-5-claude-3-and-more-4ecb3d22b447?source=post_page-----d2df5f56ece8--------------------------------)
+    [## Inside the Leaked System Prompts of GPT-4, Gemini 1.5, and Claude 3'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Unveiling prompts behind the LLMs from OpenAI, Google, and more](https://levelup.gitconnected.com/inside-the-leaked-system-prompts-of-gpt-4-gemini-1-5-claude-3-and-more-4ecb3d22b447?source=post_page-----d2df5f56ece8--------------------------------)
+    [](https://betterprogramming.pub/text-to-audio-generation-with-bark-clearly-explained-4ee300a3713a?source=post_page-----d2df5f56ece8--------------------------------)
+    [## Text-to-Audio Generation with Bark, Clearly Explained
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL
+- en: Discover capabilities of Bark, the open-source GenAI text-to-speech model](https://betterprogramming.pub/text-to-audio-generation-with-bark-clearly-explained-4ee300a3713a?source=post_page-----d2df5f56ece8--------------------------------)
+  prefs:
+  - PREF_H3
+  type: TYPE_NORMAL

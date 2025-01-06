@@ -1,0 +1,295 @@
+- en: How to Implement a Custom Training Solution Based on Amazon EC2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30](https://towardsdatascience.com/how-to-implement-a-custom-training-solution-based-on-amazon-ec2-c91fcc2b145a?source=collection_archive---------15-----------------------#2024-01-30)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: A Simple Solution for Managing Cloud-Based ML-Training — Part 2
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Chaim
+    Rand](../Images/c52659c389f167ad5d6dc139940e7955.png)](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
+    [Chaim Rand](https://chaimrand.medium.com/?source=post_page---byline--c91fcc2b145a--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--c91fcc2b145a--------------------------------)
+    ·11 min read·Jan 30, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/811d45664ed39ded00ae5b3892017d18.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Photo by [Vlad D](https://unsplash.com/@hiking_corgi?utm_source=medium&utm_medium=referral)
+    on [Unsplash](https://unsplash.com/?utm_source=medium&utm_medium=referral)
+  prefs: []
+  type: TYPE_NORMAL
+- en: This is a sequel to a [recent post](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
+    on the topic of building custom, cloud-based solutions for machine learning (ML)
+    model development using low-level instance provisioning services. Our focus in
+    this post will be on [Amazon EC2](https://aws.amazon.com/ec2/).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Cloud service providers (CSPs) typically offer fully managed solutions for training
+    ML models in the cloud. [Amazon SageMaker](https://aws.amazon.com/sagemaker/),
+    for example, Amazon’s managed service offering for ML development, simplifies
+    the process of training significantly. Not only does SageMaker automate the end-to-end
+    training execution — from auto-provisioning the requested instance types, to setting
+    up the training environment, to running your training workload, to saving the
+    training artifacts and shutting everything down — but it also offers a number
+    of auxiliary services that support ML development, such as [automatic model tuning](https://docs.aws.amazon.com/sagemaker/latest/dg/automatic-model-tuning.html),
+    [platform optimized distributed training libraries](https://docs.aws.amazon.com/sagemaker/latest/dg/distributed-training.html),
+    and more. However, as is often the case with high-level solutions, the increased
+    ease-of-use of SageMaker training is coupled with a certain level of loss of control
+    over the underlying flow.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In our [previous post](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
+    we noted some of the limitations sometimes imposed by managed training services
+    such as SageMaker, including reduced user privileges, inaccessibility of some
+    instance types, reduced control over multi-node device placement, and more. Some
+    scenarios require a higher level of autonomy over the environment specification
+    and training flow. In this post, we illustrate one approach to addressing these
+    cases by creating a custom training solution built on top of Amazon EC2.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Many thanks to [Max Rabin](https://www.linkedin.com/in/maxrabin/) for his contributions
+    to this post.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Poor Man’s Managed Training on Amazon EC2
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In our previous post we listed a minimal set of features that we would require
+    from an automated training solution and proceeded to demonstrate, in a step-by-step
+    manner, one way of implementing these in [Google Cloud Platform (GCP)](https://cloud.google.com/).
+    And although the same sequence of steps would apply to any other cloud platform,
+    the details can be quite different due to the unique nuances of each one. Our
+    intention in this post will be to propose an implementation based on Amazon EC2
+    using the [create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    command of the [AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
+    (version 1.34.23). As in our previous post, we will begin with a simple EC2 instance
+    creation command and gradually supplement it with additional components that will
+    incorporate our desired management features. The [create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    command supports many controls. For the purposes of our demonstration, we will
+    focus only on the ones that are relevant to our solution. We will assume the existence
+    of a [default VPC](https://docs.aws.amazon.com/vpc/latest/userguide/default-vpc.html)
+    and an [IAM instance profile](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html)
+    with appropriate permissions (including access to Amazon EC2, S3, and CloudWatch
+    services).
+  prefs: []
+  type: TYPE_NORMAL
+- en: Note that there are multiple ways of using Amazon EC2 to fulfill the minimal
+    set of features that we defined. We have chosen to demonstrate one possible implementation.
+    Please do not interpret our choice of AWS, EC2, or any details of the specific
+    implementation we have chosen as an endorsement. The best ML training solution
+    for you will greatly depend on the specific needs and details of your project.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 1\. Create an EC2 Instance
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: We begin with a minimal example of a single EC2 instance request. We have chosen
+    a GPU accelerated [g5.xlarge](https://aws.amazon.com/ec2/instance-types/g5/) instance
+    type and a recent [Deep Learning AMI](https://docs.aws.amazon.com/dlami/) (with
+    an Ubuntu 20.4 operating system).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE0]'
+  prefs: []
+  type: TYPE_PRE
+- en: 2\. Auto-start Training
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 'The first enhancement we would like to apply is for our training workload to
+    automatically start as soon as our instance is up and running, without any need
+    for manual intervention. Towards this goal, we will utilize the *UserData* argument
+    of the [create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    API that enables you to [specify what to run at launch](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html).
+    In the code block below, we propose a sequence of commands that sets up the training
+    environment (i.e., updates the *PATH* environment variable to point to the prebuilt
+    PyTorch environment included in our image), downloads our training code from [Amazon
+    S3](https://aws.amazon.com/s3/), installs the project dependencies, runs the training
+    script, and syncs the output artifacts to persistent S3 storage. The demonstration
+    assumes that the training code has already been created and uploaded to the cloud
+    and that it contains two files: a requirements file (*requirements.txt*) and a
+    stand-alone training script (*train.py*). In practice, the precise contents of
+    the startup sequence will depend on the project. We include a pointer to our predefined
+    IAM instance profile which is required for accessing S3.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE1]'
+  prefs: []
+  type: TYPE_PRE
+- en: Note that the script above syncs the training artifacts only at the end of training.
+    A more fault-tolerant solution would sync intermediate model checkpoints throughout
+    the training job.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 3\. Self-destruct on Completion
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: When you train using a managed service, your instances are automatically shut
+    down as soon as your script completes to ensure that you only pay for what you
+    need. In the code block below, we append a self-destruction command to the end
+    of our *UserData* script. We do this using the AWS CLI [terminate-instances](https://docs.aws.amazon.com/cli/latest/reference/ec2/terminate-instances.html)
+    command. The command requires that we know the *instance-id* and the hosting *region*
+    of our instance which we extract from the [instance metadata](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instancedata-data-retrieval.html).
+    Our updated script assumes that our IAM instance profile has appropriate instance-termination
+    authorization.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE2]'
+  prefs: []
+  type: TYPE_PRE
+- en: We highly recommend introducing additional mechanisms for verifying appropriate
+    instance deletion to avoid the possibility of having unused (“orphan”) instances
+    in the system racking up unnecessary costs. In a [recent post](https://medium.com/towards-data-science/using-server-less-functions-to-govern-and-monitor-cloud-based-training-experiments-755c43fba26b)
+    we showed how serverless functions can be used to address this kind of problem.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 4\. Apply Custom Tags to EC2 Instances
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Amazon EC2 enables you to apply custom metadata to your instance [using EC2
+    instance tags](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/Using_Tags.html).
+    This enables you to pass information to the instance regarding the training workload
+    and/or the training environment. Here, we use the *TagSpecifications* setting
+    to pass in an instance name and a unique training job id. We use the unique id
+    to define a dedicated S3 path for our job artifacts. Note that we need to explicitly
+    enable the instance to access the metadata tags via the *MetadataOptions* setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE3]'
+  prefs: []
+  type: TYPE_PRE
+- en: Using metadata tags to pass information to our instances will be particularly
+    useful in the next sections.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 5\. Write Application Logs to Persistent Storage
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Naturally, we require the ability to analyze our application’s output logs both
+    during and after training. This requires that they be periodically synced to persistent
+    logging. In this post we implement this using [Amazon CloudWatch](https://docs.aws.amazon.com/cloudwatch/).
+    Below we define a minimum JSON configuration file for enabling CloudWatch log
+    collection which we add to our source code tar-ball as *cw_config.json*. Please
+    see the official documentation for details on [CloudWatch setup and configuration](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Agent-Configuration-File-Details.html).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE4]'
+  prefs: []
+  type: TYPE_PRE
+- en: In practice, we would like the *log_stream_name* to uniquely identify the training
+    job. Towards that end, we use the [sed](https://www.gnu.org/software/sed/manual/sed.html)
+    command to replace the generic “job-id” string with the job id metadata tag from
+    the previous section. Our enhanced script also includes the CloudWatch start up
+    command and modifications for piping the standard output to the designated *output.log*
+    defined in the CloudWatch config file.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE5]'
+  prefs: []
+  type: TYPE_PRE
+- en: 6\. Support Multi-node Training
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Nowadays, it is quite common for training jobs to run on multiple nodes in parallel.
+    Modifying our instance request code to support multiple nodes is a simple matter
+    of modifying the *num_instances* setting. The challenge is how to configure the
+    environment in a manner that supports distributed training, i.e., a manner that
+    enables — and optimizes — the transfer of data between the instances.
+  prefs: []
+  type: TYPE_NORMAL
+- en: To minimize the network latency between the instances and maximize throughput,
+    we add a pointer to a predefined [cluster placement group](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/placement-groups.html#placement-groups-cluster)
+    in the *Placement* field of our ec2 instance request. The following command line
+    demonstrates the creation of a cluster placement group.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE6]'
+  prefs: []
+  type: TYPE_PRE
+- en: For our instances to communicate with one another, they need to be aware of
+    each other’s presence. In this post we will demonstrate a minimal environment
+    configuration required for running [data parallel training](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
+    in [PyTorch](https://pytorch.org/). For PyTorch [DistributedDataParallel](https://pytorch.org/docs/stable/nn.html#module-torch.nn.parallel)
+    (DDP), each instance needs to know the IP of the master node, the master port,
+    the total number of instances, and its serial *rank* amongst all of the nodes.
+    The script below demonstrates the configuration of a [data parallel training](https://pytorch.org/tutorials/intermediate/ddp_tutorial.html)
+    job using the environment variables *MASTER_ADDR*, *MASTER_PORT*, *NUM_NODES*,
+    and *NODE_RANK*.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE7]'
+  prefs: []
+  type: TYPE_PRE
+- en: The node rank can be retrieved from the [ami-launch-index](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/AMI-launch-index-examples.html).
+    The number of nodes and the master port are known at the time of [create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    invocation and can be passed in as EC2 instance tags. However, the IP address
+    of the master node is only determined once the master instance is created and
+    can only be communicated to the instances following the [create_instances](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/service-resource/create_instances.html)
+    call. In the code block below, we chose to pass the master address to each of
+    the instances using a dedicated call to the [AWS Python SDK](https://boto3.amazonaws.com/v1/documentation/api/latest/index.html)
+    [create_tags](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/ec2/client/create_tags.html)
+    API. We use the same call to update the name tag of each instance according to
+    its launch-index value.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'The full solution for multi-node training appears below:'
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE8]'
+  prefs: []
+  type: TYPE_PRE
+- en: 7\. Support Spot Instance Usage
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: A popular way of reducing training costs is to use discounted [Amazon EC2 Spot
+    Instances](https://aws.amazon.com/ec2/spot/?cards.sort-by=item.additionalFields.startDateTime&cards.sort-order=asc).
+    Utilizing Spot instances effectively requires that you implement a way of detecting
+    interruptions (e.g., by listening for [termination notices](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/spot-instance-termination-notices.html))
+    and taking the appropriate action (e.g., resuming incomplete workloads). Below,
+    we show how to modify our script to use Spot instances using the *InstanceMarketOptions*
+    API setting.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '[PRE9]'
+  prefs: []
+  type: TYPE_PRE
+- en: Please see our previous posts (e.g., [here](/a-simple-solution-for-managing-cloud-based-ml-training-c80a69c6939a)
+    and [here](/using-server-less-functions-to-govern-and-monitor-cloud-based-training-experiments-755c43fba26b))
+    for some ideas for how to implement a solution for Spot instance life-cycle management.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Summary
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: Managed cloud services for AI development can simplify model training and lower
+    the entry bar for potential incumbents. However, there are some situations where
+    greater control over the training process is required. In this post we have illustrated
+    one approach to building a customized managed training environment on top of Amazon
+    EC2\. Of course, the precise details of the solution will greatly depend on the
+    specific needs of the projects at hand.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As always, please feel free to respond to this post with comments, questions,
+    or corrections.
+  prefs: []
+  type: TYPE_NORMAL

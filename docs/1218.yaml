@@ -1,0 +1,355 @@
+- en: 'Long-form video representation learning (Part 3: Long-form egocentric video
+    representation learning)'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: 原文：[https://towardsdatascience.com/long-form-video-representation-learning-part-3-latest-and-greatest-in-long-form-video-1b6dee0f5f6e?source=collection_archive---------11-----------------------#2024-05-14](https://towardsdatascience.com/long-form-video-representation-learning-part-3-latest-and-greatest-in-long-form-video-1b6dee0f5f6e?source=collection_archive---------11-----------------------#2024-05-14)
+  prefs:
+  - PREF_BQ
+  type: TYPE_NORMAL
+- en: We explore novel video representation learning methods that are equipped with
+    long-form reasoning capability. This is Part III providing a sneak peek into our
+    latest and greatest explorations for “long-form” egocentric video representation
+    learning. See [Part I](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-1-video-as-graphs-c55b609d9100)
+    on video as a graph and is [Part II](https://medium.com/@subarna.tripathi/long-form-video-representation-learning-part-2-video-as-sparse-transformers-29fbd0ed9e71)
+    on sparse video-text transformers.
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: '[](https://medium.com/@subarna.tripathi?source=post_page---byline--1b6dee0f5f6e--------------------------------)[![Subarna
+    Tripathi](../Images/0a949764464eeef40a6d3ae0d183873f.png)](https://medium.com/@subarna.tripathi?source=post_page---byline--1b6dee0f5f6e--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--1b6dee0f5f6e--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--1b6dee0f5f6e--------------------------------)
+    [Subarna Tripathi](https://medium.com/@subarna.tripathi?source=post_page---byline--1b6dee0f5f6e--------------------------------)'
+  prefs: []
+  type: TYPE_NORMAL
+- en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--1b6dee0f5f6e--------------------------------)
+    ·8 min read·May 14, 2024
+  prefs: []
+  type: TYPE_NORMAL
+- en: --
+  prefs: []
+  type: TYPE_NORMAL
+- en: The first two blogs in this series described how different architectural motifs
+    ranging from graph neural networks to sparse transformers addressed the challenges
+    of “long-form” video representation learning. We showed how explicit graph based
+    methods can aggregate 5-10X larger temporal context, but they were two-stage methods.
+    Next, we explored how we can make memory and compute efficient end-to-end learnable
+    models based on transformers and aggregate over 2X larger temporal context.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this blog, I’ll take you to our latest and greatest explorations, especially
+    for egocentric video understanding. As you can imagine, an egocentric or first-person
+    video (captured usually by head-mounted cameras) is most likely coming from an
+    always-ON camera, meaning the videos are really really long, with a lot of irrelevant
+    visual information, specially when the camera wearer move their heads. And, this
+    happens a lot of times with head mounted cameras. A proper analysis of such first-person
+    videos can enable a detailed understanding of how humans interact with the environment,
+    how they manipulate objects, and, ultimately, what are their goals and intentions.
+    Typical applications of egocentric vision systems require algorithms able to represent
+    and process video over temporal spans that last in the order of minutes or hours.
+    Examples of such applications are action anticipation, video summarization, and
+    episodic memory retrieval.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Egocentric action scene graphs:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: '![](../Images/23d0558b28f8b7f83369cb2f3083eeb5.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 1: (Image by author) *Egocentric Action Scene Graphs are temporal dynamic
+    graphs (G(t)) capturing the action verbs (nodes in blue), direct or active objects
+    (nodes in green), and other objects (nodes in yellow) involved in the activity
+    performed by a camera wearer (the orange CW node). Edges between nodes represent
+    relationship between the verb and the objects or between object pairs. The graph
+    evolves through time providing a long-from representation of the egocentric video
+    (dashed lines). Objects of interaction are grounded with bounding boxes*'
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this joint work with University of Catania, we present Egocentric Action
+    Scene Graphs (EASGs), a new representation for long-form understanding of egocentric
+    videos. EASGs extend standard manually-annotated representations of egocentric
+    videos, such as verb-noun action labels, by providing a temporally evolving graph-based
+    description of the actions performed by the camera wearer. The description also
+    includes interacted objects, their relationships, and how actions unfold in time.
+    Through a novel annotation procedure, we extend the Ego4D dataset adding manually
+    labeled Egocentric Action Scene Graphs which offer a rich set of annotations for
+    long-from egocentric video understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'EASGs provide annotations for a video clip in the form of a dynamic graph.
+    We formalize an EASG as a time-varying directed graph G(t) = (V (t), E(t)), where
+    V (t) is the set of nodes at time t and E(t) is the set of edges between such
+    nodes (Figure 2). Each temporal realization of the graph G(t) corresponds to an
+    egocentric action spanning over a set of three frames defined as in [[Ego4D](https://openaccess.thecvf.com/content/CVPR2022/papers/Grauman_Ego4D_Around_the_World_in_3000_Hours_of_Egocentric_Video_CVPR_2022_paper.pdf)]:
+    the precondition (PRE), the point of no return (PNR) and the postcondition (POST)
+    frames. The graph G(t) is hence effectively associated to three frames: F(t) =
+    {PREₜ, PNRₜ, POSTₜ}, as shown in figure 1 below.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'Egocentric scene graph generation:'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: Figure 2 shows an example of an annotated graph in details.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/f86b56508dd81639cb80b238588b53f1.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: Image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: We obtain an initial EASG leveraging existing annotations from Ego4D, with initialization
+    and refinement procedure. e.g. we begin with adding the camera wearer node, verb
+    node and and the default action edge from camera wearer node to the verb node.
+    The annotation pipeline is shown in figure 3 below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/741dc3085e12cc53e6f1cffdc88c7b9d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: image by author
+  prefs: []
+  type: TYPE_NORMAL
+- en: Next, we do the graph refinement via inputs from 3 annotators. The validation
+    stage aggregates the data received from three annotators and ensures the quality
+    of the final annotations as shown below.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/85a017a1199a4556f35822bb4c5c2eaa.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Figure 4 (Image by author): Examples of questions (with correct answers in
+    red) asked to the annotators in the validation stage to resolve ambiguities between'
+  prefs: []
+  type: TYPE_NORMAL
+- en: the labels provided in the annotation stage.
+  prefs: []
+  type: TYPE_NORMAL
+- en: As it can be noted, the EASG dataset is unique in its labels. And, in the table
+    below you can see how this new dataset compares with other video datasets with
+    visual relations, in terms of labels and size.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/81de1def11cca0f0c1ba817ee558221d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Comparison with existing video scene graph datasets. Our Ego4D-EASG
+    dataset is the only one explicitly designed for long-form egocentric video understanding,
+    featuring egocentric videos, dynamic graphs, an average sequence length of 3.1
+    minutes and an average number of 28.3 graphs per sequence. *measured in object-relation-object
+    triplets. **intransitive + transitive verb predicates'
+  prefs: []
+  type: TYPE_NORMAL
+- en: The above video visually demonstrates one example EASG for annotation as it
+    dynamically changes as the content of the video changes.
+  prefs: []
+  type: TYPE_NORMAL
+- en: After the creation of this unique dataset, we will now describe different tasks
+    that are evaluated on this dataset. The first set of tasks is about generating
+    action scene graphs which stems from the image scene graph generation literature.
+    In other words we aim to learn EASG representations in a supervised way and measure
+    its performance in standard Recall metrics used in scene graph literature. We
+    devise baselines and compare the EASG generation performance of different baselines
+    on this dataset.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/ea0522254893e4e567c963e15017e4a9.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: (image by author) Baseline results for three EASG generation tasks (i.e. Edge
+    Cls, SG Cls, and EASG Cls) in terms of Recall@K
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Long-from understanding tasks with EASG:**'
+  prefs:
+  - PREF_H2
+  type: TYPE_NORMAL
+- en: We show the potential of the EASG representation in the downstream tasks of
+    action anticipation and activity summarization. Both tasks require to perform
+    long-form reasoning over the egocentric video, processing long video sequences
+    spanning over different time-steps. Following recent results showing the flexibility
+    of Large Language Models (LLMs) as symbolic reasoning machines, we perform these
+    experiments with LLMs accessed via the OpenAI API. The experiments aim to examine
+    the expressive power of the EASG representation and its usefulness for downstream
+    applications. We show that EASG offers an expressive way of modeling long-form
+    activities, in comparison with the gold-standard verb-noun action encoding, extensively
+    adopted in egocentric video community.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Action anticipation with EASGs:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: For the action anticipation task, we use the GPT3 text-davinci-003 model. We
+    prompt the model to predict the future action from a sequence of length T ∈ {5,
+    20}. We compare two types of representations — EASG and sequences of verb-noun
+    pairs. Below table shows the results of this experiment.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/4c45c4973e60d12c8a2fa4e038e9f73d.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Performance Comparison for the Action anticipation task'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Even short EASG sequences (T =5) tend to outperform long V-N sequences (T =
+    20), highlighting the higher representation power of EASG, when compared to standard
+    verb-noun representations. EASG representations achieve the best results for long
+    sequences (T = 20).
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Long-form activity summarization with EASGs:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: 'We select a subset of 147 Ego4D-EASG clips containing human-annotated summaries
+    describing the activities performed within the clip in 1–2 sentences from Ego4D.
+    We construct three types of input sequences: sequences of graphs S-EASG = [G(1),
+    G(2), …, G(Tmax)], sequences of verb-noun pairs svn = [s-vn(1), s-vn(2), …, s-vn(Tmax)],
+    and sequences of original Ego4D narrations, matched with the EASG sequence. This
+    last input is reported for reference, as we expect summarization from narrations
+    to bring the best performance, given the natural bias of language models towards
+    this representation.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: Results reported in the below table indicate strong improvement in CIDEr score
+    over the sequence of verb-noun inputs, showing that models which process EASG
+    inputs capturing detailed object action relationships, will generate more specific,
+    informative sentences that align well with reference descriptions.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/0a1c6d4d80fc0fb45487d2a43b89d225.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Results of activity summarization with EASGs and verb-noun
+    representations'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We believe that these contributions mark a step forward in long-form egocentric
+    video understanding.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Highlights:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We introduce Egocentric Action Scene Graphs, a novel representation for long-form
+    understanding of egocentric videos;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We extend Ego4D with manually annotated EASG labels, which are gathered through
+    a novel annotation procedure;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We propose a EASG generation baseline and provide initial baseline results;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: We present experiments that highlight the effectiveness of the EASG representation
+    for long-form egocentric video understanding. We will release the dataset and
+    the code to replicate data annotation and the
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: experiments;
+  prefs:
+  - PREF_IND
+  type: TYPE_NORMAL
+- en: We will present this work at **CVPR 2024**, next month.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Paper: [https://arxiv.org/abs/2312.03391](https://arxiv.org/abs/2312.03391)
+    and Code: [https://github.com/fpv-iplab/EASG](https://github.com/fpv-iplab/EASG)'
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: 'Temporal grounding for episodic tasks:'
+  prefs:
+  - PREF_H1
+  type: TYPE_NORMAL
+- en: In recent years, egocentric video-language pre-training (VLP) has been adopted
+    significantly in academia and in industry. A line of works such as [EgoVLP](https://github.com/showlab/EgoVLP/blob/main/README.md),
+    [EgoVLPv2](https://shramanpramanick.github.io/EgoVLPv2/) learn transferable spatial-temporal
+    representations from large-scale video-text datasets. Recently, [LaViLa](https://facebookresearch.github.io/LaViLa/)
+    showed that VLP can benefit from the dense narrations generated by Large Language
+    Models (LLMs). However, all such methods do hit the memory and compute bottleneck
+    while processing video sequences, each consisting of a small number of frames
+    (e.g. 8 or 16 frame models), leading to limited temporal context aggregation capability.
+    On the contrary, our model, called **LAVITI**, is equipped with long-form reasoning
+    capability (**1,000** frames vs 16 frames) and is not limited to a small number
+    of input frames.
+  prefs: []
+  type: TYPE_NORMAL
+- en: In this ongoing work, we devised a novel approach to learning language, video,
+    and ***temporal representations*** in long-form videos via contrastive learning.
+    Unlike existing methods, this new approach aims to align language, video, and
+    temporal features by extracting meaningful moments in **untrimmed** videos by
+    formulating it as a direct set prediction problem. LAVITI outperforms existing
+    state-of-the-art methods by a significant margin on egocentric action recognition,
+    yet is trainable on memory and compute-bound systems. Our method can be trained
+    on the Ego4D dataset with only 8 NVIDIA RTX-3090 GPUs in a day.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '![](../Images/cafb9f150d4a0d6617a9f5261cc8c744.png)'
+  prefs: []
+  type: TYPE_IMG
+- en: 'Image by author: Performance on CharadesEgo. Our approach achieves significant
+    gains in both zero-shot and fine-tuned settings. ZS and FT stand for zero-shot
+    and finetuning, respectively.'
+  prefs: []
+  type: TYPE_NORMAL
+- en: As our model is capable of long-form video understanding with explicit temporal
+    alignment, the Ego4D Natural Language Query (NLQ) task is a natural fit with the
+    pre-training targets. We can directly predict intervals which are aligned with
+    language query given a video; therefore, LAVITI can
+  prefs: []
+  type: TYPE_NORMAL
+- en: perform the NLQ task under the zero-shot setting (without modifications of the
+    architecture and re-training on NLQ annotations).
+  prefs: []
+  type: TYPE_NORMAL
+- en: In the near future, we plan on assessing its potential to learn improved representations
+    for episodic memory tasks including NLQ and Moment Query (MQ). To summarize, we
+    are leveraging existing foundation models (essentially “short-term”) for creating
+    “long-form” reasoning module aiming at 20X-50X larger context aggregation.
+  prefs: []
+  type: TYPE_NORMAL
+- en: '**Highlights:**'
+  prefs: []
+  type: TYPE_NORMAL
+- en: We devised exciting new ways for egocentric video understanding. Our contributions
+    are manifold.
+  prefs: []
+  type: TYPE_NORMAL
+- en: Pre-training objective aligns language, video, and *temporal features* jointly
+    by extracting meaningful moments in **untrimmed** videos;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: formulating the video, language and temporal alignment as a direct set prediction
+    problem;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: enabling long-form reasoning over potentially ***thousands of frames*** of a
+    video in a memory-compute efficient way;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: demonstrating the efficacy of LAVITI by its superior performance on CharadesEgo
+    action recognition;
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Enabling zero-shot natural language query (NLQ) task without needing to train
+    additional subnetworks or NLQ annotations.
+  prefs:
+  - PREF_UL
+  type: TYPE_NORMAL
+- en: Watch out for more exciting results with this new paradigm of “long-form” video
+    representation learning!
+  prefs: []
+  type: TYPE_NORMAL
