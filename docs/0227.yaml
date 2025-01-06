@@ -1,112 +1,166 @@
 - en: Understanding Ghost Attention in LLaMa 2
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 理解LLaMa 2中的幽灵注意力
 - en: 原文：[https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23](https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23](https://towardsdatascience.com/understanding-ghost-attention-in-llama-2-dba624901586?source=collection_archive---------7-----------------------#2024-01-23)
 - en: This blog post explains the Ghost Attention method of fine-tuning introduced
     in the LLaMa 2 paper.
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 本文解释了LLaMa 2论文中介绍的幽灵注意力微调方法。
 - en: '[](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[![Matthew
     Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)
     [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[![Matthew
+    Gunton](../Images/6f5a9530ad5252aa3f2fae87b3f272b1.png)](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)
+    [Matthew Gunton](https://medium.com/@mgunton7?source=post_page---byline--dba624901586--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)
     ·6 min read·Jan 23, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发布于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--dba624901586--------------------------------)
+    ·阅读时间6分钟·2024年1月23日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: '![](../Images/92079d14f31ee22d6208bf88a6085700.png)'
+  id: totrans-6
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/92079d14f31ee22d6208bf88a6085700.png)'
 - en: DALL-E generated image of a ghost llama
+  id: totrans-7
   prefs: []
   type: TYPE_NORMAL
+  zh: DALL-E生成的幽灵骆驼图像
 - en: The Problem
+  id: totrans-8
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 问题
 - en: Often times, we want the LLM to be given an instruction once and then follow
     it until told otherwise. Nevertheless, as the below example shows LLMs can quickly
     forget instructions after a few turns of dialogue.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 很多时候，我们希望LLM在接收到指令后能够一直遵循，直到另有指示。然而，如下面的例子所示，LLM在几轮对话后可能会迅速忘记指令。
 - en: '![](../Images/c6567cf2486a8f3ad6430d77dd67300b.png)'
+  id: totrans-10
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/c6567cf2486a8f3ad6430d77dd67300b.png)'
 - en: Figure 9 from [the LLaMa 2 paper](https://arxiv.org/pdf/2307.09288.pdf) illustrating
     how instructions can be ignored after a few turns of dialogue
+  id: totrans-11
   prefs: []
   type: TYPE_NORMAL
+  zh: '[LLaMa 2论文](https://arxiv.org/pdf/2307.09288.pdf)中的图9，展示了在几轮对话后指令是如何被忽略的'
 - en: One way to get the model to pay attention consistently is appending the instruction
     to each user message. While this will work, it comes at the cost of more tokens
     put into the context, thus limiting how many turns of dialogue your LLM can have.
     How do we get around this? By fine tuning! Ghost Attention is meant to let the
     LLM follow instructions for more turns of dialogue.
+  id: totrans-12
   prefs: []
   type: TYPE_NORMAL
+  zh: 让模型持续关注的一种方法是将指令附加到每个用户消息中。虽然这样可以有效，但也带来了更多的tokens进入上下文，从而限制了你的LLM可以进行的对话轮次。我们如何绕过这个问题？通过微调！幽灵注意力旨在让LLM在更多对话轮次中遵循指令。
 - en: Methodology Summary
+  id: totrans-13
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 方法论总结
 - en: Let’s start by imagining our dialogues as a data array. We have a user message,
     followed by an assistant message, and the two go back and forth. When the last
     item in our array is a user message, then we would expect the LLM to generate
     a message as the assistant.
+  id: totrans-14
   prefs: []
   type: TYPE_NORMAL
+  zh: 让我们从将对话想象成一个数据数组开始。我们有一个用户消息，接着是一个助手消息，然后两者交替进行。当数据数组中的最后一项是用户消息时，我们期望LLM生成一条助手消息。
 - en: Importantly, we make sure the instruction does not appear in any of the user
     messages except the first, as in the real world this is likely the only time a
     user would organically introduce instructions.
+  id: totrans-15
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是，我们确保指令只出现在第一次的用户消息中，因为在现实世界中，这可能是用户唯一一次自然地引入指令。
 - en: '![](../Images/a3b52797085918892ba91dd8e5f6d763.png)'
+  id: totrans-16
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a3b52797085918892ba91dd8e5f6d763.png)'
 - en: 'Image by the Author: The data array showing alternating user and assistant
     messages'
+  id: totrans-17
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图像：展示交替的用户和助手消息的数据数组
 - en: Also in our setup is a Reinforcement Learning Human Feedback (RLHF) model that
     we can sample from and know what a good response to the prompt would look like.
+  id: totrans-18
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的设置中，还有一个强化学习人类反馈（RLHF）模型，我们可以从中进行采样，并知道对提示的良好响应是什么样的。
 - en: With our sample and dialogue, we perform rejection sampling — asking the LLM
     to generate an arbitrary number of different responses and then scoring them with
     the RLHF model. We save the response that ranks the highest and use all of these
     highest quality responses to fine tune the model.
+  id: totrans-19
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我们的样本和对话中，我们执行拒绝采样——让 LLM 生成任意数量的不同响应，然后使用 RLHF 模型对它们进行评分。我们保存排名最高的响应，并使用这些最高质量的响应来微调模型。
 - en: '![](../Images/a9043cfe3b7e5fe6290874cb1d6f6723.png)'
+  id: totrans-20
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/a9043cfe3b7e5fe6290874cb1d6f6723.png)'
 - en: 'Image by the Author: A diagram showing how we create the fine-tuning data that
     will enable our model to focus on the instruction for multiple turns of dialogue'
+  id: totrans-21
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图片：一张图示，展示了我们如何创建微调数据，以使模型能够在多轮对话中专注于指令。
 - en: When we fine-tune with our dialogue and best sample, we set the loss to zero
     for all tokens generated in previous dialogue turns. As far as I can tell, this
     was done as the researchers noted this improved performance.
+  id: totrans-22
   prefs: []
   type: TYPE_NORMAL
+  zh: 当我们使用我们的对话和最佳样本进行微调时，我们将之前对话轮次中生成的所有标记的损失设置为零。据我了解，这是因为研究人员注意到这样可以提高性能。
 - en: It is worth calling out that while Ghost Attention will interact with the self-attention
     mechanism used for Transformer models, Ghost Attention is not itself a replacement
     for self-attention, rather a way to give the self-attention mechanism better data
     so it will remember instructions given early on over longer contexts.
+  id: totrans-23
   prefs: []
   type: TYPE_NORMAL
+  zh: 值得指出的是，虽然幽灵注意力将与用于 Transformer 模型的自注意力机制进行交互，但幽灵注意力本身并不是自注意力的替代品，而是一种方法，用于为自注意力机制提供更好的数据，以便它能在较长的上下文中记住早期给出的指令。
 - en: Generating Instructions
+  id: totrans-24
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 生成指令
 - en: 'The LLaMa 2 paper highlights three specific types of instructions that they
     tested this with: (1) acting as a public figure, (2) speaking in a certain language,
     and (3) enjoying specific hobbies. As the set of possible public figures and hobbies
@@ -119,22 +173,33 @@
     any limits to the types of instructions that could be given, so presumably it
     is up to us to test what types of instructions work best on models fine-tuned
     via ghost attention.'
+  id: totrans-25
   prefs: []
   type: TYPE_NORMAL
+  zh: LLaMa 2 论文重点介绍了他们测试的三种特定类型的指令：（1）扮演公共人物，（2）使用特定语言进行交流，以及（3）享受特定爱好。由于可能的公共人物和爱好的范围很广，他们希望避免给大型语言模型（LLM）输入一个在训练数据中没有出现的爱好或人物。为了解决这个问题，他们让
+    LLM 生成它会被指示去扮演的爱好和公共人物的列表；如果它生成了该主题，那么它更有可能了解相关内容，从而减少产生幻觉的可能性。为了进一步改进数据，他们会尽量使指令简洁明了。文中没有讨论可以给出指令的类型是否有限制，因此可以推测，测试哪些类型的指令在通过幽灵注意力微调的模型上效果最好，取决于我们自己。
 - en: Results
+  id: totrans-26
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结果
 - en: So what are the effects of this new method on the LLM?
+  id: totrans-27
   prefs: []
   type: TYPE_NORMAL
+  zh: 那么，这种新方法对 LLM 的影响是什么呢？
 - en: '![](../Images/880996860c94ab89e19cb9e590717415.png)'
+  id: totrans-28
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/880996860c94ab89e19cb9e590717415.png)'
 - en: '[Figure 28 from the LLaMa 2 paper](https://arxiv.org/pdf/2307.09288.pdf) showing
     the results of Ghost Attention on new instructions'
+  id: totrans-29
   prefs: []
   type: TYPE_NORMAL
+  zh: '[LLaMa 2 论文中的图 28](https://arxiv.org/pdf/2307.09288.pdf)，展示了幽灵注意力对新指令的效果。'
 - en: In the paper, they attach the above image showing how the model reacts to instructions
     not found in its fine-tuning data set. On the left, they test the instruction
     of “always answer with Haiku”, and on the right they test the instruction of suggest
@@ -143,20 +208,28 @@
     the general format in each response. The architecture one is especially interesting
     to me, as you can see the model appropriately does not bring this up in the first
     message when it is not relevant but does bring it up later.
+  id: totrans-30
   prefs: []
   type: TYPE_NORMAL
+  zh: 在论文中，他们附上了上面的图片，展示了模型如何对那些在其微调数据集中找不到的指令做出反应。左边是测试“始终以俳句回答”这一指令，右边是测试“在可能的情况下建议与建筑相关的活动”这一指令。虽然随着进展，俳句回答似乎漏掉了一些音节，但毫无疑问，模型在每次回答时都尽力保持一般格式。建筑相关的指令特别有趣，因为你可以看到模型在第一次消息中并未提及这一点，因为当时它并不相关，但后来却提出了这一话题。
 - en: Try this for yourself on lmsys.org’s llama-2 interface. You can see that while
     it is not as perfect as the screen captures in the paper, it still is far better
     than the LLaMa 1 versions
+  id: totrans-31
   prefs: []
   type: TYPE_NORMAL
+  zh: 你可以在lmsys.org的llama-2界面上亲自试试。你会发现，虽然它不像论文中的屏幕截图那样完美，但仍然比LLaMa 1版本好得多。
 - en: '![](../Images/56397c860ace11b97085e57e4c320492.png)'
+  id: totrans-32
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/56397c860ace11b97085e57e4c320492.png)'
 - en: 'Image by the author: a screen capture of llama-2–70b-chat model on chat.lmsys.org
     following the “respond in emojis” instruction'
+  id: totrans-33
   prefs: []
   type: TYPE_NORMAL
+  zh: 作者提供的图像：在chat.lmsys.org上截取的llama-2–70b-chat模型屏幕截图，展示了“用表情符号回应”的指令
 - en: Importantly, we also see that this methodology has an impact on the attention
     of the model. Below is a heat map graph of the attention given to each token by
     the model. The left and bottom side of the graph show tokens that are being put
@@ -167,15 +240,22 @@
     darker the color is here, the more attention being paid to those tokens. We can
     see that the ‘Act as Oscar Wilde’ tokens get progressively darker as we generate
     more tokens, suggesting they get paid more and more attention.
+  id: totrans-34
   prefs: []
   type: TYPE_NORMAL
+  zh: 重要的是，我们还看到这种方法对模型的注意力产生了影响。下图是模型对每个标记（token）所给予的注意力的热力图。图表的左侧和底部展示了输入到模型中的标记。我们看不到图表的右上部分，因为那部分生成的是剩余的内容，因此超出当前标记的部分对模型来说是不可见的。随着我们生成更多文本，可以看到更多标记变得可用。热力图通过较深的颜色表示更高的值，因此这里颜色越深，表示对这些标记的注意力越强。我们可以看到，“Act
+    as Oscar Wilde”这些标记随着更多标记的生成，变得越来越深，表明它们得到了越来越多的关注。
 - en: '![](../Images/06756787026f40bb4afdb6b2d321f0a7.png)'
+  id: totrans-35
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/06756787026f40bb4afdb6b2d321f0a7.png)'
 - en: '[Figure 10 from the LLaMa2 Paper](https://arxiv.org/pdf/2307.09288.pdf) showing
     a heat map of attention before and after Ghost Attention was applied'
+  id: totrans-36
   prefs: []
   type: TYPE_NORMAL
+  zh: '[LLaMa2论文中的图10](https://arxiv.org/pdf/2307.09288.pdf)，展示了在应用Ghost Attention前后注意力的热力图'
 - en: The paper tells us that after more than 20 turns, the context is often filled,
     causing issues with the attention. Interestingly, the graph they provide in the
     appendix also shows that as they kept fine-tuning the model the score assigned
@@ -185,47 +265,71 @@
     were using to train the model. If the second, then it’s possible that with more
     training data you could go through even more batches before seeing the score decrease.
     Either way, there may be diminishing returns to fine-tuning via Ghost Attention.
+  id: totrans-37
   prefs: []
   type: TYPE_NORMAL
+  zh: 论文告诉我们，在超过20轮之后，语境往往会被填充，从而导致注意力问题。有趣的是，他们在附录中提供的图表也显示，随着他们不断微调模型，RLHF模型分配给它的分数不断下降。若能进一步探讨这个现象，可能是因为指令变得更长了，每一批次的复杂度增加，还是与他们用来训练模型的数据的某些限制有关。如果是后者，那么随着更多训练数据的加入，你可能会经历更多批次，才会看到分数下降。无论如何，利用Ghost
+    Attention进行微调可能会出现边际效益递减的情况。
 - en: '![](../Images/70291ed31a98a5d7b502fdd9ddd24b2f.png)'
+  id: totrans-38
   prefs: []
   type: TYPE_IMG
+  zh: '![](../Images/70291ed31a98a5d7b502fdd9ddd24b2f.png)'
 - en: '[Figure 26 from the LLaMa 2 paper](https://arxiv.org/pdf/2307.09288.pdf) showing
     how the reward model scored prompt samples after each batch'
+  id: totrans-39
   prefs: []
   type: TYPE_NORMAL
+  zh: '[LLaMa 2论文中的图26](https://arxiv.org/pdf/2307.09288.pdf)，展示了奖励模型在每个批次后如何对提示样本进行评分'
 - en: Closing Thoughts
+  id: totrans-40
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: 结束语
 - en: In closing, the LLaMa2 paper introduced many interesting training techniques
     for LLMs. As the field has had ground-breaking research published seemingly every
     day, there are some interesting questions that arise when we look back at this
     critical paper and Ghost Attention in particular.
+  id: totrans-41
   prefs: []
   type: TYPE_NORMAL
+  zh: 总的来说，LLaMa2论文介绍了许多有趣的训练技巧，尤其是在大型语言模型(LLM)的领域内。随着这个领域每天都有突破性的研究成果发布，回顾这篇关键论文和Ghost
+    Attention，提出了一些有趣的问题。
 - en: As Ghost Attention is one way to fine-tune a model using the Proximal Policy
     Optimization (PPO) technique, one critical question is how this method fares when
     we use Direct Preference Optimization(DPO). DPO does not require a separate RLHF
     model to be trained and then sampled from to generate good fine-tuning data, so
     the loss set in Ghost Attention may simply become unnecessary, potentially greatly
     improving the results from the technique.
+  id: totrans-42
   prefs: []
   type: TYPE_NORMAL
+  zh: 由于Ghost Attention是一种使用近端策略优化（PPO）技术来微调模型的方法，关键问题之一是当我们使用直接偏好优化（DPO）时，这种方法的表现如何。DPO不需要训练单独的RLHF模型然后进行采样以生成良好的微调数据，因此Ghost
+    Attention中设置的损失可能变得不必要，从而可能大大提升该技术的效果。
 - en: As LLMs are used for more consumer applications, the need to keep the LLM focused
     on instructions will only increase. Ghost Attention shows great promise for training
     an LLM to maintain its focus through multiple turns of dialogue. Time will tell
     just how far into a conversation the LLM can maintain its attention on the instruction.
+  id: totrans-43
   prefs: []
   type: TYPE_NORMAL
+  zh: 随着大型语言模型（LLMs）在更多消费应用中的使用，保持LLM专注于指令的需求只会增加。Ghost Attention在训练LLM通过多轮对话保持专注方面表现出了极大的潜力。时间将证明LLM在对话中能保持多长时间对指令的关注。
 - en: Thanks for reading!
+  id: totrans-44
   prefs: []
   type: TYPE_NORMAL
+  zh: 感谢阅读！
 - en: '[1] H. Touvron, et al., [Llama 2: Open Foundation and Fine-Tuned Chat Models
     (2023)](https://arxiv.org/abs/2307.09288), arXiv'
+  id: totrans-45
   prefs: []
   type: TYPE_NORMAL
+  zh: '[1] H. Touvron等人，[Llama 2: Open Foundation and Fine-Tuned Chat Models (2023)](https://arxiv.org/abs/2307.09288)，arXiv'
 - en: '[2] R. Rafailov, et al., [Direct Preference Optimization: Your Language Model
     is Secretly a Reward Model (2023)](https://arxiv.org/abs/2305.18290), arXiv'
+  id: totrans-46
   prefs: []
   type: TYPE_NORMAL
+  zh: '[2] R. Rafailov等人，[Direct Preference Optimization: Your Language Model is Secretly
+    a Reward Model (2023)](https://arxiv.org/abs/2305.18290)，arXiv'
