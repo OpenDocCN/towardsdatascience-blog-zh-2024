@@ -1,54 +1,82 @@
 - en: 'Apple M2 Max GPU vs Nvidia V100 (Part 2): Big Models and Energy Efficiency'
+  id: totrans-0
   prefs:
   - PREF_H1
   type: TYPE_NORMAL
+  zh: Apple M2 Max GPU vs Nvidia V100（第二部分）：大模型与能效
 - en: 原文：[https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07](https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07)
+  id: totrans-1
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: 原文：[https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07](https://towardsdatascience.com/apple-m2-max-gpu-vs-nvidia-v100-part-2-big-models-and-energy-efficiency-3377000472d2?source=collection_archive---------0-----------------------#2024-02-07)
 - en: Compare Apple Silicon M2 Max GPU performances and energy efficiency to Nvidia
     V100 for training CNN big models with TensorFlow
+  id: totrans-2
   prefs:
   - PREF_H2
   type: TYPE_NORMAL
+  zh: 比较 Apple Silicon M2 Max GPU 在训练大规模 CNN 模型时的性能和能效，并与 Nvidia V100 进行对比。
 - en: '[](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[![Fabrice
     Daniel](../Images/c13598211944934b5565fad97f152700.png)](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)[![Towards
     Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)
     [Fabrice Daniel](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)'
+  id: totrans-3
   prefs: []
   type: TYPE_NORMAL
+  zh: '[](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[![Fabrice
+    Daniel](../Images/c13598211944934b5565fad97f152700.png)](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)[![Towards
+    Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)
+    [Fabrice Daniel](https://fabrice-daniel.medium.com/?source=post_page---byline--3377000472d2--------------------------------)'
 - en: ·Published in [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)
     ·16 min read·Feb 7, 2024
+  id: totrans-4
   prefs: []
   type: TYPE_NORMAL
+  zh: ·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--3377000472d2--------------------------------)
+    ·阅读时间16分钟·2024年2月7日
 - en: --
+  id: totrans-5
   prefs: []
   type: TYPE_NORMAL
+  zh: --
 - en: 'In my [**previous article**](https://medium.com/towards-data-science/apple-m2-max-gpu-vs-nvidia-v100-p100-and-t4-8b0d18d08894),
     I compared M2 Max GPU with Nvidia V100, P100, and T4 on MLP, CNN, and LSTM training.
     The results show that M2 Max can perform very well, exceeding Nvidia GPUs on small
     model training. But as stated in the article:'
+  id: totrans-6
   prefs: []
   type: TYPE_NORMAL
+  zh: 在我的 [**上一篇文章**](https://medium.com/towards-data-science/apple-m2-max-gpu-vs-nvidia-v100-p100-and-t4-8b0d18d08894)
+    中，我将 M2 Max GPU 与 Nvidia V100、P100 和 T4 在 MLP、CNN 和 LSTM 训练中的表现进行了比较。结果显示，M2 Max
+    在小型模型训练中表现非常好，甚至超过了 Nvidia GPU。但是，正如文章中所述：
 - en: '[…] these metrics can only be considered for similar neural network types and
     depths as used in this test.'
+  id: totrans-7
   prefs:
   - PREF_BQ
   type: TYPE_NORMAL
+  zh: '[…] 这些指标只能用于与本次测试中使用的神经网络类型和深度相似的情况。'
 - en: 'So this second part tests bigger models, focusing on CNN only and comparing
     M2 Max with the most powerful GPU previously tested: the Nvidia V100.'
+  id: totrans-8
   prefs: []
   type: TYPE_NORMAL
+  zh: 因此，第二部分测试了更大的模型，专注于仅 CNN，并将 M2 Max 与之前测试过的最强 GPU：Nvidia V100 进行了比较。
 - en: Another point considered in this test is **memory management**. While the Nvidia
     GPU is losing a lot of time in memory transfer, the M2 Max GPU has direct access
     to the unified memory, so it doesn’t require any delay before training the model.
     Since, as the results shown in the previous article, this makes a big difference
     for small models trained on a small number of epochs, we remove this effect for
     bigger models to compare the pure training time only.
+  id: totrans-9
   prefs: []
   type: TYPE_NORMAL
+  zh: 另一个在本次测试中考虑的因素是**内存管理**。虽然 Nvidia GPU 在内存传输上浪费了大量时间，M2 Max GPU 由于可以直接访问统一内存，因此在训练模型之前无需任何延迟。由于正如上一篇文章中所示，这对在少量周期上训练的小型模型有很大影响，因此为了比较纯粹的训练时间，我们去除了这一影响，并测试了更大的模型。
 - en: For this purpose, we train models on ten epochs, but instead of using the total
     training time, we capture and average the step’s training duration from the second
     epoch to the last one. This removes the initialization and memory transfer overhead…
+  id: totrans-10
   prefs: []
   type: TYPE_NORMAL
+  zh: 为此，我们对模型进行十个周期的训练，但不是使用总的训练时间，而是从第二个周期到最后一个周期，捕捉并平均每步的训练时长。这样可以去除初始化和内存传输的开销……
