@@ -1,0 +1,15 @@
+# 使用PyTorch实现高效的大维度自组织映射
+
+> 原文：[https://towardsdatascience.com/efficient-large-dimensional-self-organising-maps-with-pytorch-8f5c2b4c66e2?source=collection_archive---------4-----------------------#2024-12-13](https://towardsdatascience.com/efficient-large-dimensional-self-organising-maps-with-pytorch-8f5c2b4c66e2?source=collection_archive---------4-----------------------#2024-12-13)
+
+## 因为自组织是有趣的
+
+[](https://medium.com/@mathieu.daquin.x?source=post_page---byline--8f5c2b4c66e2--------------------------------)[![Mathieu d'Aquin](../Images/b91a2457db6910010311758d21e2794a.png)](https://medium.com/@mathieu.daquin.x?source=post_page---byline--8f5c2b4c66e2--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--8f5c2b4c66e2--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--8f5c2b4c66e2--------------------------------) [Mathieu d'Aquin](https://medium.com/@mathieu.daquin.x?source=post_page---byline--8f5c2b4c66e2--------------------------------)
+
+·发表于[Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--8f5c2b4c66e2--------------------------------) ·5分钟阅读·2024年12月13日
+
+--
+
+[自组织映射](https://en.wikipedia.org/wiki/Self-organizing_map)（或称Kohonen映射）是一种有趣的神经网络类型：它们的架构与传统神经网络不同，训练方式也与通常的[反向传播](https://en.wikipedia.org/wiki/Backpropagation)方法完全不同。这样做是有充分理由的：它们是为[无监督学习](https://en.wikipedia.org/wiki/Unsupervised_learning)设计的。它们对于常见的多层神经网络就像K-Means对SVM一样。它们用于创建聚类；将数据空间离散化。但是，它们与其他聚类方法不同的地方在于：它们创建的聚类形成了数据的地图（聚类的网格），地图中各个聚类之间的距离代表了这些聚类在数据空间中成员之间的平均距离。
+
+由于自组织映射（SOM）稍显特殊，相比其他神经网络形式，关于创建高效自组织映射实现的工作并不多，特别是在使它们能够在GPU上处理高维数据方面（即它们通常用于特征不超过几十个的数据）。遗憾的是，这正是我在[项目](https://arxiv.org/abs/2312.05864)中所需要的：快速的SOM训练，处理成千上万特征的数据。我尝试过现有的库，包括基于PyTorch的库，但并不完全满意，因此我自己做了一个：[ksom](https://pypi.org/project/ksom/)（说实话也是因为做这件事很有趣，特别是作为提高PyTorch使用技能的一种方式）。

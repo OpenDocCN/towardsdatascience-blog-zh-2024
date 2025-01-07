@@ -1,0 +1,59 @@
+# 你的人工智能模型并非客观
+
+> 原文：[https://towardsdatascience.com/your-ai-model-is-not-objective-aaaf92d47f05?source=collection_archive---------13-----------------------#2024-06-28](https://towardsdatascience.com/your-ai-model-is-not-objective-aaaf92d47f05?source=collection_archive---------13-----------------------#2024-06-28)
+
+## 观点
+
+## 在这里我们探讨人工智能模型中的主观性问题，以及你为何应该关注这个问题
+
+[](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)[![Paul Hiemstra](../Images/233823df2f4bf81ca07059dd17783ce3.png)](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------) [Paul Hiemstra](https://medium.com/@p.h.hiemstra?source=post_page---byline--aaaf92d47f05--------------------------------)
+
+·发表于 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--aaaf92d47f05--------------------------------) ·阅读时间 4分钟·2024年6月28日
+
+--
+
+最近我参加了一个会议，会议的一张幻灯片让我印象深刻。幻灯片提到，他们正在开发一个人工智能模型来取代人类决策，并且该模型被称为“客观的”，与人类决策形成对比。经过一段时间的思考，我强烈反对这个说法，因为我觉得这会让我们与为其创建这些模型的人群产生隔阂，这反过来又限制了我们能够产生的影响。
+
+在这篇观点文章中，我想解释我与人工智能和客观性之间的分歧来源，以及为何“客观性”的关注会对那些希望在现实世界产生影响的人工智能研究者构成问题。这反映了我最近通过研究得出的见解，解释了为什么许多人工智能模型未能有效实施。
+
+![](../Images/b652f4070d04dec86fa2fa0723bcd7fc.png)
+
+图片由 [Vlad Hilitanu](https://unsplash.com/@vladhilitanu?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash) 提供，来源于 [Unsplash](https://unsplash.com/photos/people-holding-miniature-figures-1FI2QAYPa-Y?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash)
+
+# 数学如何与现实相接触
+
+为了阐明我的观点，我们需要对“客观性”到底是什么意思达成一致。在这篇文章中，我使用以下 [*客观性*](https://www.merriam-webster.com/dictionary/objective) 的定义：
+
+> 表达或处理事实或条件时，应以未经过个人情感、偏见或解读的方式感知，无任何扭曲
+
+对我来说，这一定义揭示了我对数学深深喜爱的一个方面：在数学系统的范围内，我们可以客观地推理出真相是什么，事物是如何运作的。这对我有很大的吸引力，因为我发现社交互动和情感非常具有挑战性。我觉得，如果我足够努力，我可以理解数学问题，而现实世界则显得更加令人畏惧。
+
+由于机器学习和人工智能是基于数学（主要是代数）构建的，因此很容易将这种客观性延伸到这个领域。我确实认为，作为一个数学系统，机器学习可以被视为客观的。如果我降低学习率，我们应该能从数学上预测这对最终人工智能的影响。然而，随着我们的机器学习模型变得越来越大且更多是“黑箱”，配置它们已经越来越成为一门艺术而非科学。如何提升模型性能的直觉可能是人工智能研究人员的一种强大工具。这听起来非常接近“个人的感受、偏见或解释”。
+
+但主观性真正体现的地方是在人工智能模型与现实世界的互动中。一个模型可以预测患者患癌症的概率，但如何与实际的医疗决策和治疗相互作用，却包含了大量的情感和解释。治疗对患者的影响是什么？治疗是否值得？患者的心理状态如何？他们能承受治疗吗？
+
+但主观性并不仅仅体现在人工智能模型结果应用于现实世界时。在构建和配置模型的过程中，我们需要做出许多与现实相互作用的选择：
+
++   我们应当将哪些数据包含在模型中，哪些不包含？我们决定哪些患者是异常值？
+
++   我们应该使用哪种指标来评估我们的模型？这如何影响我们最终创建的模型？哪种指标能引导我们走向现实世界的解决方案？有没有一个指标能做到这一点？
+
++   我们定义的实际问题是什么，我们的模型应该解决什么？这将影响我们在人工智能模型配置方面的决策。
+
+因此，当现实世界与人工智能模型互动时，主观性就会大量介入。这不仅适用于我们做出的技术选择，也适用于模型结果与现实世界互动的方式。
+
+# 那么，为什么这很重要呢？
+
+根据我的经验，将人工智能模型应用于现实世界的一个关键限制因素是与利益相关者的密切合作。无论是医生、员工、伦理学家、法律专家还是消费者。这种缺乏合作的情况部分源于我在许多人工智能研究人员中看到的孤立倾向。他们专注于自己的模型，从互联网和论文中吸收知识，并尽力创建最好的人工智能模型。但他们专注于模型的技术层面，沉浸在他们的数学泡沫中。
+
+我觉得，认为AI模型是客观的信念使得AI研究人员确信这种孤立主义是可以接受的，模型的客观性意味着它可以应用于现实世界。但现实世界充满了“情感、偏见和解读”，使得影响这个现实世界的AI模型也会与这些“情感、偏见和解读”产生互动。如果我们想要创建一个在现实世界中产生影响的模型，就需要融入现实世界的主观性。这需要围绕你的AI研究建立一个强大的利益相关者社区，探讨、交流和辩论所有这些“情感、偏见和解读”。这要求我们AI研究人员走出自我设限的数学壳。
+
+*注意*: 如果你想了解更多关于以更加整体和协作的方式进行研究的内容，我强烈推荐Tineke Abma的研究作品，例如[这篇论文](https://onlinelibrary.wiley.com/doi/10.1002/ev.31)。
+
+如果你喜欢这篇文章，你可能也会喜欢我其他的一些文章：
+
++   [一系列关于教AI机器人玩井字棋的文章](https://towardsdatascience.com/tagged/rl-series-paul)
+
++   [Altair图表解构：可视化天气数据的相关性结构](/altair-plot-deconstruction-visualizing-the-correlation-structure-of-weather-data-38fb5668c5b1)
+
++   [数据科学中的高级函数编程：使用函数操作符构建代码架构](/advanced-functional-programming-for-data-science-building-code-architectures-with-function-dd989cc3b0da)

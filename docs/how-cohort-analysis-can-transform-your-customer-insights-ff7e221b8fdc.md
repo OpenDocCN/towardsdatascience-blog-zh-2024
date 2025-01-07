@@ -1,0 +1,21 @@
+# 如何通过群体分析改变您的客户洞察
+
+> 原文：[https://towardsdatascience.com/how-cohort-analysis-can-transform-your-customer-insights-ff7e221b8fdc?source=collection_archive---------7-----------------------#2024-09-25](https://towardsdatascience.com/how-cohort-analysis-can-transform-your-customer-insights-ff7e221b8fdc?source=collection_archive---------7-----------------------#2024-09-25)
+
+## 了解如何通过群体分析追踪客户行为，从而改善您的业务的客户参与和留存策略
+
+[](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)[![Shirley Bao, Ph.D.](../Images/4582ea321345d0f6e2eecc194bab457f.png)](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)[](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------)[![Towards Data Science](../Images/a6ff2676ffcc0c7aad8aaf1d79379785.png)](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------) [Shirley Bao, Ph.D.](https://medium.com/@baoxinli?source=post_page---byline--ff7e221b8fdc--------------------------------)
+
+· 发表在 [Towards Data Science](https://towardsdatascience.com/?source=post_page---byline--ff7e221b8fdc--------------------------------) · 6分钟阅读 · 2024年9月25日
+
+--
+
+![](../Images/74e2f8226e951894bc19a6b1a9ae51b2.png)
+
+图片由 [Clker-Free-Vector-Images](https://pixabay.com/users/clker-free-vector-images-3736/?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=36929) 提供，来源于 [Pixabay](https://pixabay.com//?utm_source=link-attribution&utm_medium=referral&utm_campaign=image&utm_content=36929)
+
+尽管进行了几个月的营销努力，您的销售额仍在下降，客户参与度也在下滑。到底出了什么问题？如果有一种方法，能够精确地找出您的客户何时以及为何失去兴趣，您该怎么办？群体分析可能正是您所需要的工具。它可以帮助识别哪些客户群体推动了这种下降，以及他们在何时失去兴趣。与其将您的客户群体视为一个整体，群体分析让您能够追踪特定群体的行为变化。这是深入理解客户参与度和留存度的关键，并能够在问题变得更糟之前，做出有据可依的决策来解决这些问题。
+
+# 为什么群体分析超越了细分
+
+[客户细分](https://medium.com/towards-data-science/unlocking-business-potential-through-effective-customer-segmentation-da37c40c3a5b)是将您的受众分解为更有意义群体的第一步。然而，尽管细分有助于基于共同特征对客户进行分类，但它只提供了一个静态视角。群体分析通过引入时间视角，将细分提升到一个新层次。您可以将细分看作是…
